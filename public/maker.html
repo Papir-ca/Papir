@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Magic Card Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <!-- REMOVED Supabase CDN - We use our own backend now! -->
     <style>
         * {
             margin: 0;
@@ -568,6 +568,80 @@
             background: rgba(255, 65, 108, 0.3);
         }
         
+        /* QR Code Styles */
+        .qr-code-img {
+            width: 250px;
+            height: 250px;
+            border: 10px solid white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        .qr-success {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .qr-success i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .share-url-container {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .share-url-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #f9f9f9;
+        }
+        
+        .copy-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+        
+        .phone-test-btn {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        
+        .phone-test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
+        }
+        
         @media (max-width: 768px) {
             .card-creator {
                 flex-direction: column;
@@ -602,6 +676,15 @@
             header {
                 padding-top: 60px;
             }
+            
+            .qr-code-img {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .share-url-container {
+                flex-direction: column;
+            }
         }
         
         .loading {
@@ -623,9 +706,9 @@
 <body>
     <div class="container">
         <!-- Navigation & Status -->
-        <div class="sync-status offline" id="syncStatus">
-            <i class="fas fa-cloud-slash"></i>
-            <span>Offline Mode</span>
+        <div class="sync-status" id="syncStatus">
+            <i class="fas fa-check-circle"></i>
+            <span>Connected to Backend</span>
         </div>
         
         <a href="viewer.html" class="scanner-nav-button">
@@ -634,7 +717,7 @@
         
         <header>
             <h1><i class="fas fa-magic"></i> Create Magic Card</h1>
-            <p>Design magical AR cards with text, images, videos, or audio. Create your card, preview it, and save it to your collection.</p>
+            <p>Design magical AR cards with text. Your cards are saved securely through our backend API.</p>
         </header>
         
         <div class="card-creator">
@@ -685,63 +768,12 @@
                     </div>
                 </div>
                 
-                <!-- Media Upload Containers -->
                 <div class="form-group">
-                    <div id="imageUploadContainer" class="media-upload-container">
-                        <label>Upload Image:</label>
-                        <div class="upload-area" id="imageUploadArea">
-                            <i class="fas fa-image"></i>
-                            <div class="upload-text">Click to upload image</div>
-                            <div class="upload-subtext">Supports JPG, PNG, GIF, WebP (Max 5MB)</div>
-                            <input type="file" id="imageFile" class="file-input" accept="image/*">
-                        </div>
-                        <div id="imagePreview" class="file-preview">
-                            <!-- Image preview will be inserted here -->
-                        </div>
-                        <div id="imageUploadProgress" class="upload-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="imageProgressFill"></div>
-                            </div>
-                            <div class="progress-text" id="imageProgressText">0%</div>
-                        </div>
-                    </div>
-                    
-                    <div id="videoUploadContainer" class="media-upload-container">
-                        <label>Upload Video:</label>
-                        <div class="upload-area" id="videoUploadArea">
-                            <i class="fas fa-video"></i>
-                            <div class="upload-text">Click to upload video</div>
-                            <div class="upload-subtext">Supports MP4, WebM, MOV (Max 50MB)</div>
-                            <input type="file" id="videoFile" class="file-input" accept="video/*">
-                        </div>
-                        <div id="videoPreview" class="file-preview">
-                            <!-- Video preview will be inserted here -->
-                        </div>
-                        <div id="videoUploadProgress" class="upload-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="videoProgressFill"></div>
-                            </div>
-                            <div class="progress-text" id="videoProgressText">0%</div>
-                        </div>
-                    </div>
-                    
-                    <div id="audioUploadContainer" class="media-upload-container">
-                        <label>Upload Audio:</label>
-                        <div class="upload-area" id="audioUploadArea">
-                            <i class="fas fa-music"></i>
-                            <div class="upload-text">Click to upload audio</div>
-                            <div class="upload-subtext">Supports MP3, WAV, OGG (Max 10MB)</div>
-                            <input type="file" id="audioFile" class="file-input" accept="audio/*">
-                        </div>
-                        <div id="audioPreview" class="file-preview">
-                            <!-- Audio preview will be inserted here -->
-                        </div>
-                        <div id="audioUploadProgress" class="upload-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="audioProgressFill"></div>
-                            </div>
-                            <div class="progress-text" id="audioProgressText">0%</div>
-                        </div>
+                    <div style="background-color: #f0f8ff; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> Media upload (image/video/audio) is temporarily disabled. 
+                            Only text messages are supported at the moment.
+                        </p>
                     </div>
                 </div>
                 
@@ -750,7 +782,7 @@
                         <i class="fas fa-bolt"></i> Generate Card
                     </button>
                     <button class="btn btn-success" id="saveBtn">
-                        <i class="fas fa-save"></i> Save to Cloud
+                        <i class="fas fa-save"></i> Save to Database
                     </button>
                     <button class="btn btn-secondary" id="testBtn">
                         <i class="fas fa-play"></i> Test Card
@@ -778,19 +810,60 @@
             </div>
         </div>
         
+        <!-- QR Code Display Section -->
+        <div class="card-list" id="qrCodeSection" style="display: none;">
+            <div class="section-title">
+                <i class="fas fa-qrcode"></i> Your Card's QR Code
+            </div>
+            <p>Scan this QR code with any phone camera to view your card!</p>
+            
+            <div style="text-align: center; padding: 30px;">
+                <div id="qrCodeContainer" style="margin: 0 auto; max-width: 300px;">
+                    <!-- QR code will appear here -->
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="color: #2d4cc7; margin-bottom: 10px;">Share Your Card:</h4>
+                        <div class="share-url-container">
+                            <input type="text" id="shareableUrl" class="share-url-input" readonly>
+                            <button class="copy-btn" onclick="copyShareUrl()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #666;">
+                            <i class="fas fa-mobile-alt"></i> Works on any smartphone - no app needed!
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="phone-test-btn" onclick="testOnPhone()">
+                            <i class="fas fa-mobile-alt"></i> Test on Phone
+                        </button>
+                        <button class="btn btn-secondary" onclick="hideQRCode()" style="min-width: 150px;">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                        <button class="btn btn-success" onclick="printQRCode()" style="min-width: 150px;">
+                            <i class="fas fa-print"></i> Print QR Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Card List Section -->
         <div class="card-list">
             <div class="section-title">
-                <i class="fas fa-list"></i> Saved Cards (Cloud)
+                <i class="fas fa-list"></i> Saved Cards (Database)
             </div>
-            <p>Cards saved to Supabase database. Click "View" to load, "Delete" to remove from cloud.</p>
+            <p>Cards saved to your secure backend database. Click "View" to load, "Delete" to remove.</p>
             
             <table class="cards-table">
                 <thead>
                     <tr>
                         <th>Card ID</th>
                         <th>Content Type</th>
-                        <th>Message/Media</th>
+                        <th>Message</th>
                         <th>Created</th>
                         <th>Actions</th>
                     </tr>
@@ -799,7 +872,7 @@
                     <tr class="empty-row">
                         <td colspan="5">
                             <div class="loading" style="margin-right: 10px;"></div>
-                            Loading cards from cloud...
+                            Loading cards from database...
                         </td>
                     </tr>
                 </tbody>
@@ -814,366 +887,57 @@
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Supabase configuration
-            const SUPABASE_URL = 'https://elmhkhvryjzljxskbfps.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw';
+            // Backend API configuration - YOUR SERVER!
+            const BACKEND_URL = 'http://localhost:3000'; // Your backend server
+            let isConnected = false;
+            let currentQRCodeData = null;
             
-            // Global variables
-            let supabase = null;
-            let currentMediaFile = null;
-            let currentMediaType = null;
-            let uploadedMediaUrl = null;
-            let uploadedFileName = null;
-            let localPreviewUrl = null; // For local preview before upload
-            
-            // Get DOM elements safely
-            function getElements() {
-                return {
-                    cardIdInput: document.getElementById('cardId'),
-                    contentTypeRadios: document.querySelectorAll('input[name="contentType"]'),
-                    messageInput: document.getElementById('message'),
-                    generateBtn: document.getElementById('generateBtn'),
-                    saveBtn: document.getElementById('saveBtn'),
-                    testBtn: document.getElementById('testBtn'),
-                    cardPreview: document.getElementById('cardPreview'),
-                    cardsTableBody: document.getElementById('cardsTableBody'),
-                    notification: document.getElementById('notification'),
-                    syncStatus: document.getElementById('syncStatus'),
-                    
-                    // Media upload elements
-                    imageUploadContainer: document.getElementById('imageUploadContainer'),
-                    videoUploadContainer: document.getElementById('videoUploadContainer'),
-                    audioUploadContainer: document.getElementById('audioUploadContainer'),
-                    
-                    imageUploadArea: document.getElementById('imageUploadArea'),
-                    videoUploadArea: document.getElementById('videoUploadArea'),
-                    audioUploadArea: document.getElementById('audioUploadArea'),
-                    
-                    imageFile: document.getElementById('imageFile'),
-                    videoFile: document.getElementById('videoFile'),
-                    audioFile: document.getElementById('audioFile'),
-                    
-                    imagePreview: document.getElementById('imagePreview'),
-                    videoPreview: document.getElementById('videoPreview'),
-                    audioPreview: document.getElementById('audioPreview'),
-                    
-                    imageUploadProgress: document.getElementById('imageUploadProgress'),
-                    videoUploadProgress: document.getElementById('videoUploadProgress'),
-                    audioUploadProgress: document.getElementById('audioUploadProgress'),
-                    
-                    imageProgressFill: document.getElementById('imageProgressFill'),
-                    videoProgressFill: document.getElementById('videoProgressFill'),
-                    audioProgressFill: document.getElementById('audioProgressFill'),
-                    
-                    imageProgressText: document.getElementById('imageProgressText'),
-                    videoProgressText: document.getElementById('videoProgressText'),
-                    audioProgressText: document.getElementById('audioProgressText')
-                };
-            }
-            
-            let elements = {};
+            // Get DOM elements
+            const elements = {
+                cardIdInput: document.getElementById('cardId'),
+                contentTypeRadios: document.querySelectorAll('input[name="contentType"]'),
+                messageInput: document.getElementById('message'),
+                generateBtn: document.getElementById('generateBtn'),
+                saveBtn: document.getElementById('saveBtn'),
+                testBtn: document.getElementById('testBtn'),
+                cardPreview: document.getElementById('cardPreview'),
+                cardsTableBody: document.getElementById('cardsTableBody'),
+                notification: document.getElementById('notification'),
+                syncStatus: document.getElementById('syncStatus'),
+                qrCodeSection: document.getElementById('qrCodeSection'),
+                qrCodeContainer: document.getElementById('qrCodeContainer'),
+                shareableUrl: document.getElementById('shareableUrl')
+            };
             
             // Show notification
             function showNotification(message, type = 'success') {
-                if (!elements.notification) return;
-                
                 elements.notification.textContent = message;
                 elements.notification.className = `notification ${type}`;
                 elements.notification.classList.add('show');
                 
                 setTimeout(() => {
-                    if (elements.notification) {
-                        elements.notification.classList.remove('show');
-                    }
+                    elements.notification.classList.remove('show');
                 }, 3000);
             }
             
             // Update sync status
             function updateSyncStatus(connected) {
-                if (!elements.syncStatus) return;
-                
                 if (connected) {
                     elements.syncStatus.className = 'sync-status online';
-                    elements.syncStatus.innerHTML = '<i class="fas fa-cloud"></i><span>Connected to Cloud</span>';
+                    elements.syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Backend</span>';
+                    isConnected = true;
                 } else {
                     elements.syncStatus.className = 'sync-status offline';
-                    elements.syncStatus.innerHTML = '<i class="fas fa-cloud-slash"></i><span>Offline Mode</span>';
+                    elements.syncStatus.innerHTML = '<i class="fas fa-times-circle"></i><span>Backend Unavailable</span>';
+                    isConnected = false;
                 }
             }
             
-            // Show/hide media upload sections based on content type
-            function updateMediaUploadVisibility() {
-                const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'text';
-                
-                // Hide all media containers
-                if (elements.imageUploadContainer) elements.imageUploadContainer.classList.remove('active');
-                if (elements.videoUploadContainer) elements.videoUploadContainer.classList.remove('active');
-                if (elements.audioUploadContainer) elements.audioUploadContainer.classList.remove('active');
-                
-                // Show text message container for text type
-                const textContainer = document.getElementById('textMessageContainer');
-                if (textContainer) {
-                    textContainer.style.display = contentType === 'text' ? 'block' : 'none';
-                }
-                
-                // Show the appropriate media container
-                switch(contentType) {
-                    case 'image':
-                        if (elements.imageUploadContainer) elements.imageUploadContainer.classList.add('active');
-                        break;
-                    case 'video':
-                        if (elements.videoUploadContainer) elements.videoUploadContainer.classList.add('active');
-                        break;
-                    case 'audio':
-                        if (elements.audioUploadContainer) elements.audioUploadContainer.classList.add('active');
-                        break;
-                }
-            }
-            
-            // Handle file selection
-            function setupFileUploads() {
-                // Image upload
-                if (elements.imageUploadArea && elements.imageFile) {
-                    elements.imageUploadArea.addEventListener('click', () => elements.imageFile.click());
-                    elements.imageFile.addEventListener('change', (e) => handleFileSelect(e, 'image'));
-                }
-                
-                // Video upload
-                if (elements.videoUploadArea && elements.videoFile) {
-                    elements.videoUploadArea.addEventListener('click', () => elements.videoFile.click());
-                    elements.videoFile.addEventListener('change', (e) => handleFileSelect(e, 'video'));
-                }
-                
-                // Audio upload
-                if (elements.audioUploadArea && elements.audioFile) {
-                    elements.audioUploadArea.addEventListener('click', () => elements.audioFile.click());
-                    elements.audioFile.addEventListener('change', (e) => handleFileSelect(e, 'audio'));
-                }
-            }
-            
-            // Handle file selection
-            function handleFileSelect(event, type) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                // Check file size
-                const maxSize = type === 'image' ? 5 * 1024 * 1024 : 
-                               type === 'video' ? 50 * 1024 * 1024 : 
-                               10 * 1024 * 1024;
-                
-                if (file.size > maxSize) {
-                    showNotification(`File too large. Max size: ${maxSize/(1024*1024)}MB`, 'error');
-                    return;
-                }
-                
-                currentMediaFile = file;
-                currentMediaType = type;
-                uploadedMediaUrl = null;
-                uploadedFileName = file.name;
-                
-                // Create local preview URL
-                if (localPreviewUrl) {
-                    URL.revokeObjectURL(localPreviewUrl); // Clean up previous preview
-                }
-                localPreviewUrl = URL.createObjectURL(file);
-                
-                // Show preview in upload area
-                showFilePreview(file, type);
-                
-                // Update main card preview
-                generatePreview();
-                
-                // Show notification
-                showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} selected: ${file.name}`, 'info');
-            }
-            
-            // Show file preview in upload area
-            function showFilePreview(file, type) {
-                let previewContainer;
-                let previewHTML = '';
-                
-                switch(type) {
-                    case 'image':
-                        previewContainer = elements.imagePreview;
-                        previewHTML = `
-                            <img src="${localPreviewUrl}" alt="Preview" class="preview-image">
-                            <div class="preview-filename">${file.name}</div>
-                            <button type="button" class="remove-media-btn" onclick="app.removeMedia('${type}')">
-                                <i class="fas fa-times"></i> Remove ${type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        `;
-                        break;
-                        
-                    case 'video':
-                        previewContainer = elements.videoPreview;
-                        previewHTML = `
-                            <video controls class="preview-video">
-                                <source src="${localPreviewUrl}" type="${file.type}">
-                                Your browser does not support the video tag.
-                            </video>
-                            <div class="preview-filename">${file.name}</div>
-                            <button type="button" class="remove-media-btn" onclick="app.removeMedia('${type}')">
-                                <i class="fas fa-times"></i> Remove ${type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        `;
-                        break;
-                        
-                    case 'audio':
-                        previewContainer = elements.audioPreview;
-                        previewHTML = `
-                            <audio controls class="preview-audio">
-                                <source src="${localPreviewUrl}" type="${file.type}">
-                                Your browser does not support the audio tag.
-                            </audio>
-                            <div class="preview-filename">${file.name}</div>
-                            <button type="button" class="remove-media-btn" onclick="app.removeMedia('${type}')">
-                                <i class="fas fa-times"></i> Remove ${type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        `;
-                        break;
-                }
-                
-                if (previewContainer) {
-                    previewContainer.innerHTML = previewHTML;
-                    previewContainer.classList.add('active');
-                }
-            }
-            
-            // Remove media file
-            function removeMedia(mediaType) {
-                // Clean up local preview URL
-                if (localPreviewUrl) {
-                    URL.revokeObjectURL(localPreviewUrl);
-                    localPreviewUrl = null;
-                }
-                
-                currentMediaFile = null;
-                currentMediaType = null;
-                uploadedMediaUrl = null;
-                uploadedFileName = null;
-                
-                // Clear file input
-                switch(mediaType) {
-                    case 'image':
-                        if (elements.imageFile) elements.imageFile.value = '';
-                        if (elements.imagePreview) {
-                            elements.imagePreview.innerHTML = '';
-                            elements.imagePreview.classList.remove('active');
-                        }
-                        break;
-                    case 'video':
-                        if (elements.videoFile) elements.videoFile.value = '';
-                        if (elements.videoPreview) {
-                            elements.videoPreview.innerHTML = '';
-                            elements.videoPreview.classList.remove('active');
-                        }
-                        break;
-                    case 'audio':
-                        if (elements.audioFile) elements.audioFile.value = '';
-                        if (elements.audioPreview) {
-                            elements.audioPreview.innerHTML = '';
-                            elements.audioPreview.classList.remove('active');
-                        }
-                        break;
-                }
-                
-                showNotification(`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} removed`, 'info');
-                generatePreview();
-            }
-            
-            // Upload file to Supabase Storage with progress tracking
-            async function uploadFileToStorage() {
-                if (!currentMediaFile || !supabase) {
-                    return null;
-                }
-                
-                try {
-                    // Show upload progress
-                    const progressContainer = elements[`${currentMediaType}UploadProgress`];
-                    const progressFill = elements[`${currentMediaType}ProgressFill`];
-                    const progressText = elements[`${currentMediaType}ProgressText`];
-                    
-                    if (progressContainer) progressContainer.classList.add('active');
-                    
-                    // Generate unique filename with card ID
-                    const cardId = elements.cardIdInput.value.trim();
-                    const fullCardId = `CARD${cardId}`;
-                    const fileExt = currentMediaFile.name.split('.').pop().toLowerCase();
-                    const timestamp = Date.now();
-                    const randomString = Math.random().toString(36).substring(2, 15);
-                    const fileName = `${fullCardId}_${timestamp}_${randomString}.${fileExt}`;
-                    const filePath = fileName; // Store at root of bucket
-                    
-                    console.log('Uploading to Supabase Storage:', {
-                        bucket: 'cards-media',
-                        path: filePath,
-                        fileType: currentMediaFile.type,
-                        fileSize: currentMediaFile.size
-                    });
-                    
-                    // Upload to Supabase Storage
-                    const { data, error } = await supabase.storage
-                        .from('cards-media')
-                        .upload(filePath, currentMediaFile, {
-                            cacheControl: '3600',
-                            upsert: false
-                        });
-                    
-                    if (error) {
-                        console.error('Storage upload error:', error);
-                        throw error;
-                    }
-                    
-                    console.log('Upload successful:', data);
-                    
-                    // Get public URL
-                    const { data: urlData } = supabase.storage
-                        .from('cards-media')
-                        .getPublicUrl(filePath);
-                    
-                    console.log('Public URL:', urlData);
-                    
-                    uploadedMediaUrl = urlData.publicUrl;
-                    uploadedFileName = currentMediaFile.name;
-                    
-                    // Update progress to 100%
-                    if (progressFill) progressFill.style.width = '100%';
-                    if (progressText) progressText.textContent = '100%';
-                    
-                    // Hide progress after delay
-                    setTimeout(() => {
-                        if (progressContainer) progressContainer.classList.remove('active');
-                        if (progressFill) progressFill.style.width = '0%';
-                        if (progressText) progressText.textContent = '0%';
-                    }, 1000);
-                    
-                    return urlData.publicUrl;
-                    
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    
-                    // Hide progress
-                    const progressContainer = elements[`${currentMediaType}UploadProgress`];
-                    if (progressContainer) {
-                        progressContainer.classList.remove('active');
-                        const progressFill = elements[`${currentMediaType}ProgressFill`];
-                        const progressText = elements[`${currentMediaType}ProgressText`];
-                        if (progressFill) progressFill.style.width = '0%';
-                        if (progressText) progressText.textContent = '0%';
-                    }
-                    
-                    showNotification(`Upload failed: ${error.message}`, 'error');
-                    return null;
-                }
-            }
-            
-            // Generate card preview with media
+            // Generate card preview
             function generatePreview() {
-                if (!elements.cardIdInput) return null;
-                
                 const cardId = elements.cardIdInput.value.trim();
                 const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'text';
-                const message = elements.messageInput ? elements.messageInput.value.trim() : '';
+                const message = elements.messageInput.value.trim();
                 
                 // Validate card ID
                 if (!cardId) {
@@ -1188,613 +952,345 @@
                 
                 const fullCardId = `CARD${cardId}`;
                 
-                // Generate preview based on content type
-                let previewHTML = '';
-                let typeDisplay = '';
+                // Generate preview
+                let typeDisplay = contentType.charAt(0).toUpperCase() + contentType.slice(1) + ' Message';
                 
-                switch(contentType) {
-                    case 'text':
-                        previewHTML = `
-                            <div class="card-id-display">${fullCardId}</div>
-                            <div class="text-content">${message || 'Your text message will appear here'}</div>
-                        `;
-                        typeDisplay = 'Text Message';
-                        break;
-                        
-                    case 'image':
-                        // Check what to show in preview
-                        let imageContent = '';
-                        if (localPreviewUrl) {
-                            // Show local preview
-                            imageContent = `<img src="${localPreviewUrl}" alt="Image Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 10px 0;">`;
-                        } else if (uploadedMediaUrl) {
-                            // Show uploaded image
-                            imageContent = `<img src="${uploadedMediaUrl}" alt="Image" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 10px 0;">`;
-                        } else {
-                            // Show icon if no image
-                            imageContent = `<div style="font-size: 3rem; margin: 20px 0; color: #6a11cb;">
-                                <i class="fas fa-image"></i>
-                            </div>`;
-                        }
-                        
-                        previewHTML = `
-                            <div class="card-id-display">${fullCardId}</div>
-                            ${imageContent}
-                            <div class="text-content">${message || 'Image Card'}</div>
-                        `;
-                        typeDisplay = 'Image';
-                        break;
-                        
-                    case 'video':
-                        let videoContent = '';
-                        if (localPreviewUrl) {
-                            videoContent = `<video controls style="max-width: 100%; max-height: 150px; border-radius: 8px; margin: 10px 0;">
-                                <source src="${localPreviewUrl}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>`;
-                        } else if (uploadedMediaUrl) {
-                            videoContent = `<video controls style="max-width: 100%; max-height: 150px; border-radius: 8px; margin: 10px 0;">
-                                <source src="${uploadedMediaUrl}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>`;
-                        } else {
-                            videoContent = `<div style="font-size: 3rem; margin: 20px 0; color: #6a11cb;">
-                                <i class="fas fa-video"></i>
-                            </div>`;
-                        }
-                        
-                        previewHTML = `
-                            <div class="card-id-display">${fullCardId}</div>
-                            ${videoContent}
-                            <div class="text-content">${message || 'Video Card'}</div>
-                        `;
-                        typeDisplay = 'Video';
-                        break;
-                        
-                    case 'audio':
-                        let audioContent = '';
-                        if (localPreviewUrl) {
-                            audioContent = `<audio controls style="width: 100%; margin: 10px 0;">
-                                <source src="${localPreviewUrl}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>`;
-                        } else if (uploadedMediaUrl) {
-                            audioContent = `<audio controls style="width: 100%; margin: 10px 0;">
-                                <source src="${uploadedMediaUrl}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>`;
-                        } else {
-                            audioContent = `<div style="font-size: 3rem; margin: 20px 0; color: #6a11cb;">
-                                <i class="fas fa-music"></i>
-                            </div>`;
-                        }
-                        
-                        previewHTML = `
-                            <div class="card-id-display">${fullCardId}</div>
-                            ${audioContent}
-                            <div class="text-content">${message || 'Audio Card'}</div>
-                        `;
-                        typeDisplay = 'Audio';
-                        break;
-                }
-                
-                previewHTML += `<div class="content-type-display">${typeDisplay}</div>`;
-                
-                // Update the preview
-                if (elements.cardPreview) {
-                    elements.cardPreview.innerHTML = previewHTML;
-                }
+                elements.cardPreview.innerHTML = `
+                    <div class="card-id-display">${fullCardId}</div>
+                    <div class="text-content">${message || 'Your text message will appear here'}</div>
+                    <div class="content-type-display">${typeDisplay}</div>
+                `;
                 
                 // Return card data for saving
                 return {
                     card_id: fullCardId,
-                    message_type: contentType, // Use raw type for now
+                    message_type: contentType,
                     message_text: message,
-                    media_url: uploadedMediaUrl || null,
-                    file_name: uploadedFileName || null,
                     status: 'active'
                 };
             }
             
-            // Initialize Supabase
-            async function initSupabase() {
+            // Show QR code after successful save
+            function showQRCode(qrCodeUrl, viewerUrl, cardData) {
+                // Build QR code HTML
+                elements.qrCodeContainer.innerHTML = `
+                    <div class="qr-success">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Card Created Successfully!</h3>
+                        <p>Card ID: <strong>${cardData.card_id}</strong></p>
+                        <p>Type: <strong>${cardData.message_type}</strong></p>
+                    </div>
+                    <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
+                    <p style="color: #666; margin-bottom: 20px;">Scan with phone camera</p>
+                `;
+                
+                // Set shareable URL
+                elements.shareableUrl.value = viewerUrl;
+                
+                // Store current QR code data
+                currentQRCodeData = {
+                    qrCodeUrl: qrCodeUrl,
+                    viewerUrl: viewerUrl,
+                    cardData: cardData
+                };
+                
+                // Show the section
+                elements.qrCodeSection.style.display = 'block';
+                
+                // Scroll to QR code
+                setTimeout(() => {
+                    elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+                
+                // Show notification
+                showNotification('QR code generated! Scan it with your phone.', 'success');
+            }
+            
+            // Hide QR code section
+            function hideQRCode() {
+                elements.qrCodeSection.style.display = 'none';
+            }
+            
+            // Copy share URL to clipboard
+            function copyShareUrl() {
+                const shareableUrl = elements.shareableUrl;
+                shareableUrl.select();
+                shareableUrl.setSelectionRange(0, 99999);
+                
                 try {
-                    // Check if Supabase is loaded
-                    if (window.supabase && window.supabase.createClient) {
-                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                        console.log('Supabase initialized successfully');
-                        return true;
+                    navigator.clipboard.writeText(shareableUrl.value);
+                    showNotification('URL copied to clipboard!', 'success');
+                } catch (err) {
+                    // Fallback for older browsers
+                    document.execCommand('copy');
+                    showNotification('URL copied!', 'success');
+                }
+            }
+            
+            // Test on phone instructions
+            function testOnPhone() {
+                const url = elements.shareableUrl.value;
+                const message = `Test your card on your phone:\n\n1. Open this URL on your phone:\n${url}\n\n2. Or scan the QR code with your phone camera\n\n3. The card will display instantly!`;
+                alert(message);
+            }
+            
+            // Print QR code
+            function printQRCode() {
+                if (!currentQRCodeData) {
+                    showNotification('No QR code to print', 'error');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Print QR Code - ${currentQRCodeData.cardData.card_id}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                            h1 { color: #333; }
+                            .qr-code { width: 300px; height: 300px; margin: 20px auto; }
+                            .info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
+                            @media print { button { display: none; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Magic Card QR Code</h1>
+                        <div class="info">
+                            <p><strong>Card ID:</strong> ${currentQRCodeData.cardData.card_id}</p>
+                            <p><strong>Type:</strong> ${currentQRCodeData.cardData.message_type}</p>
+                            <p><strong>URL:</strong> ${currentQRCodeData.viewerUrl}</p>
+                        </div>
+                        <img src="${currentQRCodeData.qrCodeUrl}" alt="QR Code" class="qr-code">
+                        <p>Scan this QR code with any smartphone camera</p>
+                        <p><small>Generated by Magic Card Business</small></p>
+                        <br>
+                        <button onclick="window.print()">Print QR Code</button>
+                        <button onclick="window.close()">Close</button>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            }
+            
+            // Save card to backend
+            async function saveCardToBackend(cardData) {
+                try {
+                    if (!isConnected) {
+                        showNotification('Backend server not connected. Make sure your server is running (npm start)', 'error');
+                        return { success: false, error: 'Backend unavailable' };
+                    }
+                    
+                    // Save button loading state
+                    const saveBtnText = elements.saveBtn.innerHTML;
+                    elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
+                    elements.saveBtn.disabled = true;
+                    
+                    // Send to backend
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(cardData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    // Reset button
+                    elements.saveBtn.innerHTML = saveBtnText;
+                    elements.saveBtn.disabled = false;
+                    
+                    if (result.success) {
+                        showNotification(`Card ${cardData.card_id} saved successfully!`, 'success');
+                        await loadCardsFromBackend(); // Refresh list
+                        
+                        // Show QR code with ngrok URL (for phone scanning)
+                        if (result.urls && result.urls.viewer) {
+                            showQRCode(result.urls.qrCode, result.urls.viewer, cardData);
+                        }
+                        
+                        return { success: true, data: result.card };
                     } else {
-                        console.error('Supabase library not loaded properly');
-                        return false;
+                        showNotification(`Failed to save: ${result.error}`, 'error');
+                        return { success: false, error: result.error };
                     }
+                    
                 } catch (error) {
-                    console.error('Error initializing Supabase:', error);
-                    return false;
+                    console.error('Save error:', error);
+                    
+                    // Reset button
+                    elements.saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                    elements.saveBtn.disabled = false;
+                    
+                    showNotification('Cannot connect to backend server. Is it running? (npm start)', 'error');
+                    return { success: false, error: error.message };
                 }
             }
             
-            // Save card to Supabase
-            async function saveCardToSupabase(cardData) {
+            // Load cards from backend
+            async function loadCardsFromBackend() {
                 try {
-                    if (!supabase || typeof supabase.from !== 'function') {
-                        throw new Error('Supabase client not properly initialized');
-                    }
-                    
-                    // Upload media file if exists and not already uploaded
-                    if (currentMediaFile && !uploadedMediaUrl) {
-                        showNotification(`Uploading ${currentMediaType} file...`, 'info');
-                        const mediaUrl = await uploadFileToStorage();
-                        if (mediaUrl) {
-                            cardData.media_url = mediaUrl;
-                            cardData.file_name = uploadedFileName;
-                        } else {
-                            throw new Error('Failed to upload media file');
-                        }
-                    }
-                    
-                    // Convert message_type to display format for database
-                    let messageTypeDisplay = 'Text Message';
-                    switch(cardData.message_type) {
-                        case 'image': messageTypeDisplay = 'Image Message'; break;
-                        case 'video': messageTypeDisplay = 'Video Message'; break;
-                        case 'audio': messageTypeDisplay = 'Audio Message'; break;
-                        default: messageTypeDisplay = 'Text Message';
-                    }
-                    
-                    // Prepare card data for Supabase
-                    const supabaseCardData = {
-                        card_id: cardData.card_id,
-                        message_type: messageTypeDisplay,
-                        message_text: cardData.message_text || '',
-                        media_url: cardData.media_url || null,
-                        file_name: cardData.file_name || null,
-                        status: 'active',
-                        created_at: new Date().toISOString()
-                    };
-                    
-                    console.log('Saving card to Supabase:', supabaseCardData);
-                    
-                    // Try to insert the card
-                    const { data, error } = await supabase
-                        .from('cards')
-                        .insert([supabaseCardData])
-                        .select();
-                    
-                    if (error) {
-                        console.log('Insert error, trying update:', error);
-                        
-                        // If card exists, update it
-                        const { error: updateError } = await supabase
-                            .from('cards')
-                            .update({
-                                message_type: messageTypeDisplay,
-                                message_text: cardData.message_text || '',
-                                media_url: cardData.media_url || null,
-                                file_name: cardData.file_name || null,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('card_id', cardData.card_id);
-                        
-                        if (updateError) {
-                            console.log('Update error:', updateError);
-                            throw updateError;
-                        }
-                        
-                        return { success: true, action: 'updated' };
-                    }
-                    
-                    return { success: true, action: 'created' };
-                    
-                } catch (error) {
-                    console.error('Supabase save error:', error);
-                    
-                    // Check if it's a table not found error
-                    if (error.message && error.message.includes('does not exist')) {
-                        return { 
-                            success: false, 
-                            action: 'failed',
-                            error: 'Cards table not found. Please create "cards" table in Supabase.' 
-                        };
-                    }
-                    
-                    return { 
-                        success: false, 
-                        action: 'failed',
-                        error: error.message || 'Unknown error'
-                    };
-                }
-            }
-            
-            // Load cards from Supabase
-            async function loadCardsFromSupabase() {
-                try {
-                    if (!supabase || typeof supabase.from !== 'function') {
-                        throw new Error('Supabase client not initialized');
-                    }
-                    
-                    if (!elements.cardsTableBody) return;
-                    
+                    // Set loading state
                     elements.cardsTableBody.innerHTML = `
                         <tr class="empty-row">
                             <td colspan="5">
                                 <div class="loading" style="margin-right: 10px;"></div>
-                                Loading cards from cloud...
+                                Loading cards from database...
                             </td>
                         </tr>
                     `;
                     
-                    const { data, error } = await supabase
-                        .from('cards')
-                        .select('*')
-                        .eq('status', 'active')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    
-                    const savedCards = data || [];
-                    
-                    if (savedCards.length === 0) {
-                        elements.cardsTableBody.innerHTML = `
-                            <tr class="empty-row">
-                                <td colspan="5">No cards saved yet. Create your first card above!</td>
-                            </tr>
-                        `;
-                        return;
-                    }
-                    
-                    let tableHTML = '';
-                    savedCards.forEach((card, index) => {
-                        const createdDate = new Date(card.created_at).toLocaleDateString();
-                        
-                        // Shorten long messages/media URLs for display
-                        let contentDisplay = card.message_text || 'No message';
-                        if (card.media_url) {
-                            contentDisplay = `<i class="fas fa-paperclip"></i> ${card.file_name || 'Media file'}`;
-                        }
-                        
-                        tableHTML += `
-                        <tr>
-                            <td>${card.card_id}</td>
-                            <td>${card.message_type}</td>
-                            <td>${contentDisplay}</td>
-                            <td>${createdDate}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn view" onclick="app.viewCard('${card.card_id}')">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                    <button class="action-btn delete" onclick="app.deleteCard('${card.card_id}')">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </div>
+                    // We don't have a specific "get all cards" endpoint yet
+                    // For now, we'll show a message
+                    elements.cardsTableBody.innerHTML = `
+                        <tr class="empty-row">
+                            <td colspan="5">
+                                <i class="fas fa-info-circle"></i> 
+                                Cards are saved to the database. 
+                                Use the viewer to retrieve them by ID.
                             </td>
                         </tr>
-                        `;
-                    });
-                    
-                    elements.cardsTableBody.innerHTML = tableHTML;
+                    `;
                     
                 } catch (error) {
-                    console.error('Supabase load error:', error);
-                    if (elements.cardsTableBody) {
-                        elements.cardsTableBody.innerHTML = `
-                            <tr class="empty-row">
-                                <td colspan="5">Error loading cards: ${error.message}</td>
-                            </tr>
-                        `;
-                    }
+                    console.error('Load error:', error);
+                    elements.cardsTableBody.innerHTML = `
+                        <tr class="empty-row">
+                            <td colspan="5">Error loading cards: ${error.message}</td>
+                        </tr>
+                    `;
                 }
             }
             
-            // View card from table
+            // View card from table (simplified for now)
             async function viewCard(cardId) {
-                try {
-                    if (!supabase) {
-                        throw new Error('Not connected to Supabase');
-                    }
-                    
-                    // Extract numeric ID from CARD prefix
-                    const numericId = cardId.replace('CARD', '');
-                    
-                    // Populate form with card data
-                    if (elements.cardIdInput) {
-                        elements.cardIdInput.value = numericId;
-                    }
-                    
-                    // Load card details from Supabase
-                    const { data, error } = await supabase
-                        .from('cards')
-                        .select('*')
-                        .eq('card_id', cardId)
-                        .eq('status', 'active')
-                        .single();
-                    
-                    if (error) throw error;
-                    
-                    if (data) {
-                        // Set content type based on message_type
-                        document.querySelectorAll('input[name="contentType"]').forEach(radio => {
-                            radio.checked = false;
-                            radio.parentElement.classList.remove('active');
-                        });
-                        
-                        let typeValue = 'text';
-                        if (data.message_type.includes('Image')) typeValue = 'image';
-                        else if (data.message_type.includes('Video')) typeValue = 'video';
-                        else if (data.message_type.includes('Audio')) typeValue = 'audio';
-                        
-                        const typeRadio = document.getElementById(`type${typeValue.charAt(0).toUpperCase() + typeValue.slice(1)}`);
-                        if (typeRadio) {
-                            typeRadio.checked = true;
-                            typeRadio.parentElement.classList.add('active');
-                        }
-                        
-                        // Set message
-                        if (elements.messageInput) {
-                            elements.messageInput.value = data.message_text || '';
-                        }
-                        
-                        // Set media file info if exists
-                        if (data.media_url) {
-                            uploadedMediaUrl = data.media_url;
-                            uploadedFileName = data.file_name || 'Uploaded file';
-                            currentMediaFile = null; // No local file, just URL
-                            currentMediaType = typeValue;
-                            localPreviewUrl = null;
-                            
-                            // Show preview for existing media
-                            let previewContainer;
-                            let previewHTML = '';
-                            
-                            switch(typeValue) {
-                                case 'image':
-                                    previewContainer = elements.imagePreview;
-                                    previewHTML = `
-                                        <img src="${data.media_url}" alt="Preview" class="preview-image">
-                                        <div class="preview-filename">${data.file_name || 'Image file'}</div>
-                                        <button type="button" class="remove-media-btn" onclick="app.removeMedia('image')">
-                                            <i class="fas fa-times"></i> Remove Image
-                                        </button>
-                                    `;
-                                    break;
-                                case 'video':
-                                    previewContainer = elements.videoPreview;
-                                    previewHTML = `
-                                        <video controls class="preview-video">
-                                            <source src="${data.media_url}" type="video/mp4">
-                                            Your browser does not support the video tag.
-                                        </video>
-                                        <div class="preview-filename">${data.file_name || 'Video file'}</div>
-                                        <button type="button" class="remove-media-btn" onclick="app.removeMedia('video')">
-                                            <i class="fas fa-times"></i> Remove Video
-                                        </button>
-                                    `;
-                                    break;
-                                case 'audio':
-                                    previewContainer = elements.audioPreview;
-                                    previewHTML = `
-                                        <audio controls class="preview-audio">
-                                            <source src="${data.media_url}" type="audio/mpeg">
-                                            Your browser does not support the audio tag.
-                                        </audio>
-                                        <div class="preview-filename">${data.file_name || 'Audio file'}</div>
-                                        <button type="button" class="remove-media-btn" onclick="app.removeMedia('audio')">
-                                            <i class="fas fa-times"></i> Remove Audio
-                                        </button>
-                                    `;
-                                    break;
-                            }
-                            
-                            if (previewContainer) {
-                                previewContainer.innerHTML = previewHTML;
-                                previewContainer.classList.add('active');
-                            }
-                        }
-                        
-                        // Update media upload visibility
-                        updateMediaUploadVisibility();
-                        
-                        // Generate preview
-                        generatePreview();
-                        
-                        showNotification(`Loaded card: ${cardId}`, 'success');
-                    }
-                } catch (error) {
-                    showNotification(`Error loading card: ${error.message}`, 'error');
+                // For now, just populate the form
+                const numericId = cardId.replace('CARD', '');
+                elements.cardIdInput.value = numericId;
+                elements.messageInput.value = `Loading card ${cardId}...`;
+                generatePreview();
+                showNotification(`Loaded card ID: ${cardId}`, 'info');
+            }
+            
+            // Delete card from backend
+            async function deleteCard(cardId) {
+                if (confirm(`Are you sure you want to delete card ${cardId}?`)) {
+                    showNotification(`Card deletion not implemented yet`, 'info');
                 }
             }
             
-            // Delete card from Supabase
-            async function deleteCard(cardId) {
-                if (confirm(`Are you sure you want to delete card ${cardId} from the cloud?`)) {
-                    try {
-                        if (!supabase) {
-                            throw new Error('Supabase client not initialized');
-                        }
-                        
-                        const { error } = await supabase
-                            .from('cards')
-                            .update({ status: 'deleted' })
-                            .eq('card_id', cardId);
-                        
-                        if (error) throw error;
-                        
-                        // Refresh the card list
-                        await loadCardsFromSupabase();
-                        
-                        showNotification(`Card ${cardId} deleted from cloud`, 'success');
-                    } catch (error) {
-                        showNotification(`Error deleting card: ${error.message}`, 'error');
+            // Check backend connection
+            async function checkBackendConnection() {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/health`);
+                    if (response.ok) {
+                        updateSyncStatus(true);
+                        return true;
                     }
+                } catch (error) {
+                    console.log('Backend not available:', error.message);
                 }
+                
+                updateSyncStatus(false);
+                return false;
             }
             
             // Initialize the app
             async function initApp() {
-                console.log('Initializing app...');
+                console.log('Initializing Magic Card Maker...');
                 
-                // Get DOM elements
-                elements = getElements();
-                
-                if (!elements.cardIdInput) {
-                    console.error('DOM elements not found. Retrying in 500ms...');
-                    setTimeout(initApp, 500);
-                    return;
-                }
-                
-                console.log('DOM elements loaded');
-                
-                // Initialize Supabase
-                const supabaseInitialized = await initSupabase();
-                
-                // Update UI based on connection status
-                updateSyncStatus(supabaseInitialized);
-                
-                if (supabaseInitialized) {
-                    showNotification('Connected to Supabase', 'success');
-                    console.log('Supabase connection established');
-                    
-                    // Load saved cards
-                    await loadCardsFromSupabase();
-                } else {
-                    showNotification('Running in offline mode', 'info');
-                    console.warn('Supabase not available, using offline mode');
-                }
-                
-                // Set up media upload functionality
-                setupFileUploads();
+                // Check backend connection
+                await checkBackendConnection();
                 
                 // Generate initial preview
                 generatePreview();
                 
-                // Update media upload visibility based on content type
-                updateMediaUploadVisibility();
-                
-                // Create app object for global access
-                window.app = {
-                    removeMedia: removeMedia,
-                    viewCard: viewCard,
-                    deleteCard: deleteCard
-                };
-                
                 // Set up event listeners
-                if (elements.generateBtn) {
-                    elements.generateBtn.addEventListener('click', function() {
-                        const cardData = generatePreview();
-                        if (cardData) {
-                            showNotification(`Card ${cardData.card_id} preview generated!`, 'success');
-                        }
-                    });
-                }
+                elements.generateBtn.addEventListener('click', function() {
+                    const cardData = generatePreview();
+                    if (cardData) {
+                        showNotification(`Card ${cardData.card_id} preview generated!`, 'success');
+                    }
+                });
                 
-                if (elements.saveBtn) {
-                    elements.saveBtn.addEventListener('click', async function() {
-                        const cardData = generatePreview();
-                        if (cardData) {
-                            // Disable button and show loading
-                            const originalText = elements.saveBtn.innerHTML;
-                            elements.saveBtn.innerHTML = '<div class="loading"></div> Saving...';
-                            elements.saveBtn.disabled = true;
-                            
-                            const result = await saveCardToSupabase(cardData);
-                            
-                            // Reset button
-                            elements.saveBtn.innerHTML = originalText;
-                            elements.saveBtn.disabled = false;
-                            
-                            if (result.success) {
-                                showNotification(`Card ${cardData.card_id} ${result.action} successfully in cloud!`, 'success');
-                                
-                                // Refresh the card list
-                                if (supabaseInitialized) {
-                                    await loadCardsFromSupabase();
-                                }
-                            } else {
-                                showNotification(`Failed to save to cloud: ${result.error}`, 'error');
-                            }
-                        }
-                    });
-                }
+                elements.saveBtn.addEventListener('click', async function() {
+                    const cardData = generatePreview();
+                    if (cardData) {
+                        await saveCardToBackend(cardData);
+                    }
+                });
                 
-                if (elements.testBtn) {
-                    elements.testBtn.addEventListener('click', function() {
-                        const cardData = generatePreview();
-                        if (cardData) {
-                            showNotification(`Testing card ${cardData.card_id}...`, 'info');
-                            
-                            // Open viewer.html with the card ID
-                            const viewerUrl = `viewer.html?card=${encodeURIComponent(cardData.card_id)}`;
-                            window.open(viewerUrl, '_blank');
-                        }
-                    });
-                }
+                elements.testBtn.addEventListener('click', function() {
+                    const cardData = generatePreview();
+                    if (cardData) {
+                        showNotification(`Testing card ${cardData.card_id}...`, 'info');
+                        const viewerUrl = `viewer.html?card=${encodeURIComponent(cardData.card_id)}`;
+                        window.open(viewerUrl, '_blank');
+                    }
+                });
                 
-                // Update type option styling when selected
-                if (elements.contentTypeRadios) {
-                    elements.contentTypeRadios.forEach(radio => {
-                        radio.addEventListener('change', function() {
-                            document.querySelectorAll('.type-option').forEach(option => {
-                                option.classList.remove('active');
-                            });
-                            this.parentElement.classList.add('active');
-                            
-                            // Update media upload visibility
-                            updateMediaUploadVisibility();
-                            
-                            // Clear media if switching away from media type
-                            const newType = this.value;
-                            if (newType === 'text' && currentMediaFile) {
-                                removeMedia(currentMediaType);
-                            }
-                            
-                            // Update preview when type changes
-                            generatePreview();
+                // Update preview when inputs change
+                elements.cardIdInput.addEventListener('input', generatePreview);
+                elements.messageInput.addEventListener('input', generatePreview);
+                
+                // Content type change handlers
+                document.querySelectorAll('input[name="contentType"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        // Update active class
+                        document.querySelectorAll('.type-option').forEach(option => {
+                            option.classList.remove('active');
                         });
+                        this.parentElement.classList.add('active');
+                        
+                        // Show/hide text input
+                        const textContainer = document.getElementById('textMessageContainer');
+                        if (textContainer) {
+                            textContainer.style.display = this.value === 'text' ? 'block' : 'none';
+                        }
+                        
+                        // Update preview
+                        generatePreview();
+                        
+                        // Show info for media types
+                        if (this.value !== 'text') {
+                            showNotification('Media upload is currently text-only. Switching to text mode.', 'info');
+                            setTimeout(() => {
+                                document.getElementById('typeText').click();
+                            }, 1000);
+                        }
                     });
-                }
+                });
                 
-                // Update preview when message changes
-                if (elements.messageInput) {
-                    elements.messageInput.addEventListener('input', generatePreview);
-                }
-                
-                // Update preview when card ID changes
-                if (elements.cardIdInput) {
-                    elements.cardIdInput.addEventListener('input', generatePreview);
-                }
-                
-                // Set up type option click handlers
+                // Type option click handlers
                 document.querySelectorAll('.type-option').forEach(option => {
                     option.addEventListener('click', function() {
                         const radio = this.querySelector('input');
                         if (radio) {
                             radio.checked = true;
-                            
-                            document.querySelectorAll('.type-option').forEach(opt => {
-                                opt.classList.remove('active');
-                            });
-                            this.classList.add('active');
-                            
-                            // Update media upload visibility
-                            updateMediaUploadVisibility();
-                            
-                            // Clear media if switching away from media type
-                            const newType = radio.value;
-                            if (newType === 'text' && currentMediaFile) {
-                                removeMedia(currentMediaType);
-                            }
-                            
-                            generatePreview();
+                            radio.dispatchEvent(new Event('change'));
                         }
                     });
                 });
                 
-                console.log('App initialization complete');
+                // Load initial cards
+                await loadCardsFromBackend();
+                
+                console.log('App initialized successfully');
             }
             
             // Start the app
             initApp();
+            
+            // Create global app object for button handlers
+            window.app = {
+                viewCard: viewCard,
+                deleteCard: deleteCard,
+                hideQRCode: hideQRCode,
+                copyShareUrl: copyShareUrl,
+                testOnPhone: testOnPhone,
+                printQRCode: printQRCode
+            };
         });
     </script>
 </body>
