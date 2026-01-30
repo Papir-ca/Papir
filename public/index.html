@@ -132,6 +132,15 @@
             padding: 25px;
             margin: 40px 0;
             border-left: 4px solid #06D6A0;
+            transition: all 0.3s ease;
+        }
+        
+        .status-box.error {
+            border-left-color: #FF6B6B;
+        }
+        
+        .status-box.warning {
+            border-left-color: #FFD166;
         }
         
         .status-title {
@@ -141,6 +150,14 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        
+        .status-box.error .status-title {
+            color: #FF6B6B;
+        }
+        
+        .status-box.warning .status-title {
+            color: #FFD166;
         }
         
         .quick-stats {
@@ -169,6 +186,17 @@
             font-size: 14px;
         }
         
+        .server-url {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 10px 0;
+            display: inline-block;
+            color: #06D6A0;
+            font-size: 14px;
+        }
+        
         @media (max-width: 768px) {
             .logo { font-size: 40px; }
             .main-buttons { grid-template-columns: 1fr; }
@@ -183,19 +211,20 @@
             <p class="tagline">Professional Augmented Reality Card System</p>
         </div>
         
-        <div class="status-box">
+        <div class="status-box" id="statusBox">
             <div class="status-title">
-                <span>✅</span>
-                <span>System Status: Connected to Supabase Cloud</span>
+                <span id="statusIcon">⏳</span>
+                <span id="statusText">Checking System Status...</span>
             </div>
-            <p>Your cards are securely stored and available worldwide.</p>
+            <p id="statusMessage">Connecting to Magic Card Business Server...</p>
+            <div class="server-url" id="serverUrl">http://localhost:3000</div>
         </div>
         
         <div class="main-buttons">
             <div class="action-card">
                 <div class="action-icon">🎴</div>
                 <h2 class="action-title">Create Magic Cards</h2>
-                <p class="action-description">Design professional AR cards with text, images, or videos. Store them in your Supabase database for instant access.</p>
+                <p class="action-description">Design professional AR cards with text, images, or videos. Store them securely through your backend API.</p>
                 <a href="maker.html" class="btn btn-create">Open Card Maker</a>
             </div>
             
@@ -216,16 +245,16 @@
         
         <div class="quick-stats">
             <div class="stat-card">
-                <div class="stat-value">3</div>
-                <div class="stat-label">Essential Tools</div>
+                <div class="stat-value" id="statCards">0</div>
+                <div class="stat-label">Cards Created</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">Supabase</div>
-                <div class="stat-label">Cloud Database</div>
+                <div class="stat-value">Secure</div>
+                <div class="stat-label">Backend API</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">24/7</div>
-                <div class="stat-label">Global Access</div>
+                <div class="stat-label">Available</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">AR</div>
@@ -235,49 +264,194 @@
         
         <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.1);">
             <p style="color: #a0aec0; font-size: 14px;">
-                Magic Card Business v2.0 • Connected to Supabase • Professional AR Platform
+                Magic Card Business v3.0 • Secure Backend API • Professional AR Platform
             </p>
         </div>
     </div>
     
     <script>
-        // Add subtle animations
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'translateY(-5px)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'translateY(0)';
-            });
-        });
+        // System Configuration
+        const BACKEND_URL = 'http://localhost:3000';
         
-        // Check Supabase connection
-        async function checkConnection() {
-            try {
-                const response = await fetch('https://elmhkhvryjzljxskbfps.supabase.co/rest/v1/', {
-                    headers: {
-                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw'
-                    }
-                });
-                
-                const statusBox = document.querySelector('.status-box');
-                if (response.ok) {
-                    statusBox.innerHTML = `
-                        <div class="status-title">
-                            <span>✅</span>
-                            <span>System Status: Connected to Supabase Cloud</span>
-                        </div>
-                        <p>Your cards are securely stored and available worldwide.</p>
-                    `;
-                    statusBox.style.borderLeftColor = '#06D6A0';
-                }
-            } catch (error) {
-                console.log('Running in offline mode');
+        // DOM Elements
+        const statusBox = document.getElementById('statusBox');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const statusMessage = document.getElementById('statusMessage');
+        const serverUrl = document.getElementById('serverUrl');
+        const statCards = document.getElementById('statCards');
+        
+        // Update status display
+        function updateStatus(icon, text, message, type = 'success') {
+            statusIcon.textContent = icon;
+            statusText.textContent = text;
+            statusMessage.textContent = message;
+            
+            // Reset classes
+            statusBox.className = 'status-box';
+            if (type === 'error') {
+                statusBox.classList.add('error');
+            } else if (type === 'warning') {
+                statusBox.classList.add('warning');
             }
         }
         
-        // Check connection on load
-        checkConnection();
+        // Check backend connection
+        async function checkBackendConnection() {
+            try {
+                updateStatus('🔄', 'Checking Backend...', 'Connecting to your server...', 'warning');
+                
+                const response = await fetch(`${BACKEND_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('✅', 'Backend Connected!', data.message);
+                    
+                    // Update server URL display
+                    serverUrl.textContent = BACKEND_URL;
+                    
+                    // Try to get card count
+                    await updateCardCount();
+                    
+                } else {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateStatus('❌', 'Backend Unavailable', 
+                    'Make sure your server is running with: npm start', 
+                    'error');
+                
+                // Update server URL with error info
+                serverUrl.textContent = `${BACKEND_URL} (Server not running)`;
+                serverUrl.style.color = '#FF6B6B';
+            }
+        }
+        
+        // Get card count from backend
+        async function updateCardCount() {
+            try {
+                // First check if we can connect to Supabase
+                const testResponse = await fetch(`${BACKEND_URL}/api/test-supabase`);
+                if (testResponse.ok) {
+                    const testData = await testResponse.json();
+                    
+                    if (testData.status === '✅ PERFECT' && testData.totalCards !== undefined) {
+                        statCards.textContent = testData.totalCards;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not fetch card count:', error);
+                // Don't show error to user, just keep count at 0
+            }
+        }
+        
+        // Test card creation (optional demo)
+        async function testCardCreation() {
+            try {
+                const testCard = {
+                    card_id: `test_${Date.now()}`,
+                    message_type: 'text',
+                    message_text: 'Magic Card Business System Test'
+                };
+                
+                const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCard)
+                });
+                
+                if (response.ok) {
+                    console.log('Test card created successfully');
+                }
+            } catch (error) {
+                // Silent fail - just testing
+            }
+        }
+        
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check backend connection
+            checkBackendConnection();
+            
+            // Add button animations
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-5px)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Auto-refresh status every 30 seconds
+            setInterval(checkBackendConnection, 30000);
+        });
+        
+        // Helper function for other pages to use
+        window.MagicCardAPI = {
+            // Save a card to backend
+            async saveCard(cardData) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(cardData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update card count
+                        await updateCardCount();
+                        return { success: true, data: result.card };
+                    } else {
+                        return { success: false, error: result.error };
+                    }
+                    
+                } catch (error) {
+                    return { 
+                        success: false, 
+                        error: 'Cannot connect to server. Is the backend running?' 
+                    };
+                }
+            },
+            
+            // Get a card by ID
+            async getCard(cardId) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        return { success: true, data: result.card };
+                    } else {
+                        return { success: false, error: result.error };
+                    }
+                    
+                } catch (error) {
+                    return { 
+                        success: false, 
+                        error: 'Cannot connect to server' 
+                    };
+                }
+            },
+            
+            // Get backend URL
+            getBackendUrl() {
+                return BACKEND_URL;
+            }
+        };
     </script>
 </body>
 </html>
