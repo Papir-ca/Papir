@@ -116,7 +116,9 @@ app.get('/api/health', (req, res) => {
       maker: `${baseUrl}/maker.html`,
       viewer: `${baseUrl}/viewer.html`,
       saveCard: `POST ${baseUrl}/api/cards`,
-      getCard: `GET ${baseUrl}/api/cards/:id`
+      getCard: `GET ${baseUrl}/api/cards/:id`,
+      getAllCards: `GET ${baseUrl}/api/cards`,
+      deleteCard: `DELETE ${baseUrl}/api/cards/:id`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -303,6 +305,105 @@ app.get('/api/cards/:card_id', async (req, res) => {
   }
 });
 
+// 📋 GET ALL CARDS (NEW ENDPOINT)
+app.get('/api/cards', async (req, res) => {
+  try {
+    console.log('📋 Fetching all cards');
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    const { data, error, count } = await supabaseAdmin
+      .from('cards')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database query failed',
+        details: error.message
+      });
+    }
+    
+    console.log(`✅ Retrieved ${data?.length || 0} cards`);
+    
+    res.json({ 
+      success: true, 
+      cards: data || [],
+      count: count || 0,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('💥 Unexpected error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+// 🗑️ DELETE A CARD (NEW ENDPOINT)
+app.delete('/api/cards/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`🗑️ Deleting card: ${id}`);
+    
+    if (!id) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing card ID'
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    const { error } = await supabaseAdmin
+      .from('cards')
+      .delete()
+      .eq('card_id', id);
+    
+    if (error) {
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database deletion failed',
+        details: error.message
+      });
+    }
+    
+    console.log(`✅ Card deleted: ${id}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Card "${id}" deleted successfully`,
+      deletedId: id,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('💥 Unexpected error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -384,8 +485,10 @@ app.use((req, res) => {
       `${baseUrl}/maker.html`,
       `${baseUrl}/viewer.html`,
       `${baseUrl}/api/health`,
+      `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
-      `${baseUrl}/api/test-supabase`
+      `${baseUrl}/api/test-supabase`,
+      `${baseUrl}/api/domain-info`
     ]
   });
 });
@@ -411,12 +514,14 @@ app.listen(PORT, () => {
   console.log(`   Maker: https://papir.ca/maker.html`);
   console.log(`   Viewer: https://papir.ca/viewer.html`);
   console.log(`   Supabase: https://papir.ca/api/test-supabase`);
+  console.log(`   All Cards: https://papir.ca/api/cards`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Dynamic domain detection');
   console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
   console.log('   ✅ Professional .ca domain');
+  console.log('   ✅ Full CRUD API for cards');
   
   console.log('\n' + '─'.repeat(70));
   console.log('   🚀 Papir Business is LIVE at https://papir.ca!');
