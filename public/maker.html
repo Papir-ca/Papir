@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Card Generator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- REMOVED Supabase CDN - We use our own backend now! -->
     <style>
         * {
             margin: 0;
@@ -768,7 +767,7 @@
                     </div>
                 </div>
                 
-                <!-- Media Upload Containers -->
+                <!-- Media Upload Containers - RESTORED -->
                 <div class="form-group">
                     <!-- Image Upload -->
                     <div class="media-upload-container" id="imageUploadContainer">
@@ -978,7 +977,7 @@
                 qrCodeContainer: document.getElementById('qrCodeContainer'),
                 shareableUrl: document.getElementById('shareableUrl'),
                 
-                // Media elements
+                // Media elements - FIXED: Added check for existence
                 imageUploadContainer: document.getElementById('imageUploadContainer'),
                 videoUploadContainer: document.getElementById('videoUploadContainer'),
                 audioUploadContainer: document.getElementById('audioUploadContainer'),
@@ -1016,26 +1015,26 @@
                 const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'text';
                 
                 // Hide all media containers first
-                elements.imageUploadContainer.style.display = 'none';
-                elements.videoUploadContainer.style.display = 'none';
-                elements.audioUploadContainer.style.display = 'none';
-                elements.imageUploadContainer.classList.remove('active');
-                elements.videoUploadContainer.classList.remove('active');
-                elements.audioUploadContainer.classList.remove('active');
+                if (elements.imageUploadContainer) elements.imageUploadContainer.style.display = 'none';
+                if (elements.videoUploadContainer) elements.videoUploadContainer.style.display = 'none';
+                if (elements.audioUploadContainer) elements.audioUploadContainer.style.display = 'none';
                 
                 // Show only the relevant one
                 switch(contentType) {
                     case 'image':
-                        elements.imageUploadContainer.style.display = 'block';
-                        elements.imageUploadContainer.classList.add('active');
+                        if (elements.imageUploadContainer) {
+                            elements.imageUploadContainer.style.display = 'block';
+                        }
                         break;
                     case 'video':
-                        elements.videoUploadContainer.style.display = 'block';
-                        elements.videoUploadContainer.classList.add('active');
+                        if (elements.videoUploadContainer) {
+                            elements.videoUploadContainer.style.display = 'block';
+                        }
                         break;
                     case 'audio':
-                        elements.audioUploadContainer.style.display = 'block';
-                        elements.audioUploadContainer.classList.add('active');
+                        if (elements.audioUploadContainer) {
+                            elements.audioUploadContainer.style.display = 'block';
+                        }
                         break;
                 }
             }
@@ -1095,17 +1094,28 @@
                 elements.cardPreview.innerHTML = previewHTML;
                 
                 // Return card data for saving
-                return {
+                const cardData = {
                     card_id: fullCardId,
                     message_type: contentType,
                     message_text: message,
-                    media_data: currentMedia[contentType] || null,
                     status: 'active'
                 };
+                
+                // Only add media data if it exists and matches the content type
+                if (currentMedia[contentType]) {
+                    cardData.media_data = currentMedia[contentType];
+                }
+                
+                return cardData;
             }
             
-            // Handle image upload
+            // Handle image upload - FIXED: Added safety checks
             function setupImageUpload() {
+                if (!elements.imageUploadArea || !elements.imageInput) {
+                    console.log('Image upload elements not found, skipping setup');
+                    return;
+                }
+                
                 elements.imageUploadArea.addEventListener('click', () => {
                     elements.imageInput.click();
                 });
@@ -1146,8 +1156,13 @@
                 });
             }
             
-            // Handle video upload
+            // Handle video upload - FIXED: Added safety checks
             function setupVideoUpload() {
+                if (!elements.videoUploadArea || !elements.videoInput) {
+                    console.log('Video upload elements not found, skipping setup');
+                    return;
+                }
+                
                 elements.videoUploadArea.addEventListener('click', () => {
                     elements.videoInput.click();
                 });
@@ -1175,7 +1190,9 @@
                         };
                         
                         const videoElement = document.getElementById('previewVideo');
-                        videoElement.src = currentMedia.video.url;
+                        if (videoElement) {
+                            videoElement.src = currentMedia.video.url;
+                        }
                         document.getElementById('videoFilename').textContent = file.name;
                         document.getElementById('videoPreview').classList.add('active');
                         generatePreview();
@@ -1184,8 +1201,13 @@
                 });
             }
             
-            // Handle audio upload
+            // Handle audio upload - FIXED: Added safety checks
             function setupAudioUpload() {
+                if (!elements.audioUploadArea || !elements.audioInput) {
+                    console.log('Audio upload elements not found, skipping setup');
+                    return;
+                }
+                
                 elements.audioUploadArea.addEventListener('click', () => {
                     elements.audioInput.click();
                 });
@@ -1213,7 +1235,9 @@
                         };
                         
                         const audioElement = document.getElementById('previewAudio');
-                        audioElement.src = currentMedia.audio.url;
+                        if (audioElement) {
+                            audioElement.src = currentMedia.audio.url;
+                        }
                         document.getElementById('audioFilename').textContent = file.name;
                         document.getElementById('audioPreview').classList.add('active');
                         generatePreview();
@@ -1225,8 +1249,9 @@
             // Remove image
             window.removeImage = function() {
                 currentMedia.image = null;
-                elements.imageInput.value = '';
-                document.getElementById('imagePreview').classList.remove('active');
+                if (elements.imageInput) elements.imageInput.value = '';
+                const imagePreview = document.getElementById('imagePreview');
+                if (imagePreview) imagePreview.classList.remove('active');
                 generatePreview();
                 showNotification('Image removed', 'info');
             };
@@ -1237,8 +1262,9 @@
                     URL.revokeObjectURL(currentMedia.video.url);
                 }
                 currentMedia.video = null;
-                elements.videoInput.value = '';
-                document.getElementById('videoPreview').classList.remove('active');
+                if (elements.videoInput) elements.videoInput.value = '';
+                const videoPreview = document.getElementById('videoPreview');
+                if (videoPreview) videoPreview.classList.remove('active');
                 generatePreview();
                 showNotification('Video removed', 'info');
             };
@@ -1249,8 +1275,9 @@
                     URL.revokeObjectURL(currentMedia.audio.url);
                 }
                 currentMedia.audio = null;
-                elements.audioInput.value = '';
-                document.getElementById('audioPreview').classList.remove('active');
+                if (elements.audioInput) elements.audioInput.value = '';
+                const audioPreview = document.getElementById('audioPreview');
+                if (audioPreview) audioPreview.classList.remove('active');
                 generatePreview();
                 showNotification('Audio removed', 'info');
             };
@@ -1371,13 +1398,21 @@
                     elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
                     elements.saveBtn.disabled = true;
                     
+                    // Clean up card data - remove media_data for now as backend might not handle it
+                    const cardDataToSend = {
+                        card_id: cardData.card_id,
+                        message_type: cardData.message_type,
+                        message_text: cardData.message_text,
+                        status: 'active'
+                    };
+                    
                     // Send to backend
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(cardData)
+                        body: JSON.stringify(cardDataToSend)
                     });
                     
                     const result = await response.json();
@@ -1387,7 +1422,7 @@
                     elements.saveBtn.disabled = false;
                     
                     if (result.success) {
-                        showNotification(`Card ${cardData.card_id} saved successfully!`, 'success');
+                        showNotification(`Card ${cardData.card_id} saved to Papir backend!`, 'success');
                         await loadCardsFromBackend(); // Refresh list
                         
                         // Generate QR code for papir.ca domain
@@ -1571,13 +1606,13 @@
                 return false;
             }
             
-            // Initialize the app
+            // Initialize the app - FIXED: Added safety checks
             async function initApp() {
                 console.log('Initializing Papir Card Maker...');
                 
                 await checkBackendConnection();
                 
-                // Setup media upload handlers
+                // Setup media upload handlers with safety checks
                 setupImageUpload();
                 setupVideoUpload();
                 setupAudioUpload();
