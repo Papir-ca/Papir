@@ -34,7 +34,7 @@
             font-size: 56px;
             font-weight: bold;
             margin-bottom: 15px;
-            background: linear-gradient(45deg, #667eea, #06D6A0, #FFD166);
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53, #FFD166, #06D6A0, #118AB2, #667eea);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -207,8 +207,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="logo">📄 Papir AR</h1>
-            <p class="tagline">Interactive Augmented Reality Paper System</p>
+            <h1 class="logo">✨ PAPIR AR SYSTEM ✨</h1>
+            <p class="tagline">Professional Augmented Reality Card System</p>
         </div>
         
         <div class="status-box" id="statusBox">
@@ -216,29 +216,29 @@
                 <span id="statusIcon">⏳</span>
                 <span id="statusText">Checking System Status...</span>
             </div>
-            <p id="statusMessage">Connecting to Papir Backend...</p>
+            <p id="statusMessage">Connecting to Papir Backend Server...</p>
             <div class="server-url" id="serverUrl">https://papir.ca</div>
         </div>
         
         <div class="main-buttons">
             <div class="action-card">
-                <div class="action-icon">📄</div>
-                <h2 class="action-title">Create Papir Cards</h2>
-                <p class="action-description">Design interactive AR cards with text, images, or videos. Store them securely through your Railway backend.</p>
+                <div class="action-icon">🎴</div>
+                <h2 class="action-title">Create AR Cards</h2>
+                <p class="action-description">Design professional AR cards with text, images, or videos. Store them securely through your backend API.</p>
                 <a href="maker.html" class="btn btn-create">Open Card Maker</a>
             </div>
             
             <div class="action-card">
-                <div class="action-icon">📱</div>
+                <div class="action-icon">🔍</div>
                 <h2 class="action-title">AR Card Viewer</h2>
-                <p class="action-description">Scan Papir Cards with your camera to reveal AR content. Works instantly on any smartphone.</p>
+                <p class="action-description">Scan AR Cards with your camera to reveal AR content. Perfect for events, marketing, and interactive experiences.</p>
                 <a href="viewer.html" class="btn btn-view">Open AR Scanner</a>
             </div>
             
             <div class="action-card">
-                <div class="action-icon">🔗</div>
+                <div class="action-icon">📱</div>
                 <h2 class="action-title">QR Code Generator</h2>
-                <p class="action-description">Generate QR codes for your Papir Cards. Print or share them for easy access to your AR content.</p>
+                <p class="action-description">Generate QR codes for your AR Cards. Print them or share digitally for easy access to your AR content.</p>
                 <a href="qr.html" class="btn btn-qr">Generate QR Codes</a>
             </div>
         </div>
@@ -249,28 +249,28 @@
                 <div class="stat-label">Cards Created</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">Railway</div>
-                <div class="stat-label">Backend Hosting</div>
+                <div class="stat-value">Secure</div>
+                <div class="stat-label">Backend API</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">Supabase</div>
-                <div class="stat-label">Database</div>
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Available</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">papir.ca</div>
-                <div class="stat-label">Your Domain</div>
+                <div class="stat-value">AR</div>
+                <div class="stat-label">Augmented Reality</div>
             </div>
         </div>
         
         <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.1);">
             <p style="color: #a0aec0; font-size: 14px;">
-                Papir AR v3.0 • Railway Backend • Supabase Database • papir.ca
+                Papir AR System v3.0 • Secure Backend API • Professional AR Platform
             </p>
         </div>
     </div>
     
     <script>
-        // System Configuration - Use YOUR domain
+        // System Configuration
         const BACKEND_URL = 'https://papir.ca';
         
         // DOM Elements
@@ -287,6 +287,7 @@
             statusText.textContent = text;
             statusMessage.textContent = message;
             
+            // Reset classes
             statusBox.className = 'status-box';
             if (type === 'error') {
                 statusBox.classList.add('error');
@@ -298,7 +299,7 @@
         // Check backend connection
         async function checkBackendConnection() {
             try {
-                updateStatus('🔄', 'Checking Backend...', 'Connecting to Railway backend...', 'warning');
+                updateStatus('🔄', 'Checking Backend...', 'Connecting to your server...', 'warning');
                 
                 const response = await fetch(`${BACKEND_URL}/api/health`, {
                     method: 'GET',
@@ -309,7 +310,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    updateStatus('✅', 'Backend Connected!', `Railway + Supabase working`);
+                    updateStatus('✅', 'Backend Connected!', data.message);
                     
                     // Update server URL display
                     serverUrl.textContent = BACKEND_URL;
@@ -324,10 +325,11 @@
             } catch (error) {
                 console.error('Connection error:', error);
                 updateStatus('❌', 'Backend Unavailable', 
-                    'Make sure your Railway app is running', 
+                    'Make sure your server is running with: npm start', 
                     'error');
                 
-                serverUrl.textContent = `${BACKEND_URL} (Check Railway deployment)`;
+                // Update server URL with error info
+                serverUrl.textContent = `${BACKEND_URL} (Server not running)`;
                 serverUrl.style.color = '#FF6B6B';
             }
         }
@@ -335,35 +337,52 @@
         // Get card count from backend
         async function updateCardCount() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/cards/count`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.count !== undefined) {
-                        statCards.textContent = data.count;
+                // First check if we can connect to Supabase
+                const testResponse = await fetch(`${BACKEND_URL}/api/test-supabase`);
+                if (testResponse.ok) {
+                    const testData = await testResponse.json();
+                    
+                    if (testData.status === '✅ PERFECT' && testData.totalCards !== undefined) {
+                        statCards.textContent = testData.totalCards;
                     }
                 }
             } catch (error) {
                 console.log('Could not fetch card count:', error);
-                // Fallback: try to get all cards and count
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/cards`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.cards && Array.isArray(data.cards)) {
-                            statCards.textContent = data.cards.length;
-                        }
-                    }
-                } catch (e) {
-                    // If all fails, show 0
-                    statCards.textContent = '0';
+                // Don't show error to user, just keep count at 0
+            }
+        }
+        
+        // Test card creation (optional demo)
+        async function testCardCreation() {
+            try {
+                const testCard = {
+                    card_id: `test_${Date.now()}`,
+                    message_type: 'text',
+                    message_text: 'Papir AR System Test'
+                };
+                
+                const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCard)
+                });
+                
+                if (response.ok) {
+                    console.log('Test card created successfully');
                 }
+            } catch (error) {
+                // Silent fail - just testing
             }
         }
         
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', () => {
+            // Check backend connection
             checkBackendConnection();
             
+            // Add button animations
             document.querySelectorAll('.btn').forEach(btn => {
                 btn.addEventListener('mouseenter', () => {
                     btn.style.transform = 'translateY(-5px)';
@@ -379,6 +398,7 @@
         
         // Helper function for other pages to use
         window.PapirAPI = {
+            // Save a card to backend
             async saveCard(cardData) {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
@@ -392,6 +412,7 @@
                     const result = await response.json();
                     
                     if (result.success) {
+                        // Update card count
                         await updateCardCount();
                         return { success: true, data: result.card };
                     } else {
@@ -401,11 +422,12 @@
                 } catch (error) {
                     return { 
                         success: false, 
-                        error: 'Cannot connect to server. Check Railway deployment.' 
+                        error: 'Cannot connect to server. Is the backend running?' 
                     };
                 }
             },
             
+            // Get a card by ID
             async getCard(cardId) {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -425,25 +447,7 @@
                 }
             },
             
-            async getAllCards() {
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/cards`);
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        return { success: true, data: result.cards };
-                    } else {
-                        return { success: false, error: result.error };
-                    }
-                    
-                } catch (error) {
-                    return { 
-                        success: false, 
-                        error: 'Cannot connect to server' 
-                    };
-                }
-            },
-            
+            // Get backend URL
             getBackendUrl() {
                 return BACKEND_URL;
             }
