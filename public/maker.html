@@ -1084,7 +1084,7 @@
                 const cardData = {
                     card_id: fullCardId,
                     message_type: contentType,
-                    message_text: contentType === 'text' ? message : '', // FIXED: Only send text for text content type
+                    message_text: contentType === 'text' ? message : '', // Only send text for text content type
                     status: 'active'
                 };
                 
@@ -1372,7 +1372,7 @@
                 printWindow.document.close();
             };
             
-            // Save card to backend
+            // Save card to backend WITH MEDIA UPLOAD
             async function saveCardToBackend(cardData) {
                 try {
                     if (!isConnected) {
@@ -1385,15 +1385,52 @@
                     elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
                     elements.saveBtn.disabled = true;
                     
-                    // Clean up card data - remove media_data for now as backend might not handle it
+                    // Prepare card data
                     const cardDataToSend = {
                         card_id: cardData.card_id,
                         message_type: cardData.message_type,
-                        message_text: cardData.message_text, // This will be empty string for non-text content
+                        message_text: cardData.message_text,
                         status: 'active'
                     };
                     
-                    // Send to backend
+                    // If there's media, upload it first
+                    let mediaUrl = null;
+                    const contentType = cardData.message_type;
+                    
+                    if (contentType !== 'text' && currentMedia[contentType]) {
+                        showNotification(`Uploading ${contentType}...`, 'info');
+                        
+                        try {
+                            const uploadResponse = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    fileData: currentMedia[contentType].url,
+                                    fileName: currentMedia[contentType].name,
+                                    fileType: currentMedia[contentType].type,
+                                    cardId: cardData.card_id
+                                })
+                            });
+                            
+                            const uploadResult = await uploadResponse.json();
+                            
+                            if (uploadResult.success) {
+                                mediaUrl = uploadResult.url;
+                                showNotification(`${contentType} uploaded successfully!`, 'success');
+                                cardDataToSend.media_url = mediaUrl;
+                            } else {
+                                throw new Error(`Media upload failed: ${uploadResult.error}`);
+                            }
+                        } catch (uploadError) {
+                            console.error('Media upload error:', uploadError);
+                            showNotification(`Media upload failed: ${uploadError.message}`, 'error');
+                            // Continue saving card without media
+                        }
+                    }
+                    
+                    // Send card data to backend
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
                         method: 'POST',
                         headers: {
