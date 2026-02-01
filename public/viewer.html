@@ -631,66 +631,7 @@
             }, 3000);
         }
         
-        // Create media player based on content type
-        function createMediaPlayer(contentType) {
-            // Clear any existing media player
-            const existingMedia = cardContent.querySelector('.media-player');
-            if (existingMedia) {
-                existingMedia.remove();
-            }
-            
-            let mediaHTML = '';
-            
-            switch(contentType) {
-                case 'audio':
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="audio-player">
-                                <audio id="audioElement" controls style="width: 100%;">
-                                    <source src="" type="audio/mpeg">
-                                    Your browser does not support the audio element.
-                                </audio>
-                                <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
-                                    <i class="fas fa-music"></i> Audio Card
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'video':
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="video-player">
-                                <video id="videoElement" controls style="width: 100%;">
-                                    <source src="" type="video/mp4">
-                                    Your browser does not support the video element.
-                                </video>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'image':
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="image-player">
-                                <img id="imageElement" src="" alt="Papir Card Image" style="width: 100%;">
-                            </div>
-                        </div>
-                    `;
-                    break;
-                    
-                default:
-                    // Text content - no media player needed
-                    return;
-            }
-            
-            // Insert media player after the message
-            displayMessage.insertAdjacentHTML('afterend', mediaHTML);
-        }
-        
-        // Load card from backend API
+        // Load card from backend API with media
         async function loadCard(cardId) {
             console.log('Loading card from Papir backend:', cardId);
             
@@ -708,6 +649,7 @@
             showNotification(`Loading Papir card ${cardId}...`, 'info');
             
             try {
+                // Load card data
                 const response = await fetch(`${BACKEND_URL}/api/cards/${encodeURIComponent(cardId)}`);
                 
                 if (!response.ok) {
@@ -721,6 +663,20 @@
                 
                 if (result.success && result.card) {
                     console.log('Papir card loaded successfully:', result.card);
+                    
+                    // Try to load media files for this card
+                    try {
+                        const mediaResponse = await fetch(`${BACKEND_URL}/api/cards/${encodeURIComponent(cardId)}/media`);
+                        if (mediaResponse.ok) {
+                            const mediaResult = await mediaResponse.json();
+                            if (mediaResult.success) {
+                                result.card.media_files = mediaResult.files;
+                            }
+                        }
+                    } catch (mediaError) {
+                        console.log('Media endpoint not available:', mediaError.message);
+                    }
+                    
                     return result.card;
                 } else {
                     throw new Error(result.error || 'Unknown error');
@@ -733,9 +689,9 @@
             }
         }
         
-        // Display card
+        // Display card with media
         function displayCard(card) {
-            console.log('Displaying Papir card:', card);
+            console.log('Displaying Papir card with media:', card);
             
             // Update display
             displayCardId.textContent = card.card_id;
@@ -760,32 +716,120 @@
                 displayDate.textContent = 'Recently';
             }
             
-            // Create appropriate media player based on content type
-            const contentType = card.message_type;
-            createMediaPlayer(contentType);
+            // Clear any existing media
+            const existingMedia = cardContent.querySelector('.media-player');
+            if (existingMedia) {
+                existingMedia.remove();
+            }
             
-            // NOTE: In the current setup, media files are not stored in Supabase
-            // They would need to be uploaded to a storage service and the URL stored in the database
-            // For now, we show a placeholder message
-            if (contentType === 'audio' || contentType === 'video' || contentType === 'image') {
-                const mediaPlaceholder = `
-                    <div class="media-placeholder">
-                        <i class="fas fa-${contentType === 'audio' ? 'music' : contentType === 'video' ? 'video' : 'image'}"></i>
-                        <p><strong>${contentType.charAt(0).toUpperCase() + contentType.slice(1)} Content</strong></p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">
-                            This card contains ${contentType} content. In a full implementation, 
-                            the ${contentType} file would be stored and played here.
-                        </p>
-                    </div>
-                `;
-                
-                // Replace or add placeholder
-                const existingPlaceholder = cardContent.querySelector('.media-placeholder');
-                if (existingPlaceholder) {
-                    existingPlaceholder.remove();
-                }
-                
-                if (contentType !== 'text') {
+            const existingPlaceholder = cardContent.querySelector('.media-placeholder');
+            if (existingPlaceholder) {
+                existingPlaceholder.remove();
+            }
+            
+            // Handle media based on content type
+            const contentType = card.message_type;
+            
+            if (contentType === 'text') {
+                // Just show text, no media needed
+            } 
+            else if (contentType === 'audio' || contentType === 'video' || contentType === 'image') {
+                // Check if we have media files from storage
+                if (card.media_files && card.media_files.length > 0) {
+                    // Use the first media file
+                    const mediaFile = card.media_files[0];
+                    
+                    let mediaHTML = '';
+                    if (contentType === 'audio') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="audio-player">
+                                    <audio controls style="width: 100%;">
+                                        <source src="${mediaFile.url}" type="${mediaFile.type}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
+                                        <i class="fas fa-music"></i> ${mediaFile.name}
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                    } 
+                    else if (contentType === 'video') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="video-player">
+                                    <video controls style="width: 100%; max-height: 400px;">
+                                        <source src="${mediaFile.url}" type="${mediaFile.type}">
+                                        Your browser does not support the video element.
+                                    </video>
+                                </div>
+                            </div>
+                        `;
+                    } 
+                    else if (contentType === 'image') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="image-player">
+                                    <img src="${mediaFile.url}" alt="Papir Card Image" style="width: 100%; max-height: 400px; object-fit: contain;">
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    displayMessage.insertAdjacentHTML('afterend', mediaHTML);
+                    
+                } else if (card.media_url) {
+                    // Legacy support for media_url field in cards table
+                    let mediaHTML = '';
+                    if (contentType === 'audio') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="audio-player">
+                                    <audio controls style="width: 100%;">
+                                        <source src="${card.media_url}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            </div>
+                        `;
+                    } 
+                    else if (contentType === 'video') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="video-player">
+                                    <video controls style="width: 100%; max-height: 400px;">
+                                        <source src="${card.media_url}" type="video/mp4">
+                                        Your browser does not support the video element.
+                                    </video>
+                                </div>
+                            </div>
+                        `;
+                    } 
+                    else if (contentType === 'image') {
+                        mediaHTML = `
+                            <div class="media-player">
+                                <div class="image-player">
+                                    <img src="${card.media_url}" alt="Papir Card Image" style="width: 100%; max-height: 400px; object-fit: contain;">
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    displayMessage.insertAdjacentHTML('afterend', mediaHTML);
+                    
+                } else {
+                    // No media found
+                    const mediaPlaceholder = `
+                        <div class="media-placeholder">
+                            <i class="fas fa-${contentType === 'audio' ? 'music' : contentType === 'video' ? 'video' : 'image'}"></i>
+                            <p><strong>${contentType.charAt(0).toUpperCase() + contentType.slice(1)} Content</strong></p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">
+                                This ${contentType} file was not uploaded or is not available.
+                            </p>
+                        </div>
+                    `;
+                    
                     displayMessage.insertAdjacentHTML('afterend', mediaPlaceholder);
                 }
             }
