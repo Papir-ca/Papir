@@ -1084,7 +1084,7 @@
                 const cardData = {
                     card_id: fullCardId,
                     message_type: contentType,
-                    message_text: message,
+                    message_text: contentType === 'text' ? message : '', // FIXED: Only send text for text content type
                     status: 'active'
                 };
                 
@@ -1389,7 +1389,7 @@
                     const cardDataToSend = {
                         card_id: cardData.card_id,
                         message_type: cardData.message_type,
-                        message_text: cardData.message_text,
+                        message_text: cardData.message_text, // This will be empty string for non-text content
                         status: 'active'
                     };
                     
@@ -1545,8 +1545,12 @@
                             // Update media visibility
                             updateMediaUploadVisibility();
                             
-                            // Set message
-                            elements.messageInput.value = result.card.message_text || '';
+                            // Set message - only if it's a text card
+                            if (result.card.message_type === 'text') {
+                                elements.messageInput.value = result.card.message_text || '';
+                            } else {
+                                elements.messageInput.value = '';
+                            }
                             
                             // Clear media (for now - we could load media if stored)
                             currentMedia.image = null;
@@ -1565,7 +1569,7 @@
                 // If can't load, just set the ID
                 const numericId = cardId.replace('CARD', '');
                 elements.cardIdInput.value = numericId;
-                elements.messageInput.value = `Loading ${cardId}...`;
+                elements.messageInput.value = '';
                 generatePreview();
                 showNotification(`Set card ID: ${cardId}`, 'info');
             }
