@@ -77,8 +77,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' })); // Increased for media uploads
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 🛡️ Rate Limiting
 const limiter = rateLimit({
@@ -118,7 +118,9 @@ app.get('/api/health', (req, res) => {
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       getAllCards: `GET ${baseUrl}/api/cards`,
-      deleteCard: `DELETE ${baseUrl}/api/cards/:id`
+      deleteCard: `DELETE ${baseUrl}/api/cards/:id`,
+      uploadMedia: `POST ${baseUrl}/api/upload-media`,
+      getMedia: `GET ${baseUrl}/api/cards/:id/media`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -152,7 +154,7 @@ try {
 // 🎨 Save a Magic Card - Updated for papir.ca domain
 app.post('/api/cards', async (req, res) => {
   try {
-    const { card_id, message_type, message_text } = req.body;
+    const { card_id, message_type, message_text, media_url } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
@@ -173,16 +175,23 @@ app.post('/api/cards', async (req, res) => {
     }
     
     // Save to database
+    const cardData = {
+      card_id: card_id.trim(),
+      message_type: message_type.trim(),
+      message_text: message_text ? message_text.trim() : null,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    // Add media_url if provided
+    if (media_url) {
+      cardData.media_url = media_url;
+    }
+    
     const { data, error } = await supabaseAdmin
       .from('cards')
-      .insert([{
-        card_id: card_id.trim(),
-        message_type: message_type.trim(),
-        message_text: message_text ? message_text.trim() : null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
+      .insert([cardData])
       .select()
       .single();
     
@@ -404,6 +413,97 @@ app.delete('/api/cards/:id', async (req, res) => {
   }
 });
 
+// 📤 UPLOAD MEDIA TO SUPABASE STORAGE
+app.post('/api/upload-media', async (req, res) => {
+  try {
+    const { fileData, fileName, fileType, cardId } = req.body;
+    
+    if (!fileData || !fileName || !fileType || !cardId) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing required fields'
+      });
+    }
+    
+    // Remove data URL prefix
+    const base64Data = fileData.replace(/^data:\w+\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseAdmin.storage
+      .from('cards-media')
+      .upload(`${cardId}/${fileName}`, buffer, {
+        contentType: fileType,
+        upsert: true
+      });
+    
+    if (error) throw error;
+    
+    // Get public URL
+    const { data: urlData } = supabaseAdmin.storage
+      .from('cards-media')
+      .getPublicUrl(`${cardId}/${fileName}`);
+    
+    res.json({ 
+      success: true, 
+      url: urlData.publicUrl,
+      fileName: fileName
+    });
+    
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// 📥 GET MEDIA URL FOR A CARD
+app.get('/api/cards/:card_id/media', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    
+    const { data, error } = await supabaseAdmin.storage
+      .from('cards-media')
+      .list(card_id);
+    
+    if (error) {
+      // No media found - return empty array
+      return res.json({ 
+        success: true, 
+        files: [] 
+      });
+    }
+    
+    const filesWithUrls = await Promise.all(
+      (data || []).map(async (file) => {
+        const { data: urlData } = supabaseAdmin.storage
+          .from('cards-media')
+          .getPublicUrl(`${card_id}/${file.name}`);
+        
+        return {
+          name: file.name,
+          url: urlData.publicUrl,
+          type: file.metadata?.mimetype || 'application/octet-stream'
+        };
+      })
+    );
+    
+    res.json({ 
+      success: true, 
+      files: filesWithUrls 
+    });
+    
+  } catch (error) {
+    console.error('Media fetch error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -487,6 +587,8 @@ app.use((req, res) => {
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
+      `${baseUrl}/api/upload-media`,
+      `${baseUrl}/api/cards/:id/media`,
       `${baseUrl}/api/test-supabase`,
       `${baseUrl}/api/domain-info`
     ]
@@ -522,6 +624,7 @@ app.listen(PORT, () => {
   console.log('   ✅ 24/7 Railway hosting');
   console.log('   ✅ Professional .ca domain');
   console.log('   ✅ Full CRUD API for cards');
+  console.log('   ✅ Media upload & storage');
   
   console.log('\n' + '─'.repeat(70));
   console.log('   🚀 Papir Business is LIVE at https://papir.ca!');
