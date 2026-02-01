@@ -171,14 +171,9 @@
             outline: none;
         }
         
-        /* Media Upload Styles */
+        /* Media Upload Styles - REMOVED display: none */
         .media-upload-container {
-            display: none;
             margin-top: 15px;
-        }
-        
-        .media-upload-container.active {
-            display: block;
         }
         
         .upload-area {
@@ -993,28 +988,25 @@
             function updateMediaUploadVisibility() {
                 const contentType = elements.contentTypeSelect.value;
                 
-                // Hide all media containers first
-                if (elements.imageUploadContainer) elements.imageUploadContainer.style.display = 'none';
-                if (elements.videoUploadContainer) elements.videoUploadContainer.style.display = 'none';
-                if (elements.audioUploadContainer) elements.audioUploadContainer.style.display = 'none';
+                // Initially show all containers (they're now visible by default)
+                // But we can still highlight the active one
+                if (elements.imageUploadContainer) {
+                    elements.imageUploadContainer.style.opacity = contentType === 'image' ? '1' : '0.5';
+                    elements.imageUploadContainer.style.pointerEvents = contentType === 'image' ? 'auto' : 'none';
+                }
+                if (elements.videoUploadContainer) {
+                    elements.videoUploadContainer.style.opacity = contentType === 'video' ? '1' : '0.5';
+                    elements.videoUploadContainer.style.pointerEvents = contentType === 'video' ? 'auto' : 'none';
+                }
+                if (elements.audioUploadContainer) {
+                    elements.audioUploadContainer.style.opacity = contentType === 'audio' ? '1' : '0.5';
+                    elements.audioUploadContainer.style.pointerEvents = contentType === 'audio' ? 'auto' : 'none';
+                }
                 
-                // Show only the relevant one
-                switch(contentType) {
-                    case 'image':
-                        if (elements.imageUploadContainer) {
-                            elements.imageUploadContainer.style.display = 'block';
-                        }
-                        break;
-                    case 'video':
-                        if (elements.videoUploadContainer) {
-                            elements.videoUploadContainer.style.display = 'block';
-                        }
-                        break;
-                    case 'audio':
-                        if (elements.audioUploadContainer) {
-                            elements.audioUploadContainer.style.display = 'block';
-                        }
-                        break;
+                // Show/hide text input
+                const textContainer = document.getElementById('textMessageContainer');
+                if (textContainer) {
+                    textContainer.style.display = contentType === 'text' ? 'block' : 'none';
                 }
             }
             
@@ -1092,139 +1084,139 @@
             
             // Handle image upload
             function setupImageUpload() {
-                if (!elements.imageUploadArea || !elements.imageInput) {
-                    console.log('Image upload elements not found, skipping setup');
-                    return;
+                const imageUploadArea = document.getElementById('imageUploadArea');
+                const imageInput = document.getElementById('imageInput');
+                
+                if (imageUploadArea && imageInput) {
+                    imageUploadArea.addEventListener('click', () => {
+                        imageInput.click();
+                    });
+                    
+                    imageInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Validate file type
+                            if (!file.type.match('image.*')) {
+                                showNotification('Please select an image file', 'error');
+                                return;
+                            }
+                            
+                            // Validate file size (5MB)
+                            if (file.size > 5 * 1024 * 1024) {
+                                showNotification('Image file is too large (max 5MB)', 'error');
+                                return;
+                            }
+                            
+                            // Show preview
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                currentMedia.image = {
+                                    url: e.target.result,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size
+                                };
+                                
+                                document.getElementById('previewImage').src = e.target.result;
+                                document.getElementById('imageFilename').textContent = file.name;
+                                document.getElementById('imagePreview').classList.add('active');
+                                generatePreview();
+                                showNotification('Image uploaded successfully', 'success');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
                 }
+            }
+            
+            // Handle video upload
+            function setupVideoUpload() {
+                const videoUploadArea = document.getElementById('videoUploadArea');
+                const videoInput = document.getElementById('videoInput');
                 
-                elements.imageUploadArea.addEventListener('click', () => {
-                    elements.imageInput.click();
-                });
-                
-                elements.imageInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        // Validate file type
-                        if (!file.type.match('image.*')) {
-                            showNotification('Please select an image file', 'error');
-                            return;
-                        }
-                        
-                        // Validate file size (5MB)
-                        if (file.size > 5 * 1024 * 1024) {
-                            showNotification('Image file is too large (max 5MB)', 'error');
-                            return;
-                        }
-                        
-                        // Show preview
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            currentMedia.image = {
-                                url: e.target.result,
+                if (videoUploadArea && videoInput) {
+                    videoUploadArea.addEventListener('click', () => {
+                        videoInput.click();
+                    });
+                    
+                    videoInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Validate file type
+                            if (!file.type.match('video.*')) {
+                                showNotification('Please select a video file', 'error');
+                                return;
+                            }
+                            
+                            // Validate file size (10MB)
+                            if (file.size > 10 * 1024 * 1024) {
+                                showNotification('Video file is too large (max 10MB)', 'error');
+                                return;
+                            }
+                            
+                            currentMedia.video = {
+                                url: URL.createObjectURL(file),
                                 name: file.name,
                                 type: file.type,
                                 size: file.size
                             };
                             
-                            document.getElementById('previewImage').src = e.target.result;
-                            document.getElementById('imageFilename').textContent = file.name;
-                            document.getElementById('imagePreview').classList.add('active');
+                            const videoElement = document.getElementById('previewVideo');
+                            if (videoElement) {
+                                videoElement.src = currentMedia.video.url;
+                            }
+                            document.getElementById('videoFilename').textContent = file.name;
+                            document.getElementById('videoPreview').classList.add('active');
                             generatePreview();
-                            showNotification('Image uploaded successfully', 'success');
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-            
-            // Handle video upload
-            function setupVideoUpload() {
-                if (!elements.videoUploadArea || !elements.videoInput) {
-                    console.log('Video upload elements not found, skipping setup');
-                    return;
+                            showNotification('Video uploaded successfully', 'success');
+                        }
+                    });
                 }
-                
-                elements.videoUploadArea.addEventListener('click', () => {
-                    elements.videoInput.click();
-                });
-                
-                elements.videoInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        // Validate file type
-                        if (!file.type.match('video.*')) {
-                            showNotification('Please select a video file', 'error');
-                            return;
-                        }
-                        
-                        // Validate file size (10MB)
-                        if (file.size > 10 * 1024 * 1024) {
-                            showNotification('Video file is too large (max 10MB)', 'error');
-                            return;
-                        }
-                        
-                        currentMedia.video = {
-                            url: URL.createObjectURL(file),
-                            name: file.name,
-                            type: file.type,
-                            size: file.size
-                        };
-                        
-                        const videoElement = document.getElementById('previewVideo');
-                        if (videoElement) {
-                            videoElement.src = currentMedia.video.url;
-                        }
-                        document.getElementById('videoFilename').textContent = file.name;
-                        document.getElementById('videoPreview').classList.add('active');
-                        generatePreview();
-                        showNotification('Video uploaded successfully', 'success');
-                    }
-                });
             }
             
             // Handle audio upload
             function setupAudioUpload() {
-                if (!elements.audioUploadArea || !elements.audioInput) {
-                    console.log('Audio upload elements not found, skipping setup');
-                    return;
+                const audioUploadArea = document.getElementById('audioUploadArea');
+                const audioInput = document.getElementById('audioInput');
+                
+                if (audioUploadArea && audioInput) {
+                    audioUploadArea.addEventListener('click', () => {
+                        audioInput.click();
+                    });
+                    
+                    audioInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Validate file type
+                            if (!file.type.match('audio.*')) {
+                                showNotification('Please select an audio file', 'error');
+                                return;
+                            }
+                            
+                            // Validate file size (5MB)
+                            if (file.size > 5 * 1024 * 1024) {
+                                showNotification('Audio file is too large (max 5MB)', 'error');
+                                return;
+                            }
+                            
+                            currentMedia.audio = {
+                                url: URL.createObjectURL(file),
+                                name: file.name,
+                                type: file.type,
+                                size: file.size
+                            };
+                            
+                            const audioElement = document.getElementById('previewAudio');
+                            if (audioElement) {
+                                audioElement.src = currentMedia.audio.url;
+                            }
+                            document.getElementById('audioFilename').textContent = file.name;
+                            document.getElementById('audioPreview').classList.add('active');
+                            generatePreview();
+                            showNotification('Audio uploaded successfully', 'success');
+                        }
+                    });
                 }
-                
-                elements.audioUploadArea.addEventListener('click', () => {
-                    elements.audioInput.click();
-                });
-                
-                elements.audioInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        // Validate file type
-                        if (!file.type.match('audio.*')) {
-                            showNotification('Please select an audio file', 'error');
-                            return;
-                        }
-                        
-                        // Validate file size (5MB)
-                        if (file.size > 5 * 1024 * 1024) {
-                            showNotification('Audio file is too large (max 5MB)', 'error');
-                            return;
-                        }
-                        
-                        currentMedia.audio = {
-                            url: URL.createObjectURL(file),
-                            name: file.name,
-                            type: file.type,
-                            size: file.size
-                        };
-                        
-                        const audioElement = document.getElementById('previewAudio');
-                        if (audioElement) {
-                            audioElement.src = currentMedia.audio.url;
-                        }
-                        document.getElementById('audioFilename').textContent = file.name;
-                        document.getElementById('audioPreview').classList.add('active');
-                        generatePreview();
-                        showNotification('Audio uploaded successfully', 'success');
-                    }
-                });
             }
             
             // Remove image
@@ -1606,12 +1598,12 @@
                 
                 await checkBackendConnection();
                 
-                // Setup media upload handlers
+                // Setup media upload handlers FIRST - CRITICAL FIX
                 setupImageUpload();
                 setupVideoUpload();
                 setupAudioUpload();
                 
-                // Initial media visibility
+                // Then set initial media visibility
                 updateMediaUploadVisibility();
                 
                 // Generate initial preview
@@ -1647,16 +1639,7 @@
                 
                 // Content type change handler
                 elements.contentTypeSelect.addEventListener('change', function() {
-                    // Show/hide text input
-                    const textContainer = document.getElementById('textMessageContainer');
-                    if (textContainer) {
-                        textContainer.style.display = this.value === 'text' ? 'block' : 'none';
-                    }
-                    
-                    // Update media upload visibility
                     updateMediaUploadVisibility();
-                    
-                    // Update preview
                     generatePreview();
                 });
                 
