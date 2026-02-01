@@ -171,9 +171,14 @@
             outline: none;
         }
         
-        /* Media Upload Styles - REMOVED display: none */
+        /* Media Upload Styles */
         .media-upload-container {
+            display: none;
             margin-top: 15px;
+        }
+        
+        .media-upload-container.active {
+            display: block;
         }
         
         .upload-area {
@@ -771,7 +776,7 @@
                         <div class="upload-area" id="videoUploadArea">
                             <i class="fas fa-video"></i>
                             <div class="upload-text">Click to upload video</div>
-                            <div class="upload-subtext">MP4, WebM up to 10MB</div>
+                            <div class="upload-subtext">MP4, WebM up to 40MB</div>
                             <input type="file" id="videoInput" class="file-input" accept="video/*">
                         </div>
                         <div class="file-preview" id="videoPreview">
@@ -794,7 +799,7 @@
                         <div class="upload-area" id="audioUploadArea">
                             <i class="fas fa-music"></i>
                             <div class="upload-text">Click to upload audio</div>
-                            <div class="upload-subtext">MP3, WAV up to 5MB</div>
+                            <div class="upload-subtext">MP3, WAV up to 10MB</div>
                             <input type="file" id="audioInput" class="file-input" accept="audio/*">
                         </div>
                         <div class="file-preview" id="audioPreview">
@@ -988,19 +993,28 @@
             function updateMediaUploadVisibility() {
                 const contentType = elements.contentTypeSelect.value;
                 
-                // Initially show all containers (they're now visible by default)
-                // But we can still highlight the active one
-                if (elements.imageUploadContainer) {
-                    elements.imageUploadContainer.style.opacity = contentType === 'image' ? '1' : '0.5';
-                    elements.imageUploadContainer.style.pointerEvents = contentType === 'image' ? 'auto' : 'none';
-                }
-                if (elements.videoUploadContainer) {
-                    elements.videoUploadContainer.style.opacity = contentType === 'video' ? '1' : '0.5';
-                    elements.videoUploadContainer.style.pointerEvents = contentType === 'video' ? 'auto' : 'none';
-                }
-                if (elements.audioUploadContainer) {
-                    elements.audioUploadContainer.style.opacity = contentType === 'audio' ? '1' : '0.5';
-                    elements.audioUploadContainer.style.pointerEvents = contentType === 'audio' ? 'auto' : 'none';
+                // Hide all media containers first
+                if (elements.imageUploadContainer) elements.imageUploadContainer.classList.remove('active');
+                if (elements.videoUploadContainer) elements.videoUploadContainer.classList.remove('active');
+                if (elements.audioUploadContainer) elements.audioUploadContainer.classList.remove('active');
+                
+                // Show only the relevant one
+                switch(contentType) {
+                    case 'image':
+                        if (elements.imageUploadContainer) {
+                            elements.imageUploadContainer.classList.add('active');
+                        }
+                        break;
+                    case 'video':
+                        if (elements.videoUploadContainer) {
+                            elements.videoUploadContainer.classList.add('active');
+                        }
+                        break;
+                    case 'audio':
+                        if (elements.audioUploadContainer) {
+                            elements.audioUploadContainer.classList.add('active');
+                        }
+                        break;
                 }
                 
                 // Show/hide text input
@@ -1148,9 +1162,9 @@
                                 return;
                             }
                             
-                            // Validate file size (10MB)
-                            if (file.size > 10 * 1024 * 1024) {
-                                showNotification('Video file is too large (max 10MB)', 'error');
+                            // Validate file size (40MB)
+                            if (file.size > 40 * 1024 * 1024) {
+                                showNotification('Video file is too large (max 40MB)', 'error');
                                 return;
                             }
                             
@@ -1193,9 +1207,9 @@
                                 return;
                             }
                             
-                            // Validate file size (5MB)
-                            if (file.size > 5 * 1024 * 1024) {
-                                showNotification('Audio file is too large (max 5MB)', 'error');
+                            // Validate file size (10MB)
+                            if (file.size > 10 * 1024 * 1024) {
+                                showNotification('Audio file is too large (max 10MB)', 'error');
                                 return;
                             }
                             
@@ -1598,12 +1612,12 @@
                 
                 await checkBackendConnection();
                 
-                // Setup media upload handlers FIRST - CRITICAL FIX
+                // Setup media upload handlers
                 setupImageUpload();
                 setupVideoUpload();
                 setupAudioUpload();
                 
-                // Then set initial media visibility
+                // Initial media visibility
                 updateMediaUploadVisibility();
                 
                 // Generate initial preview
