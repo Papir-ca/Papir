@@ -1,5 +1,5 @@
 {
-  "name": "magic-postcard",
+  "name": "Papir",
   "version": "1.0.0",
   "description": "A magical postcard maker that saves cards securely!",
   "main": "server.js",
