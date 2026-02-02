@@ -632,6 +632,100 @@
             box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
         }
         
+        /* File reminder modal */
+        .file-reminder-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .file-reminder-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .file-reminder-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+        }
+        
+        .file-reminder-modal.active .file-reminder-content {
+            transform: translateY(0);
+        }
+        
+        .file-reminder-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: #ff9800;
+        }
+        
+        .file-reminder-header i {
+            font-size: 2.5rem;
+        }
+        
+        .file-reminder-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .file-reminder-body {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .file-reminder-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        
+        .file-reminder-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-reminder-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .file-reminder-btn.cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        .file-reminder-btn.upload {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .file-reminder-btn.upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+        
         @media (max-width: 768px) {
             .card-creator {
                 flex-direction: column;
@@ -674,6 +768,14 @@
             
             .share-url-container {
                 flex-direction: column;
+            }
+            
+            .file-reminder-buttons {
+                flex-direction: column;
+            }
+            
+            .file-reminder-btn {
+                width: 100%;
             }
         }
         
@@ -921,6 +1023,23 @@
         </div>
     </div>
     
+    <!-- File Reminder Modal -->
+    <div class="file-reminder-modal" id="fileReminderModal">
+        <div class="file-reminder-content">
+            <div class="file-reminder-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>No File Selected</h3>
+            </div>
+            <div class="file-reminder-body" id="fileReminderMessage">
+                <!-- Message will be inserted here -->
+            </div>
+            <div class="file-reminder-buttons">
+                <button class="file-reminder-btn cancel" onclick="hideFileReminder()">Cancel</button>
+                <button class="file-reminder-btn upload" onclick="openFilePicker()">Choose File</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Notification Element -->
     <div class="notification" id="notification"></div>
     
@@ -932,6 +1051,7 @@
             const BACKEND_URL = 'https://papir.ca'; // Your backend server
             let isConnected = false;
             let currentQRCodeData = null;
+            let pendingSaveData = null; // Store card data when save is attempted without file
             
             // Media state
             let currentMedia = {
@@ -955,6 +1075,8 @@
                 qrCodeSection: document.getElementById('qrCodeSection'),
                 qrCodeContainer: document.getElementById('qrCodeContainer'),
                 shareableUrl: document.getElementById('shareableUrl'),
+                fileReminderModal: document.getElementById('fileReminderModal'),
+                fileReminderMessage: document.getElementById('fileReminderMessage'),
                 
                 // Media elements
                 imageUploadContainer: document.getElementById('imageUploadContainer'),
@@ -974,6 +1096,41 @@
                 setTimeout(() => {
                     elements.notification.classList.remove('show');
                 }, 3000);
+            }
+            
+            // Show file reminder modal
+            function showFileReminder(contentType) {
+                const message = `You selected "${contentType}" content type but haven't uploaded a file yet. Please choose a file before saving the card.`;
+                elements.fileReminderMessage.textContent = message;
+                elements.fileReminderModal.classList.add('active');
+            }
+            
+            // Hide file reminder modal
+            function hideFileReminder() {
+                elements.fileReminderModal.classList.remove('active');
+                pendingSaveData = null; // Clear pending save
+            }
+            
+            // Open file picker based on content type
+            function openFilePicker() {
+                const contentType = pendingSaveData?.message_type || elements.contentTypeSelect.value;
+                
+                switch(contentType) {
+                    case 'image':
+                        elements.imageInput.click();
+                        break;
+                    case 'video':
+                        elements.videoInput.click();
+                        break;
+                    case 'audio':
+                        elements.audioInput.click();
+                        break;
+                }
+                
+                hideFileReminder();
+                
+                // Show message to user
+                showNotification(`Please select a ${contentType} file`, 'info');
             }
             
             // Update sync status
@@ -1108,6 +1265,16 @@
                         return { success: false, error: 'Backend unavailable' };
                     }
                     
+                    // Check if media is required but not uploaded
+                    const contentType = cardData.message_type;
+                    if (contentType !== 'text' && !currentMedia[contentType]) {
+                        // Store the card data for later save
+                        pendingSaveData = cardData;
+                        // Show reminder to upload file
+                        showFileReminder(contentType);
+                        return { success: false, error: 'No file uploaded' };
+                    }
+                    
                     // Save button loading state
                     const saveBtnText = elements.saveBtn.innerHTML;
                     elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
@@ -1123,7 +1290,6 @@
                     
                     // If there's media, upload it first
                     let mediaUrl = null;
-                    const contentType = cardData.message_type;
                     
                     if (contentType !== 'text' && currentMedia[contentType]) {
                         showNotification(`Uploading ${contentType}...`, 'info');
@@ -1196,7 +1362,12 @@
                         fetchCardsFromBackend();
                         return { success: true, data: result };
                     } else {
-                        showNotification(`Error: ${result.error || 'Failed to save card'}`, 'error');
+                        // Handle 409 conflict error (duplicate card ID)
+                        if (response.status === 409) {
+                            showNotification(`Card ID ${cardData.card_id} already exists. Use a different ID.`, 'error');
+                        } else {
+                            showNotification(`Error: ${result.error || 'Failed to save card'}`, 'error');
+                        }
                         return { success: false, error: result.error };
                     }
                     
@@ -1320,12 +1491,11 @@
                         if (card.media_url && card.message_type !== 'text') {
                             showNotification(`Loading ${card.message_type} from server...`, 'info');
                             
-                            // For demo purposes, we'll just show a placeholder
-                            // In production, you'd fetch the actual media
+                            // Store the media URL for playback
                             const mediaType = card.message_type;
                             currentMedia[mediaType] = {
                                 name: `Loaded ${mediaType}`,
-                                url: card.media_url,
+                                url: card.media_url, // This should be the direct URL to the audio file
                                 type: `${mediaType}/*`
                             };
                             
@@ -1333,6 +1503,13 @@
                             const previewElement = document.getElementById(`${mediaType}Preview`);
                             if (previewElement) {
                                 previewElement.classList.add('active');
+                            }
+                            
+                            // Set the audio/video source directly for playback
+                            if (mediaType === 'audio' && card.media_url) {
+                                const audioElement = document.getElementById('previewAudio');
+                                audioElement.src = card.media_url;
+                                audioElement.load(); // Load the new source
                             }
                         }
                         
@@ -1539,8 +1716,10 @@
                         previewElement.src = objectUrl;
                     } else if (mediaType === 'video') {
                         previewElement.src = objectUrl;
+                        previewElement.load(); // Load the video
                     } else if (mediaType === 'audio') {
                         previewElement.src = objectUrl;
+                        previewElement.load(); // Load the audio - FIX FOR AUDIO PLAYBACK
                     }
                     
                     filenameElement.textContent = file.name;
@@ -1562,6 +1741,13 @@
                         generatePreview();
                         
                         showNotification(`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} uploaded successfully!`, 'success');
+                        
+                        // If there was a pending save, automatically save now
+                        if (pendingSaveData && pendingSaveData.message_type === mediaType) {
+                            setTimeout(() => {
+                                saveCardToBackend(pendingSaveData);
+                            }, 500);
+                        }
                     }, 1000);
                 });
             }
@@ -1593,18 +1779,23 @@
             
             // Initialize
             function init() {
+                console.log('Initializing Papir Card Maker...');
+                
                 // Check backend connection
                 fetchCardsFromBackend();
                 
                 // Set up event listeners
                 elements.contentTypeSelect.addEventListener('change', updateMediaUploadVisibility);
                 elements.generateBtn.addEventListener('click', generatePreview);
+                
+                // Modified save button click handler
                 elements.saveBtn.addEventListener('click', async () => {
                     const cardData = generatePreview();
                     if (cardData) {
                         await saveCardToBackend(cardData);
                     }
                 });
+                
                 elements.testBtn.addEventListener('click', testCard);
                 
                 // Set up file uploads
@@ -1625,21 +1816,10 @@
                 window.testOnPhone = testOnPhone;
                 window.hideQRCode = hideQRCode;
                 window.printQRCode = printQRCode;
+                window.hideFileReminder = hideFileReminder;
+                window.openFilePicker = openFilePicker;
                 
-                // Override save button to also generate QR code after saving
-                const originalSaveBtnClick = elements.saveBtn.onclick;
-                elements.saveBtn.onclick = async function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        const result = await saveCardToBackend(cardData);
-                        if (result.success) {
-                            // Generate QR code after successful save
-                            setTimeout(() => {
-                                generateQRCode(cardData.card_id);
-                            }, 500);
-                        }
-                    }
-                };
+                console.log('Papir Card Maker initialized successfully');
             }
             
             // Start the app
