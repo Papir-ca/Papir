@@ -1391,17 +1391,34 @@
                 showNotification('Opening AR viewer to test card...', 'info');
             }
             
-            // Fetch cards from backend
+            // Fetch cards from backend - FIXED VERSION
             async function fetchCardsFromBackend() {
                 try {
+                    console.log('Loading cards from:', `${BACKEND_URL}/api/cards`);
+                    
                     const response = await fetch(`${BACKEND_URL}/api/cards`);
                     
+                    console.log('Response status:', response.status);
+                    
                     if (response.ok) {
-                        const cards = await response.json();
-                        updateCardsTable(cards);
-                        updateSyncStatus(true);
-                        return true;
+                        const data = await response.json();
+                        console.log('Cards API response:', data);
+                        
+                        // Check if data is an array
+                        if (Array.isArray(data)) {
+                            updateCardsTable(data);
+                            updateSyncStatus(true);
+                            return true;
+                        } else {
+                            // Handle non-array response (could be error object or something else)
+                            console.error('API did not return an array:', data);
+                            updateSyncStatus(false);
+                            updateCardsTable([]);
+                            showNotification('Backend returned invalid data format', 'error');
+                            return false;
+                        }
                     } else {
+                        console.error('Failed to fetch cards:', response.status, response.statusText);
                         updateSyncStatus(false);
                         updateCardsTable([]);
                         return false;
@@ -1416,7 +1433,8 @@
             
             // Update cards table
             function updateCardsTable(cards) {
-                if (!cards || cards.length === 0) {
+                // Ensure cards is an array
+                if (!Array.isArray(cards) || cards.length === 0) {
                     elements.cardsTableBody.innerHTML = `
                         <tr class="empty-row">
                             <td colspan="5">No cards found. Create your first card above!</td>
