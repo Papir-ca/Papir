@@ -1372,123 +1372,105 @@
                 printWindow.document.close();
             };
             
-            // Save card to backend WITH MEDIA UPLOAD - FIXED VERSION
+            // Save card to backend WITH MEDIA UPLOAD
             async function saveCardToBackend(cardData) {
-              try {
-                if (!isConnected) {
-                  showNotification('Backend server not connected. Make sure your Railway app is running', 'error');
-                  return { success: false, error: 'Backend unavailable' };
-                }
-                
-                // Check if media is required but not uploaded
-                const contentType = cardData.message_type;
-                if (contentType !== 'text' && !currentMedia[contentType]) {
-                  showNotification(`Please upload a ${contentType} file before saving`, 'error');
-                  return { success: false, error: 'No file uploaded' };
-                }
-                
-                // Save button loading state - store the ORIGINAL button HTML
-                const saveBtnOriginalHTML = elements.saveBtn.innerHTML;
-                elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
-                elements.saveBtn.disabled = true;
-                
-                // Prepare card data
-                const cardDataToSend = {
-                  card_id: cardData.card_id,
-                  message_type: cardData.message_type,
-                  message_text: cardData.message_text,
-                  status: 'active'
-                };
-                
-                // If there's media, we need to handle it differently since blob URLs are blocked
-                if (contentType !== 'text' && currentMedia[contentType]) {
-                  showNotification(`Processing ${contentType}...`, 'info');
-                  
-                  try {
-                    console.log('DEBUG: Preparing media for:', currentMedia[contentType].name);
-                    
-                    // For images uploaded via FileReader (data URLs), we can use them directly
-                    // For audio/video uploaded via URL.createObjectURL, we can't fetch blob URLs due to CSP
-                    // So we'll just save the card without the media URL for now
-                    
-                    // If it's an image with data URL, we can use it
-                    if (contentType === 'image' && currentMedia.image.url && currentMedia.image.url.startsWith('data:')) {
-                      // Image is already a data URL, we can send it
-                      const mediaResponse = await fetch(`${BACKEND_URL}/upload-media`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          file_data: currentMedia.image.url,
-                          file_name: currentMedia.image.name,
-                          file_type: currentMedia.image.type,
-                          card_id: cardData.card_id
-                        })
-                      });
-                      
-                      if (mediaResponse.ok) {
-                        const mediaResult = await mediaResponse.json();
-                        if (mediaResult.url) {
-                          cardDataToSend.media_url = mediaResult.url;
-                          showNotification(`${contentType} uploaded successfully!`, 'success');
-                        }
-                      }
-                    } else {
-                      // For audio/video or images with blob URLs, we'll save without media for now
-                      showNotification(`${contentType} will be saved as reference only (CSP restriction)`, 'info');
+                try {
+                    if (!isConnected) {
+                        showNotification('Backend server not connected. Make sure your Railway app is running', 'error');
+                        return { success: false, error: 'Backend unavailable' };
                     }
                     
-                  } catch (mediaError) {
-                    console.error('Media processing error:', mediaError);
-                    showNotification(`Media processing error. Saving card without media.`, 'error');
-                  }
+                    // Save button loading state
+                    const saveBtnText = elements.saveBtn.innerHTML;
+                    elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
+                    elements.saveBtn.disabled = true;
+                    
+                    // Prepare card data
+                    const cardDataToSend = {
+                        card_id: cardData.card_id,
+                        message_type: cardData.message_type,
+                        message_text: cardData.message_text,
+                        status: 'active'
+                    };
+                    
+                    // If there's media, upload it first
+                    let mediaUrl = null;
+                    const contentType = cardData.message_type;
+                    
+                    if (contentType !== 'text' && currentMedia[contentType]) {
+                        showNotification(`Uploading ${contentType}...`, 'info');
+                        
+                        try {
+                            const uploadResponse = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    fileData: currentMedia[contentType].url,
+                                    fileName: currentMedia[contentType].name,
+                                    fileType: currentMedia[contentType].type,
+                                    cardId: cardData.card_id
+                                })
+                            });
+                            
+                            const uploadResult = await uploadResponse.json();
+                            
+                            if (uploadResult.success) {
+                                mediaUrl = uploadResult.url;
+                                showNotification(`${contentType} uploaded successfully!`, 'success');
+                                cardDataToSend.media_url = mediaUrl;
+                            } else {
+                                throw new Error(`Media upload failed: ${uploadResult.error}`);
+                            }
+                        } catch (uploadError) {
+                            console.error('Media upload error:', uploadError);
+                            showNotification(`Media upload failed: ${uploadError.message}`, 'error');
+                            // Continue saving card without media
+                        }
+                    }
+                    
+                    // Send card data to backend
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(cardDataToSend)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    // Reset button
+                    elements.saveBtn.innerHTML = saveBtnText;
+                    elements.saveBtn.disabled = false;
+                    
+                    if (result.success) {
+                        showNotification(`Card ${cardData.card_id} saved to Papir backend!`, 'success');
+                        await loadCardsFromBackend(); // Refresh list
+                        
+                        // Generate QR code for papir.ca domain
+                        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
+                        const viewerUrl = `${BACKEND_URL}/viewer.html?card=${cardData.card_id}`;
+                        
+                        showQRCode(qrCodeUrl, viewerUrl, cardData);
+                        
+                        return { success: true, data: result.card };
+                    } else {
+                        showNotification(`Failed to save: ${result.error}`, 'error');
+                        return { success: false, error: result.error };
+                    }
+                    
+                } catch (error) {
+                    console.error('Save error:', error);
+                    
+                    // Reset button
+                    elements.saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                    elements.saveBtn.disabled = false;
+                    
+                    showNotification('Cannot connect to Papir backend. Check Railway deployment.', 'error');
+                    return { success: false, error: error.message };
                 }
-                
-                // Now save the card data
-                console.log('DEBUG: Saving card data:', cardDataToSend);
-                
-                const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(cardDataToSend)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                  showNotification('Card saved successfully!', 'success');
-                  // Refresh the cards list
-                  await loadCardsFromBackend();
-                  
-                  // Generate QR code
-                  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
-                  const viewerUrl = `${BACKEND_URL}/viewer.html?card=${cardData.card_id}`;
-                  
-                  showQRCode(qrCodeUrl, viewerUrl, cardData);
-                  
-                  return { success: true, data: result };
-                } else {
-                  // Handle 409 conflict error (duplicate card ID)
-                  if (response.status === 409) {
-                    showNotification(`Card ID ${cardData.card_id} already exists. Use a different ID.`, 'error');
-                  } else {
-                    showNotification(`Error: ${result.error || 'Failed to save card'}`, 'error');
-                  }
-                  return { success: false, error: result.error };
-                }
-                
-              } catch (error) {
-                console.error('Error saving card:', error);
-                showNotification('Failed to save card. Check backend connection.', 'error');
-                return { success: false, error: error.message };
-              } finally {
-                // Restore save button using the stored ORIGINAL HTML
-                elements.saveBtn.innerHTML = saveBtnOriginalHTML;
-                elements.saveBtn.disabled = false;
-              }
             }
             
             // Load cards from backend - FIXED VERSION
@@ -1513,112 +1495,51 @@
                         const result = await response.json();
                         console.log('Cards API response:', result);
                         
-                        // Check if response has cards array
-                        if (result && Array.isArray(result)) {
-                            if (result.length > 0) {
-                                let html = '';
-                                result.forEach(card => {
-                                    const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    }) : 'Recent';
-                                    
-                                    const messagePreview = card.message_text 
-                                        ? (card.message_text.length > 50 ? card.message_text.substring(0, 50) + '...' : card.message_text)
-                                        : '';
-                                    
-                                    html += `
-                                        <tr>
-                                            <td><strong>${card.card_id}</strong></td>
-                                            <td>${card.message_type}</td>
-                                            <td>${messagePreview}</td>
-                                            <td>${date}</td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="action-btn view" onclick="viewCard('${card.card_id}')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                    <button class="action-btn delete" onclick="deleteCard('${card.card_id}')">
-                                                        <i class="fas fa-trash"></i> Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `;
-                                });
-                                elements.cardsTableBody.innerHTML = html;
-                                console.log('Cards loaded successfully');
-                            } else {
-                                elements.cardsTableBody.innerHTML = `
-                                    <tr class="empty-row">
-                                        <td colspan="5">
-                                            <i class="fas fa-info-circle"></i> 
-                                            No cards found in database. Create your first Papir card above!
+                        if (result.success && result.cards && result.cards.length > 0) {
+                            let html = '';
+                            result.cards.forEach(card => {
+                                const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                }) : 'Recent';
+                                
+                                const messagePreview = card.message_text 
+                                    ? (card.message_text.length > 50 ? card.message_text.substring(0, 50) + '...' : card.message_text)
+                                    : '';
+                                
+                                html += `
+                                    <tr>
+                                        <td><strong>${card.card_id}</strong></td>
+                                        <td>${card.message_type}</td>
+                                        <td>${messagePreview}</td>
+                                        <td>${date}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn view" onclick="app.viewCard('${card.card_id}')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                <button class="action-btn delete" onclick="app.deleteCard('${card.card_id}')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 `;
-                                console.log('No cards found in response');
-                            }
-                        } else if (result && result.cards && Array.isArray(result.cards)) {
-                            // Handle the old format with {success: true, cards: [...]}
-                            if (result.cards.length > 0) {
-                                let html = '';
-                                result.cards.forEach(card => {
-                                    const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    }) : 'Recent';
-                                    
-                                    const messagePreview = card.message_text 
-                                        ? (card.message_text.length > 50 ? card.message_text.substring(0, 50) + '...' : card.message_text)
-                                        : '';
-                                    
-                                    html += `
-                                        <tr>
-                                            <td><strong>${card.card_id}</strong></td>
-                                            <td>${card.message_type}</td>
-                                            <td>${messagePreview}</td>
-                                            <td>${date}</td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="action-btn view" onclick="viewCard('${card.card_id}')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                    <button class="action-btn delete" onclick="deleteCard('${card.card_id}')">
-                                                        <i class="fas fa-trash"></i> Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `;
-                                });
-                                elements.cardsTableBody.innerHTML = html;
-                                console.log('Cards loaded successfully (old format)');
-                            } else {
-                                elements.cardsTableBody.innerHTML = `
-                                    <tr class="empty-row">
-                                        <td colspan="5">
-                                            <i class="fas fa-info-circle"></i> 
-                                            No cards found in database. Create your first Papir card above!
-                                        </td>
-                                    </tr>
-                                `;
-                            }
+                            });
+                            elements.cardsTableBody.innerHTML = html;
+                            console.log('Cards loaded successfully');
                         } else {
-                            console.error('Invalid response format:', result);
                             elements.cardsTableBody.innerHTML = `
                                 <tr class="empty-row">
                                     <td colspan="5">
-                                        <i class="fas fa-exclamation-triangle"></i> 
-                                        Invalid response from server. Could not load cards.
+                                        <i class="fas fa-info-circle"></i> 
+                                        No cards found in database. Create your first Papir card above!
                                     </td>
                                 </tr>
                             `;
+                            console.log('No cards found in response');
                         }
-                        
-                        updateSyncStatus(true);
                     } else {
                         console.error('Failed to load cards:', response.status, response.statusText);
                         elements.cardsTableBody.innerHTML = `
@@ -1629,7 +1550,6 @@
                                 </td>
                             </tr>
                         `;
-                        updateSyncStatus(false);
                     }
                     
                 } catch (error) {
@@ -1642,7 +1562,6 @@
                             </td>
                         </tr>
                     `;
-                    updateSyncStatus(false);
                 }
             }
             
@@ -1652,20 +1571,20 @@
                     const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
                     if (response.ok) {
                         const result = await response.json();
-                        if (result && result.card_id) {
+                        if (result.success && result.card) {
                             // Extract numeric ID
                             const numericId = cardId.replace('CARD', '');
                             elements.cardIdInput.value = numericId;
                             
                             // Set content type
-                            elements.contentTypeSelect.value = result.message_type;
+                            elements.contentTypeSelect.value = result.card.message_type;
                             
                             // Update media visibility
                             updateMediaUploadVisibility();
                             
                             // Set message - only if it's a text card
-                            if (result.message_type === 'text') {
-                                elements.messageInput.value = result.message_text || '';
+                            if (result.card.message_type === 'text') {
+                                elements.messageInput.value = result.card.message_text || '';
                             } else {
                                 elements.messageInput.value = '';
                             }
@@ -1712,7 +1631,7 @@
                 }
             }
             
-            // Check backend connection - renamed to avoid conflict
+            // Check backend connection
             async function checkBackendConnection() {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/health`);
@@ -1787,13 +1706,15 @@
             
             initApp();
             
-            // Create global functions for button handlers
-            window.viewCard = viewCard;
-            window.deleteCard = deleteCard;
-            window.hideQRCode = hideQRCode;
-            window.copyShareUrl = copyShareUrl;
-            window.testOnPhone = testOnPhone;
-            window.printQRCode = printQRCode;
+            // Create global app object for button handlers
+            window.app = {
+                viewCard: viewCard,
+                deleteCard: deleteCard,
+                hideQRCode: hideQRCode,
+                copyShareUrl: copyShareUrl,
+                testOnPhone: testOnPhone,
+                printQRCode: printQRCode
+            };
         });
     </script>
 </body>
