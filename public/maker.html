@@ -929,793 +929,669 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             // Backend API configuration - YOUR SERVER!
-            const BACKEND_URL = 'https://papir.ca'; // Your backend server
-            let isConnected = false;
-            let currentQRCodeData = null;
+                   const BACKEND_URL = 'https://papir.ca';
+        let isConnected = false;
+        let currentQRCodeData = null;
+        let currentMedia = {
+            image: null,
+            video: null,
+            audio: null
+        };
+
+        const elements = {
+            cardIdInput: document.getElementById('cardId'),
+            contentTypeSelect: document.getElementById('contentType'),
+            messageInput: document.getElementById('message'),
+            generateBtn: document.getElementById('generateBtn'),
+            saveBtn: document.getElementById('saveBtn'),
+            testBtn: document.getElementById('testBtn'),
+            cardPreview: document.getElementById('cardPreview'),
+            cardsTableBody: document.getElementById('cardsTableBody'),
+            notification: document.getElementById('notification'),
+            syncStatus: document.getElementById('syncStatus'),
+            qrCodeSection: document.getElementById('qrCodeSection'),
+            qrCodeContainer: document.getElementById('qrCodeContainer'),
+            shareableUrl: document.getElementById('shareableUrl')
+        };
+
+        function showNotification(message, type = 'success') {
+            elements.notification.textContent = message;
+            elements.notification.className = `notification ${type}`;
+            elements.notification.classList.add('show');
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function updateSyncStatus(connected) {
+            if (connected) {
+                elements.syncStatus.className = 'sync-status online';
+                elements.syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span>';
+                isConnected = true;
+            } else {
+                elements.syncStatus.className = 'sync-status offline';
+                elements.syncStatus.innerHTML = '<i class="fas fa-times-circle"></i><span>Backend Unavailable</span>';
+                isConnected = false;
+            }
+        }
+
+        function updateMediaUploadVisibility() {
+            const contentType = elements.contentTypeSelect.value;
             
-            // Media state
-            let currentMedia = {
-                image: null,
-                video: null,
-                audio: null
-            };
+            document.getElementById('imageUploadContainer').classList.remove('active');
+            document.getElementById('videoUploadContainer').classList.remove('active');
+            document.getElementById('audioUploadContainer').classList.remove('active');
             
-            // Get DOM elements
-            const elements = {
-                cardIdInput: document.getElementById('cardId'),
-                contentTypeSelect: document.getElementById('contentType'),
-                messageInput: document.getElementById('message'),
-                generateBtn: document.getElementById('generateBtn'),
-                saveBtn: document.getElementById('saveBtn'),
-                testBtn: document.getElementById('testBtn'),
-                cardPreview: document.getElementById('cardPreview'),
-                cardsTableBody: document.getElementById('cardsTableBody'),
-                notification: document.getElementById('notification'),
-                syncStatus: document.getElementById('syncStatus'),
-                qrCodeSection: document.getElementById('qrCodeSection'),
-                qrCodeContainer: document.getElementById('qrCodeContainer'),
-                shareableUrl: document.getElementById('shareableUrl'),
-                
-                // Media elements
-                imageUploadContainer: document.getElementById('imageUploadContainer'),
-                videoUploadContainer: document.getElementById('videoUploadContainer'),
-                audioUploadContainer: document.getElementById('audioUploadContainer'),
-                imageInput: document.getElementById('imageInput'),
-                videoInput: document.getElementById('videoInput'),
-                audioInput: document.getElementById('audioInput')
-            };
-            
-            // Show notification
-            function showNotification(message, type = 'success') {
-                elements.notification.textContent = message;
-                elements.notification.className = `notification ${type}`;
-                elements.notification.classList.add('show');
-                
-                setTimeout(() => {
-                    elements.notification.classList.remove('show');
-                }, 3000);
+            switch(contentType) {
+                case 'image':
+                    document.getElementById('imageUploadContainer').classList.add('active');
+                    break;
+                case 'video':
+                    document.getElementById('videoUploadContainer').classList.add('active');
+                    break;
+                case 'audio':
+                    document.getElementById('audioUploadContainer').classList.add('active');
+                    break;
             }
             
-            // Update sync status
-            function updateSyncStatus(connected) {
-                if (connected) {
-                    elements.syncStatus.className = 'sync-status online';
-                    elements.syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span>';
-                    isConnected = true;
-                } else {
-                    elements.syncStatus.className = 'sync-status offline';
-                    elements.syncStatus.innerHTML = '<i class="fas fa-times-circle"></i><span>Backend Unavailable</span>';
-                    isConnected = false;
-                }
+            const textContainer = document.getElementById('textMessageContainer');
+            if (textContainer) {
+                textContainer.style.display = contentType === 'text' ? 'block' : 'none';
+            }
+        }
+
+        function generatePreview() {
+            const cardId = elements.cardIdInput.value.trim();
+            const contentType = elements.contentTypeSelect.value;
+            const message = elements.messageInput.value.trim();
+            
+            if (!cardId) {
+                showNotification('Please enter a card ID', 'error');
+                return null;
             }
             
-            // Show/hide media upload containers based on content type
-            function updateMediaUploadVisibility() {
-                const contentType = elements.contentTypeSelect.value;
-                
-                // Hide all media containers first
-                if (elements.imageUploadContainer) elements.imageUploadContainer.classList.remove('active');
-                if (elements.videoUploadContainer) elements.videoUploadContainer.classList.remove('active');
-                if (elements.audioUploadContainer) elements.audioUploadContainer.classList.remove('active');
-                
-                // Show only the relevant one
-                switch(contentType) {
-                    case 'image':
-                        if (elements.imageUploadContainer) {
-                            elements.imageUploadContainer.classList.add('active');
-                        }
-                        break;
-                    case 'video':
-                        if (elements.videoUploadContainer) {
-                            elements.videoUploadContainer.classList.add('active');
-                        }
-                        break;
-                    case 'audio':
-                        if (elements.audioUploadContainer) {
-                            elements.audioUploadContainer.classList.add('active');
-                        }
-                        break;
-                }
-                
-                // Show/hide text input
-                const textContainer = document.getElementById('textMessageContainer');
-                if (textContainer) {
-                    textContainer.style.display = contentType === 'text' ? 'block' : 'none';
-                }
+            if (!/^\d+$/.test(cardId)) {
+                showNotification('Card ID must contain only numbers', 'error');
+                return null;
             }
             
-            // Generate card preview
-            function generatePreview() {
-                const cardId = elements.cardIdInput.value.trim();
-                const contentType = elements.contentTypeSelect.value;
-                const message = elements.messageInput.value.trim();
-                
-                // Validate card ID
-                if (!cardId) {
-                    showNotification('Please enter a card ID', 'error');
-                    return null;
-                }
-                
-                if (!/^\d+$/.test(cardId)) {
-                    showNotification('Card ID must contain only numbers', 'error');
-                    return null;
-                }
-                
-                const fullCardId = `CARD${cardId}`;
-                
-                // Generate preview
-                let typeDisplay = contentType.charAt(0).toUpperCase() + contentType.slice(1);
-                if (contentType === 'text') typeDisplay = 'Text Message';
-                
-                let previewHTML = `
-                    <div class="card-id-display">${fullCardId}</div>
-                    <div class="content-type-display">${typeDisplay}</div>
+            const fullCardId = `CARD${cardId}`;
+            let typeDisplay = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+            if (contentType === 'text') typeDisplay = 'Text Message';
+            
+            let previewHTML = `
+                <div class="card-id-display">${fullCardId}</div>
+                <div class="content-type-display">${typeDisplay}</div>
+            `;
+            
+            if (contentType === 'text') {
+                previewHTML += `<div class="text-content">${message || 'Your text message will appear here'}</div>`;
+            } else if (contentType === 'image' && currentMedia.image) {
+                previewHTML += `
+                    <img src="${currentMedia.image.url}" alt="Image Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 20px 0;">
+                    <div style="color: #666; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
                 `;
-                
-                // Add content based on type
-                if (contentType === 'text') {
-                    previewHTML += `<div class="text-content">${message || 'Your text message will appear here'}</div>`;
-                } else if (contentType === 'image' && currentMedia.image) {
-                    previewHTML += `
-                        <img src="${currentMedia.image.url}" alt="Image Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 20px 0;">
-                        <div style="color: #666; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
-                    `;
-                } else if (contentType === 'video' && currentMedia.video) {
-                    previewHTML += `
-                        <div style="color: #666; margin: 20px 0;">
-                            <i class="fas fa-video" style="font-size: 3rem; color: #6a11cb;"></i>
-                            <div>Video: ${currentMedia.video.name}</div>
-                        </div>
-                    `;
-                } else if (contentType === 'audio' && currentMedia.audio) {
-                    previewHTML += `
-                        <div style="color: #666; margin: 20px 0;">
-                            <i class="fas fa-music" style="font-size: 3rem; color: #6a11cb;"></i>
-                            <div>Audio: ${currentMedia.audio.name}</div>
-                        </div>
-                    `;
-                } else {
-                    previewHTML += `<div class="text-content" style="color: #999;">No ${contentType} uploaded yet</div>`;
-                }
-                
-                elements.cardPreview.innerHTML = previewHTML;
-                
-                // Return card data for saving
-                const cardData = {
-                    card_id: fullCardId,
-                    message_type: contentType,
-                    message_text: contentType === 'text' ? message : '', // Only send text for text content type
-                    status: 'active'
-                };
-                
-                // Only add media data if it exists and matches the content type
-                if (currentMedia[contentType]) {
-                    cardData.media_data = currentMedia[contentType];
-                }
-                
-                return cardData;
-            }
-            
-            // Handle image upload
-            function setupImageUpload() {
-                const imageUploadArea = document.getElementById('imageUploadArea');
-                const imageInput = document.getElementById('imageInput');
-                
-                if (imageUploadArea && imageInput) {
-                    imageUploadArea.addEventListener('click', () => {
-                        imageInput.click();
-                    });
-                    
-                    imageInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            // Validate file type
-                            if (!file.type.match('image.*')) {
-                                showNotification('Please select an image file', 'error');
-                                return;
-                            }
-                            
-                            // Validate file size (5MB)
-                            if (file.size > 5 * 1024 * 1024) {
-                                showNotification('Image file is too large (max 5MB)', 'error');
-                                return;
-                            }
-                            
-                            // Show preview
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                currentMedia.image = {
-                                    url: e.target.result,
-                                    name: file.name,
-                                    type: file.type,
-                                    size: file.size
-                                };
-                                
-                                document.getElementById('previewImage').src = e.target.result;
-                                document.getElementById('imageFilename').textContent = file.name;
-                                document.getElementById('imagePreview').classList.add('active');
-                                generatePreview();
-                                showNotification('Image uploaded successfully', 'success');
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    });
-                }
-            }
-            
-            // Handle video upload
-            function setupVideoUpload() {
-                const videoUploadArea = document.getElementById('videoUploadArea');
-                const videoInput = document.getElementById('videoInput');
-                
-                if (videoUploadArea && videoInput) {
-                    videoUploadArea.addEventListener('click', () => {
-                        videoInput.click();
-                    });
-                    
-                    videoInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            // Validate file type
-                            if (!file.type.match('video.*')) {
-                                showNotification('Please select a video file', 'error');
-                                return;
-                            }
-                            
-                            // Validate file size (40MB)
-                            if (file.size > 40 * 1024 * 1024) {
-                                showNotification('Video file is too large (max 40MB)', 'error');
-                                return;
-                            }
-                            
-                            currentMedia.video = {
-                                url: URL.createObjectURL(file),
-                                name: file.name,
-                                type: file.type,
-                                size: file.size
-                            };
-                            
-                            const videoElement = document.getElementById('previewVideo');
-                            if (videoElement) {
-                                videoElement.src = currentMedia.video.url;
-                            }
-                            document.getElementById('videoFilename').textContent = file.name;
-                            document.getElementById('videoPreview').classList.add('active');
-                            generatePreview();
-                            showNotification('Video uploaded successfully', 'success');
-                        }
-                    });
-                }
-            }
-            
-            // Handle audio upload
-            function setupAudioUpload() {
-                const audioUploadArea = document.getElementById('audioUploadArea');
-                const audioInput = document.getElementById('audioInput');
-                
-                if (audioUploadArea && audioInput) {
-                    audioUploadArea.addEventListener('click', () => {
-                        audioInput.click();
-                    });
-                    
-                    audioInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            // Validate file type
-                            if (!file.type.match('audio.*')) {
-                                showNotification('Please select an audio file', 'error');
-                                return;
-                            }
-                            
-                            // Validate file size (10MB)
-                            if (file.size > 10 * 1024 * 1024) {
-                                showNotification('Audio file is too large (max 10MB)', 'error');
-                                return;
-                            }
-                            
-                            currentMedia.audio = {
-                                url: URL.createObjectURL(file),
-                                name: file.name,
-                                type: file.type,
-                                size: file.size
-                            };
-                            
-                            const audioElement = document.getElementById('previewAudio');
-                            if (audioElement) {
-                                audioElement.src = currentMedia.audio.url;
-                            }
-                            document.getElementById('audioFilename').textContent = file.name;
-                            document.getElementById('audioPreview').classList.add('active');
-                            generatePreview();
-                            showNotification('Audio uploaded successfully', 'success');
-                        }
-                    });
-                }
-            }
-            
-            // Remove image
-            window.removeImage = function() {
-                currentMedia.image = null;
-                if (elements.imageInput) elements.imageInput.value = '';
-                const imagePreview = document.getElementById('imagePreview');
-                if (imagePreview) imagePreview.classList.remove('active');
-                generatePreview();
-                showNotification('Image removed', 'info');
-            };
-            
-            // Remove video
-            window.removeVideo = function() {
-                if (currentMedia.video && currentMedia.video.url) {
-                    URL.revokeObjectURL(currentMedia.video.url);
-                }
-                currentMedia.video = null;
-                if (elements.videoInput) elements.videoInput.value = '';
-                const videoPreview = document.getElementById('videoPreview');
-                if (videoPreview) videoPreview.classList.remove('active');
-                generatePreview();
-                showNotification('Video removed', 'info');
-            };
-            
-            // Remove audio
-            window.removeAudio = function() {
-                if (currentMedia.audio && currentMedia.audio.url) {
-                    URL.revokeObjectURL(currentMedia.audio.url);
-                }
-                currentMedia.audio = null;
-                if (elements.audioInput) elements.audioInput.value = '';
-                const audioPreview = document.getElementById('audioPreview');
-                if (audioPreview) audioPreview.classList.remove('active');
-                generatePreview();
-                showNotification('Audio removed', 'info');
-            };
-            
-            // Show QR code after successful save
-            function showQRCode(qrCodeUrl, viewerUrl, cardData) {
-                // Build QR code HTML
-                elements.qrCodeContainer.innerHTML = `
-                    <div class="qr-success">
-                        <i class="fas fa-check-circle"></i>
-                        <h3>Card Created Successfully!</h3>
-                        <p>Card ID: <strong>${cardData.card_id}</strong></p>
-                        <p>Type: <strong>${cardData.message_type}</strong></p>
+            } else if (contentType === 'video' && currentMedia.video) {
+                previewHTML += `
+                    <div style="color: #666; margin: 20px 0;">
+                        <i class="fas fa-video" style="font-size: 3rem; color: #6a11cb;"></i>
+                        <div>Video: ${currentMedia.video.name}</div>
                     </div>
-                    <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
-                    <p style="color: #666; margin-bottom: 20px;">Scan with phone camera</p>
                 `;
-                
-                // Set shareable URL
-                elements.shareableUrl.value = viewerUrl;
-                
-                // Store current QR code data
-                currentQRCodeData = {
-                    qrCodeUrl: qrCodeUrl,
-                    viewerUrl: viewerUrl,
-                    cardData: cardData
-                };
-                
-                // Show the section
-                elements.qrCodeSection.style.display = 'block';
-                
-                // Scroll to QR code
-                setTimeout(() => {
-                    elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
-                }, 500);
-                
-                // Show notification
-                showNotification('QR code generated! Scan it with your phone.', 'success');
+            } else if (contentType === 'audio' && currentMedia.audio) {
+                previewHTML += `
+                    <div style="color: #666; margin: 20px 0;">
+                        <i class="fas fa-music" style="font-size: 3rem; color: #6a11cb;"></i>
+                        <div>Audio: ${currentMedia.audio.name}</div>
+                    </div>
+                `;
+            } else {
+                previewHTML += `<div class="text-content" style="color: #999;">No ${contentType} uploaded yet</div>`;
             }
             
-            // Hide QR code section
-            window.hideQRCode = function() {
-                elements.qrCodeSection.style.display = 'none';
+            elements.cardPreview.innerHTML = previewHTML;
+            
+            const cardData = {
+                card_id: fullCardId,
+                message_type: contentType,
+                message_text: contentType === 'text' ? message : '',
+                status: 'active'
             };
             
-            // Copy share URL to clipboard
-            window.copyShareUrl = function() {
-                const shareableUrl = elements.shareableUrl;
-                shareableUrl.select();
-                shareableUrl.setSelectionRange(0, 99999);
-                
-                try {
-                    navigator.clipboard.writeText(shareableUrl.value);
-                    showNotification('URL copied to clipboard!', 'success');
-                } catch (err) {
-                    // Fallback for older browsers
-                    document.execCommand('copy');
-                    showNotification('URL copied!', 'success');
-                }
-            };
+            if (currentMedia[contentType]) {
+                cardData.media_data = currentMedia[contentType];
+            }
             
-            // Test on phone instructions
-            window.testOnPhone = function() {
-                const url = elements.shareableUrl.value;
-                const message = `Test your card on your phone:\n\n1. Open this URL on your phone:\n${url}\n\n2. Or scan the QR code with your phone camera\n\n3. The card will display instantly!`;
-                alert(message);
-            };
+            return cardData;
+        }
+
+        function setupImageUpload() {
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('imageInput');
             
-            // Print QR code
-            window.printQRCode = function() {
-                if (!currentQRCodeData) {
-                    showNotification('No QR code to print', 'error');
-                    return;
-                }
-                
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>Print QR Code - ${currentQRCodeData.cardData.card_id}</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-                            h1 { color: #333; }
-                            .qr-code { width: 300px; height: 300px; margin: 20px auto; }
-                            .info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
-                            @media print { button { display: none; } }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Papir AR Card QR Code</h1>
-                        <div class="info">
-                            <p><strong>Card ID:</strong> ${currentQRCodeData.cardData.card_id}</p>
-                            <p><strong>Type:</strong> ${currentQRCodeData.cardData.message_type}</p>
-                            <p><strong>URL:</strong> ${currentQRCodeData.viewerUrl}</p>
-                        </div>
-                        <img src="${currentQRCodeData.qrCodeUrl}" alt="QR Code" class="qr-code">
-                        <p>Scan this QR code with any smartphone camera</p>
-                        <p><small>Generated by Papir AR System</small></p>
-                        <br>
-                        <button onclick="window.print()">Print QR Code</button>
-                        <button onclick="window.close()">Close</button>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-            };
+            imageUploadArea.addEventListener('click', () => imageInput.click());
             
-            // Save card to backend WITH MEDIA UPLOAD
-            async function saveCardToBackend(cardData) {
-                try {
-                    if (!isConnected) {
-                        showNotification('Backend server not connected. Make sure your Railway app is running', 'error');
-                        return { success: false, error: 'Backend unavailable' };
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.type.match('image.*')) {
+                        showNotification('Please select an image file', 'error');
+                        return;
                     }
                     
-                    // Save button loading state
-                    const saveBtnText = elements.saveBtn.innerHTML;
-                    elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
-                    elements.saveBtn.disabled = true;
+                    if (file.size > 5 * 1024 * 1024) {
+                        showNotification('Image file is too large (max 5MB)', 'error');
+                        return;
+                    }
                     
-                    // Prepare card data
-                    const cardDataToSend = {
-                        card_id: cardData.card_id,
-                        message_type: cardData.message_type,
-                        message_text: cardData.message_text,
-                        status: 'active'
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        currentMedia.image = {
+                            file: file,
+                            url: e.target.result,
+                            name: file.name,
+                            type: file.type,
+                            size: file.size
+                        };
+                        
+                        document.getElementById('previewImage').src = e.target.result;
+                        document.getElementById('imageFilename').textContent = file.name;
+                        document.getElementById('imagePreview').classList.add('active');
+                        generatePreview();
+                        showNotification('Image uploaded successfully', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function setupVideoUpload() {
+            const videoUploadArea = document.getElementById('videoUploadArea');
+            const videoInput = document.getElementById('videoInput');
+            
+            videoUploadArea.addEventListener('click', () => videoInput.click());
+            
+            videoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.type.match('video.*')) {
+                        showNotification('Please select a video file', 'error');
+                        return;
+                    }
+                    
+                    if (file.size > 40 * 1024 * 1024) {
+                        showNotification('Video file is too large (max 40MB)', 'error');
+                        return;
+                    }
+                    
+                    currentMedia.video = {
+                        file: file,
+                        url: URL.createObjectURL(file),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
                     };
                     
-                    // If there's media, upload it first
-                    let mediaUrl = null;
-                    const contentType = cardData.message_type;
-                    
-                    if (contentType !== 'text' && currentMedia[contentType]) {
-                        showNotification(`Uploading ${contentType}...`, 'info');
-                        
-                        try {
-                            const uploadResponse = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    fileData: currentMedia[contentType].url,
-                                    fileName: currentMedia[contentType].name,
-                                    fileType: currentMedia[contentType].type,
-                                    cardId: cardData.card_id
-                                })
-                            });
-                            
-                            const uploadResult = await uploadResponse.json();
-                            
-                            if (uploadResult.success) {
-                                mediaUrl = uploadResult.url;
-                                showNotification(`${contentType} uploaded successfully!`, 'success');
-                                cardDataToSend.media_url = mediaUrl;
-                            } else {
-                                throw new Error(`Media upload failed: ${uploadResult.error}`);
-                            }
-                        } catch (uploadError) {
-                            console.error('Media upload error:', uploadError);
-                            showNotification(`Media upload failed: ${uploadError.message}`, 'error');
-                            // Continue saving card without media
-                        }
+                    const videoElement = document.getElementById('previewVideo');
+                    videoElement.src = currentMedia.video.url;
+                    document.getElementById('videoFilename').textContent = file.name;
+                    document.getElementById('videoPreview').classList.add('active');
+                    generatePreview();
+                    showNotification('Video uploaded successfully', 'success');
+                }
+            });
+        }
+
+        function setupAudioUpload() {
+            const audioUploadArea = document.getElementById('audioUploadArea');
+            const audioInput = document.getElementById('audioInput');
+            
+            audioUploadArea.addEventListener('click', () => audioInput.click());
+            
+            audioInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.type.match('audio.*')) {
+                        showNotification('Please select an audio file', 'error');
+                        return;
                     }
                     
-                    // Send card data to backend
-                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(cardDataToSend)
-                    });
+                    if (file.size > 10 * 1024 * 1024) {
+                        showNotification('Audio file is too large (max 10MB)', 'error');
+                        return;
+                    }
                     
+                    currentMedia.audio = {
+                        file: file,
+                        url: URL.createObjectURL(file),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    };
+                    
+                    const audioElement = document.getElementById('previewAudio');
+                    audioElement.src = currentMedia.audio.url;
+                    document.getElementById('audioFilename').textContent = file.name;
+                    document.getElementById('audioPreview').classList.add('active');
+                    generatePreview();
+                    showNotification('Audio uploaded successfully', 'success');
+                }
+            });
+        }
+
+        window.removeImage = function() {
+            currentMedia.image = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePreview').classList.remove('active');
+            generatePreview();
+            showNotification('Image removed', 'info');
+        };
+
+        window.removeVideo = function() {
+            if (currentMedia.video && currentMedia.video.url) {
+                URL.revokeObjectURL(currentMedia.video.url);
+            }
+            currentMedia.video = null;
+            document.getElementById('videoInput').value = '';
+            document.getElementById('videoPreview').classList.remove('active');
+            generatePreview();
+            showNotification('Video removed', 'info');
+        };
+
+        window.removeAudio = function() {
+            if (currentMedia.audio && currentMedia.audio.url) {
+                URL.revokeObjectURL(currentMedia.audio.url);
+            }
+            currentMedia.audio = null;
+            document.getElementById('audioInput').value = '';
+            document.getElementById('audioPreview').classList.remove('active');
+            generatePreview();
+            showNotification('Audio removed', 'info');
+        };
+
+        async function uploadMediaFile(file, cardId, fileName, fileType) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('cardId', cardId);
+            formData.append('fileName', fileName);
+            formData.append('fileType', fileType);
+
+            const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                method: 'POST',
+                body: formData
+            });
+
+            return await response.json();
+        }
+
+        async function saveCardToBackend(cardData) {
+            try {
+                if (!isConnected) {
+                    showNotification('Backend server not connected', 'error');
+                    return { success: false, error: 'Backend unavailable' };
+                }
+
+                const saveBtnText = elements.saveBtn.innerHTML;
+                elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
+                elements.saveBtn.disabled = true;
+
+                const cardDataToSend = {
+                    card_id: cardData.card_id,
+                    message_type: cardData.message_type,
+                    message_text: cardData.message_text,
+                    status: 'active'
+                };
+
+                let mediaUrl = null;
+                const contentType = cardData.message_type;
+
+                if (contentType !== 'text' && currentMedia[contentType]) {
+                    showNotification(`Uploading ${contentType} to Supabase...`, 'info');
+                    
+                    const uploadResult = await uploadMediaFile(
+                        currentMedia[contentType].file,
+                        cardData.card_id,
+                        currentMedia[contentType].name,
+                        currentMedia[contentType].type
+                    );
+
+                    if (uploadResult.success) {
+                        mediaUrl = uploadResult.url;
+                        showNotification(`${contentType} uploaded to Supabase!`, 'success');
+                        cardDataToSend.media_url = mediaUrl;
+                    } else {
+                        showNotification(`Media upload failed: ${uploadResult.error}`, 'error');
+                    }
+                }
+
+                const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cardDataToSend)
+                });
+
+                const result = await response.json();
+                elements.saveBtn.innerHTML = saveBtnText;
+                elements.saveBtn.disabled = false;
+
+                if (result.success) {
+                    showNotification(`Card ${cardData.card_id} saved!`, 'success');
+                    await loadCardsFromBackend();
+
+                    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
+                    const viewerUrl = `${BACKEND_URL}/viewer.html?card=${cardData.card_id}`;
+                    
+                    showQRCode(qrCodeUrl, viewerUrl, cardData);
+                    return { success: true, data: result.card };
+                } else {
+                    showNotification(`Failed to save: ${result.error}`, 'error');
+                    return { success: false, error: result.error };
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                elements.saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                elements.saveBtn.disabled = false;
+                showNotification('Cannot connect to backend', 'error');
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function loadCardsFromBackend() {
+            try {
+                elements.cardsTableBody.innerHTML = `
+                    <tr class="empty-row">
+                        <td colspan="5">
+                            <div class="loading" style="margin-right: 10px;"></div>
+                            Loading cards from database...
+                        </td>
+                    </tr>
+                `;
+
+                const response = await fetch(`${BACKEND_URL}/api/cards`);
+                
+                if (response.ok) {
                     const result = await response.json();
                     
-                    // Reset button
-                    elements.saveBtn.innerHTML = saveBtnText;
-                    elements.saveBtn.disabled = false;
-                    
-                    if (result.success) {
-                        showNotification(`Card ${cardData.card_id} saved to Papir backend!`, 'success');
-                        await loadCardsFromBackend(); // Refresh list
-                        
-                        // Generate QR code for papir.ca domain
-                        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
-                        const viewerUrl = `${BACKEND_URL}/viewer.html?card=${cardData.card_id}`;
-                        
-                        showQRCode(qrCodeUrl, viewerUrl, cardData);
-                        
-                        return { success: true, data: result.card };
-                    } else {
-                        showNotification(`Failed to save: ${result.error}`, 'error');
-                        return { success: false, error: result.error };
-                    }
-                    
-                } catch (error) {
-                    console.error('Save error:', error);
-                    
-                    // Reset button
-                    elements.saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
-                    elements.saveBtn.disabled = false;
-                    
-                    showNotification('Cannot connect to Papir backend. Check Railway deployment.', 'error');
-                    return { success: false, error: error.message };
-                }
-            }
-            
-            // Load cards from backend - FIXED VERSION
-            async function loadCardsFromBackend() {
-                try {
-                    // Set loading state
-                    elements.cardsTableBody.innerHTML = `
-                        <tr class="empty-row">
-                            <td colspan="5">
-                                <div class="loading" style="margin-right: 10px;"></div>
-                                Loading cards from database...
-                            </td>
-                        </tr>
-                    `;
-                    
-                    console.log('Loading cards from:', `${BACKEND_URL}/api/cards`);
-                    const response = await fetch(`${BACKEND_URL}/api/cards`);
-                    
-                    console.log('Response status:', response.status);
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        console.log('Cards API response:', result);
-                        
-                        if (result.success && result.cards && result.cards.length > 0) {
-                            let html = '';
-                            result.cards.forEach(card => {
-                                const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                }) : 'Recent';
-                                
-                                const messagePreview = card.message_text 
-                                    ? (card.message_text.length > 50 ? card.message_text.substring(0, 50) + '...' : card.message_text)
-                                    : '';
-                                
-                                html += `
-                                    <tr>
-                                        <td><strong>${card.card_id}</strong></td>
-                                        <td>${card.message_type}</td>
-                                        <td>${messagePreview}</td>
-                                        <td>${date}</td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="action-btn view" onclick="app.viewCard('${card.card_id}')">
-                                                    <i class="fas fa-eye"></i> View
-                                                </button>
-                                                <button class="action-btn delete" onclick="app.deleteCard('${card.card_id}')">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
-                            });
-                            elements.cardsTableBody.innerHTML = html;
-                            console.log('Cards loaded successfully');
-                        } else {
-                            elements.cardsTableBody.innerHTML = `
-                                <tr class="empty-row">
-                                    <td colspan="5">
-                                        <i class="fas fa-info-circle"></i> 
-                                        No cards found in database. Create your first Papir card above!
+                    if (result.success && result.cards && result.cards.length > 0) {
+                        let html = '';
+                        result.cards.forEach(card => {
+                            const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            }) : 'Recent';
+                            
+                            const messagePreview = card.message_text 
+                                ? (card.message_text.length > 50 ? card.message_text.substring(0, 50) + '...' : card.message_text)
+                                : '';
+                            
+                            html += `
+                                <tr>
+                                    <td><strong>${card.card_id}</strong></td>
+                                    <td>${card.message_type}</td>
+                                    <td>${messagePreview}</td>
+                                    <td>${date}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn view" onclick="app.viewCard('${card.card_id}')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button class="action-btn delete" onclick="app.deleteCard('${card.card_id}')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             `;
-                            console.log('No cards found in response');
-                        }
+                        });
+                        elements.cardsTableBody.innerHTML = html;
                     } else {
-                        console.error('Failed to load cards:', response.status, response.statusText);
                         elements.cardsTableBody.innerHTML = `
                             <tr class="empty-row">
                                 <td colspan="5">
-                                    <i class="fas fa-exclamation-triangle"></i> 
-                                    Could not load cards: Server returned ${response.status} ${response.statusText}
+                                    <i class="fas fa-info-circle"></i> 
+                                    No cards found. Create your first card!
                                 </td>
                             </tr>
                         `;
                     }
-                    
-                } catch (error) {
-                    console.error('Load error:', error);
+                } else {
                     elements.cardsTableBody.innerHTML = `
                         <tr class="empty-row">
                             <td colspan="5">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Error loading cards: ${error.message}
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Could not load cards
                             </td>
                         </tr>
                     `;
                 }
-            }
-            
-            // View card from table
-            async function viewCard(cardId) {
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success && result.card) {
-                            // Extract numeric ID
-                            const numericId = cardId.replace('CARD', '');
-                            elements.cardIdInput.value = numericId;
-                            
-                            // Set content type
-                            elements.contentTypeSelect.value = result.card.message_type;
-                            
-                            // Update media visibility
-                            updateMediaUploadVisibility();
-                            
-                            // Set message - only if it's a text card
-                            if (result.card.message_type === 'text') {
-                                elements.messageInput.value = result.card.message_text || '';
-                            } else {
-                                elements.messageInput.value = '';
-                            }
-                            
-                            // Clear media (for now - we could load media if stored)
-                            currentMedia.image = null;
-                            currentMedia.video = null;
-                            currentMedia.audio = null;
-                            
-                            generatePreview();
-                            showNotification(`Loaded card: ${cardId}`, 'success');
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error loading card:', error);
-                }
                 
-                // If can't load, just set the ID
-                const numericId = cardId.replace('CARD', '');
-                elements.cardIdInput.value = numericId;
-                elements.messageInput.value = '';
-                generatePreview();
-                showNotification(`Set card ID: ${cardId}`, 'info');
+            } catch (error) {
+                console.error('Load error:', error);
+                elements.cardsTableBody.innerHTML = `
+                    <tr class="empty-row">
+                        <td colspan="5">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error loading cards
+                        </td>
+                    </tr>
+                `;
             }
-            
-            // Delete card from backend
-            async function deleteCard(cardId) {
-                if (confirm(`Delete card ${cardId}? This cannot be undone.`)) {
-                    try {
-                        const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`, {
-                            method: 'DELETE'
-                        });
+        }
+
+        async function viewCard(cardId) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.card) {
+                        const numericId = cardId.replace('CARD', '');
+                        elements.cardIdInput.value = numericId;
+                        elements.contentTypeSelect.value = result.card.message_type;
+                        updateMediaUploadVisibility();
                         
-                        if (response.ok) {
-                            showNotification(`Card ${cardId} deleted`, 'success');
-                            await loadCardsFromBackend();
+                        if (result.card.message_type === 'text') {
+                            elements.messageInput.value = result.card.message_text || '';
                         } else {
-                            throw new Error('Delete failed');
+                            elements.messageInput.value = '';
                         }
-                    } catch (error) {
-                        showNotification(`Could not delete card: ${error.message}`, 'error');
+                        
+                        currentMedia.image = null;
+                        currentMedia.video = null;
+                        currentMedia.audio = null;
+                        
+                        generatePreview();
+                        showNotification(`Loaded card: ${cardId}`, 'success');
+                        return;
                     }
                 }
+            } catch (error) {
+                console.error('Error loading card:', error);
             }
             
-            // Check backend connection
-            async function checkBackendConnection() {
+            const numericId = cardId.replace('CARD', '');
+            elements.cardIdInput.value = numericId;
+            elements.messageInput.value = '';
+            generatePreview();
+            showNotification(`Set card ID: ${cardId}`, 'info');
+        }
+
+        async function deleteCard(cardId) {
+            if (confirm(`Delete card ${cardId}? This cannot be undone.`)) {
                 try {
-                    const response = await fetch(`${BACKEND_URL}/api/health`);
+                    const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`, {
+                        method: 'DELETE'
+                    });
+                    
                     if (response.ok) {
-                        updateSyncStatus(true);
-                        return true;
+                        showNotification(`Card ${cardId} deleted`, 'success');
+                        await loadCardsFromBackend();
+                    } else {
+                        throw new Error('Delete failed');
                     }
                 } catch (error) {
-                    console.log('Backend not available:', error.message);
+                    showNotification(`Could not delete card: ${error.message}`, 'error');
                 }
-                
-                updateSyncStatus(false);
-                return false;
+            }
+        }
+
+        async function checkBackendConnection() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                if (response.ok) {
+                    updateSyncStatus(true);
+                    return true;
+                }
+            } catch (error) {
+                console.log('Backend not available:', error.message);
             }
             
-            // Initialize the app
-            async function initApp() {
-                console.log('Initializing Papir Card Maker...');
-                
-                await checkBackendConnection();
-                
-                // Setup media upload handlers
-                setupImageUpload();
-                setupVideoUpload();
-                setupAudioUpload();
-                
-                // Initial media visibility
+            updateSyncStatus(false);
+            return false;
+        }
+
+        function showQRCode(qrCodeUrl, viewerUrl, cardData) {
+            elements.qrCodeContainer.innerHTML = `
+                <div class="qr-success">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Card Created Successfully!</h3>
+                    <p>Card ID: <strong>${cardData.card_id}</strong></p>
+                    <p>Type: <strong>${cardData.message_type}</strong></p>
+                </div>
+                <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
+                <p style="color: #666; margin-bottom: 20px;">Scan with phone camera</p>
+            `;
+            
+            elements.shareableUrl.value = viewerUrl;
+            currentQRCodeData = { qrCodeUrl, viewerUrl, cardData };
+            elements.qrCodeSection.style.display = 'block';
+            
+            setTimeout(() => {
+                elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+            
+            showNotification('QR code generated! Scan it with your phone.', 'success');
+        }
+
+        window.hideQRCode = function() {
+            elements.qrCodeSection.style.display = 'none';
+        };
+
+        window.copyShareUrl = function() {
+            const shareableUrl = elements.shareableUrl;
+            shareableUrl.select();
+            shareableUrl.setSelectionRange(0, 99999);
+            
+            try {
+                navigator.clipboard.writeText(shareableUrl.value);
+                showNotification('URL copied to clipboard!', 'success');
+            } catch (err) {
+                document.execCommand('copy');
+                showNotification('URL copied!', 'success');
+            }
+        };
+
+        window.testOnPhone = function() {
+            const url = elements.shareableUrl.value;
+            const message = `Test your card on your phone:\n\n1. Open this URL on your phone:\n${url}\n\n2. Or scan the QR code with your phone camera\n\n3. The card will display instantly!`;
+            alert(message);
+        };
+
+        window.printQRCode = function() {
+            if (!currentQRCodeData) {
+                showNotification('No QR code to print', 'error');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Print QR Code - ${currentQRCodeData.cardData.card_id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                        h1 { color: #333; }
+                        .qr-code { width: 300px; height: 300px; margin: 20px auto; }
+                        .info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Papir AR Card QR Code</h1>
+                    <div class="info">
+                        <p><strong>Card ID:</strong> ${currentQRCodeData.cardData.card_id}</p>
+                        <p><strong>Type:</strong> ${currentQRCodeData.cardData.message_type}</p>
+                        <p><strong>URL:</strong> ${currentQRCodeData.viewerUrl}</p>
+                    </div>
+                    <img src="${currentQRCodeData.qrCodeUrl}" alt="QR Code" class="qr-code">
+                    <p>Scan this QR code with any smartphone camera</p>
+                    <p><small>Generated by Papir AR System</small></p>
+                    <br>
+                    <button onclick="window.print()">Print QR Code</button>
+                    <button onclick="window.close()">Close</button>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        };
+
+        async function initApp() {
+            console.log('Initializing Papir Card Maker...');
+            await checkBackendConnection();
+            
+            setupImageUpload();
+            setupVideoUpload();
+            setupAudioUpload();
+            updateMediaUploadVisibility();
+            generatePreview();
+            
+            elements.generateBtn.addEventListener('click', function() {
+                const cardData = generatePreview();
+                if (cardData) {
+                    showNotification(`Card ${cardData.card_id} preview generated!`, 'success');
+                }
+            });
+            
+            elements.saveBtn.addEventListener('click', async function() {
+                const cardData = generatePreview();
+                if (cardData) {
+                    await saveCardToBackend(cardData);
+                }
+            });
+            
+            elements.testBtn.addEventListener('click', function() {
+                const cardData = generatePreview();
+                if (cardData) {
+                    showNotification(`Testing card ${cardData.card_id}...`, 'info');
+                    const viewerUrl = `viewer.html?card=${encodeURIComponent(cardData.card_id)}`;
+                    window.open(viewerUrl, '_blank');
+                }
+            });
+            
+            elements.cardIdInput.addEventListener('input', generatePreview);
+            elements.messageInput.addEventListener('input', generatePreview);
+            
+            elements.contentTypeSelect.addEventListener('change', function() {
                 updateMediaUploadVisibility();
-                
-                // Generate initial preview
                 generatePreview();
-                
-                // Set up event listeners
-                elements.generateBtn.addEventListener('click', function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        showNotification(`Card ${cardData.card_id} preview generated!`, 'success');
-                    }
-                });
-                
-                elements.saveBtn.addEventListener('click', async function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        await saveCardToBackend(cardData);
-                    }
-                });
-                
-                elements.testBtn.addEventListener('click', function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        showNotification(`Testing card ${cardData.card_id}...`, 'info');
-                        const viewerUrl = `viewer.html?card=${encodeURIComponent(cardData.card_id)}`;
-                        window.open(viewerUrl, '_blank');
-                    }
-                });
-                
-                // Update preview when inputs change
-                elements.cardIdInput.addEventListener('input', generatePreview);
-                elements.messageInput.addEventListener('input', generatePreview);
-                
-                // Content type change handler
-                elements.contentTypeSelect.addEventListener('change', function() {
-                    updateMediaUploadVisibility();
-                    generatePreview();
-                });
-                
-                // Load initial cards
-                await loadCardsFromBackend();
-                
-                console.log('Papir Card Maker initialized successfully');
-            }
+            });
             
-            initApp();
-            
-            // Create global app object for button handlers
-            window.app = {
-                viewCard: viewCard,
-                deleteCard: deleteCard,
-                hideQRCode: hideQRCode,
-                copyShareUrl: copyShareUrl,
-                testOnPhone: testOnPhone,
-                printQRCode: printQRCode
-            };
-        });
-    </script>
+            await loadCardsFromBackend();
+            console.log('Papir Card Maker initialized successfully');
+        }
+
+        initApp();
+
+        window.app = {
+            viewCard: viewCard,
+            deleteCard: deleteCard,
+            hideQRCode: hideQRCode,
+            copyShareUrl: copyShareUrl,
+            testOnPhone: testOnPhone,
+            printQRCode: printQRCode
+        };
+    });
+</script>
 </body>
 </html>
