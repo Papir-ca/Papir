@@ -602,9 +602,9 @@
     <script>
         // === Use Papir domain ===
         const BACKEND_URL = 'https://papir.ca';
-        
-        // DOM Elements
-        const video = document.getElementById('video');
+    
+    // DOM Elements
+    const video = document.getElementById('video');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const cardIdInput = document.getElementById('cardIdInput');
@@ -624,20 +624,16 @@
         notification.textContent = message;
         notification.className = `notification ${type}`;
         notification.classList.add('show');
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
+        setTimeout(() => notification.classList.remove('show'), 3000);
     }
     
     async function loadCard(cardId) {
-        console.log('Loading card:', cardId);
-        
-        if (!cardId || cardId.trim() === '') {
+        if (!cardId?.trim()) {
             showNotification('Please enter a Card ID', 'error');
             return null;
         }
         
+        // Format card ID
         cardId = cardId.toUpperCase();
         if (!cardId.startsWith('CARD')) {
             cardId = 'CARD' + cardId;
@@ -658,24 +654,6 @@
             const result = await response.json();
             
             if (result.success && result.card) {
-                console.log('Card loaded:', result.card);
-                
-                // Load media files if needed
-                const contentType = result.card.message_type;
-                if (contentType !== 'text') {
-                    try {
-                        const mediaResponse = await fetch(`${BACKEND_URL}/api/cards/${encodeURIComponent(cardId)}/media`);
-                        if (mediaResponse.ok) {
-                            const mediaResult = await mediaResponse.json();
-                            if (mediaResult.success) {
-                                result.card.media_files = mediaResult.files;
-                            }
-                        }
-                    } catch (mediaError) {
-                        console.log('Media endpoint error:', mediaError.message);
-                    }
-                }
-                
                 return result.card;
             } else {
                 throw new Error(result.error || 'Unknown error');
@@ -691,19 +669,13 @@
     function displayCard(card) {
         console.log('Displaying card:', card);
         
+        // Update basic info
         displayCardId.textContent = card.card_id;
-        
-        if (card.message_text && card.message_text.trim() !== '') {
-            displayMessage.textContent = card.message_text;
-        } else {
-            displayMessage.textContent = '';
-        }
-        
+        displayMessage.textContent = card.message_text || '';
         displayType.textContent = card.message_type || 'Text Message';
         
         if (card.created_at) {
-            const date = new Date(card.created_at);
-            displayDate.textContent = date.toLocaleDateString('en-US', {
+            displayDate.textContent = new Date(card.created_at).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
@@ -712,69 +684,31 @@
             displayDate.textContent = 'Recently';
         }
         
+        // Clear existing media
         const existingMedia = cardContent.querySelector('.media-player');
         if (existingMedia) existingMedia.remove();
-        
         const existingPlaceholder = cardContent.querySelector('.media-placeholder');
         if (existingPlaceholder) existingPlaceholder.remove();
         
+        // Handle media display
         const contentType = card.message_type;
         
         if (contentType === 'text') {
-            // Just text, no media
+            // Just text, no media needed
         } 
         else if (contentType === 'audio' || contentType === 'video' || contentType === 'image') {
-            let mediaHTML = '';
+            // Use media_url or file_url (prefer media_url for compatibility)
+            const mediaUrl = card.media_url || card.file_url;
             
-            // Check for media files from Supabase
-            if (card.media_files && card.media_files.length > 0) {
-                const mediaFile = card.media_files[0];
+            if (mediaUrl) {
+                let mediaHTML = '';
                 
                 if (contentType === 'audio') {
                     mediaHTML = `
                         <div class="media-player">
                             <div class="audio-player">
                                 <audio controls style="width: 100%;">
-                                    <source src="${mediaFile.url}" type="${mediaFile.type}">
-                                    Your browser does not support audio.
-                                </audio>
-                                <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
-                                    <i class="fas fa-music"></i> ${mediaFile.name}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                } 
-                else if (contentType === 'video') {
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="video-player">
-                                <video controls style="width: 100%; max-height: 400px;">
-                                    <source src="${mediaFile.url}" type="${mediaFile.type}">
-                                    Your browser does not support video.
-                                </video>
-                            </div>
-                        </div>
-                    `;
-                } 
-                else if (contentType === 'image') {
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="image-player">
-                                <img src="${mediaFile.url}" alt="Card Image" style="width: 100%; max-height: 400px; object-fit: contain;">
-                            </div>
-                        </div>
-                    `;
-                }
-                
-            } else if (card.media_url) {
-                // Legacy media_url support
-                if (contentType === 'audio') {
-                    mediaHTML = `
-                        <div class="media-player">
-                            <div class="audio-player">
-                                <audio controls style="width: 100%;">
-                                    <source src="${card.media_url}" type="audio/mpeg">
+                                    <source src="${mediaUrl}" type="${card.file_type || 'audio/mpeg'}">
                                     Your browser does not support audio.
                                 </audio>
                             </div>
@@ -786,7 +720,7 @@
                         <div class="media-player">
                             <div class="video-player">
                                 <video controls style="width: 100%; max-height: 400px;">
-                                    <source src="${card.media_url}" type="video/mp4">
+                                    <source src="${mediaUrl}" type="${card.file_type || 'video/mp4'}">
                                     Your browser does not support video.
                                 </video>
                             </div>
@@ -797,14 +731,16 @@
                     mediaHTML = `
                         <div class="media-player">
                             <div class="image-player">
-                                <img src="${card.media_url}" alt="Card Image" style="width: 100%; max-height: 400px; object-fit: contain;">
+                                <img src="${mediaUrl}" alt="Card Image" style="width: 100%; max-height: 400px; object-fit: contain;">
                             </div>
                         </div>
                     `;
                 }
+                
+                displayMessage.insertAdjacentHTML('afterend', mediaHTML);
             } else {
                 // No media found
-                mediaHTML = `
+                const mediaPlaceholder = `
                     <div class="media-placeholder">
                         <i class="fas fa-${contentType === 'audio' ? 'music' : contentType === 'video' ? 'video' : 'image'}"></i>
                         <p><strong>${contentType.charAt(0).toUpperCase() + contentType.slice(1)} Content</strong></p>
@@ -813,15 +749,16 @@
                         </p>
                     </div>
                 `;
+                displayMessage.insertAdjacentHTML('afterend', mediaPlaceholder);
             }
-            
-            displayMessage.insertAdjacentHTML('afterend', mediaHTML);
         }
         
+        // Show card, hide scanner
         cardDisplay.classList.add('show');
         scannerSection.style.display = 'none';
         manualSection.style.display = 'none';
         
+        // Stop scanner if running
         if (video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
             video.srcObject = null;
@@ -834,14 +771,8 @@
     
     async function startScanner() {
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
+                video: { facingMode: 'environment' }
             });
             
             video.srcObject = stream;
@@ -849,10 +780,10 @@
             
             startBtn.style.display = 'none';
             stopBtn.style.display = 'flex';
-            
             showNotification('Scanner started. Point at QR code.', 'info');
             
-            const scanLoop = async () => {
+            // Scanner loop
+            const scanLoop = () => {
                 if (!video.srcObject || video.videoWidth === 0) {
                     setTimeout(scanLoop, 100);
                     return;
@@ -877,20 +808,18 @@
                         if (match) cardId = match[1];
                     }
                     
-                    cardId = decodeURIComponent(cardId);
-                    cardId = cardId.toUpperCase();
+                    cardId = decodeURIComponent(cardId).toUpperCase();
                     if (!cardId.startsWith('CARD')) {
                         cardId = 'CARD' + cardId.replace(/[^0-9]/g, '');
                     }
                     
-                    const card = await loadCard(cardId);
-                    if (card) displayCard(card);
+                    loadCard(cardId).then(card => {
+                        if (card) displayCard(card);
+                    });
                     return;
                 }
                 
-                if (video.srcObject) {
-                    setTimeout(scanLoop, 100);
-                }
+                if (video.srcObject) setTimeout(scanLoop, 100);
             };
             
             scanLoop();
@@ -918,8 +847,9 @@
     }
     
     function initialize() {
-        console.log('Initializing Papir viewer with backend:', BACKEND_URL);
+        console.log('Initializing Papir viewer...');
         
+        // Event listeners
         startBtn.addEventListener('click', startScanner);
         stopBtn.addEventListener('click', stopScanner);
         
@@ -943,6 +873,7 @@
         
         backBtn.addEventListener('click', resetToScanner);
         
+        // Check URL for card parameter
         const urlParams = new URLSearchParams(window.location.search);
         const cardId = urlParams.get('card');
         if (cardId) {
