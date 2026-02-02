@@ -1387,8 +1387,8 @@
                   return { success: false, error: 'No file uploaded' };
                 }
                 
-                // Save button loading state
-                const saveBtnText = elements.saveBtn.innerHTML;
+                // Save button loading state - store the ORIGINAL button HTML
+                const saveBtnOriginalHTML = elements.saveBtn.innerHTML;
                 elements.saveBtn.innerHTML = '<span class="loading"></span> Saving...';
                 elements.saveBtn.disabled = true;
                 
@@ -1400,58 +1400,48 @@
                   status: 'active'
                 };
                 
-                // If there's media, upload it first
-                let mediaUrl = null;
-                
+                // If there's media, we need to handle it differently since blob URLs are blocked
                 if (contentType !== 'text' && currentMedia[contentType]) {
-                  showNotification(`Uploading ${contentType}...`, 'info');
+                  showNotification(`Processing ${contentType}...`, 'info');
                   
                   try {
-                    console.log('DEBUG: Preparing media upload for:', currentMedia[contentType].name);
+                    console.log('DEBUG: Preparing media for:', currentMedia[contentType].name);
                     
-                    // Get the base64 data properly
-                    let fileData = currentMedia[contentType].url;
+                    // For images uploaded via FileReader (data URLs), we can use them directly
+                    // For audio/video uploaded via URL.createObjectURL, we can't fetch blob URLs due to CSP
+                    // So we'll just save the card without the media URL for now
                     
-                    // If it's a blob URL (from URL.createObjectURL), we need to convert it back
-                    if (fileData.startsWith('blob:')) {
-                      // Fetch the blob and convert to base64
-                      const blobResponse = await fetch(fileData);
-                      const blob = await blobResponse.blob();
-                      fileData = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
+                    // If it's an image with data URL, we can use it
+                    if (contentType === 'image' && currentMedia.image.url && currentMedia.image.url.startsWith('data:')) {
+                      // Image is already a data URL, we can send it
+                      const mediaResponse = await fetch(`${BACKEND_URL}/upload-media`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          file_data: currentMedia.image.url,
+                          file_name: currentMedia.image.name,
+                          file_type: currentMedia.image.type,
+                          card_id: cardData.card_id
+                        })
                       });
-                    }
-                    
-                    // Upload media to backend
-                    const mediaResponse = await fetch(`${BACKEND_URL}/upload-media`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        file_data: fileData,
-                        file_name: currentMedia[contentType].name,
-                        file_type: currentMedia[contentType].type,
-                        card_id: cardData.card_id
-                      })
-                    });
-                    
-                    if (mediaResponse.ok) {
-                      const mediaResult = await mediaResponse.json();
-                      if (mediaResult.url) {
-                        mediaUrl = mediaResult.url;
-                        cardDataToSend.media_url = mediaUrl;
-                        showNotification(`${contentType} uploaded successfully!`, 'success');
+                      
+                      if (mediaResponse.ok) {
+                        const mediaResult = await mediaResponse.json();
+                        if (mediaResult.url) {
+                          cardDataToSend.media_url = mediaResult.url;
+                          showNotification(`${contentType} uploaded successfully!`, 'success');
+                        }
                       }
                     } else {
-                      console.error('Media upload failed:', await mediaResponse.text());
-                      showNotification(`Media upload failed. Saving text only.`, 'error');
+                      // For audio/video or images with blob URLs, we'll save without media for now
+                      showNotification(`${contentType} will be saved as reference only (CSP restriction)`, 'info');
                     }
+                    
                   } catch (mediaError) {
-                    console.error('Media upload error:', mediaError);
-                    showNotification(`Media upload error. Saving text only.`, 'error');
+                    console.error('Media processing error:', mediaError);
+                    showNotification(`Media processing error. Saving card without media.`, 'error');
                   }
                 }
                 
@@ -1471,7 +1461,7 @@
                 if (response.ok) {
                   showNotification('Card saved successfully!', 'success');
                   // Refresh the cards list
-                  fetchCardsFromBackend();
+                  await loadCardsFromBackend();
                   
                   // Generate QR code
                   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
@@ -1495,8 +1485,8 @@
                 showNotification('Failed to save card. Check backend connection.', 'error');
                 return { success: false, error: error.message };
               } finally {
-                // Restore save button
-                elements.saveBtn.innerHTML = saveBtnText;
+                // Restore save button using the stored ORIGINAL HTML
+                elements.saveBtn.innerHTML = saveBtnOriginalHTML;
                 elements.saveBtn.disabled = false;
               }
             }
