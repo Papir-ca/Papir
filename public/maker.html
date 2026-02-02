@@ -783,7 +783,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #f3f3f3;
+            border: 3px solid #f3f3f5;
             border-top: 3px solid #6a11cb;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -1051,7 +1051,6 @@
             const BACKEND_URL = 'https://papir.ca'; // Your backend server
             let isConnected = false;
             let currentQRCodeData = null;
-            let pendingSaveData = null; // Store card data when save is attempted without file
             
             // Media state
             let currentMedia = {
@@ -1108,12 +1107,11 @@
             // Hide file reminder modal
             function hideFileReminder() {
                 elements.fileReminderModal.classList.remove('active');
-                pendingSaveData = null; // Clear pending save
             }
             
             // Open file picker based on content type
             function openFilePicker() {
-                const contentType = pendingSaveData?.message_type || elements.contentTypeSelect.value;
+                const contentType = elements.contentTypeSelect.value;
                 
                 switch(contentType) {
                     case 'image':
@@ -1268,8 +1266,6 @@
                     // Check if media is required but not uploaded
                     const contentType = cardData.message_type;
                     if (contentType !== 'text' && !currentMedia[contentType]) {
-                        // Store the card data for later save
-                        pendingSaveData = cardData;
                         // Show reminder to upload file
                         showFileReminder(contentType);
                         return { success: false, error: 'No file uploaded' };
@@ -1741,13 +1737,6 @@
                         generatePreview();
                         
                         showNotification(`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} uploaded successfully!`, 'success');
-                        
-                        // If there was a pending save, automatically save now
-                        if (pendingSaveData && pendingSaveData.message_type === mediaType) {
-                            setTimeout(() => {
-                                saveCardToBackend(pendingSaveData);
-                            }, 500);
-                        }
                     }, 1000);
                 });
             }
