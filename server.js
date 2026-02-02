@@ -20,7 +20,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Multer for file uploads (temporary storage before Supabase)
+// Multer for file uploads
 const upload = multer({ 
     dest: 'uploads/',
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
@@ -31,7 +31,9 @@ if (!fs.existsSync('uploads')) {
     fs.existsSync('uploads');
 }
 
-// Health check endpoint
+// =============== API ENDPOINTS ===============
+
+// Health check
 app.get('/api/health', (req, res) => {
     res.json({ 
         success: true, 
@@ -43,17 +45,14 @@ app.get('/api/health', (req, res) => {
 // Get all cards
 app.get('/api/cards', async (req, res) => {
     try {
-        console.log('Fetching all cards from Supabase...');
+        console.log('Fetching all cards...');
         
         const { data, error } = await supabase
             .from('cards')
             .select('*')
             .order('created_at', { ascending: false });
         
-        if (error) {
-            console.error('Supabase error:', error);
-            throw error;
-        }
+        if (error) throw error;
         
         res.json({
             success: true,
@@ -73,19 +72,20 @@ app.get('/api/cards', async (req, res) => {
 app.get('/api/cards/:cardId', async (req, res) => {
     try {
         const { cardId } = req.params;
-        console.log(`Fetching card: ${cardId}`);
+        const formattedCardId = cardId.toUpperCase();
+        console.log(`Fetching card: ${formattedCardId}`);
         
         const { data, error } = await supabase
             .from('cards')
             .select('*')
-            .eq('card_id', cardId.toUpperCase())
+            .eq('card_id', formattedCardId)
             .single();
         
         if (error) {
-            if (error.code === 'PGRST116') { // No rows returned
+            if (error.code === 'PGRST116') {
                 return res.status(404).json({
                     success: false,
-                    error: `Card ${cardId} not found`
+                    error: `Card ${formattedCardId} not found`
                 });
             }
             throw error;
@@ -105,54 +105,7 @@ app.get('/api/cards/:cardId', async (req, res) => {
     }
 });
 
-// Get media files for a card
-app.get('/api/cards/:cardId/media', async (req, res) => {
-    try {
-        const { cardId } = req.params;
-        console.log(`Fetching media for card: ${cardId}`);
-        
-        // List files from Supabase Storage bucket
-        const { data: files, error } = await supabase.storage
-            .from('card-media')
-            .list(cardId);
-        
-        if (error) {
-            console.error('Error listing media files:', error);
-            // Return empty array if bucket doesn't exist
-            return res.json({
-                success: true,
-                files: []
-            });
-        }
-        
-        // Generate public URLs for each file
-        const filesWithUrls = files.map(file => {
-            const { data } = supabase.storage
-                .from('card-media')
-                .getPublicUrl(`${cardId}/${file.name}`);
-            
-            return {
-                name: file.name,
-                url: data.publicUrl,
-                type: file.metadata?.mimetype || 'application/octet-stream'
-            };
-        });
-        
-        res.json({
-            success: true,
-            files: filesWithUrls
-        });
-        
-    } catch (error) {
-        console.error('Error fetching media:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Upload media file to Supabase
+// Upload media file
 app.post('/api/upload-media', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -167,8 +120,9 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
         
         console.log(`Uploading media for card ${cardId}: ${fileName}`);
         
-        // Read the file
+        // Read file
         const fileBuffer = fs.readFileSync(file.path);
+        const fileSize = file.size;
         
         // Upload to Supabase Storage
         const { data, error } = await supabase.storage
@@ -178,13 +132,10 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
                 upsert: true
             });
         
-        // Clean up temporary file
+        // Clean up temp file
         fs.unlinkSync(file.path);
         
-        if (error) {
-            console.error('Supabase upload error:', error);
-            throw error;
-        }
+        if (error) throw error;
         
         // Get public URL
         const { data: urlData } = supabase.storage
@@ -195,7 +146,9 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
             success: true,
             message: 'File uploaded successfully',
             url: urlData.publicUrl,
-            fileName: fileName
+            fileName: fileName,
+            fileType: fileType,
+            fileSize: fileSize
         });
         
     } catch (error) {
@@ -207,14 +160,24 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
     }
 });
 
-// Create or update a card
+// Create or update card
 app.post('/api/cards', async (req, res) => {
     try {
-        const { card_id, message_type, message_text, media_url, status } = req.body;
+        const { 
+            card_id, 
+            message_type, 
+            message_text, 
+            file_name, 
+            file_size, 
+            file_type, 
+            file_url,
+            media_url,  // Added media_url field
+            status 
+        } = req.body;
         
         console.log(`Saving card: ${card_id}, Type: ${message_type}`);
         
-        // Check if card already exists
+        // Check if card exists
         const { data: existingCard } = await supabase
             .from('cards')
             .select('*')
@@ -222,18 +185,27 @@ app.post('/api/cards', async (req, res) => {
             .single();
         
         let result;
+        const now = new Date().toISOString();
         
         if (existingCard) {
             // Update existing card
+            const updateData = {
+                message_type,
+                message_text,
+                status: status || 'active',
+                updated_at: now
+            };
+            
+            // Add file fields if provided
+            if (file_name) updateData.file_name = file_name;
+            if (file_size) updateData.file_size = file_size;
+            if (file_type) updateData.file_type = file_type;
+            if (file_url) updateData.file_url = file_url;
+            if (media_url) updateData.media_url = media_url;
+            
             const { data, error } = await supabase
                 .from('cards')
-                .update({
-                    message_type,
-                    message_text,
-                    media_url,
-                    status,
-                    updated_at: new Date().toISOString()
-                })
+                .update(updateData)
                 .eq('card_id', card_id)
                 .select()
                 .single();
@@ -243,17 +215,25 @@ app.post('/api/cards', async (req, res) => {
             
         } else {
             // Create new card
+            const insertData = {
+                card_id,
+                message_type,
+                message_text,
+                status: status || 'active',
+                created_at: now,
+                updated_at: now
+            };
+            
+            // Add file fields if provided
+            if (file_name) insertData.file_name = file_name;
+            if (file_size) insertData.file_size = file_size;
+            if (file_type) insertData.file_type = file_type;
+            if (file_url) insertData.file_url = file_url;
+            if (media_url) insertData.media_url = media_url;
+            
             const { data, error } = await supabase
                 .from('cards')
-                .insert({
-                    card_id,
-                    message_type,
-                    message_text,
-                    media_url,
-                    status,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
+                .insert(insertData)
                 .select()
                 .single();
             
@@ -276,7 +256,7 @@ app.post('/api/cards', async (req, res) => {
     }
 });
 
-// Delete a card
+// Delete card
 app.delete('/api/cards/:cardId', async (req, res) => {
     try {
         const { cardId } = req.params;
@@ -290,7 +270,7 @@ app.delete('/api/cards/:cardId', async (req, res) => {
         
         if (deleteError) throw deleteError;
         
-        // Try to delete media files from storage
+        // Try to delete media files
         try {
             const { data: files } = await supabase.storage
                 .from('card-media')
@@ -304,7 +284,6 @@ app.delete('/api/cards/:cardId', async (req, res) => {
             }
         } catch (storageError) {
             console.log('Note: Could not delete media files:', storageError.message);
-            // Continue even if media deletion fails
         }
         
         res.json({
@@ -321,7 +300,8 @@ app.delete('/api/cards/:cardId', async (req, res) => {
     }
 });
 
-// Serve HTML files
+// =============== STATIC FILES ===============
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'maker.html'));
 });
@@ -340,6 +320,7 @@ app.get('/qr.html', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Papir Backend running on port ${PORT}`);
-    console.log(`Supabase connected: ${supabaseUrl ? 'Yes' : 'No'}`);
+    console.log(`✅ Papir Backend running on port ${PORT}`);
+    console.log(`✅ Supabase connected: ${supabaseUrl ? 'Yes' : 'No'}`);
+    console.log(`✅ Storage bucket: card-media`);
 });
