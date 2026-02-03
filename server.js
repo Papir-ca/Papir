@@ -97,7 +97,7 @@ app.get('/api/health', (req, res) => {
   const baseUrl = `${protocol}://${host}`;
   
   res.json({
-    status: '✅ FULLY OPERATIONAL',
+    status: '✅ FULLY OPERATEDAL',
     message: 'Papir Business Server is running perfectly!',
     time: new Date().toISOString(),
     version: '3.0.0',
@@ -142,13 +142,18 @@ try {
   console.error('❌ Supabase connection error:', error.message);
 }
 
-// 🎨 Save a Magic Card
+// 🎨 Save a Magic Card - UPDATED WITH ALL FIELDS
 app.post('/api/cards', async (req, res) => {
   try {
-    const { card_id, message_type, message_text, media_url } = req.body;
+    const { card_id, message_type, message_text, media_url, file_name, file_size, file_type } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
+    // Get client IP address
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    console.log(`🌐 Client IP: ${clientIp}`);
+    
+    // Validation
     if (!card_id || !message_type) {
       return res.status(400).json({ 
         success: false,
@@ -164,17 +169,35 @@ app.post('/api/cards', async (req, res) => {
       });
     }
     
+    // Prepare database record with ALL fields
+    const cardRecord = {
+      card_id: card_id.trim(),
+      message_type: message_type.trim(),
+      message_text: message_text ? message_text.trim() : null,
+      media_url: media_url || null,
+      file_name: file_name || null,
+      file_size: file_size || null,
+      file_type: file_type || null,
+      status: 'active',
+      created_by_ip: clientIp,
+      updated_by_ip: clientIp,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('📝 Card record:', {
+      card_id: cardRecord.card_id,
+      message_type: cardRecord.message_type,
+      has_media: !!cardRecord.media_url,
+      file_name: cardRecord.file_name,
+      file_size: cardRecord.file_size,
+      file_type: cardRecord.file_type,
+      ip: cardRecord.created_by_ip
+    });
+    
     const { data, error } = await supabaseAdmin
       .from('cards')
-      .insert([{
-        card_id: card_id.trim(),
-        message_type: message_type.trim(),
-        message_text: message_text ? message_text.trim() : null,
-        media_url: media_url || null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
+      .insert([cardRecord])
       .select()
       .single();
     
@@ -196,7 +219,7 @@ app.post('/api/cards', async (req, res) => {
       });
     }
     
-    console.log(`✅ Card saved: ${card_id}`);
+    console.log(`✅ Card saved: ${card_id} with all fields`);
     
     const protocol = req.protocol;
     const host = req.get('host');
@@ -227,7 +250,7 @@ app.post('/api/cards', async (req, res) => {
   }
 });
 
-// 🖼️ Upload Media Files to Supabase Storage - FIXED VERSION
+// 🖼️ Upload Media Files to Supabase Storage - UPDATED TO RETURN FILE INFO
 app.post('/api/upload-media', async (req, res) => {
   try {
     const { fileData, fileName, fileType, cardId } = req.body;
@@ -258,9 +281,10 @@ app.post('/api/upload-media', async (req, res) => {
     console.log(`📐 Base64 length after parsing: ${base64Data.length}`);
     
     const buffer = Buffer.from(base64Data, 'base64');
-    console.log(`📦 Buffer size: ${buffer.length} bytes (${Math.round(buffer.length / 1024 / 1024 * 100) / 100} MB)`);
+    const fileSize = buffer.length;
+    console.log(`📦 File size: ${fileSize} bytes (${Math.round(fileSize / 1024 / 1024 * 100) / 100} MB)`);
     
-    if (buffer.length < 100) {
+    if (fileSize < 100) {
       console.error('❌ Buffer too small - Base64 parsing issue');
       return res.status(400).json({ 
         success: false, 
@@ -302,7 +326,9 @@ app.post('/api/upload-media', async (req, res) => {
       success: true, 
       url: publicUrl,
       path: filePath,
-      size: buffer.length,
+      file_name: fileName,
+      file_size: fileSize,
+      file_type: fileType,
       message: 'File uploaded successfully'
     });
     
@@ -434,9 +460,16 @@ app.delete('/api/cards/:card_id', async (req, res) => {
       });
     }
     
+    // Get client IP for update
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    
     const { error } = await supabaseAdmin
       .from('cards')
-      .delete()
+      .update({
+        status: 'deleted',
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      })
       .eq('card_id', card_id);
     
     if (error) {
@@ -475,7 +508,7 @@ app.get('/api/test-supabase', async (req, res) => {
     
     const { data, error, count } = await supabaseAdmin
       .from('cards')
-      .select('card_id, message_type, created_at, media_url', { count: 'exact' })
+      .select('card_id, message_type, created_at, media_url, file_name, file_size, created_by_ip', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -557,11 +590,11 @@ app.listen(PORT, () => {
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
+  console.log('   ✅ File metadata tracking (name, size, type)');
+  console.log('   ✅ IP address tracking for creators');
   console.log('   ✅ Get all cards endpoint');
-  console.log('   ✅ Dynamic domain detection');
   console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
-  console.log('   ✅ Professional .ca domain');
   
   console.log('\n' + '─'.repeat(70));
   console.log('   🚀 Papir Business is LIVE at https://papir.ca!');
