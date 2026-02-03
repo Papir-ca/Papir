@@ -1170,26 +1170,47 @@ function setupVideoUpload() {
                 
                 // Convert to Base64
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    currentMedia.video = {
-                        url: e.target.result, // Base64 string
-                        name: file.name,
-                        type: file.type,
-                        size: file.size
-                    };
-                    
-                    // Create object URL for preview only
-                    const objectUrl = URL.createObjectURL(file);
-                    const videoElement = document.getElementById('previewVideo');
-                    if (videoElement) {
-                        videoElement.src = objectUrl;
-                    }
-                    
-                    document.getElementById('videoFilename').textContent = file.name;
-                    document.getElementById('videoPreview').classList.add('active');
-                    generatePreview();
-                    showNotification('Video uploaded successfully', 'success');
-                };
+
+reader.onload = (e) => {
+    const base64Data = e.target.result;
+    console.log('Video Base64 length:', base64Data.length); // DEBUG
+    
+    if (base64Data.length < 1000) {
+        console.error('Base64 too short! File reading failed.');
+        showNotification('Error: File reading failed', 'error');
+        return;
+    }
+    
+    currentMedia.video = {
+        url: base64Data, // Base64 string
+        name: file.name,
+        type: file.type,
+        size: file.size
+    };
+    
+    // Create object URL for preview only
+    const objectUrl = URL.createObjectURL(file);
+    const videoElement = document.getElementById('previewVideo');
+    if (videoElement) {
+        videoElement.src = objectUrl;
+    }
+    
+    document.getElementById('videoFilename').textContent = file.name;
+    document.getElementById('videoPreview').classList.add('active');
+    generatePreview();
+    showNotification('Video uploaded successfully', 'success');
+};
+
+reader.onerror = (error) => {
+    console.error('FileReader error:', error);
+    showNotification('Failed to read video file', 'error');
+};
+
+reader.onloadend = () => {
+    console.log('Video FileReader load ended');
+};
+
+reader.readAsDataURL(file);
                 reader.readAsDataURL(file);
             }
         });
