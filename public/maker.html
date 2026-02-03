@@ -1097,51 +1097,157 @@
             }
             
             // Handle image upload
-            function setupImageUpload() {
-                const imageUploadArea = document.getElementById('imageUploadArea');
-                const imageInput = document.getElementById('imageInput');
-                
-                if (imageUploadArea && imageInput) {
-                    imageUploadArea.addEventListener('click', () => {
-                        imageInput.click();
-                    });
-                    
-                    imageInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            // Validate file type
-                            if (!file.type.match('image.*')) {
-                                showNotification('Please select an image file', 'error');
-                                return;
-                            }
-                            
-                            // Validate file size (5MB)
-                            if (file.size > 5 * 1024 * 1024) {
-                                showNotification('Image file is too large (max 5MB)', 'error');
-                                return;
-                            }
-                            
-                            // Show preview
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                currentMedia.image = {
-                                    url: e.target.result,
-                                    name: file.name,
-                                    type: file.type,
-                                    size: file.size
-                                };
-                                
-                                document.getElementById('previewImage').src = e.target.result;
-                                document.getElementById('imageFilename').textContent = file.name;
-                                document.getElementById('imagePreview').classList.add('active');
-                                generatePreview();
-                                showNotification('Image uploaded successfully', 'success');
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    });
+function setupImageUpload() {
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageInput = document.getElementById('imageInput');
+    
+    if (imageUploadArea && imageInput) {
+        imageUploadArea.addEventListener('click', () => {
+            imageInput.click();
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    showNotification('Please select an image file', 'error');
+                    return;
                 }
+                
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('Image file is too large (max 5MB)', 'error');
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentMedia.image = {
+                        url: e.target.result, // Base64 string
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    };
+                    
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('imageFilename').textContent = file.name;
+                    document.getElementById('imagePreview').classList.add('active');
+                    generatePreview();
+                    showNotification('Image uploaded successfully', 'success');
+                };
+                reader.readAsDataURL(file);
             }
+        });
+    }
+}
+
+// Handle video upload
+function setupVideoUpload() {
+    const videoUploadArea = document.getElementById('videoUploadArea');
+    const videoInput = document.getElementById('videoInput');
+    
+    if (videoUploadArea && videoInput) {
+        videoUploadArea.addEventListener('click', () => {
+            videoInput.click();
+        });
+        
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.match('video.*')) {
+                    showNotification('Please select a video file', 'error');
+                    return;
+                }
+                
+                // Validate file size (40MB)
+                if (file.size > 40 * 1024 * 1024) {
+                    showNotification('Video file is too large (max 40MB)', 'error');
+                    return;
+                }
+                
+                // Convert to Base64
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentMedia.video = {
+                        url: e.target.result, // Base64 string
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    };
+                    
+                    // Create object URL for preview only
+                    const objectUrl = URL.createObjectURL(file);
+                    const videoElement = document.getElementById('previewVideo');
+                    if (videoElement) {
+                        videoElement.src = objectUrl;
+                    }
+                    
+                    document.getElementById('videoFilename').textContent = file.name;
+                    document.getElementById('videoPreview').classList.add('active');
+                    generatePreview();
+                    showNotification('Video uploaded successfully', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+// Handle audio upload
+function setupAudioUpload() {
+    const audioUploadArea = document.getElementById('audioUploadArea');
+    const audioInput = document.getElementById('audioInput');
+    
+    if (audioUploadArea && audioInput) {
+        audioUploadArea.addEventListener('click', () => {
+            audioInput.click();
+        });
+        
+        audioInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.match('audio.*')) {
+                    showNotification('Please select an audio file', 'error');
+                    return;
+                }
+                
+                // Validate file size (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    showNotification('Audio file is too large (max 10MB)', 'error');
+                    return;
+                }
+                
+                // Convert to Base64
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentMedia.audio = {
+                        url: e.target.result, // Base64 string
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    };
+                    
+                    // Create object URL for preview only
+                    const objectUrl = URL.createObjectURL(file);
+                    const audioElement = document.getElementById('previewAudio');
+                    if (audioElement) {
+                        audioElement.src = objectUrl;
+                    }
+                    
+                    document.getElementById('audioFilename').textContent = file.name;
+                    document.getElementById('audioPreview').classList.add('active');
+                    generatePreview();
+                    showNotification('Audio uploaded successfully', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
             
             // Handle video upload
             function setupVideoUpload() {
