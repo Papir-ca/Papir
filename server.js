@@ -148,93 +148,47 @@ try {
 }
 
 // 🎨 Save a Magic Card - Updated for papir.ca domain
-app.post('/api/cards', async (req, res) => {
+app.post('/api/upload-media', async (req, res) => {
   try {
-    const { card_id, message_type, message_text } = req.body;
+    const { fileData, fileName, fileType, cardId } = req.body;
     
-    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
-    
-    // Validation
-    if (!card_id || !message_type) {
+    if (!fileData || !fileName) {
       return res.status(400).json({ 
-        success: false,
-        error: 'Missing required fields',
-        required: ['card_id', 'message_type']
+        success: false, 
+        error: 'Missing file data or filename' 
       });
     }
     
-    if (!supabaseAdmin) {
-      return res.status(503).json({ 
-        success: false,
-        error: 'Database service temporarily unavailable'
+    // Convert base64 to buffer
+    const base64Data = fileData.split(',')[1] || fileData;
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseAdmin.storage
+      .from('cards-media')
+      .upload(`${cardId}/${fileName}`, buffer, {
+        contentType: fileType,
+        upsert: true
       });
-    }
     
-    // Save to database
-    const { data, error } = await supabaseAdmin
-      .from('cards')
-      .insert([{
-        card_id: card_id.trim(),
-        message_type: message_type.trim(),
-        message_text: message_text ? message_text.trim() : null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+    if (error) throw error;
     
-    if (error) {
-      console.error('❌ Database error:', error);
-      
-      if (error.code === '23505') {
-        return res.status(409).json({ 
-          success: false,
-          error: 'Duplicate card ID',
-          message: `Card "${card_id}" already exists. Please use a different ID.`
-        });
-      }
-      
-      return res.status(500).json({ 
-        success: false,
-        error: 'Database operation failed',
-        details: error.message
-      });
-    }
+    // Get public URL
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from('cards-media')
+      .getPublicUrl(`${cardId}/${fileName}`);
     
-    console.log(`✅ Card saved: ${card_id}`);
-    
-    // 🚀 SMART URL GENERATION - Uses current domain
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const baseUrl = `${protocol}://${host}`;
-    
-    const viewerUrl = `${baseUrl}/viewer.html?card=${card_id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
-    
-    res.status(201).json({ 
+    res.json({ 
       success: true, 
-      message: 'Card saved successfully!',
-      card: data,
-      urls: {
-        share: `/viewer.html?card=${card_id}`,
-        viewer: viewerUrl,
-        qrCode: qrCodeUrl,
-        domain: host
-      },
-      instructions: {
-        scan: 'Scan the QR code with your phone camera',
-        share: 'Share the viewer URL with anyone',
-        domain: `Your card is available at: ${viewerUrl}`
-      }
+      url: publicUrl,
+      path: data.path 
     });
     
   } catch (error) {
-    console.error('💥 Unexpected error:', error);
+    console.error('Upload error:', error);
     res.status(500).json({ 
-      success: false,
-      error: 'Internal server error',
-      message: 'Please try again later'
+      success: false, 
+      error: error.message 
     });
   }
 });
