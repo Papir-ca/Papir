@@ -77,8 +77,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 🛡️ Rate Limiting
 const limiter = rateLimit({
@@ -116,7 +116,8 @@ app.get('/api/health', (req, res) => {
       maker: `${baseUrl}/maker.html`,
       viewer: `${baseUrl}/viewer.html`,
       saveCard: `POST ${baseUrl}/api/cards`,
-      getCard: `GET ${baseUrl}/api/cards/:id`
+      getCard: `GET ${baseUrl}/api/cards/:id`,
+      uploadMedia: `POST ${baseUrl}/api/upload-media`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -148,14 +149,116 @@ try {
 }
 
 // 🎨 Save a Magic Card - Updated for papir.ca domain
+app.post('/api/cards', async (req, res) => {
+  try {
+    const { card_id, message_type, message_text, media_url } = req.body;
+    
+    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
+    
+    // Validation
+    if (!card_id || !message_type) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing required fields',
+        required: ['card_id', 'message_type']
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    // Save to database
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .insert([{
+        card_id: card_id.trim(),
+        message_type: message_type.trim(),
+        message_text: message_text ? message_text.trim() : null,
+        media_url: media_url || null,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('❌ Database error:', error);
+      
+      if (error.code === '23505') {
+        return res.status(409).json({ 
+          success: false,
+          error: 'Duplicate card ID',
+          message: `Card "${card_id}" already exists. Please use a different ID.`
+        });
+      }
+      
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database operation failed',
+        details: error.message
+      });
+    }
+    
+    console.log(`✅ Card saved: ${card_id}`);
+    
+    // 🚀 SMART URL GENERATION - Uses current domain
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
+    const viewerUrl = `${baseUrl}/viewer.html?card=${card_id}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Card saved successfully!',
+      card: data,
+      urls: {
+        share: `/viewer.html?card=${card_id}`,
+        viewer: viewerUrl,
+        qrCode: qrCodeUrl,
+        domain: host
+      },
+      instructions: {
+        scan: 'Scan the QR code with your phone camera',
+        share: 'Share the viewer URL with anyone',
+        domain: `Your card is available at: ${viewerUrl}`
+      }
+    });
+    
+  } catch (error) {
+    console.error('💥 Unexpected error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Please try again later'
+    });
+  }
+});
+
+// 🖼️ Upload Media Files to Supabase Storage
 app.post('/api/upload-media', async (req, res) => {
   try {
     const { fileData, fileName, fileType, cardId } = req.body;
     
-    if (!fileData || !fileName) {
+    console.log(`📤 Uploading media: ${fileName} for ${cardId}`);
+    
+    if (!fileData || !fileName || !cardId) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing file data or filename' 
+        error: 'Missing required fields: fileData, fileName, cardId' 
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
       });
     }
     
@@ -163,32 +266,46 @@ app.post('/api/upload-media', async (req, res) => {
     const base64Data = fileData.split(',')[1] || fileData;
     const buffer = Buffer.from(base64Data, 'base64');
     
+    // Create folder path: cardId/filename
+    const filePath = `${cardId}/${Date.now()}_${fileName}`;
+    
     // Upload to Supabase Storage
     const { data, error } = await supabaseAdmin.storage
       .from('cards-media')
-      .upload(`${cardId}/${fileName}`, buffer, {
+      .upload(filePath, buffer, {
         contentType: fileType,
         upsert: true
       });
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase upload error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Storage upload failed',
+        details: error.message
+      });
+    }
     
     // Get public URL
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from('cards-media')
-      .getPublicUrl(`${cardId}/${fileName}`);
+      .getPublicUrl(filePath);
+    
+    console.log(`✅ Media uploaded: ${publicUrl}`);
     
     res.json({ 
       success: true, 
       url: publicUrl,
-      path: data.path 
+      path: filePath,
+      message: 'File uploaded successfully'
     });
     
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('💥 Upload media error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: 'Internal server error',
+      message: error.message
     });
   }
 });
@@ -270,7 +387,7 @@ app.get('/api/test-supabase', async (req, res) => {
     
     const { data, error, count } = await supabaseAdmin
       .from('cards')
-      .select('card_id, message_type, created_at', { count: 'exact' })
+      .select('card_id, message_type, created_at, media_url', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -339,6 +456,7 @@ app.use((req, res) => {
       `${baseUrl}/viewer.html`,
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards/:id`,
+      `${baseUrl}/api/upload-media`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -364,9 +482,10 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Maker: https://papir.ca/maker.html`);
   console.log(`   Viewer: https://papir.ca/viewer.html`);
-  console.log(`   Supabase: https://papir.ca/api/test-supabase`);
+  console.log(`   Upload: https://papir.ca/api/upload-media`);
   
   console.log('\n🎯 FEATURES:');
+  console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ Dynamic domain detection');
   console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
