@@ -77,8 +77,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // 🛡️ Rate Limiting
 const limiter = rateLimit({
@@ -247,6 +247,7 @@ app.post('/api/upload-media', async (req, res) => {
     const { fileData, fileName, fileType, cardId } = req.body;
     
     console.log(`📤 Uploading media: ${fileName} for ${cardId}`);
+    console.log(`📏 Data length: ${fileData.length}`);
     
     if (!fileData || !fileName || !cardId) {
       return res.status(400).json({ 
@@ -262,12 +263,28 @@ app.post('/api/upload-media', async (req, res) => {
       });
     }
     
-    // Convert base64 to buffer
-    const base64Data = fileData.split(',')[1] || fileData;
+    // Convert base64 to buffer - FIXED VERSION
+    let base64Data = fileData;
+    if (fileData.includes(',')) {
+      base64Data = fileData.split(',')[1];
+    }
+    
+    console.log(`📐 Base64 length: ${base64Data.length}`);
+    
     const buffer = Buffer.from(base64Data, 'base64');
+    console.log(`📦 Buffer size: ${buffer.length} bytes`);
+    
+    if (buffer.length < 100) {
+      console.error('❌ Buffer too small - likely Base64 parsing issue');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'File data too small - check Base64 encoding' 
+      });
+    }
     
     // Create folder path: cardId/filename
-    const filePath = `${cardId}/${Date.now()}_${fileName}`;
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${cardId}/${Date.now()}_${safeFileName}`;
     
     // Upload to Supabase Storage
     const { data, error } = await supabaseAdmin.storage
@@ -292,11 +309,13 @@ app.post('/api/upload-media', async (req, res) => {
       .getPublicUrl(filePath);
     
     console.log(`✅ Media uploaded: ${publicUrl}`);
+    console.log(`📊 File size: ${buffer.length} bytes (${Math.round(buffer.length / 1024 / 1024 * 100) / 100} MB)`);
     
     res.json({ 
       success: true, 
       url: publicUrl,
       path: filePath,
+      size: buffer.length,
       message: 'File uploaded successfully'
     });
     
