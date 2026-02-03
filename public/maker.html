@@ -1244,26 +1244,47 @@ function setupAudioUpload() {
                 
                 // Convert to Base64
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    currentMedia.audio = {
-                        url: e.target.result, // Base64 string
-                        name: file.name,
-                        type: file.type,
-                        size: file.size
-                    };
-                    
-                    // Create object URL for preview only
-                    const objectUrl = URL.createObjectURL(file);
-                    const audioElement = document.getElementById('previewAudio');
-                    if (audioElement) {
-                        audioElement.src = objectUrl;
-                    }
-                    
-                    document.getElementById('audioFilename').textContent = file.name;
-                    document.getElementById('audioPreview').classList.add('active');
-                    generatePreview();
-                    showNotification('Audio uploaded successfully', 'success');
-                };
+
+reader.onload = (e) => {
+    const base64Data = e.target.result;
+    console.log('Audio Base64 length:', base64Data.length); // DEBUG
+    
+    if (base64Data.length < 1000) {
+        console.error('Audio Base64 too short! File reading failed.');
+        showNotification('Error: Audio file reading failed', 'error');
+        return;
+    }
+    
+    currentMedia.audio = {
+        url: base64Data, // Base64 string
+        name: file.name,
+        type: file.type,
+        size: file.size
+    };
+    
+    // Create object URL for preview only
+    const objectUrl = URL.createObjectURL(file);
+    const audioElement = document.getElementById('previewAudio');
+    if (audioElement) {
+        audioElement.src = objectUrl;
+    }
+    
+    document.getElementById('audioFilename').textContent = file.name;
+    document.getElementById('audioPreview').classList.add('active');
+    generatePreview();
+    showNotification('Audio uploaded successfully', 'success');
+};
+
+reader.onerror = (error) => {
+    console.error('Audio FileReader error:', error);
+    showNotification('Failed to read audio file', 'error');
+};
+
+reader.onloadend = () => {
+    console.log('Audio FileReader load ended');
+};
+
+reader.readAsDataURL(file);
                 reader.readAsDataURL(file);
             }
         });
