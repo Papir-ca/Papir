@@ -929,7 +929,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             // Backend API configuration - YOUR SERVER!
-            const BACKEND_URL = 'https://papir.ca'; // Your backend server
+            const BACKEND_URL = 'https://papir.ca'; // FIXED: Use your domain
             let isConnected = false;
             let currentQRCodeData = null;
             
@@ -1097,199 +1097,66 @@
             }
             
             // Handle image upload
-function setupImageUpload() {
-    const imageUploadArea = document.getElementById('imageUploadArea');
-    const imageInput = document.getElementById('imageInput');
-    
-    if (imageUploadArea && imageInput) {
-        imageUploadArea.addEventListener('click', () => {
-            imageInput.click();
-        });
-        
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // Validate file type
-                if (!file.type.match('image.*')) {
-                    showNotification('Please select an image file', 'error');
-                    return;
-                }
+            function setupImageUpload() {
+                const imageUploadArea = document.getElementById('imageUploadArea');
+                const imageInput = document.getElementById('imageInput');
                 
-                // Validate file size (5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    showNotification('Image file is too large (max 5MB)', 'error');
-                    return;
-                }
-                
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    currentMedia.image = {
-                        url: e.target.result, // Base64 string
-                        name: file.name,
-                        type: file.type,
-                        size: file.size
-                    };
+                if (imageUploadArea && imageInput) {
+                    imageUploadArea.addEventListener('click', () => {
+                        imageInput.click();
+                    });
                     
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('imageFilename').textContent = file.name;
-                    document.getElementById('imagePreview').classList.add('active');
-                    generatePreview();
-                    showNotification('Image uploaded successfully', 'success');
-                };
-                reader.readAsDataURL(file);
+                    imageInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Validate file type
+                            if (!file.type.match('image.*')) {
+                                showNotification('Please select an image file', 'error');
+                                return;
+                            }
+                            
+                            // Validate file size (5MB)
+                            if (file.size > 5 * 1024 * 1024) {
+                                showNotification('Image file is too large (max 5MB)', 'error');
+                                return;
+                            }
+                            
+                            // Show preview
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const base64Data = e.target.result;
+                                console.log('Image Base64 length:', base64Data.length);
+                                
+                                if (!base64Data || base64Data.length < 1000) {
+                                    console.error('Image Base64 too short!');
+                                    showNotification('Error: Image reading failed', 'error');
+                                    return;
+                                }
+                                
+                                currentMedia.image = {
+                                    url: base64Data,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size
+                                };
+                                
+                                document.getElementById('previewImage').src = base64Data;
+                                document.getElementById('imageFilename').textContent = file.name;
+                                document.getElementById('imagePreview').classList.add('active');
+                                generatePreview();
+                                showNotification('Image uploaded successfully', 'success');
+                            };
+                            
+                            reader.onerror = (error) => {
+                                console.error('Image FileReader error:', error);
+                                showNotification('Failed to read image file', 'error');
+                            };
+                            
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
             }
-        });
-    }
-}
-
-// Handle video upload
-function setupVideoUpload() {
-    const videoUploadArea = document.getElementById('videoUploadArea');
-    const videoInput = document.getElementById('videoInput');
-    
-    if (videoUploadArea && videoInput) {
-        videoUploadArea.addEventListener('click', () => {
-            videoInput.click();
-        });
-        
-        videoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // Validate file type
-                if (!file.type.match('video.*')) {
-                    showNotification('Please select a video file', 'error');
-                    return;
-                }
-                
-                // Validate file size (40MB)
-                if (file.size > 40 * 1024 * 1024) {
-                    showNotification('Video file is too large (max 40MB)', 'error');
-                    return;
-                }
-                
-                // Convert to Base64
-                const reader = new FileReader();
-
-reader.onload = (e) => {
-    const base64Data = e.target.result;
-    console.log('Video Base64 length:', base64Data.length); // DEBUG
-    
-    if (base64Data.length < 1000) {
-        console.error('Base64 too short! File reading failed.');
-        showNotification('Error: File reading failed', 'error');
-        return;
-    }
-    
-    currentMedia.video = {
-        url: base64Data, // Base64 string
-        name: file.name,
-        type: file.type,
-        size: file.size
-    };
-    
-    // Create object URL for preview only
-    const objectUrl = URL.createObjectURL(file);
-    const videoElement = document.getElementById('previewVideo');
-    if (videoElement) {
-        videoElement.src = objectUrl;
-    }
-    
-    document.getElementById('videoFilename').textContent = file.name;
-    document.getElementById('videoPreview').classList.add('active');
-    generatePreview();
-    showNotification('Video uploaded successfully', 'success');
-};
-
-reader.onerror = (error) => {
-    console.error('FileReader error:', error);
-    showNotification('Failed to read video file', 'error');
-};
-
-reader.onloadend = () => {
-    console.log('Video FileReader load ended');
-};
-
-reader.readAsDataURL(file);
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}
-
-// Handle audio upload
-function setupAudioUpload() {
-    const audioUploadArea = document.getElementById('audioUploadArea');
-    const audioInput = document.getElementById('audioInput');
-    
-    if (audioUploadArea && audioInput) {
-        audioUploadArea.addEventListener('click', () => {
-            audioInput.click();
-        });
-        
-        audioInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // Validate file type
-                if (!file.type.match('audio.*')) {
-                    showNotification('Please select an audio file', 'error');
-                    return;
-                }
-                
-                // Validate file size (10MB)
-                if (file.size > 10 * 1024 * 1024) {
-                    showNotification('Audio file is too large (max 10MB)', 'error');
-                    return;
-                }
-                
-                // Convert to Base64
-                const reader = new FileReader();
-
-reader.onload = (e) => {
-    const base64Data = e.target.result;
-    console.log('Audio Base64 length:', base64Data.length); // DEBUG
-    
-    if (base64Data.length < 1000) {
-        console.error('Audio Base64 too short! File reading failed.');
-        showNotification('Error: Audio file reading failed', 'error');
-        return;
-    }
-    
-    currentMedia.audio = {
-        url: base64Data, // Base64 string
-        name: file.name,
-        type: file.type,
-        size: file.size
-    };
-    
-    // Create object URL for preview only
-    const objectUrl = URL.createObjectURL(file);
-    const audioElement = document.getElementById('previewAudio');
-    if (audioElement) {
-        audioElement.src = objectUrl;
-    }
-    
-    document.getElementById('audioFilename').textContent = file.name;
-    document.getElementById('audioPreview').classList.add('active');
-    generatePreview();
-    showNotification('Audio uploaded successfully', 'success');
-};
-
-reader.onerror = (error) => {
-    console.error('Audio FileReader error:', error);
-    showNotification('Failed to read audio file', 'error');
-};
-
-reader.onloadend = () => {
-    console.log('Audio FileReader load ended');
-};
-
-reader.readAsDataURL(file);
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}
             
             // Handle video upload
             function setupVideoUpload() {
@@ -1316,21 +1183,49 @@ reader.readAsDataURL(file);
                                 return;
                             }
                             
-                            currentMedia.video = {
-                                url: URL.createObjectURL(file),
-                                name: file.name,
-                                type: file.type,
-                                size: file.size
+                            // Convert to Base64
+                            const reader = new FileReader();
+                            
+                            reader.onload = (e) => {
+                                const base64Data = e.target.result;
+                                console.log('Video Base64 length:', base64Data.length);
+                                
+                                if (!base64Data || base64Data.length < 1000) {
+                                    console.error('Video Base64 too short! File reading failed.');
+                                    showNotification('Error: Video file reading failed', 'error');
+                                    return;
+                                }
+                                
+                                currentMedia.video = {
+                                    url: base64Data,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size
+                                };
+                                
+                                // Create object URL for preview only
+                                const objectUrl = URL.createObjectURL(file);
+                                const videoElement = document.getElementById('previewVideo');
+                                if (videoElement) {
+                                    videoElement.src = objectUrl;
+                                }
+                                
+                                document.getElementById('videoFilename').textContent = file.name;
+                                document.getElementById('videoPreview').classList.add('active');
+                                generatePreview();
+                                showNotification('Video uploaded successfully', 'success');
                             };
                             
-                            const videoElement = document.getElementById('previewVideo');
-                            if (videoElement) {
-                                videoElement.src = currentMedia.video.url;
-                            }
-                            document.getElementById('videoFilename').textContent = file.name;
-                            document.getElementById('videoPreview').classList.add('active');
-                            generatePreview();
-                            showNotification('Video uploaded successfully', 'success');
+                            reader.onerror = (error) => {
+                                console.error('Video FileReader error:', error);
+                                showNotification('Failed to read video file', 'error');
+                            };
+                            
+                            reader.onloadend = () => {
+                                console.log('Video FileReader load ended');
+                            };
+                            
+                            reader.readAsDataURL(file);
                         }
                     });
                 }
@@ -1361,21 +1256,49 @@ reader.readAsDataURL(file);
                                 return;
                             }
                             
-                            currentMedia.audio = {
-                                url: URL.createObjectURL(file),
-                                name: file.name,
-                                type: file.type,
-                                size: file.size
+                            // Convert to Base64
+                            const reader = new FileReader();
+                            
+                            reader.onload = (e) => {
+                                const base64Data = e.target.result;
+                                console.log('Audio Base64 length:', base64Data.length);
+                                
+                                if (!base64Data || base64Data.length < 1000) {
+                                    console.error('Audio Base64 too short! File reading failed.');
+                                    showNotification('Error: Audio file reading failed', 'error');
+                                    return;
+                                }
+                                
+                                currentMedia.audio = {
+                                    url: base64Data,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size
+                                };
+                                
+                                // Create object URL for preview only
+                                const objectUrl = URL.createObjectURL(file);
+                                const audioElement = document.getElementById('previewAudio');
+                                if (audioElement) {
+                                    audioElement.src = objectUrl;
+                                }
+                                
+                                document.getElementById('audioFilename').textContent = file.name;
+                                document.getElementById('audioPreview').classList.add('active');
+                                generatePreview();
+                                showNotification('Audio uploaded successfully', 'success');
                             };
                             
-                            const audioElement = document.getElementById('previewAudio');
-                            if (audioElement) {
-                                audioElement.src = currentMedia.audio.url;
-                            }
-                            document.getElementById('audioFilename').textContent = file.name;
-                            document.getElementById('audioPreview').classList.add('active');
-                            generatePreview();
-                            showNotification('Audio uploaded successfully', 'success');
+                            reader.onerror = (error) => {
+                                console.error('Audio FileReader error:', error);
+                                showNotification('Failed to read audio file', 'error');
+                            };
+                            
+                            reader.onloadend = () => {
+                                console.log('Audio FileReader load ended');
+                            };
+                            
+                            reader.readAsDataURL(file);
                         }
                     });
                 }
@@ -1548,6 +1471,9 @@ reader.readAsDataURL(file);
                     if (contentType !== 'text' && currentMedia[contentType]) {
                         showNotification(`Uploading ${contentType}...`, 'info');
                         
+                        // Debug: Check Base64 data
+                        console.log(`Uploading ${contentType}, Base64 length:`, currentMedia[contentType].url.length);
+                        
                         try {
                             const uploadResponse = await fetch(`${BACKEND_URL}/api/upload-media`, {
                                 method: 'POST',
@@ -1563,6 +1489,7 @@ reader.readAsDataURL(file);
                             });
                             
                             const uploadResult = await uploadResponse.json();
+                            console.log('Upload response:', uploadResult);
                             
                             if (uploadResult.success) {
                                 mediaUrl = uploadResult.url;
