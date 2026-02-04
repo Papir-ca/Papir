@@ -759,7 +759,7 @@
                         <div class="file-preview" id="imagePreview">
                             <img src="" alt="Preview" class="preview-image" id="previewImage">
                             <div class="preview-filename" id="imageFilename"></div>
-                            <button class="remove-media-btn" onclick="removeImage()">
+                            <button class="remove-media-btn" id="removeImageBtn">
                                 <i class="fas fa-trash"></i> Remove Image
                             </button>
                         </div>
@@ -782,7 +782,7 @@
                         <div class="file-preview" id="videoPreview">
                             <video controls class="preview-video" id="previewVideo"></video>
                             <div class="preview-filename" id="videoFilename"></div>
-                            <button class="remove-media-btn" onclick="removeVideo()">
+                            <button class="remove-media-btn" id="removeVideoBtn">
                                 <i class="fas fa-trash"></i> Remove Video
                             </button>
                         </div>
@@ -805,7 +805,7 @@
                         <div class="file-preview" id="audioPreview">
                             <audio controls class="preview-audio" id="previewAudio"></audio>
                             <div class="preview-filename" id="audioFilename"></div>
-                            <button class="remove-media-btn" onclick="removeAudio()">
+                            <button class="remove-media-btn" id="removeAudioBtn">
                                 <i class="fas fa-trash"></i> Remove Audio
                             </button>
                         </div>
@@ -868,7 +868,7 @@
                         <h4 style="color: #2d4cc7; margin-bottom: 10px;">Share Your Card:</h4>
                         <div class="share-url-container">
                             <input type="text" id="shareableUrl" class="share-url-input" readonly>
-                            <button class="copy-btn" onclick="copyShareUrl()">
+                            <button class="copy-btn" id="copyShareUrlBtn">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
@@ -878,13 +878,13 @@
                     </div>
                     
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button class="phone-test-btn" onclick="testOnPhone()">
+                        <button class="phone-test-btn" id="testOnPhoneBtn">
                             <i class="fas fa-mobile-alt"></i> Test on Phone
                         </button>
-                        <button class="btn btn-secondary" onclick="hideQRCode()" style="min-width: 150px;">
+                        <button class="btn btn-secondary" id="hideQRCodeBtn" style="min-width: 150px;">
                             <i class="fas fa-times"></i> Close
                         </button>
-                        <button class="btn btn-success" onclick="printQRCode()" style="min-width: 150px;">
+                        <button class="btn btn-success" id="printQRCodeBtn" style="min-width: 150px;">
                             <i class="fas fa-print"></i> Print QR Code
                         </button>
                     </div>
@@ -962,7 +962,18 @@
                 audioUploadContainer: document.getElementById('audioUploadContainer'),
                 imageInput: document.getElementById('imageInput'),
                 videoInput: document.getElementById('videoInput'),
-                audioInput: document.getElementById('audioInput')
+                audioInput: document.getElementById('audioInput'),
+                
+                // Remove buttons
+                removeImageBtn: document.getElementById('removeImageBtn'),
+                removeVideoBtn: document.getElementById('removeVideoBtn'),
+                removeAudioBtn: document.getElementById('removeAudioBtn'),
+                
+                // QR code buttons
+                copyShareUrlBtn: document.getElementById('copyShareUrlBtn'),
+                testOnPhoneBtn: document.getElementById('testOnPhoneBtn'),
+                hideQRCodeBtn: document.getElementById('hideQRCodeBtn'),
+                printQRCodeBtn: document.getElementById('printQRCodeBtn')
             };
             
             // Show notification
@@ -1304,40 +1315,49 @@
                 }
             }
             
-            // Remove image
-            window.removeImage = function() {
-                currentMedia.image = null;
-                if (elements.imageInput) elements.imageInput.value = '';
-                document.getElementById('previewImage').src = '';
-                document.getElementById('imageFilename').textContent = '';
-                document.getElementById('imagePreview').classList.remove('active');
-                generatePreview();
-                showNotification('Image removed', 'info');
-            };
-            
-            // Remove video  
-            window.removeVideo = function() {
-                currentMedia.video = null;
-                if (elements.videoInput) elements.videoInput.value = '';
-                const videoElement = document.getElementById('previewVideo');
-                if (videoElement) videoElement.src = '';
-                document.getElementById('videoFilename').textContent = '';
-                document.getElementById('videoPreview').classList.remove('active');
-                generatePreview();
-                showNotification('Video removed', 'info');
-            };
-            
-            // Remove audio
-            window.removeAudio = function() {
-                currentMedia.audio = null;
-                if (elements.audioInput) elements.audioInput.value = '';
-                const audioElement = document.getElementById('previewAudio');
-                if (audioElement) audioElement.src = '';
-                document.getElementById('audioFilename').textContent = '';
-                document.getElementById('audioPreview').classList.remove('active');
-                generatePreview();
-                showNotification('Audio removed', 'info');
-            };
+            // Setup remove media button listeners
+            function setupRemoveMediaListeners() {
+                // Remove image
+                if (elements.removeImageBtn) {
+                    elements.removeImageBtn.addEventListener('click', function() {
+                        currentMedia.image = null;
+                        if (elements.imageInput) elements.imageInput.value = '';
+                        document.getElementById('previewImage').src = '';
+                        document.getElementById('imageFilename').textContent = '';
+                        document.getElementById('imagePreview').classList.remove('active');
+                        generatePreview();
+                        showNotification('Image removed', 'info');
+                    });
+                }
+                
+                // Remove video
+                if (elements.removeVideoBtn) {
+                    elements.removeVideoBtn.addEventListener('click', function() {
+                        currentMedia.video = null;
+                        if (elements.videoInput) elements.videoInput.value = '';
+                        const videoElement = document.getElementById('previewVideo');
+                        if (videoElement) videoElement.src = '';
+                        document.getElementById('videoFilename').textContent = '';
+                        document.getElementById('videoPreview').classList.remove('active');
+                        generatePreview();
+                        showNotification('Video removed', 'info');
+                    });
+                }
+                
+                // Remove audio
+                if (elements.removeAudioBtn) {
+                    elements.removeAudioBtn.addEventListener('click', function() {
+                        currentMedia.audio = null;
+                        if (elements.audioInput) elements.audioInput.value = '';
+                        const audioElement = document.getElementById('previewAudio');
+                        if (audioElement) audioElement.src = '';
+                        document.getElementById('audioFilename').textContent = '';
+                        document.getElementById('audioPreview').classList.remove('active');
+                        generatePreview();
+                        showNotification('Audio removed', 'info');
+                    });
+                }
+            }
             
             // Show QR code after successful save
             function showQRCode(qrCodeUrl, viewerUrl, cardData) {
@@ -1375,72 +1395,83 @@
                 showNotification('QR code generated! Scan it with your phone.', 'success');
             }
             
-            // Hide QR code section
-            window.hideQRCode = function() {
-                elements.qrCodeSection.style.display = 'none';
-            };
-            
-            // Copy share URL to clipboard
-            window.copyShareUrl = function() {
-                const shareableUrl = elements.shareableUrl;
-                shareableUrl.select();
-                shareableUrl.setSelectionRange(0, 99999);
-                
-                try {
-                    navigator.clipboard.writeText(shareableUrl.value);
-                    showNotification('URL copied to clipboard!', 'success');
-                } catch (err) {
-                    // Fallback for older browsers
-                    document.execCommand('copy');
-                    showNotification('URL copied!', 'success');
-                }
-            };
-            
-            // Test on phone instructions
-            window.testOnPhone = function() {
-                const url = elements.shareableUrl.value;
-                const message = `Test your card on your phone:\n\n1. Open this URL on your phone:\n${url}\n\n2. Or scan the QR code with your phone camera\n\n3. The card will display instantly!`;
-                alert(message);
-            };
-            
-            // Print QR code
-            window.printQRCode = function() {
-                if (!currentQRCodeData) {
-                    showNotification('No QR code to print', 'error');
-                    return;
+            // Setup QR code button listeners
+            function setupQRCodeButtonListeners() {
+                // Hide QR code section
+                if (elements.hideQRCodeBtn) {
+                    elements.hideQRCodeBtn.addEventListener('click', function() {
+                        elements.qrCodeSection.style.display = 'none';
+                    });
                 }
                 
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>Print QR Code - ${currentQRCodeData.cardData.card_id}</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-                            h1 { color: #333; }
-                            .qr-code { width: 300px; height: 300px; margin: 20px auto; }
-                            .info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
-                            @media print { button { display: none; } }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Papir AR Card QR Code</h1>
-                        <div class="info">
-                            <p><strong>Card ID:</strong> ${currentQRCodeData.cardData.card_id}</p>
-                            <p><strong>Type:</strong> ${currentQRCodeData.cardData.message_type}</p>
-                            <p><strong>URL:</strong> ${currentQRCodeData.viewerUrl}</p>
-                        </div>
-                        <img src="${currentQRCodeData.qrCodeUrl}" alt="QR Code" class="qr-code">
-                        <p>Scan this QR code with any smartphone camera</p>
-                        <p><small>Generated by Papir AR System</small></p>
-                        <br>
-                        <button onclick="window.print()">Print QR Code</button>
-                        <button onclick="window.close()">Close</button>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-            };
+                // Copy share URL to clipboard
+                if (elements.copyShareUrlBtn) {
+                    elements.copyShareUrlBtn.addEventListener('click', function() {
+                        const shareableUrl = elements.shareableUrl;
+                        shareableUrl.select();
+                        shareableUrl.setSelectionRange(0, 99999);
+                        
+                        try {
+                            navigator.clipboard.writeText(shareableUrl.value);
+                            showNotification('URL copied to clipboard!', 'success');
+                        } catch (err) {
+                            // Fallback for older browsers
+                            document.execCommand('copy');
+                            showNotification('URL copied!', 'success');
+                        }
+                    });
+                }
+                
+                // Test on phone instructions
+                if (elements.testOnPhoneBtn) {
+                    elements.testOnPhoneBtn.addEventListener('click', function() {
+                        const url = elements.shareableUrl.value;
+                        const message = `Test your card on your phone:\n\n1. Open this URL on your phone:\n${url}\n\n2. Or scan the QR code with your phone camera\n\n3. The card will display instantly!`;
+                        alert(message);
+                    });
+                }
+                
+                // Print QR code
+                if (elements.printQRCodeBtn) {
+                    elements.printQRCodeBtn.addEventListener('click', function() {
+                        if (!currentQRCodeData) {
+                            showNotification('No QR code to print', 'error');
+                            return;
+                        }
+                        
+                        const printWindow = window.open('', '_blank');
+                        printWindow.document.write(`
+                            <html>
+                            <head>
+                                <title>Print QR Code - ${currentQRCodeData.cardData.card_id}</title>
+                                <style>
+                                    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                                    h1 { color: #333; }
+                                    .qr-code { width: 300px; height: 300px; margin: 20px auto; }
+                                    .info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 500px; }
+                                    @media print { button { display: none; } }
+                                </style>
+                            </head>
+                            <body>
+                                <h1>Papir AR Card QR Code</h1>
+                                <div class="info">
+                                    <p><strong>Card ID:</strong> ${currentQRCodeData.cardData.card_id}</p>
+                                    <p><strong>Type:</strong> ${currentQRCodeData.cardData.message_type}</p>
+                                    <p><strong>URL:</strong> ${currentQRCodeData.viewerUrl}</p>
+                                </div>
+                                <img src="${currentQRCodeData.qrCodeUrl}" alt="QR Code" class="qr-code">
+                                <p>Scan this QR code with any smartphone camera</p>
+                                <p><small>Generated by Papir AR System</small></p>
+                                <br>
+                                <button onclick="window.print()">Print QR Code</button>
+                                <button onclick="window.close()">Close</button>
+                            </body>
+                            </html>
+                        `);
+                        printWindow.document.close();
+                    });
+                }
+            }
             
             // Save card to backend WITH MEDIA UPLOAD
             async function saveCardToBackend(cardData) {
@@ -1602,10 +1633,10 @@
                                         <td>${date}</td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="action-btn view" onclick="app.viewCard('${card.card_id}')">
+                                                <button class="action-btn view" data-card-id="${card.card_id}">
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
-                                                <button class="action-btn delete" onclick="app.deleteCard('${card.card_id}')">
+                                                <button class="action-btn delete" data-card-id="${card.card_id}">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </div>
@@ -1614,6 +1645,22 @@
                                 `;
                             });
                             elements.cardsTableBody.innerHTML = html;
+                            
+                            // Add event listeners to action buttons
+                            document.querySelectorAll('.action-btn.view').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const cardId = this.getAttribute('data-card-id');
+                                    viewCard(cardId);
+                                });
+                            });
+                            
+                            document.querySelectorAll('.action-btn.delete').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const cardId = this.getAttribute('data-card-id');
+                                    deleteCard(cardId);
+                                });
+                            });
+                            
                             console.log('Cards loaded successfully');
                         } else {
                             elements.cardsTableBody.innerHTML = `
@@ -1744,6 +1791,12 @@
                 setupVideoUpload();
                 setupAudioUpload();
                 
+                // Setup remove media button listeners
+                setupRemoveMediaListeners();
+                
+                // Setup QR code button listeners
+                setupQRCodeButtonListeners();
+                
                 // Initial media visibility
                 updateMediaUploadVisibility();
                 
@@ -1791,16 +1844,6 @@
             }
             
             initApp();
-            
-            // Create global app object for button handlers
-            window.app = {
-                viewCard: viewCard,
-                deleteCard: deleteCard,
-                hideQRCode: hideQRCode,
-                copyShareUrl: copyShareUrl,
-                testOnPhone: testOnPhone,
-                printQRCode: printQRCode
-            };
         });
     </script>
 </body>
