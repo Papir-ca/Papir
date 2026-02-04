@@ -1573,7 +1573,7 @@
                         const result = await response.json();
                         console.log('Cards API response:', result);
                         
-                        if (result.success && result.cards && result.cards.length > 0) {
+                        if (result && result.success && result.cards && result.cards.length > 0) {
                             let html = '';
                             result.cards.forEach(card => {
                                 const date = card.created_at ? new Date(card.created_at).toLocaleDateString('en-US', {
