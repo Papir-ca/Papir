@@ -1308,34 +1308,33 @@
             window.removeImage = function() {
                 currentMedia.image = null;
                 if (elements.imageInput) elements.imageInput.value = '';
-                const imagePreview = document.getElementById('imagePreview');
-                if (imagePreview) imagePreview.classList.remove('active');
+                document.getElementById('previewImage').src = '';
+                document.getElementById('imageFilename').textContent = '';
+                document.getElementById('imagePreview').classList.remove('active');
                 generatePreview();
                 showNotification('Image removed', 'info');
             };
             
-            // Remove video
+            // Remove video  
             window.removeVideo = function() {
-                if (currentMedia.video && currentMedia.video.url) {
-                    URL.revokeObjectURL(currentMedia.video.url);
-                }
                 currentMedia.video = null;
                 if (elements.videoInput) elements.videoInput.value = '';
-                const videoPreview = document.getElementById('videoPreview');
-                if (videoPreview) videoPreview.classList.remove('active');
+                const videoElement = document.getElementById('previewVideo');
+                if (videoElement) videoElement.src = '';
+                document.getElementById('videoFilename').textContent = '';
+                document.getElementById('videoPreview').classList.remove('active');
                 generatePreview();
                 showNotification('Video removed', 'info');
             };
             
             // Remove audio
             window.removeAudio = function() {
-                if (currentMedia.audio && currentMedia.audio.url) {
-                    URL.revokeObjectURL(currentMedia.audio.url);
-                }
                 currentMedia.audio = null;
                 if (elements.audioInput) elements.audioInput.value = '';
-                const audioPreview = document.getElementById('audioPreview');
-                if (audioPreview) audioPreview.classList.remove('active');
+                const audioElement = document.getElementById('previewAudio');
+                if (audioElement) audioElement.src = '';
+                document.getElementById('audioFilename').textContent = '';
+                document.getElementById('audioPreview').classList.remove('active');
                 generatePreview();
                 showNotification('Audio removed', 'info');
             };
@@ -1467,6 +1466,14 @@
                     // If there's media, upload it first
                     let mediaUrl = null;
                     const contentType = cardData.message_type;
+                    
+                    // Check if media is required for non-text content types
+                    if (contentType !== 'text' && !currentMedia[contentType]) {
+                        showNotification(`Please upload a ${contentType} file before saving`, 'error');
+                        elements.saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                        elements.saveBtn.disabled = false;
+                        return { success: false, error: `No ${contentType} file uploaded` };
+                    }
                     
                     if (contentType !== 'text' && currentMedia[contentType]) {
                         showNotification(`Uploading ${contentType}...`, 'info');
