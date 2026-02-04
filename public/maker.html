@@ -1573,6 +1573,7 @@
                         const result = await response.json();
                         console.log('Cards API response:', result);
                         
+                        // FIXED: Check result.cards instead of result.data
                         if (result && result.success && result.cards && result.cards.length > 0) {
                             let html = '';
                             result.cards.forEach(card => {
