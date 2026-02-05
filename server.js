@@ -85,35 +85,27 @@ app.use('/api/', limiter);
 // 📁 Serve static files
 app.use(express.static('public'));
 
-// Marketing site
+// 🏠 Marketing site
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html'); // Toy store
+    res.sendFile(__dirname + '/public/index.html');
 });
 
-// Your app dashboard - with parameter handling for different pages
+// 📱 App dashboard
 app.get('/app', (req, res) => {
-    const page = req.query.page;
-    let filePath = __dirname + '/public/dashboard.html'; // Default dashboard
-    
-    if (page === 'viewer') {
-        filePath = __dirname + '/public/viewer.html'; // Card viewer
-    } else if (page === 'maker') {
-        filePath = __dirname + '/public/maker.html'; // Card maker
-    } else if (page === 'dashboard') {
-        filePath = __dirname + '/public/dashboard.html'; // Dashboard (explicit)
-    }
-    
-    res.sendFile(filePath);
+    res.sendFile(__dirname + '/public/dashboard.html');
 });
 
-// Direct routes for backward compatibility
-app.get('/viewer.html', (req, res) => {
-    res.redirect('/app?page=viewer');
-});
+// ❌ REMOVE THESE REDIRECTS - THEY BREAK YOUR APP!
+// app.get('/viewer.html', (req, res) => {
+//     res.redirect('/app?page=viewer');
+// });
+// 
+// app.get('/maker.html', (req, res) => {
+//     res.redirect('/app?page=maker');
+// });
 
-app.get('/maker.html', (req, res) => {
-    res.redirect('/app?page=maker');
-});
+// ✅ KEEP YOUR ORIGINAL HTML FILES WORKING!
+// They're already served by express.static('public')
 
 // 🩺 Enhanced Health Check
 app.get('/api/health', (req, res) => {
@@ -134,8 +126,8 @@ app.get('/api/health', (req, res) => {
     endpoints: {
       home: `${baseUrl}/`,
       dashboard: `${baseUrl}/app`,
-      maker: `${baseUrl}/app?page=maker`,
-      viewer: `${baseUrl}/app?page=viewer`,
+      maker: `${baseUrl}/maker.html`,
+      viewer: `${baseUrl}/viewer.html`,
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`
@@ -252,7 +244,7 @@ app.post('/api/cards', async (req, res) => {
     const host = req.get('host');
     const baseUrl = `${protocol}://${host}`;
     
-    const viewerUrl = `${baseUrl}/app?page=viewer&card=${card_id}`;
+    const viewerUrl = `${baseUrl}/viewer.html?card=${card_id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
     
     res.status(201).json({ 
@@ -260,7 +252,7 @@ app.post('/api/cards', async (req, res) => {
       message: 'Card saved successfully!',
       card: data,
       urls: {
-        share: `/app?page=viewer&card=${card_id}`,
+        share: `/viewer.html?card=${card_id}`,
         viewer: viewerUrl,
         qrCode: qrCodeUrl,
         domain: host
@@ -420,7 +412,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
     res.json({ 
       success: true, 
       card: data,
-      viewerUrl: `${baseUrl}/app?page=viewer&card=${card_id}`
+      viewerUrl: `${baseUrl}/viewer.html?card=${card_id}`
     });
     
   } catch (error) {
@@ -582,8 +574,8 @@ app.use((req, res) => {
     availableEndpoints: [
       `${baseUrl}/`,
       `${baseUrl}/app`,
-      `${baseUrl}/app?page=maker`,
-      `${baseUrl}/app?page=viewer`,
+      `${baseUrl}/maker.html`,
+      `${baseUrl}/viewer.html`,
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
@@ -612,8 +604,8 @@ app.listen(PORT, () => {
   console.log('\n🔗 MAIN PAGES:');
   console.log(`   Home (Marketing): https://papir.ca/`);
   console.log(`   App Dashboard: https://papir.ca/app`);
-  console.log(`   Card Maker: https://papir.ca/app?page=maker`);
-  console.log(`   Card Viewer: https://papir.ca/app?page=viewer`);
+  console.log(`   Card Maker: https://papir.ca/maker.html`);
+  console.log(`   Card Viewer: https://papir.ca/viewer.html`);
   
   console.log('\n🔗 API ENDPOINTS:');
   console.log(`   Health: https://papir.ca/api/health`);
@@ -622,8 +614,9 @@ app.listen(PORT, () => {
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Marketing site (Home page)');
-  console.log('   ✅ App dashboard with multi-page routing (/app)');
-  console.log('   ✅ Backward compatibility (old URLs redirect to /app)');
+  console.log('   ✅ App dashboard (/app)');
+  console.log('   ✅ Card maker (/maker.html) - direct access');
+  console.log('   ✅ Card viewer (/viewer.html) - direct access');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking (name, size, type)');
   console.log('   ✅ IP address tracking for creators');
