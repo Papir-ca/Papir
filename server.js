@@ -85,27 +85,15 @@ app.use('/api/', limiter);
 // 📁 Serve static files
 app.use(express.static('public'));
 
-// 🏠 Marketing site
+// 🏠 Marketing landing page
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
-// 📱 App dashboard
+// 📱 App dashboard (your tools)
 app.get('/app', (req, res) => {
     res.sendFile(__dirname + '/public/dashboard.html');
 });
-
-// ❌ REMOVE THESE REDIRECTS - THEY BREAK YOUR APP!
-// app.get('/viewer.html', (req, res) => {
-//     res.redirect('/app?page=viewer');
-// });
-// 
-// app.get('/maker.html', (req, res) => {
-//     res.redirect('/app?page=maker');
-// });
-
-// ✅ KEEP YOUR ORIGINAL HTML FILES WORKING!
-// They're already served by express.static('public')
 
 // 🩺 Enhanced Health Check
 app.get('/api/health', (req, res) => {
@@ -124,10 +112,10 @@ app.get('/api/health', (req, res) => {
       environment: process.env.NODE_ENV || 'production'
     },
     endpoints: {
-      home: `${baseUrl}/`,
-      dashboard: `${baseUrl}/app`,
-      maker: `${baseUrl}/maker.html`,
-      viewer: `${baseUrl}/viewer.html`,
+      home: `${baseUrl}/`,                     // Marketing site
+      dashboard: `${baseUrl}/app`,             // Your tools
+      maker: `${baseUrl}/maker.html`,          // Card creator
+      viewer: `${baseUrl}/viewer.html`,        // Card viewer
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`
@@ -572,8 +560,8 @@ app.use((req, res) => {
     error: 'Endpoint not found',
     path: req.path,
     availableEndpoints: [
-      `${baseUrl}/`,
-      `${baseUrl}/app`,
+      `${baseUrl}/`,           // Marketing
+      `${baseUrl}/app`,        // Dashboard
       `${baseUrl}/maker.html`,
       `${baseUrl}/viewer.html`,
       `${baseUrl}/api/health`,
@@ -615,11 +603,10 @@ app.listen(PORT, () => {
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Marketing site (Home page)');
   console.log('   ✅ App dashboard (/app)');
-  console.log('   ✅ Card maker (/maker.html) - direct access');
-  console.log('   ✅ Card viewer (/viewer.html) - direct access');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking (name, size, type)');
   console.log('   ✅ IP address tracking for creators');
+  console.log('   ✅ Get all cards endpoint');
   console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
   
