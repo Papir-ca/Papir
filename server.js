@@ -85,9 +85,34 @@ app.use('/api/', limiter);
 // 📁 Serve static files
 app.use(express.static('public'));
 
-// 🏠 Welcome page
+// Marketing site
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(__dirname + '/public/index.html'); // Toy store
+});
+
+// Your app dashboard - with parameter handling for different pages
+app.get('/app', (req, res) => {
+    const page = req.query.page;
+    let filePath = __dirname + '/public/dashboard.html'; // Default dashboard
+    
+    if (page === 'viewer') {
+        filePath = __dirname + '/public/viewer.html'; // Card viewer
+    } else if (page === 'maker') {
+        filePath = __dirname + '/public/maker.html'; // Card maker
+    } else if (page === 'dashboard') {
+        filePath = __dirname + '/public/dashboard.html'; // Dashboard (explicit)
+    }
+    
+    res.sendFile(filePath);
+});
+
+// Direct routes for backward compatibility
+app.get('/viewer.html', (req, res) => {
+    res.redirect('/app?page=viewer');
+});
+
+app.get('/maker.html', (req, res) => {
+    res.redirect('/app?page=maker');
 });
 
 // 🩺 Enhanced Health Check
@@ -107,8 +132,10 @@ app.get('/api/health', (req, res) => {
       environment: process.env.NODE_ENV || 'production'
     },
     endpoints: {
-      maker: `${baseUrl}/maker.html`,
-      viewer: `${baseUrl}/viewer.html`,
+      home: `${baseUrl}/`,
+      dashboard: `${baseUrl}/app`,
+      maker: `${baseUrl}/app?page=maker`,
+      viewer: `${baseUrl}/app?page=viewer`,
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`
@@ -225,7 +252,7 @@ app.post('/api/cards', async (req, res) => {
     const host = req.get('host');
     const baseUrl = `${protocol}://${host}`;
     
-    const viewerUrl = `${baseUrl}/viewer.html?card=${card_id}`;
+    const viewerUrl = `${baseUrl}/app?page=viewer&card=${card_id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
     
     res.status(201).json({ 
@@ -233,7 +260,7 @@ app.post('/api/cards', async (req, res) => {
       message: 'Card saved successfully!',
       card: data,
       urls: {
-        share: `/viewer.html?card=${card_id}`,
+        share: `/app?page=viewer&card=${card_id}`,
         viewer: viewerUrl,
         qrCode: qrCodeUrl,
         domain: host
@@ -393,7 +420,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
     res.json({ 
       success: true, 
       card: data,
-      viewerUrl: `${baseUrl}/viewer.html?card=${card_id}`
+      viewerUrl: `${baseUrl}/app?page=viewer&card=${card_id}`
     });
     
   } catch (error) {
@@ -554,8 +581,9 @@ app.use((req, res) => {
     path: req.path,
     availableEndpoints: [
       `${baseUrl}/`,
-      `${baseUrl}/maker.html`,
-      `${baseUrl}/viewer.html`,
+      `${baseUrl}/app`,
+      `${baseUrl}/app?page=maker`,
+      `${baseUrl}/app?page=viewer`,
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
@@ -581,18 +609,24 @@ app.listen(PORT, () => {
   console.log(`   Railway: https://papir.up.railway.app`);
   console.log(`   Local: http://localhost:${PORT}`);
   
-  console.log('\n🔗 TEST URLS:');
+  console.log('\n🔗 MAIN PAGES:');
+  console.log(`   Home (Marketing): https://papir.ca/`);
+  console.log(`   App Dashboard: https://papir.ca/app`);
+  console.log(`   Card Maker: https://papir.ca/app?page=maker`);
+  console.log(`   Card Viewer: https://papir.ca/app?page=viewer`);
+  
+  console.log('\n🔗 API ENDPOINTS:');
   console.log(`   Health: https://papir.ca/api/health`);
-  console.log(`   Maker: https://papir.ca/maker.html`);
-  console.log(`   Viewer: https://papir.ca/viewer.html`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
   console.log(`   Get Cards: https://papir.ca/api/cards`);
   
   console.log('\n🎯 FEATURES:');
+  console.log('   ✅ Marketing site (Home page)');
+  console.log('   ✅ App dashboard with multi-page routing (/app)');
+  console.log('   ✅ Backward compatibility (old URLs redirect to /app)');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking (name, size, type)');
   console.log('   ✅ IP address tracking for creators');
-  console.log('   ✅ Get all cards endpoint');
   console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
   
