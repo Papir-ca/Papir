@@ -9,6 +9,9 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 🛡️ TRUST RAILWAY PROXY
+app.set('trust proxy', 1);
+
 // 🔒 PRODUCTION CSP - Updated for papir.ca domain
 app.use(helmet({
   contentSecurityPolicy: {
