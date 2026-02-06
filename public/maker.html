@@ -940,6 +940,11 @@
                 audio: null
             };
             
+            // 🆕 ADD THIS FUNCTION HERE:
+            function generateRandomCardId() {
+                return 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            }    
+ 
             // Get DOM elements
             const elements = {
                 cardIdInput: document.getElementById('cardId'),
@@ -1785,6 +1790,11 @@
                 console.log('Initializing Papir Card Maker...');
                 
                 await checkBackendConnection();
+                
+                // AUTO-GENERATE RANDOM CARD ID ON STARTUP
+                const randomId = 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                elements.cardIdInput.value = randomId;
+                elements.cardIdInput.readOnly = true; // Prevent editing
                 
                 // Setup media upload handlers
                 setupImageUpload();
