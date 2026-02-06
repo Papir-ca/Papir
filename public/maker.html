@@ -1052,8 +1052,8 @@
                     return null;
                 }
                 
-                if (!/^\d+$/.test(cardId)) {
-                    showNotification('Card ID must contain only numbers', 'error');
+                if (!/^[A-Z0-9_]+$/.test(cardId)) {
+                    showNotification('Card ID must contain only letters, numbers, or underscores', 'error');
                     return null;
                 }
                 
