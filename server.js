@@ -99,6 +99,18 @@ app.get('/app', (req, res) => {
   res.sendFile(__dirname + '/public/dashboard.html');
 });
 
+// Simple admin auth (add your password)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'your-secret-password';
+
+app.get('/admin', (req, res) => {
+    const password = req.query.pass;
+    if (password === ADMIN_PASSWORD) {
+        res.sendFile(__dirname + '/public/admin.html');
+    } else {
+        res.status(401).send('Admin access required');
+    }
+});
+
 // 🩺 Enhanced Health Check
 app.get('/api/health', (req, res) => {
   const protocol = req.protocol;
