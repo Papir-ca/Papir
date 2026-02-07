@@ -388,6 +388,9 @@
             // Filter buttons
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
+                    // Skip the refresh button (it has no data-filter)
+                    if (!this.dataset.filter) return;
+                    
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentFilter = this.dataset.filter;
@@ -417,3 +420,4 @@
     </script>
 </body>
 </html>
+
