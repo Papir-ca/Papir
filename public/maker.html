@@ -720,7 +720,7 @@
                 <div class="form-group">
                     <label for="cardId">Card ID (Required):</label>
                     <div class="card-id-container">
-                        <div class="card-id-prefix">CARD</div>
+                        <div class="card-id-prefix">ID:</div>
                         <input type="text" id="cardId" placeholder="6842" value="6842">
                     </div>
                     <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
@@ -942,7 +942,7 @@
             
             // 🆕 ADD THIS FUNCTION HERE:
             function generateRandomCardId() {
-                return 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                return Math.random().toString(36).substr(2, 8).toUpperCase();
             }    
  
             // Get DOM elements
