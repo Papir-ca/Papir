@@ -1791,8 +1791,8 @@
                 await checkBackendConnection();
                 
                 // AUTO-GENERATE RANDOM CARD ID ON STARTUP
-                const randomId = 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                elements.cardIdInput.value = randomId;
+                const randomId = Math.random().toString(36).substr(2, 8).toUpperCase();
+                elements.cardIdInput.value = generateRandomCardId();
                 elements.cardIdInput.readOnly = true; // Prevent editing
                 
                 // Setup media upload handlers
