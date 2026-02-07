@@ -144,11 +144,11 @@
             <div style="margin: 20px 0;">
                 <input type="text" id="qrUrlInput" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 5px; margin-bottom: 10px;">
                 <div class="action-btns" style="justify-content: center;">
-                    <button class="action-btn copy-btn" onclick="copyQrUrl()">Copy URL</button>
-                    <button class="action-btn qr-btn" onclick="downloadQr()">Download QR</button>
+                    <button class="action-btn copy-btn" id="copyQrUrlBtn">Copy URL</button>
+                    <button class="action-btn qr-btn" id="downloadQrBtn">Download QR</button>
                 </div>
             </div>
-            <button class="close-modal" onclick="closeModal()">Close</button>
+            <button class="close-modal" id="closeModalBtn">Close</button>
         </div>
     </div>
 
@@ -163,6 +163,9 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const filterBtns = document.querySelectorAll('.filter-btn');
         const qrModal = document.getElementById('qrModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
+        const downloadQrBtn = document.getElementById('downloadQrBtn');
         
         // Load admin data
         async function loadAdminData() {
@@ -235,7 +238,12 @@
                 const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
                 const sizeDisplay = card.file_size ? formatFileSize(card.file_size) : 'N/A';
                 const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+                
+                // Generate a unique ID for each action button
+                const viewBtnId = `view-btn-${card.card_id}`;
+                const qrBtnId = `qr-btn-${card.card_id}`;
+                const copyBtnId = `copy-btn-${card.card_id}`;
                 
                 html += `
                     <tr>
@@ -244,15 +252,20 @@
                         <td>${card.file_name || 'N/A'}</td>
                         <td>${sizeDisplay}</td>
                         <td class="media-url">
-                            ${card.media_url ? `<a href="${card.media_url}" target="_blank">View Media</a>` : 'N/A'}
+                            ${card.media_url ? 
+                                `<div>
+                                    <a href="${card.media_url}" target="_blank">View Media</a><br>
+                                    <small style="color: #aaa; font-size: 0.8rem; word-break: break-all;">${card.media_url}</small>
+                                </div>` 
+                                : 'N/A'}
                         </td>
                         <td>${new Date(card.created_at).toLocaleDateString()}</td>
                         <td>${card.created_by_ip || 'N/A'}</td>
                         <td>
                             <div class="action-btns">
-                                <button class="action-btn view-btn" onclick="viewCard('${card.card_id}')">View</button>
-                                <button class="action-btn qr-btn" onclick="showQR('${card.card_id}', '${typeDisplay}', '${viewerUrl}', '${qrUrl}')">QR</button>
-                                ${card.media_url ? `<button class="action-btn copy-btn" onclick="copyToClipboard('${card.media_url}')">Copy URL</button>` : ''}
+                                <button class="action-btn view-btn" id="${viewBtnId}" data-card-id="${card.card_id}">View</button>
+                                <button class="action-btn qr-btn" id="${qrBtnId}" data-card-id="${card.card_id}" data-card-type="${typeDisplay}" data-viewer-url="${viewerUrl}" data-qr-url="${qrUrl}">QR</button>
+                                ${card.media_url ? `<button class="action-btn copy-btn" id="${copyBtnId}" data-media-url="${card.media_url}">Copy URL</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -260,6 +273,42 @@
             });
             
             tbody.innerHTML = html;
+            
+            // Add event listeners to all action buttons
+            cards.forEach(card => {
+                const viewBtnId = `view-btn-${card.card_id}`;
+                const qrBtnId = `qr-btn-${card.card_id}`;
+                const copyBtnId = `copy-btn-${card.card_id}`;
+                
+                // View button
+                const viewBtn = document.getElementById(viewBtnId);
+                if (viewBtn) {
+                    viewBtn.addEventListener('click', () => {
+                        window.open(`${BACKEND_URL}/viewer.html?card=${card.card_id}`, '_blank');
+                    });
+                }
+                
+                // QR button
+                const qrBtn = document.getElementById(qrBtnId);
+                if (qrBtn) {
+                    qrBtn.addEventListener('click', function() {
+                        const cardId = this.getAttribute('data-card-id');
+                        const cardType = this.getAttribute('data-card-type');
+                        const viewerUrl = this.getAttribute('data-viewer-url');
+                        const qrUrl = this.getAttribute('data-qr-url');
+                        showQR(cardId, cardType, viewerUrl, qrUrl);
+                    });
+                }
+                
+                // Copy URL button
+                const copyBtn = document.getElementById(copyBtnId);
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', function() {
+                        const mediaUrl = this.getAttribute('data-media-url');
+                        copyToClipboard(mediaUrl);
+                    });
+                }
+            });
         }
         
         // Format file size
@@ -267,11 +316,6 @@
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-        
-        // View card
-        function viewCard(cardId) {
-            window.open(`${BACKEND_URL}/viewer.html?card=${cardId}`, '_blank');
         }
         
         // Show QR modal
@@ -333,28 +377,41 @@
             }
         }
         
-        // Event Listeners
-        searchInput.addEventListener('input', filterAndDisplayCards);
-        refreshBtn.addEventListener('click', loadAdminData);
-        
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                filterAndDisplayCards();
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Search input
+            searchInput.addEventListener('input', filterAndDisplayCards);
+            
+            // Refresh button
+            refreshBtn.addEventListener('click', loadAdminData);
+            
+            // Filter buttons
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    filterAndDisplayCards();
+                });
             });
-        });
-        
-        // Close modal on outside click
-        window.addEventListener('click', function(event) {
-            if (event.target === qrModal) {
-                closeModal();
-            }
-        });
+            
+            // Modal buttons
+            closeModalBtn.addEventListener('click', closeModal);
+            copyQrUrlBtn.addEventListener('click', copyQrUrl);
+            downloadQrBtn.addEventListener('click', downloadQr);
+            
+            // Close modal on outside click
+            window.addEventListener('click', function(event) {
+                if (event.target === qrModal) {
+                    closeModal();
+                }
+            });
+        }
         
         // Initial load
+        initializeEventListeners();
         loadAdminData();
+        
         // Auto-refresh every 30 seconds
         setInterval(loadAdminData, 30000);
     </script>
