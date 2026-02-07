@@ -942,7 +942,7 @@
             
             // 🆕 ADD THIS FUNCTION HERE:
             function generateRandomCardId() {
-                return + Math.random().toString(36).substr(2, 8).toUpperCase();
+                return 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
             }    
  
             // Get DOM elements
@@ -1792,7 +1792,7 @@
                 await checkBackendConnection();
                 
                 // AUTO-GENERATE RANDOM CARD ID ON STARTUP
-                const randomId =  + Math.random().toString(36).substr(2, 8).toUpperCase();
+                const randomId = 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
                 elements.cardIdInput.value = randomId;
                 elements.cardIdInput.readOnly = true; // Prevent editing
                 
