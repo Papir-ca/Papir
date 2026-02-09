@@ -68,7 +68,7 @@
 <body>
     <div class="container">
         <h1>📊 Papir Admin Dashboard</h1>
-        <button onclick="logout()" style="float: right; background: #ff416c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: -10px;">Logout</button>
+        <button onclick="logout(); return false;" style="float: right; background: #ff416c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: -10px;">Logout</button>
         
         <!-- Search Bar -->
         <div class="search-bar">
@@ -162,9 +162,10 @@
         }
 
         // LOGOUT FUNCTION
-        window.logout = function() {
+        function logout() {
             sessionStorage.removeItem('adminLoggedIn');
             window.location.href = 'admin-login.html';
+            return false;
         }
         
         // END OF AUTHENTICATION
@@ -447,6 +448,7 @@
     
 </body>
 </html>
+
 
 
 
