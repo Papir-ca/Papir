@@ -51,7 +51,7 @@
 <body>
     <div class="login-box">
         <h2>🔐 Admin Login</h2>
-        <form onsubmit="login(); return false;">
+        <form onsubmit="return login();">
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button type="submit">Login</button>
@@ -64,7 +64,10 @@
         const CORRECT_USERNAME = "papiradmin";
         const CORRECT_PASSWORD = "Farnhite88$$";
         
-        function login() {
+        function login(event) {
+            // Prevent form from submitting/refreshing
+            if (event) event.preventDefault();
+            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
@@ -85,6 +88,7 @@
     </script>
 </body>
 </html>
+
 
 
 
