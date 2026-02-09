@@ -2,224 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Papir AR</title>
+    <title>Admin Login - Papir</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             background: #1a1a1a; 
-            color: #e0e0e0; 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            color: white; 
+            font-family: Arial; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
         }
-        .login-container {
-            background: #2a2a2a;
-            border-radius: 15px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .login-box {
+            background: #2a2a2a; 
+            padding: 40px; 
+            border-radius: 10px; 
             text-align: center;
+            width: 300px;
         }
-        h1 {
-            color: #BCAE83;
-            margin-bottom: 10px;
-            font-size: 2rem;
+        h2 { color: #BCAE83; margin-bottom: 30px; }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            background: #333; 
+            border: 1px solid #444; 
+            color: white; 
+            border-radius: 5px; 
         }
-        .subtitle {
-            color: #aaa;
-            margin-bottom: 30px;
+        button { 
+            background: #BCAE83; 
+            color: black; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 10px; 
         }
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            color: #BCAE83;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #fff;
-            font-weight: 500;
-        }
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            background: #333;
-            border: 2px solid #444;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus {
-            outline: none;
-            border-color: #BCAE83;
-        }
-        .login-btn {
-            background: #BCAE83;
-            color: black;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        .login-btn:hover {
-            background: #d4c99a;
-        }
-        .error-message {
-            color: #ff416c;
-            margin-top: 15px;
-            display: none;
-            padding: 10px;
-            background: rgba(255, 65, 108, 0.1);
-            border-radius: 5px;
-        }
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            color: #aaa;
-            text-decoration: none;
-        }
-        .back-link:hover {
-            color: #BCAE83;
-        }
-        .remember-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .remember-group input {
-            width: auto;
-        }
-        .footer {
-            margin-top: 30px;
-            color: #666;
-            font-size: 0.9rem;
-            border-top: 1px solid #444;
-            padding-top: 20px;
+        .error { 
+            color: red; 
+            margin-top: 10px; 
+            display: none; 
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">🔐</div>
-        <h1>Admin Login</h1>
-        <p class="subtitle">Papir AR Card System</p>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" placeholder="Enter admin username" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter admin password" required>
-            </div>
-            
-            <div class="remember-group">
-                <input type="checkbox" id="rememberMe">
-                <label for="rememberMe" style="color: #aaa; font-weight: normal;">Remember me for 7 days</label>
-            </div>
-            
-            <button type="submit" class="login-btn">Login to Admin Panel</button>
-            
-            <div id="errorMessage" class="error-message">
-                Invalid username or password
-            </div>
-        </form>
-        
-        <a href="index.html" class="back-link">← Back to Home</a>
-        
-        <div class="footer">
-            <p>Restricted access. Unauthorized entry is prohibited.</p>
-        </div>
+    <div class="login-box">
+        <h2>🔐 Admin Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="error" class="error">Wrong credentials</div>
     </div>
 
     <script>
-        // Admin credentials (CHANGE THESE!)
-        const ADMIN_CREDENTIALS = {
-            username: "admin",    // CHANGE THIS
-            password: "papir123"  // CHANGE THIS
-        };
+        // CHANGE THESE TO YOUR PASSWORD
+        const CORRECT_USERNAME = "admin";
+        const CORRECT_PASSWORD = "papir123";
         
-        // Encryption key for localStorage (basic obfuscation)
-        const STORAGE_KEY = "papir_admin_auth";
-        
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
             
-            // Check credentials
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                // Create auth token
-                const authData = {
-                    authenticated: true,
-                    timestamp: Date.now(),
-                    expires: rememberMe ? Date.now() + (7 * 24 * 60 * 60 * 1000) : Date.now() + (8 * 60 * 60 * 1000) // 7 days or 8 hours
-                };
-                
-                // Store in localStorage
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
-                
-                // Redirect to admin panel
-                window.location.href = "admin.html";
+            if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
+                // Set session flag
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                // Redirect to admin page
+                window.location.href = 'admin.html';
             } else {
-                // Show error
-                document.getElementById('errorMessage').style.display = 'block';
-                // Shake animation
-                document.getElementById('loginForm').style.animation = 'shake 0.5s';
-                setTimeout(() => {
-                    document.getElementById('loginForm').style.animation = '';
-                }, 500);
+                document.getElementById('error').style.display = 'block';
             }
+        }
+        
+        // Enter key support
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
         });
-        
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Check if already logged in (optional auto-redirect)
-        window.addEventListener('load', function() {
-            const authData = localStorage.getItem(STORAGE_KEY);
-            if (authData) {
-                const parsed = JSON.parse(authData);
-                if (parsed.authenticated && parsed.expires > Date.now()) {
-                    // Already authenticated, redirect to admin
-                    window.location.href = "admin.html";
-                } else {
-                    // Expired, clear storage
-                    localStorage.removeItem(STORAGE_KEY);
-                }
-            }
-        });
-        
-        // Focus on username field
-        document.getElementById('username').focus();
     </script>
 </body>
 </html>
