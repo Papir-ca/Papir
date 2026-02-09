@@ -154,6 +154,13 @@
 
     <script>
         const BACKEND_URL = 'https://papir.ca';
+
+        // AUTHENTICATION CHECK (3 lines only)
+        if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+        // END OF AUTHENTICATION
+        
         let allCards = [];
         let currentFilter = 'all';
         let currentQRData = null;
@@ -432,5 +439,6 @@
     
 </body>
 </html>
+
 
 
