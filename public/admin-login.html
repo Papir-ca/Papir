@@ -64,30 +64,37 @@
         const CORRECT_USERNAME = "papiradmin";
         const CORRECT_PASSWORD = "Farnhite88$$";
         
-        function login(event) {
-            // Prevent form from submitting/refreshing
-            if (event) event.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
-                // Set session flag
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                // Redirect to admin page
-                window.location.href = 'admin.html';
-            } else {
-                document.getElementById('error').style.display = 'block';
+        // Remove the form submit handler, handle button click directly
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginBtn = document.querySelector('button[type="submit"]');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Stop form submission
+                    
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
+                        sessionStorage.setItem('adminLoggedIn', 'true');
+                        window.location.href = 'admin.html';
+                    } else {
+                        document.getElementById('error').style.display = 'block';
+                    }
+                });
             }
-        }
         
-        // Enter key support
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') login();
+            // Enter key still works
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.querySelector('button[type="submit"]').click();
+                }
+            });
         });
     </script>
 </body>
 </html>
+
 
 
 
