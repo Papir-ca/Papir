@@ -51,9 +51,11 @@
 <body>
     <div class="login-box">
         <h2>🔐 Admin Login</h2>
+        <form onsubmit="login(); return false;">
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button type="submit">Login</button>
+        </form>
         <div id="error" class="error">Wrong credentials</div>
     </div>
 
@@ -83,5 +85,6 @@
     </script>
 </body>
 </html>
+
 
 
