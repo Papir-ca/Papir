@@ -68,7 +68,7 @@
 <body>
     <div class="container">
         <h1>📊 Papir Admin Dashboard</h1>
-        <button onclick="logout(); return false;" style="float: right; background: #ff416c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: -10px;">Logout</button>
+        <button id="logoutBtn" style="float: right; background: #ff416c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: -10px;">Logout</button>
         
         <!-- Search Bar -->
         <div class="search-bar">
@@ -156,16 +156,15 @@
     <script>
         const BACKEND_URL = 'https://papir.ca';
 
-        // AUTHENTICATION CHECK (3 lines only)
+        // AUTHENTICATION CHECK
         if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'admin-login.html';
         }
 
-        // LOGOUT FUNCTION
+        // LOGOUT FUNCTION - FIXED
         function logout() {
             sessionStorage.removeItem('adminLoggedIn');
             window.location.href = 'admin-login.html';
-            return false;
         }
         
         // END OF AUTHENTICATION
@@ -182,6 +181,7 @@
         const closeModalBtn = document.getElementById('closeModalBtn');
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
         const downloadQrBtn = document.getElementById('downloadQrBtn');
+        const logoutBtn = document.getElementById('logoutBtn'); // Added
         
         // Load admin data
         async function loadAdminData() {
@@ -401,6 +401,9 @@
             // Refresh button
             refreshBtn.addEventListener('click', loadAdminData);
             
+            // Logout button - FIXED
+            logoutBtn.addEventListener('click', logout);
+            
             // Filter buttons
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -448,9 +451,3 @@
     
 </body>
 </html>
-
-
-
-
-
-
