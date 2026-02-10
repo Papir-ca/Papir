@@ -1024,7 +1024,32 @@
                             const cameras = await Html5Qrcode.getCameras();
                             
                             if (cameras && cameras.length > 0) {
-                                const cameraId = cameras[0].id;
+                                // Find rear camera (usually has "environment" or "back" in label)
+                                let rearCamera = null;
+
+                                // Try to find rear camera by checking labels
+                                for (const camera of cameras) {
+                                    const label = camera.label.toLowerCase();
+                                    if (label.includes('back') || label.includes('rear') || 
+                                        label.includes('environment') || label.includes('2') || 
+                                        label.includes('1')) {
+                                        rearCamera = camera;
+                                        break;
+                                    }
+                                }
+            
+                                // If no rear camera found, try to find by facing mode
+                                if (!rearCamera) {
+                                    for (const camera of cameras) {
+                                        if (camera.facingMode && camera.facingMode === 'environment') {
+                                            rearCamera = camera;
+                                            break;
+                                        }
+                                     }
+                                }
+                                        
+                                // Fallback to first camera if no rear camera found
+                                const cameraId = rearCamera ? rearCamera.id : cameras[0].id;
                                 
                                 await html5QrCode.start(
                                     cameraId,
