@@ -246,6 +246,19 @@
             background: rgba(255, 255, 255, 0.15);
         }
         
+        .btn-ar {
+            background: linear-gradient(to right, #8A2BE2, #4B0082);
+            color: white;
+            margin: 15px auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .btn-ar:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.3);
+        }
+        
         .error-message {
             background: linear-gradient(to right, #FF6B6B, #FF8E53);
             color: white;
@@ -343,6 +356,37 @@
             gap: 8px;
         }
         
+        /* AR View Styles */
+        #arViewContainer {
+            display: none;
+            width: 100%;
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ar-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .ar-instructions {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px auto;
+            max-width: 500px;
+            font-size: 14px;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -384,6 +428,10 @@
             
             header {
                 padding-top: 20px;
+            }
+            
+            #arViewContainer {
+                height: 400px;
             }
         }
         
@@ -468,6 +516,27 @@
             <div id="errorText">Card not found or error loading content</div>
         </div>
         
+        <!-- AR View Container -->
+        <div id="arViewContainer">
+            <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" style="width: 100%; height: 100%;">
+                <a-marker preset="hiro">
+                    <a-entity id="ar-content-entity" position="0 0 0" scale="0.5 0.5 0.5">
+                        <!-- Content will be dynamically added here -->
+                    </a-entity>
+                </a-marker>
+                <a-entity camera></a-entity>
+            </a-scene>
+            
+            <div class="ar-controls">
+                <div class="ar-instructions">
+                    <i class="fas fa-info-circle"></i> Point camera at Hiro marker pattern to view AR content
+                </div>
+                <button class="btn btn-secondary" id="exitARMode">
+                    <i class="fas fa-times"></i> Exit AR Mode
+                </button>
+            </div>
+        </div>
+        
         <!-- Card Display Area -->
         <div class="card-display" id="cardDisplay">
             <div class="card-header">
@@ -491,6 +560,11 @@
                 <div class="card-type" id="contentTypeBadge">
                     <i class="fas fa-comment"></i> Text Message
                 </div>
+                
+                <!-- AR View Button -->
+                <button class="btn btn-ar" id="viewInARBtn" style="margin-top: 20px;">
+                    <i class="fas fa-vr-cardboard"></i> View in Augmented Reality
+                </button>
             </div>
         </div>
         
@@ -511,6 +585,10 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
+    <!-- A-Frame and AR.js Libraries -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
@@ -520,6 +598,7 @@
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
+            let currentCard = null;
             
             // Get DOM elements
             const elements = {
@@ -540,7 +619,10 @@
                 stopScanner: document.getElementById('stopScanner'),
                 toggleTorch: document.getElementById('toggleTorch'),
                 textMessage: document.getElementById('textMessage'),
-                contentTypeBadge: document.getElementById('contentTypeBadge')
+                contentTypeBadge: document.getElementById('contentTypeBadge'),
+                viewInARBtn: document.getElementById('viewInARBtn'),
+                arViewContainer: document.getElementById('arViewContainer'),
+                exitARMode: document.getElementById('exitARMode')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -600,9 +682,170 @@
                 }
             }
             
+            // Display card in AR
+            function displayCardInAR(card) {
+                console.log('Displaying card in AR:', card);
+                
+                // Hide regular display, show AR container
+                elements.cardDisplay.style.display = 'none';
+                elements.arViewContainer.style.display = 'block';
+                
+                // Clear previous AR content
+                const arEntity = document.getElementById('ar-content-entity');
+                if (arEntity) {
+                    arEntity.innerHTML = '';
+                }
+                
+                // Create AR content based on card type
+                let arContentHTML = '';
+                
+                switch(card.message_type) {
+                    case 'text':
+                        arContentHTML = `
+                            <a-text value="${card.message_text || 'Hello!'}" 
+                                    color="white" 
+                                    align="center"
+                                    position="0 0.5 0"
+                                    scale="2 2 2">
+                            </a-text>
+                            <a-plane color="#06D6A0" 
+                                    position="0 0 0" 
+                                    width="2" 
+                                    height="1"
+                                    opacity="0.8">
+                            </a-plane>
+                        `;
+                        break;
+                        
+                    case 'image':
+                        if (card.media_url) {
+                            arContentHTML = `
+                                <a-image src="${card.media_url}" 
+                                        position="0 0.5 0" 
+                                        width="2" 
+                                        height="2">
+                                </a-image>
+                                <a-plane color="black" 
+                                        position="0 -0.8 0" 
+                                        width="2.2" 
+                                        height="0.5"
+                                        opacity="0.7">
+                                </a-plane>
+                                <a-text value="${card.message_text || 'Image Card'}" 
+                                        color="white" 
+                                        align="center"
+                                        position="0 -0.8 0"
+                                        scale="0.8 0.8 0.8">
+                                </a-text>
+                            `;
+                        }
+                        break;
+                        
+                    case 'video':
+                        if (card.media_url) {
+                            arContentHTML = `
+                                <a-video src="${card.media_url}" 
+                                        position="0 0.5 0" 
+                                        width="2" 
+                                        height="1.5"
+                                        autoplay="true"
+                                        loop="true">
+                                </a-video>
+                                <a-plane color="black" 
+                                        position="0 -0.8 0" 
+                                        width="2.2" 
+                                        height="0.5"
+                                        opacity="0.7">
+                                </a-plane>
+                                <a-text value="${card.message_text || 'Video Card'}" 
+                                        color="white" 
+                                        align="center"
+                                        position="0 -0.8 0"
+                                        scale="0.8 0.8 0.8">
+                                </a-text>
+                            `;
+                        }
+                        break;
+                        
+                    case 'audio':
+                        if (card.media_url) {
+                            arContentHTML = `
+                                <a-plane color="#8A2BE2" 
+                                        position="0 0.5 0" 
+                                        width="2" 
+                                        height="1"
+                                        opacity="0.8">
+                                </a-plane>
+                                <a-text value="♪ Audio ♪" 
+                                        color="white" 
+                                        align="center"
+                                        position="0 0.5 0"
+                                        scale="1.5 1.5 1.5">
+                                </a-text>
+                                <a-plane color="black" 
+                                        position="0 -0.5 0" 
+                                        width="2.2" 
+                                        height="0.5"
+                                        opacity="0.7">
+                                </a-plane>
+                                <a-text value="${card.message_text || 'Audio Card'}" 
+                                        color="white" 
+                                        align="center"
+                                        position="0 -0.5 0"
+                                        scale="0.8 0.8 0.8">
+                                </a-text>
+                            `;
+                            // Note: A-Frame doesn't have native audio visualization
+                            // In a real implementation, you'd trigger the audio playback
+                        }
+                        break;
+                        
+                    default:
+                        arContentHTML = `
+                            <a-text value="Card Type: ${card.message_type}" 
+                                    color="white" 
+                                    align="center"
+                                    position="0 0.5 0"
+                                    scale="1.5 1.5 1.5">
+                            </a-text>
+                        `;
+                }
+                
+                // Add card ID display
+                arContentHTML += `
+                    <a-plane color="#333" 
+                            position="0 -1.2 0" 
+                            width="2.5" 
+                            height="0.4"
+                            opacity="0.9">
+                    </a-plane>
+                    <a-text value="${card.card_id}" 
+                            color="#FFD166" 
+                            align="center"
+                            position="0 -1.2 0"
+                            scale="0.8 0.8 0.8">
+                    </a-text>
+                `;
+                
+                // Add the AR content
+                if (arEntity && arContentHTML) {
+                    arEntity.innerHTML = arContentHTML;
+                }
+                
+                showNotification('Viewing in AR mode. Point camera at Hiro marker.', 'info');
+            }
+            
+            // Exit AR mode
+            function exitARMode() {
+                elements.arViewContainer.style.display = 'none';
+                elements.cardDisplay.style.display = 'block';
+                showNotification('Exited AR mode', 'info');
+            }
+            
             // Display card content
             function displayCard(card) {
                 console.log('Displaying card:', card);
+                currentCard = card;
                 
                 // Update card info
                 elements.displayCardId.textContent = card.card_id;
@@ -702,6 +945,9 @@
                 elements.cardDisplay.classList.add('active');
                 elements.emptyState.style.display = 'none';
                 hideError();
+                
+                // Show AR view button
+                elements.viewInARBtn.style.display = 'flex';
                 
                 showNotification(`Loaded card: ${card.card_id}`, 'success');
             }
@@ -866,9 +1112,6 @@
                     elements.stopScanner.addEventListener('click', stopScanner);
                     elements.toggleTorch.addEventListener('click', toggleTorch);
                     
-                    // Auto-start scanner on page load
-                    // startScanner();
-                    
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
                     showNotification('QR scanner initialization failed', 'error');
@@ -935,6 +1178,18 @@
                         }
                     }
                 });
+                
+                // Set up AR view button
+                elements.viewInARBtn.addEventListener('click', function() {
+                    if (currentCard) {
+                        displayCardInAR(currentCard);
+                    } else {
+                        showNotification('Load a card first', 'error');
+                    }
+                });
+                
+                // Set up exit AR button
+                elements.exitARMode.addEventListener('click', exitARMode);
                 
                 console.log('Papir Viewer initialized successfully');
             }
