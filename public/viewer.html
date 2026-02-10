@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papir Card Viewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- A-Frame and AR.js Libraries - Load first -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         * {
             margin: 0;
@@ -450,12 +453,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        /* Camera Selector */
-        .camera-selector {
-            margin-top: 15px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -487,12 +484,6 @@
                 <p style="margin-top: 10px; font-size: 14px; opacity: 0.7;">
                     <i class="fas fa-mobile-alt"></i> Works on any smartphone with a camera
                 </p>
-            </div>
-            
-            <div class="camera-selector">
-                <select id="cameraSelect" class="card-input" style="max-width: 300px; margin: 0 auto;">
-                    <option value="">Select Camera...</option>
-                </select>
             </div>
             
             <div class="scanner-controls">
@@ -533,15 +524,14 @@
         <div id="arViewContainer">
             <a-scene embedded arjs='sourceType: webcam;'>
                 <a-marker preset='hiro'>
-                    <a-box position='0 0.5 0' material='color: blue;'></a-box>
-                    <a-text value="Papir AR" position="0 1 0" color="white"></a-text>
+                    <!-- Content will be added here -->
                 </a-marker>
                 <a-entity camera></a-entity>
             </a-scene>
             
             <div class="ar-controls">
                 <div class="ar-instructions">
-                    <i class="fas fa-info-circle"></i> Point camera at Hiro marker to view AR content
+                    <i class="fas fa-info-circle"></i> Print Hiro marker: <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #FFD166;">Click Here</a>
                 </div>
                 <button class="btn btn-secondary" id="exitARMode">
                     <i class="fas fa-times"></i> Exit AR Mode
@@ -597,10 +587,6 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- A-Frame and AR.js Libraries -->
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
@@ -634,8 +620,7 @@
                 contentTypeBadge: document.getElementById('contentTypeBadge'),
                 viewInARBtn: document.getElementById('viewInARBtn'),
                 arViewContainer: document.getElementById('arViewContainer'),
-                exitARMode: document.getElementById('exitARMode'),
-                cameraSelect: document.getElementById('cameraSelect')
+                exitARMode: document.getElementById('exitARMode')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -698,12 +683,6 @@
             // Display card in AR
             function displayCardInAR(card) {
                 console.log('Displaying card in AR:', card);
-                
-                // Check if A-Frame is loaded
-                if (typeof AFRAME === 'undefined') {
-                    showNotification('AR libraries not loaded. Please refresh page.', 'error');
-                    return;
-                }
                 
                 // Hide regular display, show AR container
                 elements.cardDisplay.style.display = 'none';
@@ -1013,50 +992,7 @@
                 }
             }
             
-            // Populate camera dropdown
-            async function populateCameraSelect() {
-                try {
-                    const cameras = await Html5Qrcode.getCameras();
-                    
-                    if (cameras && cameras.length > 0) {
-                        elements.cameraSelect.innerHTML = '<option value="">Select Camera...</option>';
-                        
-                        cameras.forEach((camera, index) => {
-                            const option = document.createElement('option');
-                            option.value = camera.id;
-                            let label = camera.label || `Camera ${index + 1}`;
-                            
-                            // Try to identify rear camera
-                            if (camera.label && (
-                                camera.label.toLowerCase().includes('back') || 
-                                camera.label.toLowerCase().includes('rear') || 
-                                camera.label.toLowerCase().includes('environment')
-                            )) {
-                                label += ' 📷 (Rear)';
-                                // Auto-select rear camera
-                                option.selected = true;
-                            } else if (camera.label && camera.label.toLowerCase().includes('front')) {
-                                label += ' 📱 (Front)';
-                            }
-                            
-                            option.textContent = label;
-                            elements.cameraSelect.appendChild(option);
-                        });
-                        
-                        // If no rear camera selected, select first camera
-                        if (!elements.cameraSelect.value && cameras.length > 0) {
-                            elements.cameraSelect.value = cameras[0].id;
-                        }
-                        
-                    } else {
-                        elements.cameraSelect.innerHTML = '<option value="">No cameras found</option>';
-                    }
-                } catch (error) {
-                    console.error('Error getting cameras:', error);
-                }
-            }
-            
-            // Initialize QR code scanner
+            // Initialize QR code scanner - ALWAYS USE REAR CAMERA BY DEFAULT
             function initScanner() {
                 try {
                     html5QrCode = new Html5Qrcode("reader");
@@ -1069,18 +1005,51 @@
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
                     };
                     
+                    // Find rear camera
+                    async function findRearCamera() {
+                        try {
+                            const cameras = await Html5Qrcode.getCameras();
+                            
+                            if (cameras && cameras.length > 0) {
+                                // First try to find rear camera by label
+                                for (const camera of cameras) {
+                                    const label = camera.label.toLowerCase();
+                                    if (label.includes('back') || label.includes('rear') || 
+                                        label.includes('environment') || label.includes('2')) {
+                                        console.log('Found rear camera:', camera.label);
+                                        return camera.id;
+                                    }
+                                }
+                                
+                                // If no rear camera found, try to find by facing mode
+                                for (const camera of cameras) {
+                                    if (camera.facingMode && camera.facingMode === 'environment') {
+                                        console.log('Found rear camera by facing mode');
+                                        return camera.id;
+                                    }
+                                }
+                                
+                                // If still no rear camera, use first camera
+                                console.log('No rear camera found, using first camera:', cameras[0].label);
+                                return cameras[0].id;
+                            }
+                            
+                            throw new Error('No cameras found');
+                            
+                        } catch (error) {
+                            console.error('Error finding rear camera:', error);
+                            throw error;
+                        }
+                    }
+                    
                     // Start scanner
                     async function startScanner() {
                         try {
-                            const selectedCameraId = elements.cameraSelect.value;
-                            
-                            if (!selectedCameraId) {
-                                showNotification('Please select a camera first', 'error');
-                                return;
-                            }
+                            // Get rear camera ID
+                            const rearCameraId = await findRearCamera();
                             
                             await html5QrCode.start(
-                                selectedCameraId,
+                                rearCameraId,
                                 config,
                                 onScanSuccess,
                                 onScanFailure
@@ -1089,8 +1058,7 @@
                             isScannerActive = true;
                             elements.startScanner.disabled = true;
                             elements.stopScanner.disabled = false;
-                            elements.cameraSelect.disabled = true;
-                            showNotification('Camera started successfully', 'success');
+                            showNotification('Rear camera started successfully', 'success');
                             
                         } catch (error) {
                             console.error('Camera error:', error);
@@ -1105,7 +1073,6 @@
                                 isScannerActive = false;
                                 elements.startScanner.disabled = false;
                                 elements.stopScanner.disabled = true;
-                                elements.cameraSelect.disabled = false;
                                 showNotification('Camera stopped', 'info');
                             }).catch(err => {
                                 console.error('Error stopping scanner:', err);
@@ -1117,7 +1084,6 @@
                     async function toggleTorch() {
                         try {
                             if (html5QrCode) {
-                                const isTorchOn = await html5QrCode.getRunningTrackCameraCapabilities();
                                 showNotification('Flash toggled (if supported)', 'info');
                             }
                         } catch (error) {
@@ -1164,9 +1130,6 @@
                     elements.stopScanner.addEventListener('click', stopScanner);
                     elements.toggleTorch.addEventListener('click', toggleTorch);
                     
-                    // Populate camera dropdown
-                    populateCameraSelect();
-                    
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
                     showNotification('QR scanner initialization failed', 'error');
@@ -1205,6 +1168,14 @@
             async function initApp() {
                 console.log('Initializing Papir Viewer...');
                 
+                // Check if AR libraries are loaded
+                if (typeof AFRAME === 'undefined') {
+                    console.error('A-Frame not loaded');
+                    showNotification('AR libraries failed to load. Please refresh page.', 'error');
+                } else {
+                    console.log('A-Frame loaded successfully');
+                }
+                
                 await checkBackendConnection();
                 
                 initScanner();
@@ -1229,13 +1200,19 @@
                     }
                 });
                 
-                elements.viewInARBtn.addEventListener('click', function() {
-                    if (currentCard) {
-                        displayCardInAR(currentCard);
-                    } else {
-                        showNotification('Load a card first', 'error');
-                    }
-                });
+                // Check if AR is available before setting up button
+                if (typeof AFRAME !== 'undefined') {
+                    elements.viewInARBtn.addEventListener('click', function() {
+                        if (currentCard) {
+                            displayCardInAR(currentCard);
+                        } else {
+                            showNotification('Load a card first', 'error');
+                        }
+                    });
+                } else {
+                    elements.viewInARBtn.disabled = true;
+                    elements.viewInARBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> AR Not Available';
+                }
                 
                 elements.exitARMode.addEventListener('click', exitARMode);
                 
