@@ -518,8 +518,9 @@
         
         <!-- AR View Container -->
         <div id="arViewContainer">
-            <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" style="width: 100%; height: 100%;">
-                <a-marker preset="hiro">
+            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
+                <!-- Barcode marker - value will be set dynamically based on card ID -->
+                <a-marker id="barcode-marker" type="barcode" value="6842">
                     <a-entity id="ar-content-entity" position="0 0 0" scale="0.5 0.5 0.5">
                         <!-- Content will be dynamically added here -->
                     </a-entity>
@@ -529,7 +530,7 @@
             
             <div class="ar-controls">
                 <div class="ar-instructions">
-                    <i class="fas fa-info-circle"></i> Point camera at Hiro marker pattern to view AR content
+                    <i class="fas fa-info-circle"></i> Point camera at your Papir QR code to view AR content
                 </div>
                 <button class="btn btn-secondary" id="exitARMode">
                     <i class="fas fa-times"></i> Exit AR Mode
@@ -690,10 +691,19 @@
                 elements.cardDisplay.style.display = 'none';
                 elements.arViewContainer.style.display = 'block';
                 
+                // Extract numeric value from card ID (e.g., "CARD6842" -> "6842")
+                const cardNumber = card.card_id.replace('CARD', '');
+                
                 // Clear previous AR content
                 const arEntity = document.getElementById('ar-content-entity');
                 if (arEntity) {
                     arEntity.innerHTML = '';
+                }
+                
+                // Update barcode marker value
+                const barcodeMarker = document.getElementById('barcode-marker');
+                if (barcodeMarker) {
+                    barcodeMarker.setAttribute('value', cardNumber);
                 }
                 
                 // Create AR content based on card type
@@ -795,8 +805,6 @@
                                         scale="0.8 0.8 0.8">
                                 </a-text>
                             `;
-                            // Note: A-Frame doesn't have native audio visualization
-                            // In a real implementation, you'd trigger the audio playback
                         }
                         break;
                         
@@ -832,7 +840,7 @@
                     arEntity.innerHTML = arContentHTML;
                 }
                 
-                showNotification('Viewing in AR mode. Point camera at Hiro marker.', 'info');
+                showNotification('AR mode active. Point camera at your Papir QR code.', 'info');
             }
             
             // Exit AR mode
