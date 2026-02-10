@@ -1,7 +1,7 @@
 {
   "name": "papir",
   "version": "3.0.0",
-  "description": "Papir AR Platform - Professional Augmented Reality Card Creation System",
+  "description": "Papir Platform - Professional Augmented Reality Card Creation System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
