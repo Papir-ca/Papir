@@ -1,73 +1,528 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/grapesjs"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papir - Page Builder</title>
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { margin: 0; }
-        #gjs { border: 3px solid #444; }
-        .panel__top { padding: 0; width: 100%; display: flex; position: initial; }
-        .panel__basic-actions { position: initial; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .header {
+            background: #2a2a2a;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #BCAE83;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #BCAE83;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: #BCAE83;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary {
+            background: #444;
+            color: white;
+        }
+        
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: #2a2a2a;
+            padding: 20px;
+            border-right: 1px solid #444;
+            overflow-y: auto;
+        }
+        
+        .blocks-section h3 {
+            color: #BCAE83;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .block-item {
+            background: #333;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: move;
+            border: 1px solid #444;
+            transition: all 0.3s;
+        }
+        
+        .block-item:hover {
+            background: #3a3a3a;
+            border-color: #BCAE83;
+        }
+        
+        .block-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .block-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .block-desc {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        #gjs {
+            flex: 1;
+            border: none;
+        }
+        
+        .gjs-editor {
+            background: #1a1a1a !important;
+        }
+        
+        /* GrapesJS Overrides */
+        .gjs-one-bg {
+            background-color: #2a2a2a !important;
+        }
+        
+        .gjs-two-color {
+            color: #BCAE83 !important;
+        }
+        
+        .gjs-three-bg {
+            background-color: #BCAE83 !important;
+            color: black !important;
+        }
+        
+        .gjs-four-color {
+            color: #BCAE83 !important;
+        }
+        
+        .gjs-pn-panel {
+            background-color: #2a2a2a !important;
+        }
+        
+        .gjs-pn-btn {
+            color: white !important;
+        }
+        
+        .gjs-block {
+            background: #333 !important;
+            color: white !important;
+            border: 1px solid #444 !important;
+        }
+        
+        .gjs-block:hover {
+            background: #3a3a3a !important;
+            border-color: #BCAE83 !important;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .code-output {
+            background: #1a1a1a;
+            color: #06D6A0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            background: #ff416c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
-    <div id="gjs"></div>
+    <div class="header">
+        <div class="logo">🛠️ Papir Page Builder</div>
+        <div class="controls">
+            <button class="btn" id="saveBtn">
+                <i class="fas fa-save"></i> Save HTML
+            </button>
+            <button class="btn btn-secondary" id="loadBtn">
+                <i class="fas fa-upload"></i> Load HTML
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                <i class="fas fa-eye"></i> View Live
+            </button>
+        </div>
+    </div>
     
+    <div class="container">
+        <div class="sidebar">
+            <div class="blocks-section">
+                <h3>📦 Drag & Drop Blocks</h3>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<section style="padding: 80px 20px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);"><h1 style="font-size: 3rem; color: #BCAE83;">Your Title Here</h1><p style="font-size: 1.2rem; color: #aaa; max-width: 600px; margin: 20px auto;">Your subtitle text goes here. Describe your product or service.</p><a href="#" style="background: #BCAE83; color: black; padding: 15px 30px; border-radius: 30px; text-decoration: none; display: inline-block; margin-top: 30px; font-weight: bold;">Call to Action</a></section>'>
+                    <div class="block-icon">🎯</div>
+                    <div class="block-title">Hero Section</div>
+                    <div class="block-desc">Large header with title and CTA button</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<section style="padding: 80px 20px; background: white;"><div style="max-width: 1200px; margin: 0 auto;"><h2 style="text-align: center; color: #333; margin-bottom: 20px;">Features</h2><p style="text-align: center; color: #666; max-width: 700px; margin: 0 auto 50px;">Describe your key features here.</p><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;"><div style="text-align: center; padding: 30px;"><div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">✨</div><h3 style="color: #333;">Feature 1</h3><p style="color: #666;">Feature description goes here.</p></div><div style="text-align: center; padding: 30px;"><div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">🚀</div><h3 style="color: #333;">Feature 2</h3><p style="color: #666;">Feature description goes here.</p></div><div style="text-align: center; padding: 30px;"><div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">🎨</div><h3 style="color: #333;">Feature 3</h3><p style="color: #666;">Feature description goes here.</p></div></div></div></section>'>
+                    <div class="block-icon">⭐</div>
+                    <div class="block-title">Features Grid</div>
+                    <div class="block-desc">3-column features with icons</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<section style="padding: 80px 20px; background: #f8f9fa;"><div style="max-width: 800px; margin: 0 auto; text-align: center;"><h2 style="color: #333; margin-bottom: 20px;">How It Works</h2><p style="color: #666; margin-bottom: 50px;">Simple steps to get started.</p><div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;"><div style="flex: 1; min-width: 150px; text-align: center;"><div style="width: 60px; height: 60px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 15px;">1</div><h4 style="color: #333;">Step 1</h4><p style="color: #666; font-size: 0.9rem;">First step description</p></div><div style="flex: 1; min-width: 150px; text-align: center;"><div style="width: 60px; height: 60px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 15px;">2</div><h4 style="color: #333;">Step 2</h4><p style="color: #666; font-size: 0.9rem;">Second step description</p></div><div style="flex: 1; min-width: 150px; text-align: center;"><div style="width: 60px; height: 60px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 15px;">3</div><h4 style="color: #333;">Step 3</h4><p style="color: #666; font-size: 0.9rem;">Third step description</p></div><div style="flex: 1; min-width: 150px; text-align: center;"><div style="width: 60px; height: 60px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 15px;">4</div><h4 style="color: #333;">Step 4</h4><p style="color: #666; font-size: 0.9rem;">Fourth step description</p></div></div></div></section>'>
+                    <div class="block-icon">📋</div>
+                    <div class="block-title">Steps Section</div>
+                    <div class="block-desc">4-step process with numbers</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<section style="padding: 80px 20px; background: linear-gradient(135deg, #BCAE83 0%, #a8996f 100%); color: white; text-align: center;"><h2 style="font-size: 2.5rem; margin-bottom: 20px;">Ready to Get Started?</h2><p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 40px;">Join thousands of happy users today.</p><a href="#" style="background: white; color: #BCAE83; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; display: inline-block;">Get Started Free</a></section>'>
+                    <div class="block-icon">🎯</div>
+                    <div class="block-title">CTA Section</div>
+                    <div class="block-desc">Call-to-action with gradient background</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<div style="padding: 30px; background: #333; color: white; border-radius: 10px; margin: 20px;"><h3 style="color: #BCAE83; margin-bottom: 15px;">Text Block</h3><p>Double-click to edit this text. You can change colors, fonts, and sizes using the right sidebar.</p></div>'>
+                    <div class="block-icon">📝</div>
+                    <div class="block-title">Text Block</div>
+                    <div class="block-desc">Editable text with styling</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="image" data-gjs-draggable=".gjs-editor" data-gjs-src="https://images.unsplash.com/photo-1545235617-9465d2a55698?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" data-gjs-style="width: 100%; border-radius: 10px;">
+                    <div class="block-icon">🖼️</div>
+                    <div class="block-title">Image</div>
+                    <div class="block-desc">Drag to add an image</div>
+                </div>
+                
+                <div class="block-item" data-gjs-type="default" data-gjs-draggable=".gjs-editor" data-gjs-content='<a href="#" style="background: #BCAE83; color: black; padding: 12px 30px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">Button</a>'>
+                    <div class="block-icon">🔘</div>
+                    <div class="block-title">Button</div>
+                    <div class="block-desc">Customizable button</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gjs"></div>
+    </div>
+    
+    <!-- Modal for HTML Output -->
+    <div class="modal" id="outputModal">
+        <div class="modal-content">
+            <h2 style="color: #BCAE83; margin-bottom: 20px;">Generated HTML Code</h2>
+            <p style="color: #aaa; margin-bottom: 15px;">Copy this code and replace your index.html file:</p>
+            <div class="code-output" id="htmlOutput"></div>
+            <button class="close-modal" onclick="document.getElementById('outputModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/grapesjs"></script>
     <script>
+        // Initialize GrapesJS editor
         const editor = grapesjs.init({
             container: '#gjs',
-            fromElement: true,
-            height: '100vh',
+            height: '100%',
             width: 'auto',
+            fromElement: false,
             storageManager: false,
             panels: { defaults: [] },
             blockManager: {
-                appendTo: '#blocks',
-                blocks: [
-                    {
-                        id: 'section',
-                        label: 'Section',
-                        content: `<section style="padding: 50px; background: #f5f5f5;">
-                            <h1>Title</h1>
-                            <p>Your text here</p>
-                        </section>`
-                    },
-                    {
-                        id: 'text',
-                        label: 'Text',
-                        content: '<div class="my-text">Your text here</div>',
-                    },
-                    {
-                        id: 'image',
-                        label: 'Image',
-                        content: '<img src="https://via.placeholder.com/350x250/BCAE83/ffffff?text=Papir+AR" />',
-                    },
-                    {
-                        id: 'button',
-                        label: 'Button',
-                        content: '<a class="my-btn" style="background: #BCAE83; color: white; padding: 10px 20px; text-decoration: none;">Button</a>',
-                    }
-                ]
+                appendTo: '.sidebar',
+                blocks: []
+            },
+            styleManager: {
+                sectors: [{
+                    name: 'General',
+                    open: false,
+                    buildProps: ['background-color', 'color', 'padding', 'margin']
+                }, {
+                    name: 'Typography',
+                    open: false,
+                    buildProps: ['font-family', 'font-size', 'font-weight', 'text-align']
+                }, {
+                    name: 'Border',
+                    open: false,
+                    buildProps: ['border', 'border-radius', 'box-shadow']
+                }]
+            },
+            deviceManager: {
+                devices: [{
+                    name: 'Desktop',
+                    width: '',
+                }, {
+                    name: 'Tablet',
+                    width: '768px',
+                }, {
+                    name: 'Mobile',
+                    width: '320px',
+                }]
             }
         });
         
-        // Add save button
-        const btn = document.createElement('button');
-        btn.innerHTML = 'Save as HTML';
-        btn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #BCAE83; color: white; border: none;';
-        btn.onclick = () => {
+        // Load initial content (your current landing page structure)
+        editor.setComponents(`
+            <section style="padding: 80px 20px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); color: white;">
+                <h1 style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">Where Physical Cards Meet Digital Magic</h1>
+                <p style="font-size: 1.2rem; color: #aaa; max-width: 600px; margin: 20px auto;">Create personalized augmented reality greeting cards that come alive when scanned. No app required.</p>
+                <a href="maker.html" style="background: #BCAE83; color: black; padding: 15px 40px; border-radius: 30px; text-decoration: none; display: inline-block; margin-top: 30px; font-weight: bold; font-size: 1.1rem;">Create Your First Card</a>
+            </section>
+            
+            <section style="padding: 80px 20px; background: white;">
+                <div style="max-width: 1200px; margin: 0 auto;">
+                    <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 2.5rem;">Why Choose Papir AR Cards?</h2>
+                    <p style="text-align: center; color: #666; max-width: 700px; margin: 0 auto 50px; font-size: 1.1rem;">Transform ordinary greeting cards into unforgettable interactive experiences</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                        <div style="text-align: center; padding: 40px 30px; background: #f9f9f9; border-radius: 10px;">
+                            <div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">🎥</div>
+                            <h3 style="color: #333; margin-bottom: 15px;">Video Messages</h3>
+                            <p style="color: #666;">Record personalized video greetings that play instantly when scanned.</p>
+                        </div>
+                        <div style="text-align: center; padding: 40px 30px; background: #f9f9f9; border-radius: 10px;">
+                            <div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">🎵</div>
+                            <h3 style="color: #333; margin-bottom: 15px;">Audio Notes</h3>
+                            <p style="color: #666;">Add voice messages, songs, or sound effects to create emotional connections.</p>
+                        </div>
+                        <div style="text-align: center; padding: 40px 30px; background: #f9f9f9; border-radius: 10px;">
+                            <div style="font-size: 3rem; color: #BCAE83; margin-bottom: 20px;">🖼️</div>
+                            <h3 style="color: #333; margin-bottom: 15px;">Photo Galleries</h3>
+                            <p style="color: #666;">Create beautiful slideshows of memories in augmented reality.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section style="padding: 80px 20px; background: #f8f9fa;">
+                <div style="max-width: 1000px; margin: 0 auto; text-align: center;">
+                    <h2 style="color: #333; margin-bottom: 20px; font-size: 2.5rem;">How It Works</h2>
+                    <p style="color: #666; margin-bottom: 50px; font-size: 1.1rem;">Four simple steps to create magical AR cards</p>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="width: 80px; height: 80px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 0 auto 15px;">1</div>
+                            <h4 style="color: #333; margin-bottom: 10px;">Design Your Card</h4>
+                            <p style="color: #666; font-size: 0.95rem;">Use our intuitive editor to design your card.</p>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="width: 80px; height: 80px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 0 auto 15px;">2</div>
+                            <h4 style="color: #333; margin-bottom: 10px;">Add AR Content</h3>
+                            <p style="color: #666; font-size: 0.95rem;">Upload videos, audio, or images for AR.</p>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="width: 80px; height: 80px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 0 auto 15px;">3</div>
+                            <h4 style="color: #333; margin-bottom: 10px;">Print with QR</h4>
+                            <p style="color: #666; font-size: 0.95rem;">Print your card with unique QR code.</p>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="width: 80px; height: 80px; background: #BCAE83; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 0 auto 15px;">4</div>
+                            <h4 style="color: #333; margin-bottom: 10px;">Share & Enjoy</h4>
+                            <p style="color: #666; font-size: 0.95rem;">Watch magic happen when scanned.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section style="padding: 80px 20px; background: linear-gradient(135deg, #BCAE83 0%, #a8996f 100%); color: white; text-align: center;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Ready to Create Magic?</h2>
+                <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 40px;">Join thousands who are transforming their greeting cards with augmented reality.</p>
+                <a href="maker.html" style="background: white; color: #BCAE83; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; display: inline-block; font-size: 1.1rem;">Start Creating Free</a>
+                <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">No credit card required • First 5 cards free</p>
+            </section>
+        `);
+        
+        // Make blocks draggable
+        document.querySelectorAll('.block-item').forEach(block => {
+            block.addEventListener('mousedown', function(e) {
+                const type = this.getAttribute('data-gjs-type');
+                const content = this.getAttribute('data-gjs-content');
+                const src = this.getAttribute('data-gjs-src');
+                const style = this.getAttribute('data-gjs-style');
+                
+                // Create a draggable element
+                const dragEl = document.createElement('div');
+                dragEl.style.position = 'absolute';
+                dragEl.style.opacity = '0.7';
+                dragEl.style.zIndex = '10000';
+                dragEl.style.pointerEvents = 'none';
+                
+                if (type === 'image') {
+                    dragEl.innerHTML = `<img src="${src}" style="${style || 'width: 200px;'}">`;
+                } else {
+                    dragEl.innerHTML = content;
+                }
+                
+                document.body.appendChild(dragEl);
+                
+                const moveHandler = (e) => {
+                    dragEl.style.left = (e.pageX - 100) + 'px';
+                    dragEl.style.top = (e.pageY - 50) + 'px';
+                };
+                
+                const upHandler = (e) => {
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', upHandler);
+                    document.body.removeChild(dragEl);
+                    
+                    // Add component to editor
+                    if (type === 'image') {
+                        editor.addComponents(`<img src="${src}" style="${style || 'width: 100%;'}">`);
+                    } else {
+                        editor.addComponents(content);
+                    }
+                };
+                
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', upHandler);
+                
+                moveHandler(e);
+            });
+        });
+        
+        // Save button functionality
+        document.getElementById('saveBtn').addEventListener('click', function() {
             const html = editor.getHtml();
             const css = editor.getCss();
-            const fullCode = `<style>${css}</style>${html}`;
             
-            // Download as file
-            const blob = new Blob([fullCode], { type: 'text/html' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'landing-page-custom.html';
-            a.click();
-        };
-        document.body.appendChild(btn);
+            // Combine HTML and CSS
+            const fullCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papir AR - Augmented Reality Greeting Cards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ${css}
+        
+        /* Basic responsive styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        img { max-width: 100%; height: auto; }
+        
+        /* Navigation (add manually) */
+        .papir-nav {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .papir-nav a {
+            color: #BCAE83;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+        
+        /* Footer (add manually) */
+        .papir-footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .papir-footer a {
+            color: #BCAE83;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add your navigation here -->
+    <nav class="papir-nav">
+        <a href="index.html">Home</a>
+        <a href="maker.html">Create Card</a>
+        <a href="viewer.html">View Demo</a>
+        <a href="dashboard.html">Dashboard</a>
+    </nav>
+    
+    ${html}
+    
+    <!-- Add your footer here -->
+    <footer class="papir-footer">
+        <p>&copy; 2024 Papir AR. All rights reserved.</p>
+        <p style="margin-top: 20px;">
+            <a href="terms.html">Terms</a> | 
+            <a href="privacy.html">Privacy</a> | 
+            <a href="contact.html">Contact</a>
+        </p>
+    </footer>
+</body>
+</html>`;
+            
+            // Show in modal
+            document.getElementById('htmlOutput').textContent = fullCode;
+            document.getElementById('outputModal').style.display = 'flex';
+        });
+        
+        // Load button functionality
+        document.getElementById('loadBtn').addEventListener('click', function() {
+            alert('Paste your HTML in the editor. For now, drag and drop blocks to build your page.');
+        });
+        
+        // Instructions
+        setTimeout(() => {
+            alert('Welcome to Papir Page Builder!\n\nDRAG blocks from left sidebar to the editor\nDOUBLE-CLICK any text to edit\nUse RIGHT SIDEBAR to change colors, fonts, etc.\nClick SAVE HTML when done');
+        }, 1000);
     </script>
 </body>
 </html>
