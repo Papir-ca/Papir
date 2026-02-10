@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/grapesjs"></script>
+    <style>
+        body { margin: 0; }
+        #gjs { border: 3px solid #444; }
+        .panel__top { padding: 0; width: 100%; display: flex; position: initial; }
+        .panel__basic-actions { position: initial; }
+    </style>
+</head>
+<body>
+    <div id="gjs"></div>
+    
+    <script>
+        const editor = grapesjs.init({
+            container: '#gjs',
+            fromElement: true,
+            height: '100vh',
+            width: 'auto',
+            storageManager: false,
+            panels: { defaults: [] },
+            blockManager: {
+                appendTo: '#blocks',
+                blocks: [
+                    {
+                        id: 'section',
+                        label: 'Section',
+                        content: `<section style="padding: 50px; background: #f5f5f5;">
+                            <h1>Title</h1>
+                            <p>Your text here</p>
+                        </section>`
+                    },
+                    {
+                        id: 'text',
+                        label: 'Text',
+                        content: '<div class="my-text">Your text here</div>',
+                    },
+                    {
+                        id: 'image',
+                        label: 'Image',
+                        content: '<img src="https://via.placeholder.com/350x250/BCAE83/ffffff?text=Papir+AR" />',
+                    },
+                    {
+                        id: 'button',
+                        label: 'Button',
+                        content: '<a class="my-btn" style="background: #BCAE83; color: white; padding: 10px 20px; text-decoration: none;">Button</a>',
+                    }
+                ]
+            }
+        });
+        
+        // Add save button
+        const btn = document.createElement('button');
+        btn.innerHTML = 'Save as HTML';
+        btn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #BCAE83; color: white; border: none;';
+        btn.onclick = () => {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            const fullCode = `<style>${css}</style>${html}`;
+            
+            // Download as file
+            const blob = new Blob([fullCode], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'landing-page-custom.html';
+            a.click();
+        };
+        document.body.appendChild(btn);
+    </script>
+</body>
+</html>
