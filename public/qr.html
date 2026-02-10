@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator | Papir AR System</title>
+    <title>QR Code Generator | Papir System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -444,7 +444,7 @@
         
         <div class="header">
             <h1 class="logo"><i class="fas fa-qrcode"></i> Papir QR Generator</h1>
-            <p class="tagline">Generate phone-scannable QR codes for your Papir AR Cards</p>
+            <p class="tagline">Generate phone-scannable QR codes for your Papir Cards</p>
             <div class="server-url" id="serverUrl">papir.ca - Mobile Ready!</div>
         </div>
         
@@ -466,7 +466,7 @@
                     <div class="qr-options">
                         <div class="qr-option active">
                             <input type="radio" id="typeCard" name="qrType" value="card" checked>
-                            <label for="typeCard">Papir AR Card</label>
+                            <label for="typeCard">Papir Card</label>
                         </div>
                         <div class="qr-option">
                             <input type="radio" id="typeUrl" name="qrType" value="url">
@@ -481,7 +481,7 @@
                 
                 <div id="dynamicOptions">
                     <div class="form-group">
-                        <label>Papir AR Card Options:</label>
+                        <label>Papir Card Options:</label>
                         <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px;">
                             <p style="margin-bottom: 10px; color: #a0aec0;">QR code will open the card directly in the Papir viewer.</p>
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -527,7 +527,7 @@
                 <div id="qrInfo" style="display: none;">
                     <div class="qr-info">
                         <div class="qr-label" id="qrLabel">CARD1234</div>
-                        <div class="qr-type" id="qrType">Papir AR Card</div>
+                        <div class="qr-type" id="qrType">Papir Card</div>
                         <div class="qr-url" id="qrUrl"></div>
                         <p style="color: #a0aec0; margin-bottom: 15px;" id="qrDesc">
                             Scan this QR code with your phone camera - works on any smartphone!
@@ -623,7 +623,7 @@
                     case 'card':
                         optionsHTML = `
                             <div class="form-group">
-                                <label>Papir AR Card Options:</label>
+                                <label>Papir Card Options:</label>
                                 <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px;">
                                     <p style="margin-bottom: 10px; color: #a0aec0;">QR code will open the card directly in the Papir viewer.</p>
                                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -648,7 +648,7 @@
                         optionsHTML = `
                             <div class="form-group">
                                 <label for="textInput">Text Content:</label>
-                                <textarea id="textInput" placeholder="Enter text for QR code" rows="4" style="resize: vertical;">Welcome to Papir AR!</textarea>
+                                <textarea id="textInput" placeholder="Enter text for QR code" rows="4" style="resize: vertical;">Welcome to Papir!</textarea>
                             </div>
                         `;
                         break;
@@ -742,7 +742,7 @@
                         
                         // Update info
                         qrLabel.textContent = qrData.label;
-                        qrType.textContent = qrData.type === 'card' ? 'Papir AR Card' : qrData.type === 'url' ? 'Website URL' : 'Text';
+                        qrType.textContent = qrData.type === 'card' ? 'Papir Card' : qrData.type === 'url' ? 'Website URL' : 'Text';
                         qrUrl.textContent = qrData.displayUrl;
                         qrDesc.textContent = qrData.description;
                         
@@ -877,7 +877,7 @@
                 qrInfo.style.display = 'block';
                 
                 qrLabel.textContent = qr.label;
-                qrType.textContent = qr.type === 'card' ? 'Papir AR Card' : qr.type === 'url' ? 'Website URL' : 'Text';
+                qrType.textContent = qr.type === 'card' ? 'Papir Card' : qr.type === 'url' ? 'Website URL' : 'Text';
                 qrUrl.textContent = qr.displayUrl;
                 qrDesc.textContent = qr.type === 'card' 
                     ? 'Scan with phone camera - works anywhere!' 
@@ -1015,7 +1015,7 @@
         <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
         <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
     </p>
-    <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir AR. Admin Dashboard</p>
+    <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. Admin Dashboard</p>
 </footer>
     
 </body>
