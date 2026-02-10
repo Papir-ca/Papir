@@ -366,6 +366,7 @@
             margin: 20px 0;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: #000;
         }
         
         .ar-controls {
@@ -449,6 +450,12 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Camera Selector */
+        .camera-selector {
+            margin-top: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -480,6 +487,12 @@
                 <p style="margin-top: 10px; font-size: 14px; opacity: 0.7;">
                     <i class="fas fa-mobile-alt"></i> Works on any smartphone with a camera
                 </p>
+            </div>
+            
+            <div class="camera-selector">
+                <select id="cameraSelect" class="card-input" style="max-width: 300px; margin: 0 auto;">
+                    <option value="">Select Camera...</option>
+                </select>
             </div>
             
             <div class="scanner-controls">
@@ -518,19 +531,17 @@
         
         <!-- AR View Container -->
         <div id="arViewContainer">
-            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
-                <!-- Barcode marker - value will be set dynamically based on card ID -->
-                <a-marker id="barcode-marker" type="barcode" value="6842">
-                    <a-entity id="ar-content-entity" position="0 0 0" scale="0.5 0.5 0.5">
-                        <!-- Content will be dynamically added here -->
-                    </a-entity>
+            <a-scene embedded arjs='sourceType: webcam;'>
+                <a-marker preset='hiro'>
+                    <a-box position='0 0.5 0' material='color: blue;'></a-box>
+                    <a-text value="Papir AR" position="0 1 0" color="white"></a-text>
                 </a-marker>
                 <a-entity camera></a-entity>
             </a-scene>
             
             <div class="ar-controls">
                 <div class="ar-instructions">
-                    <i class="fas fa-info-circle"></i> Point camera at your Papir QR code to view AR content
+                    <i class="fas fa-info-circle"></i> Point camera at Hiro marker to view AR content
                 </div>
                 <button class="btn btn-secondary" id="exitARMode">
                     <i class="fas fa-times"></i> Exit AR Mode
@@ -595,7 +606,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             // Backend API configuration
-            const BACKEND_URL = 'https://papir.ca'; // Your backend server
+            const BACKEND_URL = 'https://papir.ca';
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
@@ -623,7 +634,8 @@
                 contentTypeBadge: document.getElementById('contentTypeBadge'),
                 viewInARBtn: document.getElementById('viewInARBtn'),
                 arViewContainer: document.getElementById('arViewContainer'),
-                exitARMode: document.getElementById('exitARMode')
+                exitARMode: document.getElementById('exitARMode'),
+                cameraSelect: document.getElementById('cameraSelect')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -687,32 +699,33 @@
             function displayCardInAR(card) {
                 console.log('Displaying card in AR:', card);
                 
+                // Check if A-Frame is loaded
+                if (typeof AFRAME === 'undefined') {
+                    showNotification('AR libraries not loaded. Please refresh page.', 'error');
+                    return;
+                }
+                
                 // Hide regular display, show AR container
                 elements.cardDisplay.style.display = 'none';
                 elements.arViewContainer.style.display = 'block';
                 
-                // Extract numeric value from card ID (e.g., "CARD6842" -> "6842")
-                const cardNumber = card.card_id.replace('CARD', '');
-                
-                // Clear previous AR content
-                const arEntity = document.getElementById('ar-content-entity');
-                if (arEntity) {
-                    arEntity.innerHTML = '';
+                // Get the marker element
+                const marker = document.querySelector('a-marker');
+                if (!marker) {
+                    console.error('Marker not found');
+                    return;
                 }
                 
-                // Update barcode marker value
-                const barcodeMarker = document.getElementById('barcode-marker');
-                if (barcodeMarker) {
-                    barcodeMarker.setAttribute('value', cardNumber);
-                }
+                // Clear previous content
+                marker.innerHTML = '';
                 
                 // Create AR content based on card type
-                let arContentHTML = '';
+                let arContent = '';
                 
                 switch(card.message_type) {
                     case 'text':
-                        arContentHTML = `
-                            <a-text value="${card.message_text || 'Hello!'}" 
+                        arContent = `
+                            <a-text value="${card.message_text || 'Papir Card'}" 
                                     color="white" 
                                     align="center"
                                     position="0 0.5 0"
@@ -729,7 +742,7 @@
                         
                     case 'image':
                         if (card.media_url) {
-                            arContentHTML = `
+                            arContent = `
                                 <a-image src="${card.media_url}" 
                                         position="0 0.5 0" 
                                         width="2" 
@@ -753,7 +766,7 @@
                         
                     case 'video':
                         if (card.media_url) {
-                            arContentHTML = `
+                            arContent = `
                                 <a-video src="${card.media_url}" 
                                         position="0 0.5 0" 
                                         width="2" 
@@ -778,39 +791,37 @@
                         break;
                         
                     case 'audio':
-                        if (card.media_url) {
-                            arContentHTML = `
-                                <a-plane color="#8A2BE2" 
-                                        position="0 0.5 0" 
-                                        width="2" 
-                                        height="1"
-                                        opacity="0.8">
-                                </a-plane>
-                                <a-text value="♪ Audio ♪" 
-                                        color="white" 
-                                        align="center"
-                                        position="0 0.5 0"
-                                        scale="1.5 1.5 1.5">
-                                </a-text>
-                                <a-plane color="black" 
-                                        position="0 -0.5 0" 
-                                        width="2.2" 
-                                        height="0.5"
-                                        opacity="0.7">
-                                </a-plane>
-                                <a-text value="${card.message_text || 'Audio Card'}" 
-                                        color="white" 
-                                        align="center"
-                                        position="0 -0.5 0"
-                                        scale="0.8 0.8 0.8">
-                                </a-text>
-                            `;
-                        }
+                        arContent = `
+                            <a-plane color="#8A2BE2" 
+                                    position="0 0.5 0" 
+                                    width="2" 
+                                    height="1"
+                                    opacity="0.8">
+                            </a-plane>
+                            <a-text value="♪ Audio ♪" 
+                                    color="white" 
+                                    align="center"
+                                    position="0 0.5 0"
+                                    scale="1.5 1.5 1.5">
+                            </a-text>
+                            <a-plane color="black" 
+                                    position="0 -0.5 0" 
+                                    width="2.2" 
+                                    height="0.5"
+                                    opacity="0.7">
+                            </a-plane>
+                            <a-text value="${card.message_text || 'Audio Card'}" 
+                                    color="white" 
+                                    align="center"
+                                    position="0 -0.5 0"
+                                    scale="0.8 0.8 0.8">
+                            </a-text>
+                        `;
                         break;
                         
                     default:
-                        arContentHTML = `
-                            <a-text value="Card Type: ${card.message_type}" 
+                        arContent = `
+                            <a-text value="Papir Card" 
                                     color="white" 
                                     align="center"
                                     position="0 0.5 0"
@@ -820,7 +831,7 @@
                 }
                 
                 // Add card ID display
-                arContentHTML += `
+                arContent += `
                     <a-plane color="#333" 
                             position="0 -1.2 0" 
                             width="2.5" 
@@ -836,11 +847,9 @@
                 `;
                 
                 // Add the AR content
-                if (arEntity && arContentHTML) {
-                    arEntity.innerHTML = arContentHTML;
-                }
+                marker.innerHTML = arContent;
                 
-                showNotification('AR mode active. Point camera at your Papir QR code.', 'info');
+                showNotification('AR mode activated. Point camera at Hiro marker.', 'info');
             }
             
             // Exit AR mode
@@ -1004,6 +1013,49 @@
                 }
             }
             
+            // Populate camera dropdown
+            async function populateCameraSelect() {
+                try {
+                    const cameras = await Html5Qrcode.getCameras();
+                    
+                    if (cameras && cameras.length > 0) {
+                        elements.cameraSelect.innerHTML = '<option value="">Select Camera...</option>';
+                        
+                        cameras.forEach((camera, index) => {
+                            const option = document.createElement('option');
+                            option.value = camera.id;
+                            let label = camera.label || `Camera ${index + 1}`;
+                            
+                            // Try to identify rear camera
+                            if (camera.label && (
+                                camera.label.toLowerCase().includes('back') || 
+                                camera.label.toLowerCase().includes('rear') || 
+                                camera.label.toLowerCase().includes('environment')
+                            )) {
+                                label += ' 📷 (Rear)';
+                                // Auto-select rear camera
+                                option.selected = true;
+                            } else if (camera.label && camera.label.toLowerCase().includes('front')) {
+                                label += ' 📱 (Front)';
+                            }
+                            
+                            option.textContent = label;
+                            elements.cameraSelect.appendChild(option);
+                        });
+                        
+                        // If no rear camera selected, select first camera
+                        if (!elements.cameraSelect.value && cameras.length > 0) {
+                            elements.cameraSelect.value = cameras[0].id;
+                        }
+                        
+                    } else {
+                        elements.cameraSelect.innerHTML = '<option value="">No cameras found</option>';
+                    }
+                } catch (error) {
+                    console.error('Error getting cameras:', error);
+                }
+            }
+            
             // Initialize QR code scanner
             function initScanner() {
                 try {
@@ -1020,52 +1072,25 @@
                     // Start scanner
                     async function startScanner() {
                         try {
-                            // Get camera permission first
-                            const cameras = await Html5Qrcode.getCameras();
+                            const selectedCameraId = elements.cameraSelect.value;
                             
-                            if (cameras && cameras.length > 0) {
-                                // Find rear camera (usually has "environment" or "back" in label)
-                                let rearCamera = null;
-
-                                // Try to find rear camera by checking labels
-                                for (const camera of cameras) {
-                                    const label = camera.label.toLowerCase();
-                                    if (label.includes('back') || label.includes('rear') || 
-                                        label.includes('environment') || label.includes('2') || 
-                                        label.includes('1')) {
-                                        rearCamera = camera;
-                                        break;
-                                    }
-                                }
-            
-                                // If no rear camera found, try to find by facing mode
-                                if (!rearCamera) {
-                                    for (const camera of cameras) {
-                                        if (camera.facingMode && camera.facingMode === 'environment') {
-                                            rearCamera = camera;
-                                            break;
-                                        }
-                                     }
-                                }
-                                        
-                                // Fallback to first camera if no rear camera found
-                                const cameraId = rearCamera ? rearCamera.id : cameras[0].id;
-                                
-                                await html5QrCode.start(
-                                    cameraId,
-                                    config,
-                                    onScanSuccess,
-                                    onScanFailure
-                                );
-                                
-                                isScannerActive = true;
-                                elements.startScanner.disabled = true;
-                                elements.stopScanner.disabled = false;
-                                showNotification('Camera started successfully', 'success');
-                                
-                            } else {
-                                throw new Error('No cameras found');
+                            if (!selectedCameraId) {
+                                showNotification('Please select a camera first', 'error');
+                                return;
                             }
+                            
+                            await html5QrCode.start(
+                                selectedCameraId,
+                                config,
+                                onScanSuccess,
+                                onScanFailure
+                            );
+                            
+                            isScannerActive = true;
+                            elements.startScanner.disabled = true;
+                            elements.stopScanner.disabled = false;
+                            elements.cameraSelect.disabled = true;
+                            showNotification('Camera started successfully', 'success');
                             
                         } catch (error) {
                             console.error('Camera error:', error);
@@ -1080,6 +1105,7 @@
                                 isScannerActive = false;
                                 elements.startScanner.disabled = false;
                                 elements.stopScanner.disabled = true;
+                                elements.cameraSelect.disabled = false;
                                 showNotification('Camera stopped', 'info');
                             }).catch(err => {
                                 console.error('Error stopping scanner:', err);
@@ -1092,7 +1118,6 @@
                         try {
                             if (html5QrCode) {
                                 const isTorchOn = await html5QrCode.getRunningTrackCameraCapabilities();
-                                // Note: Torch control depends on browser/camera support
                                 showNotification('Flash toggled (if supported)', 'info');
                             }
                         } catch (error) {
@@ -1104,10 +1129,8 @@
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
                         
-                        // Extract card ID from QR code data
                         let cardId = decodedText;
                         
-                        // If QR contains URL, extract card parameter
                         try {
                             const url = new URL(decodedText);
                             const cardParam = url.searchParams.get('card');
@@ -1118,15 +1141,12 @@
                             // Not a URL, use as-is
                         }
                         
-                        // Stop scanner temporarily
                         if (isScannerActive) {
                             html5QrCode.pause();
                         }
                         
-                        // Load the card
                         loadCard(cardId);
                         
-                        // Resume after delay
                         setTimeout(() => {
                             if (isScannerActive) {
                                 html5QrCode.resume();
@@ -1136,7 +1156,6 @@
                     
                     // QR scan failure callback
                     function onScanFailure(error) {
-                        // Silent failure - just keep scanning
                         console.log('Scan failure (expected):', error);
                     }
                     
@@ -1144,6 +1163,9 @@
                     elements.startScanner.addEventListener('click', startScanner);
                     elements.stopScanner.addEventListener('click', stopScanner);
                     elements.toggleTorch.addEventListener('click', toggleTorch);
+                    
+                    // Populate camera dropdown
+                    populateCameraSelect();
                     
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
@@ -1183,16 +1205,12 @@
             async function initApp() {
                 console.log('Initializing Papir Viewer...');
                 
-                // Check backend connection
                 await checkBackendConnection();
                 
-                // Initialize QR scanner
                 initScanner();
                 
-                // Check URL for card parameter
                 checkUrlForCard();
                 
-                // Set up manual card loading
                 elements.loadCardBtn.addEventListener('click', function() {
                     const cardId = elements.cardIdInput.value.trim();
                     if (cardId) {
@@ -1202,7 +1220,6 @@
                     }
                 });
                 
-                // Allow Enter key on input
                 elements.cardIdInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         const cardId = elements.cardIdInput.value.trim();
@@ -1212,7 +1229,6 @@
                     }
                 });
                 
-                // Set up AR view button
                 elements.viewInARBtn.addEventListener('click', function() {
                     if (currentCard) {
                         displayCardInAR(currentCard);
@@ -1221,7 +1237,6 @@
                     }
                 });
                 
-                // Set up exit AR button
                 elements.exitARMode.addEventListener('click', exitARMode);
                 
                 console.log('Papir Viewer initialized successfully');
