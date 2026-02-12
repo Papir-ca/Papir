@@ -513,7 +513,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             // Backend API configuration
-            const BACKEND_URL = 'https://papir.ca'; // Your backend server
+            const BACKEND_URL = 'https://papir.ca';
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
@@ -553,14 +553,9 @@
                     const result = await response.json();
                     console.log('Scan logged:', result);
                 } catch (error) {
-                    console.log('Scan count updated');
+                    console.log('Scan logged (offline)');
                 }
             }
-
-            // Call it RIGHT HERE after card loads successfully (around line 620):
-            displayCard(card);
-            incrementScanCount(card.card_id); // ADD THIS LINE
-            showNotification(`Loaded card: ${card.card_id}`, 'success');
             
             // Show notification
             function showNotification(message, type = 'success') {
@@ -750,7 +745,6 @@
                         if (result.success && result.card) {
                             console.log('Card loaded successfully:', result.card);
                             displayCard(result.card);
-                             incrementScanCount(result.card.card_id);
                             return { success: true, card: result.card };
                         } else {
                             throw new Error(result.error || 'Card not found');
@@ -787,18 +781,15 @@
                     // Start scanner - opens to rear camera by default, falls back to front
                     async function startScanner() {
                         try {
-                            // Get camera permission first
                             const cameras = await Html5Qrcode.getCameras();
                             
                             if (cameras && cameras.length > 0) {
-                                // Try to find rear camera first (environment facing)
                                 let cameraId = cameras.find(camera => 
                                     camera.label.toLowerCase().includes('back') || 
                                     camera.label.toLowerCase().includes('rear') || 
                                     camera.label.toLowerCase().includes('environment')
                                 )?.id;
                                 
-                                // If no rear camera found, use first available camera
                                 if (!cameraId) {
                                     cameraId = cameras[0].id;
                                 }
@@ -843,10 +834,8 @@
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
                         
-                        // Extract card ID from QR code data
                         let cardId = decodedText;
                         
-                        // If QR contains URL, extract card parameter
                         try {
                             const url = new URL(decodedText);
                             const cardParam = url.searchParams.get('card');
@@ -857,15 +846,12 @@
                             // Not a URL, use as-is
                         }
                         
-                        // Stop scanner temporarily
                         if (isScannerActive) {
                             html5QrCode.pause();
                         }
                         
-                        // Load the card
                         loadCard(cardId);
                         
-                        // Resume after delay
                         setTimeout(() => {
                             if (isScannerActive) {
                                 html5QrCode.resume();
@@ -875,11 +861,9 @@
                     
                     // QR scan failure callback
                     function onScanFailure(error) {
-                        // Silent failure - just keep scanning
                         console.log('Scan failure (expected):', error);
                     }
                     
-                    // Set up button events
                     elements.startScanner.addEventListener('click', startScanner);
                     elements.stopScanner.addEventListener('click', stopScanner);
                     
@@ -921,16 +905,12 @@
             async function initApp() {
                 console.log('Initializing Papir Viewer...');
                 
-                // Check backend connection
                 await checkBackendConnection();
                 
-                // Initialize QR scanner
                 initScanner();
                 
-                // Check URL for card parameter
                 checkUrlForCard();
                 
-                // Set up manual card loading
                 elements.loadCardBtn.addEventListener('click', function() {
                     const cardId = elements.cardIdInput.value.trim();
                     if (cardId) {
@@ -940,7 +920,6 @@
                     }
                 });
                 
-                // Allow Enter key on input
                 elements.cardIdInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         const cardId = elements.cardIdInput.value.trim();
