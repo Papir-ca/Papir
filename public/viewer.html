@@ -750,6 +750,7 @@
                         if (result.success && result.card) {
                             console.log('Card loaded successfully:', result.card);
                             displayCard(result.card);
+                             incrementScanCount(result.card.card_id);
                             return { success: true, card: result.card };
                         } else {
                             throw new Error(result.error || 'Card not found');
