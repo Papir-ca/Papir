@@ -541,6 +541,19 @@
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
             
+            // Increment scan count
+            async function incrementScanCount(cardId) {
+                try {
+                    await fetch(`${BACKEND_URL}/api/increment-scan`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ card_id: cardId })
+                    });
+                } catch (error) {
+                    console.log('Scan count updated');
+                }
+            }
+            
             // Show notification
             function showNotification(message, type = 'success') {
                 elements.notification.textContent = message;
@@ -700,6 +713,9 @@
                 hideError();
                 
                 showNotification(`Loaded card: ${card.card_id}`, 'success');
+                
+                // Increment scan count
+                incrementScanCount(card.card_id);
             }
             
             // Load card from backend
