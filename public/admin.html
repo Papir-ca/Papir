@@ -15,7 +15,7 @@
         .search-input:focus { outline: none; border-color: #BCAE83; }
         
         /* Stats */
-        .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-bottom: 40px; }
+        .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; margin-bottom: 40px; }
         .stat-card { background: #2a2a2a; padding: 20px; border-radius: 10px; text-align: center; transition: transform 0.3s; }
         .stat-card:hover { transform: translateY(-5px); background: #333; }
         .stat-value { font-size: 2rem; color: #BCAE83; font-weight: bold; }
@@ -107,6 +107,10 @@
                 <div class="stat-value" id="textCards">0</div>
                 <div class="stat-label">Text Cards</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalScans">0</div>
+                <div class="stat-label">Total Scans</div>
+            </div>
         </div>
         
         <!-- Cards Table -->
@@ -119,6 +123,7 @@
                         <th>File Name</th>
                         <th>Size</th>
                         <th>Media URL</th>
+                        <th>Scans</th>
                         <th>Created</th>
                         <th>IP Address</th>
                         <th>Actions</th>
@@ -126,7 +131,7 @@
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="8" class="loading">
+                        <td colspan="9" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -181,7 +186,7 @@
         const closeModalBtn = document.getElementById('closeModalBtn');
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
         const downloadQrBtn = document.getElementById('downloadQrBtn');
-        const logoutBtn = document.getElementById('logoutBtn'); // Added
+        const logoutBtn = document.getElementById('logoutBtn');
         
         // Load admin data
         async function loadAdminData() {
@@ -209,6 +214,9 @@
             document.getElementById('imageCards').textContent = cards.filter(c => c.message_type === 'image').length;
             document.getElementById('audioCards').textContent = cards.filter(c => c.message_type === 'audio').length;
             document.getElementById('textCards').textContent = cards.filter(c => c.message_type === 'text').length;
+            
+            const totalScans = cards.reduce((sum, card) => sum + (card.scan_count || 0), 0);
+            document.getElementById('totalScans').textContent = totalScans;
         }
         
         // Filter and display cards
@@ -240,7 +248,7 @@
             if (cards.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #aaa;">
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #aaa;">
                             No cards found matching your criteria.
                         </td>
                     </tr>
@@ -274,6 +282,9 @@
                                     <small style="color: #aaa; font-size: 0.8rem; word-break: break-all;">${card.media_url}</small>
                                 </div>` 
                                 : 'N/A'}
+                        </td>
+                        <td style="text-align: center; font-weight: bold; color: #BCAE83;">
+                            ${card.scan_count || 0}
                         </td>
                         <td>${new Date(card.created_at).toLocaleDateString()}</td>
                         <td>${card.created_by_ip || 'N/A'}</td>
@@ -384,7 +395,7 @@
             if (show) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="loading">
+                        <td colspan="9" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -451,5 +462,3 @@
     
 </body>
 </html>
-
-
