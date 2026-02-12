@@ -544,15 +544,23 @@
             // Increment scan count
             async function incrementScanCount(cardId) {
                 try {
-                    await fetch(`${BACKEND_URL}/api/increment-scan`, {
+                    console.log('📊 Logging scan for:', cardId);
+                    const response = await fetch(`${BACKEND_URL}/api/increment-scan`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ card_id: cardId })
                     });
+                    const result = await response.json();
+                    console.log('Scan logged:', result);
                 } catch (error) {
                     console.log('Scan count updated');
                 }
             }
+
+            // Call it RIGHT HERE after card loads successfully (around line 620):
+            displayCard(card);
+            incrementScanCount(card.card_id); // ADD THIS LINE
+            showNotification(`Loaded card: ${card.card_id}`, 'success');
             
             // Show notification
             function showNotification(message, type = 'success') {
