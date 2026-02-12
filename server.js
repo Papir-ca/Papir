@@ -134,7 +134,8 @@ app.get('/api/health', (req, res) => {
       viewer: `${baseUrl}/viewer.html`,
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
-      uploadMedia: `POST ${baseUrl}/api/upload-media`
+      uploadMedia: `POST ${baseUrl}/api/upload-media`,
+      incrementScan: `POST ${baseUrl}/api/increment-scan`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -200,6 +201,7 @@ app.post('/api/cards', async (req, res) => {
       file_name: file_name || null,
       file_size: file_size || null,
       file_type: file_type || null,
+      scan_count: 0,
       status: 'active',
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
@@ -493,24 +495,50 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🔢 Increment scan count
+// 🔢 Increment scan count - SIMPLE WORKING VERSION
 app.post('/api/increment-scan', async (req, res) => {
   try {
     const { card_id } = req.body;
     
+    console.log(`📊 Incrementing scan count for: ${card_id}`);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    // Get current count
+    const { data: card, error: fetchError } = await supabaseAdmin
+      .from('cards')
+      .select('scan_count')
+      .eq('card_id', card_id)
+      .single();
+    
+    if (fetchError) {
+      console.error('❌ Fetch error:', fetchError);
+      return res.json({ success: false, error: fetchError.message });
+    }
+    
+    // Increment by 1
+    const currentCount = card?.scan_count || 0;
     const { error } = await supabaseAdmin
       .from('cards')
-      .update({ 
-        scan_count: supabaseAdmin.rpc('increment', { row_id: card_id })
-      })
+      .update({ scan_count: currentCount + 1 })
       .eq('card_id', card_id);
     
-    if (error) throw error;
-    res.json({ success: true });
+    if (error) {
+      console.error('❌ Update error:', error);
+      return res.json({ success: false, error: error.message });
+    }
+    
+    console.log(`✅ Scan count updated: ${card_id} now has ${currentCount + 1} scans`);
+    res.json({ success: true, count: currentCount + 1 });
     
   } catch (error) {
-    console.error('Increment error:', error);
-    res.json({ success: false });
+    console.error('💥 Increment error:', error);
+    res.json({ success: false, error: error.message });
   }
 });
 
