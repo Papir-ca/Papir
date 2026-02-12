@@ -501,7 +501,7 @@ app.post('/api/increment-scan', async (req, res) => {
     const { error } = await supabaseAdmin
       .from('cards')
       .update({ 
-        scan_count: supabaseAdmin.raw('scan_count + 1')
+        scan_count: supabaseAdmin.rpc('increment', { row_id: card_id })
       })
       .eq('card_id', card_id);
     
