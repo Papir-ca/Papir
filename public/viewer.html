@@ -441,9 +441,6 @@
                 <button class="btn btn-secondary" id="stopScanner">
                     <i class="fas fa-stop"></i> Stop Camera
                 </button>
-                <button class="btn btn-secondary" id="toggleTorch">
-                    <i class="fas fa-lightbulb"></i> Toggle Flash
-                </button>
             </div>
         </div>
         
@@ -538,7 +535,6 @@
                 syncStatus: document.getElementById('syncStatus'),
                 startScanner: document.getElementById('startScanner'),
                 stopScanner: document.getElementById('stopScanner'),
-                toggleTorch: document.getElementById('toggleTorch'),
                 textMessage: document.getElementById('textMessage'),
                 contentTypeBadge: document.getElementById('contentTypeBadge')
             };
@@ -818,19 +814,6 @@
                         }
                     }
                     
-                    // Toggle torch/flash
-                    async function toggleTorch() {
-                        try {
-                            if (html5QrCode) {
-                                const isTorchOn = await html5QrCode.getRunningTrackCameraCapabilities();
-                                // Note: Torch control depends on browser/camera support
-                                showNotification('Flash toggled (if supported)', 'info');
-                            }
-                        } catch (error) {
-                            console.log('Torch not supported:', error);
-                        }
-                    }
-                    
                     // QR scan success callback
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
@@ -874,7 +857,6 @@
                     // Set up button events
                     elements.startScanner.addEventListener('click', startScanner);
                     elements.stopScanner.addEventListener('click', stopScanner);
-                    elements.toggleTorch.addEventListener('click', toggleTorch);
                     
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
