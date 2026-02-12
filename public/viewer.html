@@ -763,14 +763,24 @@
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
                     };
                     
-                    // Start scanner
+                    // Start scanner - opens to rear camera by default, falls back to front
                     async function startScanner() {
                         try {
                             // Get camera permission first
                             const cameras = await Html5Qrcode.getCameras();
                             
                             if (cameras && cameras.length > 0) {
-                                const cameraId = cameras[0].id;
+                                // Try to find rear camera first (environment facing)
+                                let cameraId = cameras.find(camera => 
+                                    camera.label.toLowerCase().includes('back') || 
+                                    camera.label.toLowerCase().includes('rear') || 
+                                    camera.label.toLowerCase().includes('environment')
+                                )?.id;
+                                
+                                // If no rear camera found, use first available camera
+                                if (!cameraId) {
+                                    cameraId = cameras[0].id;
+                                }
                                 
                                 await html5QrCode.start(
                                     cameraId,
@@ -865,9 +875,6 @@
                     elements.startScanner.addEventListener('click', startScanner);
                     elements.stopScanner.addEventListener('click', stopScanner);
                     elements.toggleTorch.addEventListener('click', toggleTorch);
-                    
-                    // Auto-start scanner on page load
-                    // startScanner();
                     
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
