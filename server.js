@@ -493,6 +493,27 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
+// 🔢 Increment scan count
+app.post('/api/increment-scan', async (req, res) => {
+  try {
+    const { card_id } = req.body;
+    
+    const { error } = await supabaseAdmin
+      .from('cards')
+      .update({ 
+        scan_count: supabaseAdmin.raw('scan_count + 1')
+      })
+      .eq('card_id', card_id);
+    
+    if (error) throw error;
+    res.json({ success: true });
+    
+  } catch (error) {
+    console.error('Increment error:', error);
+    res.json({ success: false });
+  }
+});
+
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -506,7 +527,7 @@ app.get('/api/test-supabase', async (req, res) => {
     
     const { data, error, count } = await supabaseAdmin
       .from('cards')
-      .select('card_id, message_type, created_at, media_url, file_name, file_size, created_by_ip', { count: 'exact' })
+      .select('card_id, message_type, created_at, media_url, file_name, file_size, created_by_ip, scan_count', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -559,6 +580,7 @@ app.use((req, res) => {
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
       `${baseUrl}/api/upload-media`,
+      `${baseUrl}/api/increment-scan`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -590,12 +612,14 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
+  console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking');
   console.log('   ✅ IP address tracking');
   console.log('   ✅ QR code generation');
+  console.log('   ✅ Scan count tracking');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
