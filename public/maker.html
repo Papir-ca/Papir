@@ -1,3 +1,4 @@
+maker
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,80 +15,41 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             min-height: 100vh;
-            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
         .container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
         }
         
         header {
             text-align: center;
-            padding: 20px 0 40px 0;
+            color: white;
+            padding: 20px;
             position: relative;
         }
         
-        .logo {
-            font-size: 42px;
-            font-weight: bold;
+        header h1 {
+            font-size: 2.8rem;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
-        .tagline {
-            font-size: 18px;
-            opacity: 0.8;
-            color: #a0aec0;
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
             max-width: 700px;
             margin: 0 auto;
             line-height: 1.5;
-        }
-        
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .sync-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 176, 155, 0.2);
-            color: #06D6A0;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .sync-status.offline {
-            background: rgba(255, 107, 107, 0.2);
-            color: #FF6B6B;
         }
         
         .card-creator {
@@ -98,42 +60,40 @@
         }
         
         .form-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            background: white;
+            border-radius: 15px;
             padding: 30px;
             flex: 1;
             min-width: 300px;
             max-width: 550px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         
         .preview-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            background: white;
+            border-radius: 15px;
             padding: 30px;
             flex: 1;
             min-width: 300px;
             max-width: 550px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
         }
         
         .section-title {
-            font-size: 24px;
+            font-size: 1.5rem;
+            color: #333;
             margin-bottom: 20px;
-            color: white;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
         .section-title i {
-            color: #06D6A0;
+            color: #6a11cb;
         }
         
         .form-group {
@@ -144,7 +104,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: white;
+            color: #444;
         }
         
         .card-id-container {
@@ -153,71 +113,66 @@
         }
         
         .card-id-prefix {
-            background: rgba(255, 255, 255, 0.08);
+            background: #f0f0f0;
             padding: 12px 15px;
             border-radius: 8px;
             font-weight: bold;
-            color: #ddd;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: #555;
+            border: 1px solid #ddd;
         }
         
         #cardId {
             flex: 1;
             padding: 12px 15px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
         }
         
         #cardId:focus {
-            border-color: #06D6A0;
+            border-color: #6a11cb;
             outline: none;
         }
         
+        /* Dropdown Styles - REPLACED Radio Buttons */
         .content-type-dropdown {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
-            background: rgba(255, 255, 255, 0.08);
+            background-color: white;
             cursor: pointer;
             transition: border-color 0.3s;
-            color: white;
         }
         
         .content-type-dropdown:focus {
-            border-color: #06D6A0;
+            border-color: #6a11cb;
             outline: none;
         }
         
         .content-type-dropdown option {
             padding: 10px;
-            background: #1a1a2e;
-            color: white;
         }
         
         .message-input textarea {
             width: 100%;
             padding: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
             resize: vertical;
             min-height: 120px;
             transition: border-color 0.3s;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
         }
         
         .message-input textarea:focus {
-            border-color: #06D6A0;
+            border-color: #6a11cb;
             outline: none;
         }
         
+        /* Media Upload Styles */
         .media-upload-container {
             display: none;
             margin-top: 15px;
@@ -228,34 +183,34 @@
         }
         
         .upload-area {
-            border: 2px dashed #06D6A0;
+            border: 2px dashed #6a11cb;
             border-radius: 8px;
             padding: 30px 20px;
             text-align: center;
-            background-color: rgba(6, 214, 160, 0.05);
+            background-color: #f9f5ff;
             cursor: pointer;
             transition: all 0.3s;
         }
         
         .upload-area:hover {
-            background-color: rgba(6, 214, 160, 0.1);
-            border-color: #FFD166;
+            background-color: #f0e6ff;
+            border-color: #2575fc;
         }
         
         .upload-area i {
             font-size: 3rem;
-            color: #06D6A0;
+            color: #6a11cb;
             margin-bottom: 15px;
         }
         
         .upload-text {
-            color: white;
+            color: #555;
             margin-bottom: 10px;
             font-size: 1.1rem;
         }
         
         .upload-subtext {
-            color: #a0aec0;
+            color: #777;
             font-size: 0.9rem;
             margin-bottom: 15px;
         }
@@ -278,7 +233,7 @@
             max-height: 200px;
             border-radius: 8px;
             margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .preview-audio {
@@ -295,13 +250,13 @@
         
         .preview-filename {
             font-size: 0.9rem;
-            color: #ddd;
+            color: #555;
             margin-top: 10px;
             word-break: break-all;
         }
         
         .remove-media-btn {
-            background: linear-gradient(to right, #FF6B6B, #FF8E53);
+            background-color: #ff416c;
             color: white;
             border: none;
             padding: 8px 15px;
@@ -316,8 +271,7 @@
         }
         
         .remove-media-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            background-color: #ff2b5e;
         }
         
         .upload-progress {
@@ -332,7 +286,7 @@
         .progress-bar {
             width: 100%;
             height: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: #f0f0f0;
             border-radius: 5px;
             overflow: hidden;
             margin-bottom: 5px;
@@ -340,14 +294,14 @@
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(to right, #06D6A0, #118AB2);
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             width: 0%;
             transition: width 0.3s;
         }
         
         .progress-text {
             font-size: 0.85rem;
-            color: #a0aec0;
+            color: #666;
             text-align: center;
         }
         
@@ -361,7 +315,7 @@
         .btn {
             padding: 14px 25px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -375,23 +329,22 @@
         }
         
         .btn-primary {
-            background: linear-gradient(to right, #06D6A0, #118AB2);
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
         }
         
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
         }
         
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #f0f0f0;
+            color: #333;
         }
         
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: #e0e0e0;
             transform: translateY(-3px);
         }
         
@@ -402,12 +355,12 @@
         
         .btn-success:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 176, 155, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
         }
         
         .preview-card {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 12px;
             padding: 30px;
             text-align: center;
             flex: 1;
@@ -416,7 +369,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 25px;
-            background: rgba(255, 255, 255, 0.05);
+            background-color: #f9f9f9;
             min-height: 300px;
         }
         
@@ -426,15 +379,15 @@
         
         .text-content {
             font-size: 2rem;
-            color: white;
+            color: #333;
             font-weight: 600;
             margin: 20px 0;
         }
         
         .card-id-display {
             font-size: 1.2rem;
-            color: #ddd;
-            background: rgba(255, 255, 255, 0.1);
+            color: #666;
+            background: #f0f0f0;
             padding: 8px 15px;
             border-radius: 20px;
             display: inline-block;
@@ -443,8 +396,8 @@
         
         .content-type-display {
             display: inline-block;
-            background: rgba(45, 76, 199, 0.2);
-            color: #a0aec0;
+            background: #e0e6ff;
+            color: #2d4cc7;
             padding: 5px 12px;
             border-radius: 15px;
             font-size: 0.9rem;
@@ -452,28 +405,26 @@
         }
         
         .empty-preview {
-            color: #a0aec0;
+            color: #999;
             font-size: 1.1rem;
         }
         
         .preview-instructions {
-            background-color: rgba(240, 248, 255, 0.05);
+            background-color: #f0f8ff;
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
             font-size: 0.9rem;
-            color: #a0aec0;
+            color: #555;
             line-height: 1.5;
         }
         
         .card-list {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            background: white;
+            border-radius: 15px;
             padding: 30px;
-            margin-top: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         
         .cards-table {
@@ -483,22 +434,21 @@
         }
         
         .cards-table th {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #f5f5f5;
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            color: #ddd;
+            border-bottom: 2px solid #eee;
+            color: #555;
         }
         
         .cards-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ddd;
+            border-bottom: 1px solid #eee;
         }
         
         .empty-row {
             text-align: center;
-            color: #a0aec0;
+            color: #999;
             padding: 30px !important;
         }
         
@@ -511,26 +461,24 @@
             padding: 6px 12px;
             border-radius: 5px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
+            background: #f0f0f0;
             cursor: pointer;
             font-size: 0.85rem;
             transition: all 0.2s;
-            color: white;
         }
         
         .action-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            background: #e0e0e0;
         }
         
         .action-btn.view {
-            background: rgba(45, 76, 199, 0.2);
-            color: #a0aec0;
+            background: #e0e6ff;
+            color: #2d4cc7;
         }
         
         .action-btn.delete {
-            background: rgba(199, 45, 45, 0.2);
-            color: #FF6B6B;
+            background: #ffe0e0;
+            color: #c72d2d;
         }
         
         .notification {
@@ -538,7 +486,7 @@
             top: 20px;
             right: 20px;
             padding: 15px 25px;
-            border-radius: 10px;
+            border-radius: 8px;
             color: white;
             font-weight: 600;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -554,23 +502,70 @@
         }
         
         .notification.success {
-            background: linear-gradient(to right, #06D6A0, #118AB2);
+            background: linear-gradient(to right, #00b09b, #96c93d);
         }
         
         .notification.error {
-            background: linear-gradient(to right, #FF6B6B, #FF8E53);
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
         }
         
         .notification.info {
             background: linear-gradient(to right, #36D1DC, #5B86E5);
         }
         
+        .scanner-nav-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #6a11cb;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .scanner-nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+            background: #f8f5ff;
+        }
+        
+        .sync-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .sync-status.online {
+            background: rgba(0, 176, 155, 0.3);
+        }
+        
+        .sync-status.offline {
+            background: rgba(255, 65, 108, 0.3);
+        }
+        
+        /* QR Code Styles */
         .qr-code-img {
             width: 250px;
             height: 250px;
-            border: 10px solid rgba(255, 255, 255, 0.1);
+            border: 10px solid white;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin: 0 auto 20px;
             display: block;
         }
@@ -579,7 +574,7 @@
             background: linear-gradient(to right, #00b09b, #96c93d);
             color: white;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px;
             margin: 20px 0;
             text-align: center;
         }
@@ -599,16 +594,15 @@
         .share-url-input {
             flex: 1;
             padding: 10px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
+            background: #f9f9f9;
         }
         
         .copy-btn {
             padding: 10px 20px;
-            background: linear-gradient(to right, #06D6A0, #118AB2);
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
             border: none;
             border-radius: 8px;
@@ -619,7 +613,7 @@
         
         .copy-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(6, 214, 160, 0.3);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
         }
         
         .phone-test-btn {
@@ -636,7 +630,7 @@
         
         .phone-test-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
         }
         
         @media (max-width: 768px) {
@@ -656,11 +650,11 @@
                 min-width: 100%;
             }
             
-            .logo {
-                font-size: 32px;
+            header h1 {
+                font-size: 2.2rem;
             }
             
-            .back-button, .sync-status {
+            .scanner-nav-button, .sync-status {
                 position: relative;
                 top: 0;
                 left: 0;
@@ -688,8 +682,8 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #06D6A0;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6a11cb;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -701,19 +695,20 @@
     </style>
 </head>
 <body>
-    <a href="viewer.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Viewer
-    </a>
-    
-    <div class="sync-status" id="syncStatus">
-        <i class="fas fa-check-circle"></i>
-        <span>Connected to Papir Backend</span>
-    </div>
-    
     <div class="container">
+        <!-- Navigation & Status -->
+        <div class="sync-status" id="syncStatus">
+            <i class="fas fa-check-circle"></i>
+            <span>Connected to Papir Backend</span>
+        </div>
+        
+        <a href="viewer.html" class="scanner-nav-button">
+            <i class="fas fa-camera"></i> Scan Cards
+        </a>
+        
         <header>
-            <h1 class="logo">📱 Papir Card Creator</h1>
-            <p class="tagline">Design magical AR cards with text, images, video or audio. Your cards are saved securely through our backend API.</p>
+            <h1><i class="fas fa-magic"></i> Papir Card Creator</h1>
+            <p>Design magical AR cards with text, images, video or audio. Your cards are saved securely through our backend API.</p>
         </header>
         
         <div class="card-creator">
@@ -729,7 +724,7 @@
                         <div class="card-id-prefix">CARD ID:</div>
                         <input type="text" id="cardId" placeholder="Auto-generated" readonly>
                     </div>
-                    <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
                     </div>
                 </div>
                 
@@ -869,15 +864,15 @@
                 </div>
                 
                 <div style="margin-top: 20px;">
-                    <div style="background: rgba(240, 248, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <h4 style="color: #a0aec0; margin-bottom: 10px;">Share Your Card:</h4>
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="color: #2d4cc7; margin-bottom: 10px;">Share Your Card:</h4>
                         <div class="share-url-container">
                             <input type="text" id="shareableUrl" class="share-url-input" readonly>
                             <button class="copy-btn" id="copyShareUrlBtn">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
-                        <p style="font-size: 0.9rem; color: #a0aec0;">
+                        <p style="font-size: 0.9rem; color: #666;">
                             <i class="fas fa-mobile-alt"></i> Works on any smartphone - no app needed!
                         </p>
                     </div>
@@ -1000,7 +995,7 @@
             // Update sync status
             function updateSyncStatus(connected) {
                 if (connected) {
-                    elements.syncStatus.className = 'sync-status';
+                    elements.syncStatus.className = 'sync-status online';
                     elements.syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span>';
                     isConnected = true;
                 } else {
@@ -1079,24 +1074,24 @@
                 } else if (contentType === 'image' && currentMedia.image) {
                     previewHTML += `
                         <img src="${currentMedia.image.url}" alt="Image Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 20px 0;">
-                        <div style="color: #ddd; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
+                        <div style="color: #666; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
                     `;
                 } else if (contentType === 'video' && currentMedia.video) {
                     previewHTML += `
-                        <div style="color: #ddd; margin: 20px 0;">
-                            <i class="fas fa-video" style="font-size: 3rem; color: #06D6A0;"></i>
+                        <div style="color: #666; margin: 20px 0;">
+                            <i class="fas fa-video" style="font-size: 3rem; color: #6a11cb;"></i>
                             <div>Video: ${currentMedia.video.name}</div>
                         </div>
                     `;
                 } else if (contentType === 'audio' && currentMedia.audio) {
                     previewHTML += `
-                        <div style="color: #ddd; margin: 20px 0;">
-                            <i class="fas fa-music" style="font-size: 3rem; color: #06D6A0;"></i>
+                        <div style="color: #666; margin: 20px 0;">
+                            <i class="fas fa-music" style="font-size: 3rem; color: #6a11cb;"></i>
                             <div>Audio: ${currentMedia.audio.name}</div>
                         </div>
                     `;
                 } else {
-                    previewHTML += `<div class="text-content" style="color: #a0aec0;">No ${contentType} uploaded yet</div>`;
+                    previewHTML += `<div class="text-content" style="color: #999;">No ${contentType} uploaded yet</div>`;
                 }
                 
                 elements.cardPreview.innerHTML = previewHTML;
@@ -1198,8 +1193,8 @@
                                 return;
                             }
                             
-                            // Validate file size (50MB)
-                            if (file.size > 50 * 1024 * 1024) {
+                            // Validate file size (40MB)
+                            if (file.size > 40 * 1024 * 1024) {
                                 showNotification('Video file is too large (max 40MB)', 'error');
                                 return;
                             }
@@ -1380,7 +1375,7 @@
                         <p>Type: <strong>${cardData.message_type}</strong></p>
                     </div>
                     <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
-                    <p style="color: #ddd; margin-bottom: 20px;">Scan with phone camera</p>
+                    <p style="color: #666; margin-bottom: 20px;">Scan with phone camera</p>
                 `;
                 
                 // Set shareable URL
@@ -1862,7 +1857,7 @@
         });
     </script>
 
-    <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
         <p>
             <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
             <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | 
@@ -1871,5 +1866,6 @@
         </p>
         <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
     </footer>
+
 </body>
 </html>
