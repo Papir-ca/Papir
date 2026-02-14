@@ -9,9 +9,6 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🛡️ TRUST RAILWAY PROXY
-app.set('trust proxy', 1);
-
 // 🔒 PRODUCTION CSP - Updated for papir.ca domain
 app.use(helmet({
   contentSecurityPolicy: {
@@ -85,30 +82,12 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// 📁 Serve static files FROM 'public' FOLDER
+// 📁 Serve static files
 app.use(express.static('public'));
 
-// 🏠 Marketing landing page
+// 🏠 Welcome page
 app.get('/', (req, res) => {
-  console.log('Serving marketing page from:', __dirname + '/public/index.html');
   res.sendFile(__dirname + '/public/index.html');
-});
-
-// 📱 App dashboard (your tools)
-app.get('/app', (req, res) => {
-  res.sendFile(__dirname + '/public/dashboard.html');
-});
-
-// Simple admin auth (add your password)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'your-secret-password';
-
-app.get('/admin', (req, res) => {
-    const password = req.query.pass;
-    if (password === ADMIN_PASSWORD) {
-        res.sendFile(__dirname + '/public/admin.html');
-    } else {
-        res.status(401).send('Admin access required');
-    }
 });
 
 // 🩺 Enhanced Health Check
@@ -128,8 +107,6 @@ app.get('/api/health', (req, res) => {
       environment: process.env.NODE_ENV || 'production'
     },
     endpoints: {
-      home: `${baseUrl}/`,
-      dashboard: `${baseUrl}/app`,
       maker: `${baseUrl}/maker.html`,
       viewer: `${baseUrl}/viewer.html`,
       saveCard: `POST ${baseUrl}/api/cards`,
@@ -168,14 +145,10 @@ try {
 // 🎨 Save a Magic Card
 app.post('/api/cards', async (req, res) => {
   try {
-    const { card_id, message_type, message_text, media_url, file_name, file_size, file_type } = req.body;
+    const { card_id, message_type, message_text, media_url } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
-    // Get client IP address
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    
-    // Validation
     if (!card_id || !message_type) {
       return res.status(400).json({ 
         success: false,
@@ -191,27 +164,17 @@ app.post('/api/cards', async (req, res) => {
       });
     }
     
-    // Prepare database record with ALL fields
-    const cardRecord = {
-      card_id: card_id.trim(),
-      message_type: message_type.trim(),
-      message_text: message_text ? message_text.trim() : null,
-      media_url: media_url || null,
-      file_name: file_name || null,
-      file_size: file_size || null,
-      file_type: file_type || null,
-      status: 'active',
-      created_by_ip: clientIp,
-      updated_by_ip: clientIp,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('📝 Saving card to database:', card_id);
-    
     const { data, error } = await supabaseAdmin
       .from('cards')
-      .insert([cardRecord])
+      .insert([{
+        card_id: card_id.trim(),
+        message_type: message_type.trim(),
+        message_text: message_text ? message_text.trim() : null,
+        media_url: media_url || null,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
       .select()
       .single();
     
@@ -235,7 +198,11 @@ app.post('/api/cards', async (req, res) => {
     
     console.log(`✅ Card saved: ${card_id}`);
     
-    const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
+    const viewerUrl = `${baseUrl}/viewer.html?card=${card_id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
     
     res.status(201).json({ 
@@ -243,8 +210,10 @@ app.post('/api/cards', async (req, res) => {
       message: 'Card saved successfully!',
       card: data,
       urls: {
+        share: `/viewer.html?card=${card_id}`,
         viewer: viewerUrl,
-        qrCode: qrCodeUrl
+        qrCode: qrCodeUrl,
+        domain: host
       }
     });
     
@@ -258,12 +227,13 @@ app.post('/api/cards', async (req, res) => {
   }
 });
 
-// 🖼️ Upload Media Files to Supabase Storage
+// 🖼️ Upload Media Files to Supabase Storage - FIXED VERSION
 app.post('/api/upload-media', async (req, res) => {
   try {
     const { fileData, fileName, fileType, cardId } = req.body;
     
     console.log(`📤 Uploading media: ${fileName} for ${cardId}`);
+    console.log(`📏 Data length: ${fileData ? fileData.length : 0}`);
     
     if (!fileData || !fileName || !cardId) {
       return res.status(400).json({ 
@@ -279,16 +249,18 @@ app.post('/api/upload-media', async (req, res) => {
       });
     }
     
-    // Convert base64 to buffer
+    // Convert base64 to buffer - FIXED PARSING
     let base64Data = fileData;
     if (fileData.includes(',')) {
       base64Data = fileData.split(',')[1];
     }
     
-    const buffer = Buffer.from(base64Data, 'base64');
-    const fileSize = buffer.length;
+    console.log(`📐 Base64 length after parsing: ${base64Data.length}`);
     
-    if (fileSize < 100) {
+    const buffer = Buffer.from(base64Data, 'base64');
+    console.log(`📦 Buffer size: ${buffer.length} bytes (${Math.round(buffer.length / 1024 / 1024 * 100) / 100} MB)`);
+    
+    if (buffer.length < 100) {
       console.error('❌ Buffer too small - Base64 parsing issue');
       return res.status(400).json({ 
         success: false, 
@@ -299,6 +271,8 @@ app.post('/api/upload-media', async (req, res) => {
     // Create folder path: cardId/filename
     const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filePath = `${cardId}/${Date.now()}_${safeFileName}`;
+    
+    console.log(`📁 Uploading to: ${filePath}`);
     
     // Upload to Supabase Storage
     const { data, error } = await supabaseAdmin.storage
@@ -328,9 +302,7 @@ app.post('/api/upload-media', async (req, res) => {
       success: true, 
       url: publicUrl,
       path: filePath,
-      file_name: fileName,
-      file_size: fileSize,
-      file_type: fileType,
+      size: buffer.length,
       message: 'File uploaded successfully'
     });
     
@@ -388,10 +360,14 @@ app.get('/api/cards/:card_id', async (req, res) => {
       });
     }
     
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
     res.json({ 
       success: true, 
       card: data,
-      viewerUrl: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`
+      viewerUrl: `${baseUrl}/viewer.html?card=${card_id}`
     });
     
   } catch (error) {
@@ -458,16 +434,9 @@ app.delete('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    // Get client IP for update
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    
     const { error } = await supabaseAdmin
       .from('cards')
-      .update({
-        status: 'deleted',
-        updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
-      })
+      .delete()
       .eq('card_id', card_id);
     
     if (error) {
@@ -506,7 +475,7 @@ app.get('/api/test-supabase', async (req, res) => {
     
     const { data, error, count } = await supabaseAdmin
       .from('cards')
-      .select('card_id, message_type, created_at, media_url, file_name, file_size, created_by_ip', { count: 'exact' })
+      .select('card_id, message_type, created_at, media_url', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -552,7 +521,6 @@ app.use((req, res) => {
     path: req.path,
     availableEndpoints: [
       `${baseUrl}/`,
-      `${baseUrl}/app`,
       `${baseUrl}/maker.html`,
       `${baseUrl}/viewer.html`,
       `${baseUrl}/api/health`,
@@ -580,23 +548,20 @@ app.listen(PORT, () => {
   console.log(`   Railway: https://papir.up.railway.app`);
   console.log(`   Local: http://localhost:${PORT}`);
   
-  console.log('\n🔗 MAIN PAGES:');
-  console.log(`   Marketing: https://papir.ca`);
-  console.log(`   Dashboard: https://papir.ca/app`);
+  console.log('\n🔗 TEST URLS:');
+  console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Maker: https://papir.ca/maker.html`);
   console.log(`   Viewer: https://papir.ca/viewer.html`);
-  
-  console.log('\n🔗 API ENDPOINTS:');
-  console.log(`   Health: https://papir.ca/api/health`);
-  console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
+  console.log(`   Get Cards: https://papir.ca/api/cards`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
-  console.log('   ✅ File metadata tracking');
-  console.log('   ✅ IP address tracking');
-  console.log('   ✅ QR code generation');
+  console.log('   ✅ Get all cards endpoint');
+  console.log('   ✅ Dynamic domain detection');
+  console.log('   ✅ Phone-scannable QR codes');
   console.log('   ✅ 24/7 Railway hosting');
+  console.log('   ✅ Professional .ca domain');
   
   console.log('\n' + '─'.repeat(70));
   console.log('   🚀 Papir Business is LIVE at https://papir.ca!');
