@@ -17,14 +17,22 @@ async function testActivationFlow() {
   console.log('🧪 TESTING CARD ACTIVATION FLOW');
   console.log('🧪 ' + '='.repeat(50) + '\n');
 
-  // Step 1: Create a test card
+  // Step 1: Create a test card with ALL required fields
   console.log('📝 Step 1: Creating test card...');
   const { data: newCard, error: createError } = await supabase
     .from('cards')
     .insert([{
       card_id: TEST_CARD_ID,
+      message_type: 'pending', // Temporary value - will be replaced when user uploads
+      message_text: null,
+      media_url: null,
+      file_name: null,
+      file_size: null,
+      file_type: null,
       status: 'pending',
-      created_at: new Date().toISOString()
+      scan_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }])
     .select()
     .single();
@@ -94,19 +102,15 @@ async function testActivationFlow() {
   console.log('✅ Card verification complete:');
   console.log('   Card ID:', activeCard.card_id);
   console.log('   Status:', activeCard.status);
+  console.log('   Message Type (temp):', activeCard.message_type);
   console.log('   Activated at:', activeCard.activated_at);
   console.log('   Activated by IP:', activeCard.activated_by_ip);
   console.log('   Terms accepted at:', activeCard.terms_accepted_at);
   console.log('   Terms accepted IP:', activeCard.terms_accepted_ip);
   console.log('');
 
-  // Step 5: Test attempting to activate again (should fail in real API)
-  console.log('🔄 Step 5: Testing re-activation attempt (should be prevented)...');
-  console.log('   (This would be blocked by your /api/activate-card endpoint)');
-  console.log('');
-
-  // Step 6: Clean up - Delete test card
-  console.log('🧹 Step 6: Cleaning up test data...');
+  // Step 5: Clean up - Delete test card
+  console.log('🧹 Step 5: Cleaning up test data...');
   const { error: deleteError } = await supabase
     .from('cards')
     .delete()
