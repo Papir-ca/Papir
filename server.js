@@ -202,7 +202,7 @@ app.post('/api/cards', async (req, res) => {
       file_size: file_size || null,
       file_type: file_type || null,
       scan_count: 0,
-      status: 'active',
+      status: 'pending', // Changed from 'active' to 'pending' for activation flow
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
       created_at: new Date().toISOString(),
@@ -343,6 +343,49 @@ app.post('/api/upload-media', async (req, res) => {
       error: 'Internal server error',
       message: error.message
     });
+  }
+});
+
+// 🎟️ Activate Card - ADD THIS RIGHT HERE 👇
+app.post('/api/activate-card', async (req, res) => {
+  try {
+    const { card_id } = req.body;
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    // Check if card exists and is pending
+    const { data: card, error: fetchError } = await supabaseAdmin
+      .from('cards')
+      .select('status')
+      .eq('card_id', card_id)
+      .single();
+    
+    if (fetchError || !card) {
+      return res.json({ success: false, error: 'Card not found' });
+    }
+    
+    if (card.status !== 'pending') {
+      return res.json({ success: false, error: 'Card already activated' });
+    }
+    
+    // Activate the card
+    const { error } = await supabaseAdmin
+      .from('cards')
+      .update({
+        status: 'active',
+        activated_at: new Date().toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_ip: clientIp
+      })
+      .eq('card_id', card_id);
+    
+    if (error) throw error;
+    
+    res.json({ success: true });
+    
+  } catch (error) {
+    console.error('Activation error:', error);
+    res.json({ success: false, error: 'Server error' });
   }
 });
 
@@ -608,6 +651,7 @@ app.use((req, res) => {
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
       `${baseUrl}/api/upload-media`,
+      `${baseUrl}/api/activate-card`,
       `${baseUrl}/api/increment-scan`,
       `${baseUrl}/api/test-supabase`
     ]
@@ -640,6 +684,7 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
+  console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
   
   console.log('\n🎯 FEATURES:');
@@ -648,6 +693,7 @@ app.listen(PORT, () => {
   console.log('   ✅ IP address tracking');
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
+  console.log('   ✅ Card activation flow');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
