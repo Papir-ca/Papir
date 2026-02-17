@@ -192,6 +192,20 @@ app.post('/api/cards', async (req, res) => {
       });
     }
     
+    // Check if card is active
+    const { data: cardCheck } = await supabaseAdmin
+      .from('cards')
+      .select('status')
+      .eq('card_id', card_id)
+      .single();
+
+    if (cardCheck && cardCheck.status !== 'active') {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Card not activated. Please scan QR code first.' 
+      });
+    }
+    
     // Prepare database record with ALL fields
     const cardRecord = {
       card_id: card_id.trim(),
@@ -202,7 +216,7 @@ app.post('/api/cards', async (req, res) => {
       file_size: file_size || null,
       file_type: file_type || null,
       scan_count: 0,
-      status: 'pending', // Changed from 'active' to 'pending' for activation flow
+      status: 'pending',
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
       created_at: new Date().toISOString(),
@@ -281,6 +295,20 @@ app.post('/api/upload-media', async (req, res) => {
       });
     }
     
+    // Check if card is active
+    const { data: card } = await supabaseAdmin
+      .from('cards')
+      .select('status')
+      .eq('card_id', cardId)
+      .single();
+
+    if (card && card.status !== 'active') {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Card not activated. Please scan QR code first.' 
+      });
+    }
+    
     // Convert base64 to buffer
     let base64Data = fileData;
     if (fileData.includes(',')) {
@@ -346,7 +374,7 @@ app.post('/api/upload-media', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - ADD THIS RIGHT HERE 👇
+// 🎟️ Activate Card
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
