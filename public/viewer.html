@@ -616,6 +616,12 @@
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
+                // Check card status
+                if (card.status === 'pending') {
+                    window.location.href = `/activation.html?card=${card.card_id}`;
+                    return;
+                }
+                
                 // Update card info
                 elements.displayCardId.textContent = card.card_id;
                 elements.displayCardType.textContent = card.message_type;
