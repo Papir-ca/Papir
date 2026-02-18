@@ -216,7 +216,7 @@ app.post('/api/cards', async (req, res) => {
       file_size: file_size || null,
       file_type: file_type || null,
       scan_count: 0,
-      status: 'pending',
+      status: 'active',
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
       created_at: new Date().toISOString(),
