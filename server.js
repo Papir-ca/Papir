@@ -374,49 +374,6 @@ app.post('/api/upload-media', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card
-app.post('/api/activate-card', async (req, res) => {
-  try {
-    const { card_id } = req.body;
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    
-    // Check if card exists and is pending
-    const { data: card, error: fetchError } = await supabaseAdmin
-      .from('cards')
-      .select('status')
-      .eq('card_id', card_id)
-      .single();
-    
-    if (fetchError || !card) {
-      return res.json({ success: false, error: 'Card not found' });
-    }
-    
-    if (card.status !== 'pending') {
-      return res.json({ success: false, error: 'Card already activated' });
-    }
-    
-    // Activate the card
-    const { error } = await supabaseAdmin
-      .from('cards')
-      .update({
-        status: 'active',
-        activated_at: new Date().toISOString(),
-        activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp
-      })
-      .eq('card_id', card_id);
-    
-    if (error) throw error;
-    
-    res.json({ success: true });
-    
-  } catch (error) {
-    console.error('Activation error:', error);
-    res.json({ success: false, error: 'Server error' });
-  }
-});
-
 // 📖 Get Card by ID
 app.get('/api/cards/:card_id', async (req, res) => {
   try {
