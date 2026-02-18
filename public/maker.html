@@ -1796,10 +1796,21 @@
                 
                 await checkBackendConnection();
                 
-                // AUTO-GENERATE RANDOM CARD ID ON STARTUP
-                const randomId = Math.random().toString(36).substr(2, 8).toUpperCase();
-                elements.cardIdInput.value = generateRandomCardId();
-                elements.cardIdInput.readOnly = true; // Prevent editing
+                // 🆕 CHECK IF CARD ID IS IN URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlCardId = urlParams.get('card');
+
+                if (urlCardId) {
+                    console.log('🔗 Using card ID from URL:', urlCardId);
+                    elements.cardIdInput.value = urlCardId;
+                    elements.cardIdInput.readOnly = true;
+                } else {
+                    // Generate random ID for new cards
+                    console.log('🎲 Generating new random card ID');
+                    const randomId = generateRandomCardId();
+                    elements.cardIdInput.value = randomId;
+                    elements.cardIdInput.readOnly = true;
+                }
                 
                 // Setup media upload handlers
                 setupImageUpload();
