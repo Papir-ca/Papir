@@ -435,7 +435,6 @@ app.get('/api/cards/:card_id', async (req, res) => {
       .from('cards')
       .select('*')
       .eq('card_id', card_id)
-      .eq('status', 'active')
       .single();
     
     if (error) {
