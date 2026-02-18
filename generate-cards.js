@@ -8,111 +8,118 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Your existing card ID generator
+// Card ID generator - NO PREFIX (matches your maker.html)
 function generateCardId() {
-  return 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+  return Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
-// How many cards to generate
-const BATCH_SIZE = 100; // Change to however many you need
-const cards = [];
-const csvRows = ['Card ID,QR URL'];
-const existingIds = new Set(); // Store IDs we've already generated in this batch
+// Configuration
+const BATCH_SIZE = 100; // Change this to however many cards you need
+const OUTPUT_FILE = 'cards_for_manufacturer.csv';
 
-async function generateBatch() {
-  console.log('🎴 ' + '='.repeat(50));
-  console.log(`🎴 Generating ${BATCH_SIZE} cards...`);
-  console.log('🎴 ' + '='.repeat(50));
-  
-  // First, fetch all existing card IDs from database
+async function generateCards() {
+  console.log('\n🎴 ' + '='.repeat(50));
+  console.log('🎴 GENERATING CARDS FOR MANUFACTURER');
+  console.log('🎴 ' + '='.repeat(50) + '\n');
+
+  // Step 1: Get all existing card IDs from database
   console.log('📡 Fetching existing cards from database...');
   const { data: existingCards, error: fetchError } = await supabase
     .from('cards')
     .select('card_id');
-  
+
   if (fetchError) {
     console.error('❌ Failed to fetch existing cards:', fetchError);
     return;
   }
-  
-  // Create a Set of existing IDs for quick lookup
-  const existingDbIds = new Set(existingCards.map(c => c.card_id));
-  console.log(`📊 Found ${existingDbIds.size} existing cards in database`);
-  console.log('');
+
+  // Create Set for quick lookup
+  const existingIds = new Set(existingCards.map(c => c.card_id));
+  console.log(`📊 Found ${existingIds.size} existing cards in database\n`);
+
+  // Step 2: Generate new unique cards
+  const newCards = [];
+  const csvRows = ['Card ID,QR URL (for manufacturer)'];
   
   let generated = 0;
   let attempts = 0;
-  const maxAttempts = BATCH_SIZE * 10; // Safety limit to prevent infinite loop
-  
+  const maxAttempts = BATCH_SIZE * 10;
+
+  console.log(`🎲 Generating ${BATCH_SIZE} unique card IDs...`);
+
   while (generated < BATCH_SIZE && attempts < maxAttempts) {
     attempts++;
     
-    // Generate a new ID
+    // Generate a new ID (NO PREFIX)
     const cardId = generateCardId();
     
-    // Check if it's already in database OR already generated in this batch
-    if (!existingDbIds.has(cardId) && !existingIds.has(cardId)) {
-      // It's unique!
+    // Check if it's unique
+    if (!existingIds.has(cardId)) {
+      // Add to Set to prevent duplicates in this batch
       existingIds.add(cardId);
       
-      const viewerUrl = `https://papir.ca/viewer.html?card=${cardId}`;
+      // Create QR URL for manufacturer - uses the plain ID
+      const qrUrl = `https://papir.ca/viewer.html?card=${cardId}`;
       
-      cards.push({
-        card_id: cardId,
+      // Add to database insert list
+      newCards.push({
+        card_id: cardId,  // No prefix, just the random string
+        message_type: 'pending',
+        message_text: null,
+        media_url: null,
+        file_name: null,
+        file_size: null,
+        file_type: null,
         status: 'pending',
-        created_at: new Date().toISOString()
+        scan_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
       
-      csvRows.push(`${cardId},${viewerUrl}`);
+      // Add to CSV for manufacturer
+      csvRows.push(`${cardId},${qrUrl}`);
       
       generated++;
       
-      // Progress indicator
-      if (generated % 10 === 0 || generated === BATCH_SIZE) {
-        console.log(`✅ Generated ${generated}/${BATCH_SIZE} (after ${attempts} attempts)`);
-      }
-    } else {
-      // Duplicate found - silently skip and try again
-      if (attempts % 100 === 0) {
-        console.log(`🔄 Found ${attempts - generated} duplicates so far...`);
+      // Show progress
+      if (generated % 10 === 0) {
+        console.log(`   Generated ${generated}/${BATCH_SIZE} (${attempts} attempts)`);
       }
     }
   }
-  
+
   if (attempts >= maxAttempts) {
-    console.error('❌ Reached maximum attempts without generating enough unique IDs');
+    console.error('❌ Failed to generate enough unique IDs');
     return;
   }
-  
-  console.log('');
-  console.log('📦 Inserting cards into Supabase...');
-  
+
+  console.log(`\n✅ Generated ${generated} unique card IDs`);
+  console.log(`📁 CSV saved: ${OUTPUT_FILE}`);
+  console.log(`📊 Inserting ${newCards.length} cards into database...`);
+
   // Insert into Supabase
-  const { error } = await supabase
+  const { error: insertError } = await supabase
     .from('cards')
-    .insert(cards);
-  
-  if (error) {
-    console.error('❌ Supabase insert error:', error);
-    
-    // Check if it's a duplicate key error
-    if (error.code === '23505') {
-      console.error('⚠️  Duplicate card ID detected in database. This should not happen with our checks!');
-    }
+    .insert(newCards);
+
+  if (insertError) {
+    console.error('❌ Failed to insert cards:', insertError);
     return;
   }
+
+  // Save CSV file
+  fs.writeFileSync(OUTPUT_FILE, csvRows.join('\n'));
+
+  console.log('✅ Cards successfully inserted into database');
+  console.log('\n📋 Sample of generated cards:');
+  newCards.slice(0, 5).forEach(card => {
+    console.log(`   ${card.card_id} → https://papir.ca/viewer.html?card=${card.card_id}`);
+  });
   
-  // Save CSV for manufacturer
-  fs.writeFileSync('cards_for_manufacturer.csv', csvRows.join('\n'));
-  
-  console.log('');
-  console.log('✅ ' + '='.repeat(50));
-  console.log(`✅ SUCCESS: Generated ${BATCH_SIZE} unique cards`);
-  console.log(`📁 CSV saved: cards_for_manufacturer.csv`);
-  console.log(`📊 Cards inserted into Supabase with status 'pending'`);
-  console.log(`🔄 Generation efficiency: ${Math.round((generated/attempts)*100)}% (${attempts} attempts)`);
-  console.log('✅ ' + '='.repeat(50));
+  console.log('\n🎉 ' + '='.repeat(50));
+  console.log('🎉 DONE! Send the CSV file to your manufacturer');
+  console.log('🎉 ' + '='.repeat(50) + '\n');
 }
 
-// Run the script
-generateBatch().catch(console.error);
+// Run the generator
+generateCards();
