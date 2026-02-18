@@ -399,14 +399,11 @@ app.get('/api/cards/:card_id', async (req, res) => {
         return res.status(404).json({ 
           success: false,
           error: 'Card not found',
-          message: `No card found with ID: ${card_id}`
         });
       }
-      
       return res.status(500).json({ 
         success: false,
         error: 'Database query failed',
-        details: error.message
       });
     }
     
@@ -417,11 +414,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    res.json({ 
-      success: true, 
-      card: data,
-      viewerUrl: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`
-    });
+    res.json({ success: true, card: data });
     
   } catch (error) {
     console.error('💥 Error retrieving card:', error);
