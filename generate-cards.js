@@ -14,7 +14,7 @@ function generateCardId() {
 }
 
 // Configuration
-const BATCH_SIZE = 100; // Change this to however many cards you need
+const BATCH_SIZE = 10; // Change this to however many cards you need
 const OUTPUT_FILE = 'cards_for_manufacturer.csv';
 
 async function generateCards() {
@@ -123,3 +123,4 @@ async function generateCards() {
 
 // Run the generator
 generateCards();
+
