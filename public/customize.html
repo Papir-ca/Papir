@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize Your Card | Papir E-Cards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@400;600&family=Great+Vibes&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-gold: #BCAE83;
+            --primary-teal: #06D6A0;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f9f9f9;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .customize-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--dark-bg);
+        }
+
+        .preview-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .preview-header i {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+        }
+
+        .card-preview {
+            aspect-ratio: 3/4;
+            background: #FFF9F0;
+            border-radius: 15px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #D4AF37;
+        }
+
+        .preview-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4A4A4A;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .preview-details {
+            font-size: 16px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .preview-message {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .controls-header {
+            margin-bottom: 30px;
+            color: var(--dark-bg);
+        }
+
+        .controls-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .controls-header p {
+            color: #666;
+        }
+
+        .control-section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: var(--dark-bg);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-section h3 i {
+            color: var(--primary-gold);
+        }
+
+        .control-row {
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .font-selector {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .font-selector:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .text-input:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+        }
+
+        .border-style-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .border-option {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .border-option:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .border-option.active {
+            border-color: var(--primary-gold);
+            background: rgba(188, 174, 131, 0.1);
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, var(--primary-teal) 0%, #05b58b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .price-tag .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .price-tag .price-small {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .continue-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(to right, var(--primary-gold), #a8996f);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--primary-gold);
+            color: var(--primary-gold);
+        }
+
+        @media (max-width: 968px) {
+            .customize-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-panel {
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="templates.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Templates
+    </a>
+
+    <div class="container">
+        <div class="customize-layout">
+            <!-- Live Preview Panel -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2><i class="fas fa-eye"></i> Live Preview</h2>
+                    <i class="fas fa-magic"></i>
+                </div>
+                
+                <div class="card-preview" id="cardPreview">
+                    <div class="preview-name" id="previewName">Sarah & Michael</div>
+                    <div class="preview-details" id="previewDate">June 15, 2025</div>
+                    <div class="preview-details" id="previewLocation">The Grand Ballroom</div>
+                    <div class="preview-message" id="previewMessage">Together with their families, request the pleasure of your company</div>
+                </div>
+                
+                <div class="price-tag">
+                    <div class="price" id="priceDisplay">$14.99</div>
+                    <div class="price-small">includes full customization + AR content upload</div>
+                </div>
+            </div>
+
+            <!-- Customization Controls -->
+            <div class="controls-panel">
+                <div class="controls-header">
+                    <h2>✨ Personalize Your Card</h2>
+                    <p>Make it uniquely yours</p>
+                </div>
+
+                <!-- Text Content Section -->
+                <div class="control-section">
+                    <h3><i class="fas fa-pen"></i> Text Content</h3>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Names / Couple Names</label>
+                        <input type="text" class="text-input" id="inputNames" value="Sarah & Michael">
+                    </div>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Date</label>
+                        <input type="text" class="text-input" id="inputDate" value="June 15, 2025">
+                    </div>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Location</label>
+                        <input type="text" class="text-input" id="inputLocation" value="The Grand Ballroom">
+                    </div>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Additional Message</label>
+                        <textarea class="text-input" id="inputMessage" rows="3">Together with their families, request the pleasure of your company</textarea>
+                    </div>
+                </div>
+
+                <!-- Typography Section -->
+                <div class="control-section">
+                    <h3><i class="fas fa-font"></i> Typography</h3>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Font Family</label>
+                        <select class="font-selector" id="fontFamily">
+                            <option value="Playfair Display">Playfair Display (Elegant)</option>
+                            <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
+                            <option value="Montserrat">Montserrat (Modern)</option>
+                            <option value="Great Vibes">Great Vibes (Script)</option>
+                            <option value="EB Garamond">EB Garamond (Traditional)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Font Color</label>
+                        <input type="color" class="color-picker" id="fontColor" value="#4A4A4A">
+                    </div>
+                </div>
+
+                <!-- Colors Section -->
+                <div class="control-section">
+                    <h3><i class="fas fa-palette"></i> Colors</h3>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Card Background</label>
+                        <input type="color" class="color-picker" id="cardColor" value="#FFF9F0">
+                    </div>
+                    
+                    <div class="control-row">
+                        <label class="control-label">Border Color</label>
+                        <input type="color" class="color-picker" id="borderColor" value="#D4AF37">
+                    </div>
+                </div>
+
+                <!-- Border Style Section -->
+                <div class="control-section">
+                    <h3><i class="fas fa-border-all"></i> Border Style</h3>
+                    
+                    <div class="border-style-selector">
+                        <div class="border-option active" data-border="lace">
+                            <i class="fas fa-gem"></i> Lace
+                        </div>
+                        <div class="border-option" data-border="geometric">
+                            <i class="fas fa-shapes"></i> Geometric
+                        </div>
+                        <div class="border-option" data-border="floral">
+                            <i class="fas fa-leaf"></i> Floral
+                        </div>
+                        <div class="border-option" data-border="minimal">
+                            <i class="fas fa-circle"></i> Minimal
+                        </div>
+                        <div class="border-option" data-border="double">
+                            <i class="fas fa-border-all"></i> Double
+                        </div>
+                        <div class="border-option" data-border="none">
+                            <i class="fas fa-times"></i> None
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <button class="continue-btn" id="continueBtn">
+                    <i class="fas fa-lock"></i> Continue to Payment ($14.99)
+                </button>
+                
+                <button class="reset-btn" id="resetBtn">
+                    <i class="fas fa-undo-alt"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get template ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateId = urlParams.get('template') || 'chantilly-lace';
+        
+        // DOM elements
+        const preview = document.getElementById('cardPreview');
+        const previewName = document.getElementById('previewName');
+        const previewDate = document.getElementById('previewDate');
+        const previewLocation = document.getElementById('previewLocation');
+        const previewMessage = document.getElementById('previewMessage');
+        
+        // Input elements
+        const inputNames = document.getElementById('inputNames');
+        const inputDate = document.getElementById('inputDate');
+        const inputLocation = document.getElementById('inputLocation');
+        const inputMessage = document.getElementById('inputMessage');
+        const fontFamily = document.getElementById('fontFamily');
+        const fontColor = document.getElementById('fontColor');
+        const cardColor = document.getElementById('cardColor');
+        const borderColor = document.getElementById('borderColor');
+        
+        // Update preview in real-time
+        function updatePreview() {
+            previewName.textContent = inputNames.value || 'Sarah & Michael';
+            previewDate.textContent = inputDate.value || 'June 15, 2025';
+            previewLocation.textContent = inputLocation.value || 'The Grand Ballroom';
+            previewMessage.textContent = inputMessage.value || 'Together with their families...';
+            
+            preview.style.fontFamily = fontFamily.value;
+            previewName.style.color = fontColor.value;
+            preview.style.backgroundColor = cardColor.value;
+            preview.style.borderColor = borderColor.value;
+        }
+        
+        // Add event listeners
+        inputNames.addEventListener('input', updatePreview);
+        inputDate.addEventListener('input', updatePreview);
+        inputLocation.addEventListener('input', updatePreview);
+        inputMessage.addEventListener('input', updatePreview);
+        fontFamily.addEventListener('change', updatePreview);
+        fontColor.addEventListener('input', updatePreview);
+        cardColor.addEventListener('input', updatePreview);
+        borderColor.addEventListener('input', updatePreview);
+        
+        // Border style selection
+        document.querySelectorAll('.border-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                document.querySelectorAll('.border-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                
+                const style = this.dataset.border;
+                preview.style.borderStyle = style === 'none' ? 'none' : 'solid';
+                preview.style.borderWidth = style === 'none' ? '0' : 
+                                           style === 'double' ? '8px' : '3px';
+                preview.style.borderImage = style === 'lace' ? 'repeating-linear-gradient(45deg, #D4AF37 0px, #D4AF37 2px, transparent 2px, transparent 8px) 10' : 
+                                            style === 'floral' ? 'url("/images/floral-border.png") 30' : 'none';
+            });
+        });
+        
+        // Reset to defaults
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            inputNames.value = 'Sarah & Michael';
+            inputDate.value = 'June 15, 2025';
+            inputLocation.value = 'The Grand Ballroom';
+            inputMessage.value = 'Together with their families, request the pleasure of your company';
+            fontFamily.value = 'Playfair Display';
+            fontColor.value = '#4A4A4A';
+            cardColor.value = '#FFF9F0';
+            borderColor.value = '#D4AF37';
+            updatePreview();
+        });
+        
+        // Continue to payment
+        document.getElementById('continueBtn').addEventListener('click', async function() {
+            // Save customization to localStorage
+            const customization = {
+                templateId: templateId,
+                names: inputNames.value,
+                date: inputDate.value,
+                location: inputLocation.value,
+                message: inputMessage.value,
+                fontFamily: fontFamily.value,
+                fontColor: fontColor.value,
+                cardColor: cardColor.value,
+                borderColor: borderColor.value,
+                borderStyle: document.querySelector('.border-option.active')?.dataset.border || 'lace',
+                price: 14.99
+            };
+            
+            localStorage.setItem('currentCustomization', JSON.stringify(customization));
+            
+            // Redirect to payment (we'll build this next)
+            window.location.href = '/checkout.html';
+        });
+        
+        // Load template defaults if available
+        async function loadTemplateDefaults() {
+            // In Phase 4, we'll fetch from Supabase
+            // For now, using defaults
+            updatePreview();
+        }
+        
+        loadTemplateDefaults();
+    </script>
+</body>
+</html>
