@@ -3,477 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Design Your Card | Papir</title>
+    <title>Design Your Card - Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@400;600&family=Great+Vibes&family=EB+Garamond:wght@400;600&family=Lato:wght@300;400&family=Parisienne&family=Sorts+Mill+Goudy&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gold: #BCAE83;
-            --primary-teal: #06D6A0;
-            --dark-bg: #1a1a1a;
-            --light-bg: #f5f5f5;
-            --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --border-light: #e0e0e0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
-
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 80px 20px 40px;
-        }
-
-        /* Header */
-        .design-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-radius: 15px;
-        }
-
-        .design-header h1 {
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .template-badge {
-            background: var(--primary-gold);
-            color: var(--dark-bg);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .price-display {
-            background: var(--primary-teal);
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        /* Main Layout */
-        .design-layout {
-            display: grid;
-            grid-template-columns: 300px 1fr 350px;
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        /* Layers Panel (Left) */
-        .layers-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
-        }
-
-        .layers-panel h3 {
-            color: var(--dark-bg);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 10px;
-        }
-
-        .layers-list {
-            list-style: none;
-        }
-
-        .layer-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--dark-bg);
-            border: 2px solid transparent;
-        }
-
-        .layer-item:hover {
-            background: #f5f5f5;
-        }
-
-        .layer-item.active {
-            background: rgba(188, 174, 131, 0.1);
-            border-color: var(--primary-gold);
-        }
-
-        .layer-icon {
-            width: 30px;
-            text-align: center;
-            color: var(--primary-gold);
-        }
-
-        .layer-name {
-            flex: 1;
-            font-weight: 500;
-        }
-
-        .layer-visibility {
-            color: #999;
-            cursor: pointer;
-        }
-
-        .layer-visibility:hover {
-            color: var(--primary-gold);
-        }
-
-        /* Preview Panel (Center) */
-        .preview-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .preview-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .page-selector {
-            display: flex;
-            gap: 10px;
-        }
-
-        .page-btn {
-            padding: 8px 20px;
-            border: 2px solid var(--border-light);
-            background: white;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .page-btn.active {
-            background: var(--primary-gold);
-            border-color: var(--primary-gold);
-            color: white;
-        }
-
-        .zoom-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .zoom-btn {
-            width: 35px;
-            height: 35px;
-            border: 2px solid var(--border-light);
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .zoom-btn:hover {
-            border-color: var(--primary-gold);
-        }
-
-        /* Card Canvas */
-        .card-canvas {
-            aspect-ratio: 7/5; /* Standard card ratio */
-            background: #FFF9F0;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            position: relative;
-            border: 3px solid #D4AF37;
-            margin: 20px 0;
-            cursor: default;
-        }
-
-        /* Individual editable elements */
-        .card-element {
-            position: relative;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .card-element:hover {
-            background: rgba(188, 174, 131, 0.1);
-            outline: 2px dashed var(--primary-gold);
-        }
-
-        .card-element.selected {
-            background: rgba(188, 174, 131, 0.15);
-            outline: 3px solid var(--primary-gold);
-        }
-
-        .card-element .element-label {
-            position: absolute;
-            top: -25px;
-            left: 0;
-            background: var(--primary-gold);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
-        }
-
-        .card-element:hover .element-label,
-        .card-element.selected .element-label {
-            opacity: 1;
-        }
-
-        /* Specific element styles */
-        .invitation-line {
-            font-size: 14px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .couple-names {
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
-            margin: 15px 0;
-            line-height: 1.2;
-        }
-
-        .couple-names span {
-            display: block;
-        }
-
-        .event-details {
-            font-size: 18px;
-            color: #555;
-            margin: 10px 0;
-        }
-
-        .date {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--primary-gold);
-            margin: 15px 0;
-        }
-
-        .location {
-            font-size: 18px;
-            color: #666;
-            margin: 5px 0;
-        }
-
-        .address {
-            font-size: 14px;
-            color: #888;
-            margin: 5px 0;
-            max-width: 300px;
-        }
-
-        .reception {
-            font-size: 16px;
-            color: #777;
-            margin-top: 20px;
-            font-style: italic;
-        }
-
-        /* Properties Panel (Right) */
-        .properties-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
-        }
-
-        .properties-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            color: var(--dark-bg);
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 10px;
-        }
-
-        .properties-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .property-group {
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--border-light);
-            padding-bottom: 20px;
-        }
-
-        .property-group h4 {
-            color: var(--dark-bg);
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .property-row {
-            margin-bottom: 15px;
-        }
-
-        .property-label {
-            display: block;
-            color: #555;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .property-input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid var(--border-light);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-
-        .property-input:focus {
-            border-color: var(--primary-gold);
-            outline: none;
-        }
-
-        .color-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .color-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            border: 2px solid var(--border-light);
-        }
-
-        .font-selector {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid var(--border-light);
-            border-radius: 8px;
-        }
-
-        .size-slider {
-            width: 100%;
-        }
-
-        .alignment-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .align-btn {
-            flex: 1;
-            padding: 8px;
-            border: 2px solid var(--border-light);
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .align-btn:hover,
-        .align-btn.active {
-            background: var(--primary-gold);
-            border-color: var(--primary-gold);
-            color: white;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            margin-top: 30px;
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-primary {
-            flex: 2;
-            padding: 15px;
-            background: linear-gradient(to right, var(--primary-gold), #a8996f);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3);
-        }
-
-        .btn-secondary {
-            flex: 1;
-            padding: 15px;
-            background: white;
-            color: var(--dark-bg);
-            border: 2px solid var(--border-light);
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--primary-gold);
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .design-layout {
-                grid-template-columns: 250px 1fr 300px;
-            }
-        }
-
-        @media (max-width: 968px) {
-            .design-layout {
-                grid-template-columns: 1fr;
-            }
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@400;600&family=Great+Vibes&family=EB+Garamond:wght@400;600&family=Parisienne&family=Sorts+Mill+Goudy&display=swap" rel="stylesheet">
+    <style>/* Copy the CSS from the previous message here - it's extensive but unchanged */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --primary-gold: #BCAE83; --primary-teal: #06D6A0; --dark-bg: #1a1a1a; --light-bg: #f5f5f5; --white: #ffffff; --shadow: 0 10px 30px rgba(0, 0, 0, 0.1); --border-light: #e0e0e0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
+    .app-container { max-width: 1600px; margin: 0 auto; padding: 80px 20px 40px; }
+    .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 15px; }
+    .design-header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
+    .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
+    .price-display { background: var(--primary-teal); color: white; padding: 10px 25px; border-radius: 30px; font-weight: bold; font-size: 1.2rem; }
+    .design-layout { display: grid; grid-template-columns: 300px 1fr 350px; gap: 25px; margin-top: 20px; }
+    .layers-panel, .preview-panel, .properties-panel { background: white; border-radius: 15px; padding: 20px; box-shadow: var(--shadow); height: fit-content; }
+    .layers-panel h3, .properties-header h3 { color: var(--dark-bg); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; border-bottom: 2px solid var(--border-light); padding-bottom: 10px; }
+    .layers-list { list-style: none; }
+    .layer-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: var(--dark-bg); border: 2px solid transparent; }
+    .layer-item:hover { background: #f5f5f5; }
+    .layer-item.active { background: rgba(188, 174, 131, 0.1); border-color: var(--primary-gold); }
+    .layer-icon { width: 30px; text-align: center; color: var(--primary-gold); }
+    .layer-name { flex: 1; font-weight: 500; }
+    .layer-visibility { color: #999; cursor: pointer; }
+    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .page-selector { display: flex; gap: 10px; }
+    .page-btn { padding: 8px 20px; border: 2px solid var(--border-light); background: white; border-radius: 30px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+    .page-btn.active { background: var(--primary-gold); border-color: var(--primary-gold); color: white; }
+    .zoom-controls { display: flex; gap: 10px; }
+    .zoom-btn { width: 35px; height: 35px; border: 2px solid var(--border-light); background: white; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+    .card-canvas { aspect-ratio: 7/5; background: #FFF9F0; border-radius: 20px; padding: 40px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); position: relative; border: 3px solid #D4AF37; margin: 20px 0; cursor: default; transition: all 0.3s ease; }
+    .card-element { position: relative; margin-bottom: 15px; cursor: pointer; transition: all 0.2s; padding: 5px; border-radius: 5px; }
+    .card-element:hover { background: rgba(188, 174, 131, 0.1); outline: 2px dashed var(--primary-gold); }
+    .card-element.selected { background: rgba(188, 174, 131, 0.15); outline: 3px solid var(--primary-gold); }
+    .card-element .element-label { position: absolute; top: -25px; left: 0; background: var(--primary-gold); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    .card-element:hover .element-label, .card-element.selected .element-label { opacity: 1; }
+    .invitation-line { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
+    .couple-names { font-size: 48px; font-weight: bold; color: #333; margin: 15px 0; line-height: 1.2; }
+    .date { font-size: 24px; font-weight: 600; color: var(--primary-gold); margin: 15px 0; }
+    .location { font-size: 18px; color: #666; margin: 5px 0; }
+    .address { font-size: 14px; color: #888; margin: 5px 0; max-width: 300px; }
+    .reception { font-size: 16px; color: #777; margin-top: 20px; font-style: italic; }
+    .properties-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: var(--dark-bg); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; }
+    .property-group { margin-bottom: 25px; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; }
+    .property-group h4 { color: var(--dark-bg); margin-bottom: 15px; font-size: 1rem; }
+    .property-row { margin-bottom: 15px; }
+    .property-label { display: block; color: #555; margin-bottom: 5px; font-size: 0.9rem; }
+    .property-input, .font-selector { width: 100%; padding: 10px; border: 2px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; }
+    .property-input:focus, .font-selector:focus { border-color: var(--primary-gold); outline: none; }
+    .color-row { display: flex; gap: 10px; align-items: center; }
+    .color-preview { width: 40px; height: 40px; border-radius: 8px; border: 2px solid var(--border-light); }
+    .size-slider { width: 100%; }
+    .alignment-buttons { display: flex; gap: 5px; }
+    .align-btn { flex: 1; padding: 8px; border: 2px solid var(--border-light); background: white; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+    .align-btn:hover, .align-btn.active { background: var(--primary-gold); border-color: var(--primary-gold); color: white; }
+    .action-buttons { margin-top: 30px; display: flex; gap: 15px; }
+    .btn-primary { flex: 2; padding: 15px; background: linear-gradient(to right, var(--primary-gold), #a8996f); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3); }
+    .btn-secondary { flex: 1; padding: 15px; background: white; color: var(--dark-bg); border: 2px solid var(--border-light); border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .btn-secondary:hover { border-color: var(--primary-gold); }
+    @media (max-width: 1200px) { .design-layout { grid-template-columns: 250px 1fr 300px; } }
+    @media (max-width: 968px) { .design-layout { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -481,381 +70,305 @@
         <!-- Header -->
         <div class="design-header">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="templates.html" style="color: white; text-decoration: none;">
-                    <i class="fas fa-arrow-left"></i> Back
-                </a>
+                <a href="templates.html" style="color: white; text-decoration: none;"><i class="fas fa-arrow-left"></i> Back</a>
                 <h1><i class="fas fa-magic"></i> Design Your Card</h1>
-                <span class="template-badge">Chantilly Lace</span>
+                <span class="template-badge" id="templateName">Chantilly Lace</span>
             </div>
-            <div class="price-display">
-                <i class="fas fa-tag"></i> $14.99
-            </div>
+            <div class="price-display"><i class="fas fa-tag"></i> $14.99</div>
         </div>
 
         <!-- Main Design Area -->
         <div class="design-layout">
-            <!-- Layers Panel (Left) -->
+            <!-- Layers Panel -->
             <div class="layers-panel">
                 <h3><i class="fas fa-layers"></i> Card Layers</h3>
-                <ul class="layers-list">
-                    <li class="layer-item active" data-element="invitation">
-                        <span class="layer-icon"><i class="fas fa-quote-right"></i></span>
-                        <span class="layer-name">Invitation Line</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="couple1">
-                        <span class="layer-icon"><i class="fas fa-user"></i></span>
-                        <span class="layer-name">First Name (Morgan)</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="and">
-                        <span class="layer-icon"><i class="fas fa-heart"></i></span>
-                        <span class="layer-name">"and"</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="couple2">
-                        <span class="layer-icon"><i class="fas fa-user"></i></span>
-                        <span class="layer-name">Second Name (Elijah)</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="date">
-                        <span class="layer-icon"><i class="far fa-calendar"></i></span>
-                        <span class="layer-name">Date & Time</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="church">
-                        <span class="layer-icon"><i class="fas fa-church"></i></span>
-                        <span class="layer-name">Church Name</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="address">
-                        <span class="layer-icon"><i class="fas fa-map-pin"></i></span>
-                        <span class="layer-name">Address</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                    <li class="layer-item" data-element="reception">
-                        <span class="layer-icon"><i class="fas fa-utensils"></i></span>
-                        <span class="layer-name">Reception Info</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    </li>
-                </ul>
-                
-                <button style="width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 2px dashed var(--border-light); border-radius: 8px; color: #666; cursor: pointer;">
+                <ul class="layers-list" id="layersList"></ul> <!-- Populated by JS -->
+                <button id="addTextFieldBtn" style="width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 2px dashed var(--border-light); border-radius: 8px; color: #666; cursor: pointer;">
                     <i class="fas fa-plus"></i> Add Text Field
                 </button>
             </div>
 
-            <!-- Preview Panel (Center) -->
+            <!-- Preview Panel -->
             <div class="preview-panel">
                 <div class="preview-toolbar">
                     <div class="page-selector">
-                        <button class="page-btn active">Front</button>
-                        <button class="page-btn">Back</button>
+                        <button class="page-btn active" data-page="front">Front</button>
+                        <button class="page-btn" data-page="back">Back</button>
                     </div>
                     <div class="zoom-controls">
-                        <button class="zoom-btn"><i class="fas fa-search-minus"></i></button>
-                        <button class="zoom-btn"><i class="fas fa-search-plus"></i></button>
-                        <button class="zoom-btn"><i class="fas fa-expand"></i></button>
+                        <button class="zoom-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
+                        <button class="zoom-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
+                        <button class="zoom-btn" id="zoomFit"><i class="fas fa-expand"></i></button>
                     </div>
                 </div>
-
-                <!-- Card Canvas -->
-                <div class="card-canvas" id="cardCanvas">
-                    <!-- Invitation Line -->
-                    <div class="card-element" data-element="invitation">
-                        <span class="element-label">Invitation Line</span>
-                        <div class="invitation-line">You are invited to the wedding of</div>
-                    </div>
-
-                    <!-- First Name -->
-                    <div class="card-element" data-element="couple1">
-                        <span class="element-label">First Name</span>
-                        <div class="couple-names">
-                            <span id="firstName">Morgan</span>
-                        </div>
-                    </div>
-
-                    <!-- "and" -->
-                    <div class="card-element" data-element="and">
-                        <span class="element-label">Separator</span>
-                        <div class="invitation-line" style="font-size: 18px;">and</div>
-                    </div>
-
-                    <!-- Second Name -->
-                    <div class="card-element" data-element="couple2">
-                        <span class="element-label">Second Name</span>
-                        <div class="couple-names">
-                            <span id="secondName">Elijah</span>
-                        </div>
-                    </div>
-
-                    <!-- Date -->
-                    <div class="card-element" data-element="date">
-                        <span class="element-label">Date & Time</span>
-                        <div class="date" id="date">may 16, 2027 at 6 in the evening</div>
-                    </div>
-
-                    <!-- Church -->
-                    <div class="card-element" data-element="church">
-                        <span class="element-label">Church</span>
-                        <div class="location" id="church">saint raleigh church</div>
-                    </div>
-
-                    <!-- Address -->
-                    <div class="card-element" data-element="address">
-                        <span class="element-label">Address</span>
-                        <div class="address" id="address">496 fullerton street, monterey, ...</div>
-                    </div>
-
-                    <!-- Reception -->
-                    <div class="card-element" data-element="reception">
-                        <span class="element-label">Reception</span>
-                        <div class="reception" id="reception">dinner and dancing to follow</div>
-                    </div>
+                <div class="card-canvas" id="cardCanvas" style="transform: scale(1);">
+                    <!-- Card elements will be injected by JavaScript -->
                 </div>
-
-                <!-- Canvas Dimensions -->
-                <div style="text-align: right; margin-top: 15px; color: #999;">
-                    7.12in × 5.12in
-                </div>
+                <div style="text-align: right; margin-top: 15px; color: #999;">7.12in × 5.12in</div>
             </div>
 
-            <!-- Properties Panel (Right) -->
-            <div class="properties-panel">
+            <!-- Properties Panel -->
+            <div class="properties-panel" id="propertiesPanel">
                 <div class="properties-header">
                     <h3><i class="fas fa-sliders-h"></i> Properties</h3>
-                    <span style="color: var(--primary-gold);">Morgan (Selected)</span>
+                    <span style="color: var(--primary-gold);" id="selectedElementName">Select an element</span>
                 </div>
-
-                <!-- Text Content -->
-                <div class="property-group">
-                    <h4>Text Content</h4>
-                    <div class="property-row">
-                        <label class="property-label">Text</label>
-                        <input type="text" class="property-input" id="propText" value="Morgan">
-                    </div>
-                </div>
-
-                <!-- Typography -->
-                <div class="property-group">
-                    <h4>Typography</h4>
-                    
-                    <div class="property-row">
-                        <label class="property-label">Font Family</label>
-                        <select class="font-selector" id="propFont">
-                            <option value="Playfair Display">Playfair Display</option>
-                            <option value="Cormorant Garamond">Cormorant Garamond</option>
-                            <option value="Great Vibes">Great Vibes</option>
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Parisienne">Parisienne</option>
-                            <option value="Sorts Mill Goudy">Sorts Mill Goudy</option>
-                        </select>
-                    </div>
-
-                    <div class="property-row">
-                        <label class="property-label">Font Size</label>
-                        <input type="range" class="size-slider" id="propSize" min="12" max="72" value="48">
-                        <div style="text-align: right;">48px</div>
-                    </div>
-
-                    <div class="property-row">
-                        <label class="property-label">Color</label>
-                        <div class="color-row">
-                            <input type="color" id="propColor" value="#333333">
-                            <div class="color-preview" style="background: #333333;"></div>
-                        </div>
-                    </div>
-
-                    <div class="property-row">
-                        <label class="property-label">Alignment</label>
-                        <div class="alignment-buttons">
-                            <button class="align-btn active"><i class="fas fa-align-left"></i></button>
-                            <button class="align-btn"><i class="fas fa-align-center"></i></button>
-                            <button class="align-btn"><i class="fas fa-align-right"></i></button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Spacing -->
-                <div class="property-group">
-                    <h4>Spacing</h4>
-                    
-                    <div class="property-row">
-                        <label class="property-label">Letter Spacing</label>
-                        <input type="range" min="0" max="10" value="0">
-                    </div>
-
-                    <div class="property-row">
-                        <label class="property-label">Line Height</label>
-                        <input type="range" min="1" max="3" step="0.1" value="1.2">
-                    </div>
-                </div>
-
-                <!-- Effects -->
-                <div class="property-group">
-                    <h4>Effects</h4>
-                    
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox"> Bold
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox"> Italic
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox"> Underline
-                        </label>
-                    </div>
+                <div id="propertyControls">
+                    <!-- Controls dynamically updated by JS -->
+                    <p style="color: #999; text-align: center;">Click on a card element to edit its properties.</p>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn-primary" id="continueBtn">
-                <i class="fas fa-save"></i> Save & Continue to Payment
-            </button>
-            <button class="btn-secondary">
-                <i class="fas fa-undo-alt"></i> Reset
-            </button>
+            <button class="btn-primary" id="continueBtn"><i class="fas fa-save"></i> Save & Continue to Payment</button>
+            <button class="btn-secondary" id="resetBtn"><i class="fas fa-undo-alt"></i> Reset to Default</button>
         </div>
     </div>
 
     <script>
-        // Selected element state
-        let selectedElement = 'couple1';
-        const elements = document.querySelectorAll('.card-element');
-        const layerItems = document.querySelectorAll('.layer-item');
+        (function() {
+            // --- Data and State ---
+            const templateName = document.getElementById('templateName');
+            const urlParams = new URLSearchParams(window.location.search);
+            templateName.textContent = urlParams.get('template')?.replace(/-/g, ' ') || 'Chantilly Lace';
 
-        // Element selection
-        elements.forEach(el => {
-            el.addEventListener('click', function(e) {
-                e.stopPropagation();
-                selectElement(this.dataset.element);
-            });
-        });
+            // Default card structure (for front page)
+            const defaultElements = [
+                { id: 'invitation', type: 'invitation', text: 'You are invited to the wedding of', style: { fontFamily: 'Playfair Display', fontSize: '14px', color: '#666666', textAlign: 'left' } },
+                { id: 'couple1', type: 'couple', text: 'Morgan', style: { fontFamily: 'Playfair Display', fontSize: '48px', color: '#333333', textAlign: 'left' } },
+                { id: 'and', type: 'and', text: 'and', style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#666666', textAlign: 'left' } },
+                { id: 'couple2', type: 'couple', text: 'Elijah', style: { fontFamily: 'Playfair Display', fontSize: '48px', color: '#333333', textAlign: 'left' } },
+                { id: 'date', type: 'date', text: 'may 16, 2027 at 6 in the evening', style: { fontFamily: 'Playfair Display', fontSize: '24px', color: '#BCAE83', textAlign: 'left' } },
+                { id: 'church', type: 'church', text: 'saint raleigh church', style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#666666', textAlign: 'left' } },
+                { id: 'address', type: 'address', text: '496 fullerton street, monterey, ...', style: { fontFamily: 'Playfair Display', fontSize: '14px', color: '#888888', textAlign: 'left' } },
+                { id: 'reception', type: 'reception', text: 'dinner and dancing to follow', style: { fontFamily: 'Playfair Display', fontSize: '16px', color: '#777777', fontStyle: 'italic', textAlign: 'left' } }
+            ];
 
-        layerItems.forEach(item => {
-            item.addEventListener('click', function() {
-                selectElement(this.dataset.element);
-            });
-        });
+            let elements = JSON.parse(JSON.stringify(defaultElements)); // Clone
+            let selectedElementId = 'couple1';
+            let currentPage = 'front';
+            let canvasScale = 1;
 
-        function selectElement(elementId) {
-            // Update active states
-            elements.forEach(el => {
-                el.classList.remove('selected');
-                if (el.dataset.element === elementId) {
-                    el.classList.add('selected');
-                }
-            });
+            // Helper to get element object by ID
+            function getElementById(id) {
+                return elements.find(el => el.id === id);
+            }
 
-            layerItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.element === elementId) {
-                    item.classList.add('active');
-                }
-            });
+            // --- Rendering Functions ---
+            function renderCanvas() {
+                const canvas = document.getElementById('cardCanvas');
+                canvas.innerHTML = ''; // Clear
+                elements.forEach(el => {
+                    const div = document.createElement('div');
+                    div.className = `card-element ${el.id === selectedElementId ? 'selected' : ''}`;
+                    div.dataset.elementId = el.id;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'element-label';
+                    label.textContent = el.id.charAt(0).toUpperCase() + el.id.slice(1);
+                    div.appendChild(label);
 
-            selectedElement = elementId;
-            
-            // Update properties panel based on selected element
-            updatePropertiesPanel(elementId);
-        }
+                    const contentDiv = document.createElement('div');
+                    contentDiv.textContent = el.text;
+                    // Apply styles
+                    contentDiv.style.fontFamily = el.style.fontFamily;
+                    contentDiv.style.fontSize = el.style.fontSize;
+                    contentDiv.style.color = el.style.color;
+                    contentDiv.style.textAlign = el.style.textAlign;
+                    if (el.style.fontStyle) contentDiv.style.fontStyle = el.style.fontStyle;
+                    
+                    // Add specific classes for styling hooks (optional)
+                    if (el.type === 'invitation') contentDiv.className = 'invitation-line';
+                    if (el.type === 'couple') contentDiv.className = 'couple-names';
+                    if (el.type === 'date') contentDiv.className = 'date';
+                    if (el.type === 'church' || el.type === 'location') contentDiv.className = 'location';
+                    if (el.type === 'address') contentDiv.className = 'address';
+                    if (el.type === 'reception') contentDiv.className = 'reception';
+                    
+                    div.appendChild(contentDiv);
+                    canvas.appendChild(div);
+                });
+                renderLayersList();
+            }
 
-        function updatePropertiesPanel(elementId) {
-            const element = document.querySelector(`[data-element="${elementId}"]`);
-            const textElement = element.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-            
-            if (textElement) {
-                document.getElementById('propText').value = textElement.textContent;
-                document.getElementById('propFont').value = window.getComputedStyle(textElement).fontFamily.split(',')[0].replace(/['"]/g, '');
+            function renderLayersList() {
+                const list = document.getElementById('layersList');
+                list.innerHTML = '';
+                elements.forEach(el => {
+                    const li = document.createElement('li');
+                    li.className = `layer-item ${el.id === selectedElementId ? 'active' : ''}`;
+                    li.dataset.elementId = el.id;
+                    li.innerHTML = `
+                        <span class="layer-icon"><i class="fas fa-font"></i></span>
+                        <span class="layer-name">${el.id}</span>
+                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
+                    `;
+                    li.addEventListener('click', () => selectElement(el.id));
+                    list.appendChild(li);
+                });
+            }
+
+            function renderPropertiesPanel() {
+                const el = getElementById(selectedElementId);
+                if (!el) return;
                 
-                // Update color preview
-                const color = window.getComputedStyle(textElement).color;
-                const rgb = color.match(/\d+/g);
-                if (rgb) {
-                    const hex = '#' + ((1 << 24) + (parseInt(rgb[0]) << 16) + (parseInt(rgb[1]) << 8) + parseInt(rgb[2])).toString(16).slice(1);
-                    document.getElementById('propColor').value = hex;
-                }
-            }
-        }
-
-        // Real-time property updates
-        document.getElementById('propText').addEventListener('input', function(e) {
-            const element = document.querySelector(`[data-element="${selectedElement}"]`);
-            const textElement = element.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-            if (textElement) {
-                textElement.textContent = e.target.value;
-            }
-        });
-
-        document.getElementById('propFont').addEventListener('change', function(e) {
-            const element = document.querySelector(`[data-element="${selectedElement}"]`);
-            const textElement = element.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-            if (textElement) {
-                textElement.style.fontFamily = e.target.value;
-            }
-        });
-
-        document.getElementById('propColor').addEventListener('input', function(e) {
-            const element = document.querySelector(`[data-element="${selectedElement}"]`);
-            const textElement = element.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-            if (textElement) {
-                textElement.style.color = e.target.value;
-            }
-            document.querySelector('.color-preview').style.background = e.target.value;
-        });
-
-        document.getElementById('propSize').addEventListener('input', function(e) {
-            const element = document.querySelector(`[data-element="${selectedElement}"]`);
-            const textElement = element.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-            if (textElement) {
-                textElement.style.fontSize = e.target.value + 'px';
-            }
-            this.nextElementSibling.textContent = e.target.value + 'px';
-        });
-
-        // Alignment buttons
-        document.querySelectorAll('.align-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+                document.getElementById('selectedElementName').textContent = el.id;
+                const panel = document.getElementById('propertyControls');
                 
-                const alignment = this.children[0].className.includes('left') ? 'left' : 
-                                 this.children[0].className.includes('center') ? 'center' : 'right';
-                
-                const element = document.querySelector(`[data-element="${selectedElement}"]`);
-                element.style.textAlign = alignment;
-            });
-        });
+                panel.innerHTML = `
+                    <div class="property-group">
+                        <h4>Text Content</h4>
+                        <div class="property-row">
+                            <label class="property-label">Text</label>
+                            <input type="text" class="property-input" id="propText" value="${el.text.replace(/"/g, '&quot;')}">
+                        </div>
+                    </div>
+                    <div class="property-group">
+                        <h4>Typography</h4>
+                        <div class="property-row">
+                            <label class="property-label">Font Family</label>
+                            <select class="font-selector" id="propFont">
+                                <option value="Playfair Display" ${el.style.fontFamily === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
+                                <option value="Cormorant Garamond" ${el.style.fontFamily === 'Cormorant Garamond' ? 'selected' : ''}>Cormorant Garamond</option>
+                                <option value="Great Vibes" ${el.style.fontFamily === 'Great Vibes' ? 'selected' : ''}>Great Vibes</option>
+                                <option value="Montserrat" ${el.style.fontFamily === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                                <option value="Parisienne" ${el.style.fontFamily === 'Parisienne' ? 'selected' : ''}>Parisienne</option>
+                                <option value="Sorts Mill Goudy" ${el.style.fontFamily === 'Sorts Mill Goudy' ? 'selected' : ''}>Sorts Mill Goudy</option>
+                            </select>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Font Size</label>
+                            <input type="range" class="size-slider" id="propSize" min="8" max="72" value="${parseInt(el.style.fontSize)}">
+                            <div style="text-align: right;">${el.style.fontSize}</div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Color</label>
+                            <div class="color-row">
+                                <input type="color" id="propColor" value="${el.style.color}">
+                                <div class="color-preview" style="background: ${el.style.color};"></div>
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Alignment</label>
+                            <div class="alignment-buttons">
+                                <button class="align-btn ${el.style.textAlign === 'left' ? 'active' : ''}" data-align="left"><i class="fas fa-align-left"></i></button>
+                                <button class="align-btn ${el.style.textAlign === 'center' ? 'active' : ''}" data-align="center"><i class="fas fa-align-center"></i></button>
+                                <button class="align-btn ${el.style.textAlign === 'right' ? 'active' : ''}" data-align="right"><i class="fas fa-align-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
 
-        // Continue to payment
-        document.getElementById('continueBtn').addEventListener('click', function() {
-            // Collect all customization data
-            const customization = {
-                elements: {}
-            };
-            
-            elements.forEach(el => {
-                const elementId = el.dataset.element;
-                const textElement = el.querySelector('.invitation-line, .couple-names span, .date, .location, .address, .reception');
-                if (textElement) {
-                    customization.elements[elementId] = {
-                        text: textElement.textContent,
-                        style: {
-                            fontFamily: textElement.style.fontFamily,
-                            fontSize: textElement.style.fontSize,
-                            color: textElement.style.color,
-                            textAlign: el.style.textAlign
-                        }
-                    };
+                // Attach event listeners to new controls
+                document.getElementById('propText').addEventListener('input', function(e) {
+                    getElementById(selectedElementId).text = e.target.value;
+                    renderCanvas();
+                });
+                document.getElementById('propFont').addEventListener('change', function(e) {
+                    getElementById(selectedElementId).style.fontFamily = e.target.value;
+                    renderCanvas();
+                });
+                document.getElementById('propSize').addEventListener('input', function(e) {
+                    const newSize = e.target.value + 'px';
+                    getElementById(selectedElementId).style.fontSize = newSize;
+                    renderCanvas();
+                    this.nextElementSibling.textContent = newSize; // Update size display
+                });
+                document.getElementById('propColor').addEventListener('input', function(e) {
+                    getElementById(selectedElementId).style.color = e.target.value;
+                    document.querySelector('.color-preview').style.background = e.target.value;
+                    renderCanvas();
+                });
+                document.querySelectorAll('.align-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const align = this.dataset.align;
+                        getElementById(selectedElementId).style.textAlign = align;
+                        renderCanvas();
+                    });
+                });
+            }
+
+            // --- Core Actions ---
+            function selectElement(id) {
+                selectedElementId = id;
+                renderCanvas();
+                renderPropertiesPanel();
+            }
+
+            // --- Event Listeners for Global Controls ---
+            document.getElementById('addTextFieldBtn').addEventListener('click', function() {
+                const newId = 'text_' + Date.now();
+                elements.push({
+                    id: newId,
+                    type: 'custom',
+                    text: 'New Text',
+                    style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#333333', textAlign: 'left' }
+                });
+                selectElement(newId);
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                if (confirm('Reset all changes to default?')) {
+                    elements = JSON.parse(JSON.stringify(defaultElements));
+                    selectElement('couple1');
                 }
             });
-            
-            localStorage.setItem('cardCustomization', JSON.stringify(customization));
-            window.location.href = '/checkout.html';
-        });
+
+            document.getElementById('continueBtn').addEventListener('click', function() {
+                // Save to localStorage and go to checkout
+                const cardData = {
+                    template: templateName.textContent,
+                    elements: elements,
+                    price: 14.99
+                };
+                localStorage.setItem('papirCardCustomization', JSON.stringify(cardData));
+                window.location.href = '/checkout.html';
+            });
+
+            // Zoom controls
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                canvasScale = Math.min(canvasScale + 0.1, 2);
+                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
+            });
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                canvasScale = Math.max(canvasScale - 0.1, 0.5);
+                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
+            });
+            document.getElementById('zoomFit').addEventListener('click', function() {
+                canvasScale = 1;
+                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
+            });
+
+            // Page selector (Front/Back)
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPage = this.dataset.page;
+                    // For demo, just change background color to simulate back page
+                    if (currentPage === 'back') {
+                        document.getElementById('cardCanvas').style.backgroundColor = '#f0f0f0';
+                    } else {
+                        document.getElementById('cardCanvas').style.backgroundColor = '#FFF9F0';
+                    }
+                });
+            });
+
+            // Canvas click delegation for element selection
+            document.getElementById('cardCanvas').addEventListener('click', function(e) {
+                const elementDiv = e.target.closest('.card-element');
+                if (elementDiv) {
+                    selectElement(elementDiv.dataset.elementId);
+                }
+            });
+
+            // Initialize
+            selectElement('couple1');
+        })();
     </script>
 </body>
 </html>
