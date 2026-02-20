@@ -3,66 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Design Your Card - Papir</title>
+    <title>Professional Card Designer - Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@400;600&family=Great+Vibes&family=EB+Garamond:wght@400;600&family=Parisienne&family=Sorts+Mill+Goudy&display=swap" rel="stylesheet">
-    <style>/* Copy the CSS from the previous message here - it's extensive but unchanged */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --primary-gold: #BCAE83; --primary-teal: #06D6A0; --dark-bg: #1a1a1a; --light-bg: #f5f5f5; --white: #ffffff; --shadow: 0 10px 30px rgba(0, 0, 0, 0.1); --border-light: #e0e0e0; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
-    .app-container { max-width: 1600px; margin: 0 auto; padding: 80px 20px 40px; }
-    .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 15px; }
-    .design-header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
-    .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
-    .price-display { background: var(--primary-teal); color: white; padding: 10px 25px; border-radius: 30px; font-weight: bold; font-size: 1.2rem; }
-    .design-layout { display: grid; grid-template-columns: 300px 1fr 350px; gap: 25px; margin-top: 20px; }
-    .layers-panel, .preview-panel, .properties-panel { background: white; border-radius: 15px; padding: 20px; box-shadow: var(--shadow); height: fit-content; }
-    .layers-panel h3, .properties-header h3 { color: var(--dark-bg); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; border-bottom: 2px solid var(--border-light); padding-bottom: 10px; }
-    .layers-list { list-style: none; }
-    .layer-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: var(--dark-bg); border: 2px solid transparent; }
-    .layer-item:hover { background: #f5f5f5; }
-    .layer-item.active { background: rgba(188, 174, 131, 0.1); border-color: var(--primary-gold); }
-    .layer-icon { width: 30px; text-align: center; color: var(--primary-gold); }
-    .layer-name { flex: 1; font-weight: 500; }
-    .layer-visibility { color: #999; cursor: pointer; }
-    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .page-selector { display: flex; gap: 10px; }
-    .page-btn { padding: 8px 20px; border: 2px solid var(--border-light); background: white; border-radius: 30px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-    .page-btn.active { background: var(--primary-gold); border-color: var(--primary-gold); color: white; }
-    .zoom-controls { display: flex; gap: 10px; }
-    .zoom-btn { width: 35px; height: 35px; border: 2px solid var(--border-light); background: white; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
-    .card-canvas { aspect-ratio: 7/5; background: #FFF9F0; border-radius: 20px; padding: 40px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); position: relative; border: 3px solid #D4AF37; margin: 20px 0; cursor: default; transition: all 0.3s ease; }
-    .card-element { position: relative; margin-bottom: 15px; cursor: pointer; transition: all 0.2s; padding: 5px; border-radius: 5px; }
-    .card-element:hover { background: rgba(188, 174, 131, 0.1); outline: 2px dashed var(--primary-gold); }
-    .card-element.selected { background: rgba(188, 174, 131, 0.15); outline: 3px solid var(--primary-gold); }
-    .card-element .element-label { position: absolute; top: -25px; left: 0; background: var(--primary-gold); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-    .card-element:hover .element-label, .card-element.selected .element-label { opacity: 1; }
-    .invitation-line { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
-    .couple-names { font-size: 48px; font-weight: bold; color: #333; margin: 15px 0; line-height: 1.2; }
-    .date { font-size: 24px; font-weight: 600; color: var(--primary-gold); margin: 15px 0; }
-    .location { font-size: 18px; color: #666; margin: 5px 0; }
-    .address { font-size: 14px; color: #888; margin: 5px 0; max-width: 300px; }
-    .reception { font-size: 16px; color: #777; margin-top: 20px; font-style: italic; }
-    .properties-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: var(--dark-bg); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; }
-    .property-group { margin-bottom: 25px; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; }
-    .property-group h4 { color: var(--dark-bg); margin-bottom: 15px; font-size: 1rem; }
-    .property-row { margin-bottom: 15px; }
-    .property-label { display: block; color: #555; margin-bottom: 5px; font-size: 0.9rem; }
-    .property-input, .font-selector { width: 100%; padding: 10px; border: 2px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; }
-    .property-input:focus, .font-selector:focus { border-color: var(--primary-gold); outline: none; }
-    .color-row { display: flex; gap: 10px; align-items: center; }
-    .color-preview { width: 40px; height: 40px; border-radius: 8px; border: 2px solid var(--border-light); }
-    .size-slider { width: 100%; }
-    .alignment-buttons { display: flex; gap: 5px; }
-    .align-btn { flex: 1; padding: 8px; border: 2px solid var(--border-light); background: white; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
-    .align-btn:hover, .align-btn.active { background: var(--primary-gold); border-color: var(--primary-gold); color: white; }
-    .action-buttons { margin-top: 30px; display: flex; gap: 15px; }
-    .btn-primary { flex: 2; padding: 15px; background: linear-gradient(to right, var(--primary-gold), #a8996f); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3); }
-    .btn-secondary { flex: 1; padding: 15px; background: white; color: var(--dark-bg); border: 2px solid var(--border-light); border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-    .btn-secondary:hover { border-color: var(--primary-gold); }
-    @media (max-width: 1200px) { .design-layout { grid-template-columns: 250px 1fr 300px; } }
-    @media (max-width: 968px) { .design-layout { grid-template-columns: 1fr; } }
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600;700&family=Great+Vibes&family=EB+Garamond:wght@400;600;800&family=Parisienne&family=Sorts+Mill+Goudy&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;600;700&family=Raleway:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&family=Libre+Baskerville:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Cinzel:wght@400;700;900&family=Alex+Brush&family=Allura&family=Sacramento&family=Dancing+Script:wght@400;700&family=Pacifico&family=Quicksand:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Fabric.js library for professional canvas manipulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #BCAE83;
+            --primary-teal: #06D6A0;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f5f5f5;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --border-light: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        /* Header */
+        .design-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 15px;
+        }
+
+        .design-header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .template-badge {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .price-display {
+            background: var(--primary-teal);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Main Layout */
+        .design-layout {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            height: calc(100vh - 120px);
+        }
+
+        /* Left Toolbar */
+        .tools-panel {
+            width: 80px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+        }
+
+        .tool-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: rgba(188, 174, 131, 0.1);
+            color: var(--primary-gold);
+        }
+
+        .tool-btn.active {
+            background: var(--primary-gold);
+            color: white;
+        }
+
+        .tool-btn[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark-bg);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        /* Center Canvas Area */
+        .canvas-area {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .page-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-btn {
+            padding: 8px 20px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .page-btn.active {
+            background: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .zoom-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .zoom-btn:hover {
+            border-color: var(--primary-gold);
+        }
+
+        #zoomLevel {
+            min-width: 60px;
+            text-align: center;
+            color: var(--dark-bg);
+        }
+
+        .canvas-container {
+            flex: 1;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #designCanvas {
+            border: 2px solid #ddd;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        /* Right Properties Panel */
+        .properties-panel {
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+            color: var(--dark-bg);
+        }
+
+        .properties-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 10px;
+        }
+
+        .properties-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .property-section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 20px;
+        }
+
+        .property-section h4 {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .property-row {
+            margin-bottom: 15px;
+        }
+
+        .property-label {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .property-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .property-input:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+        }
+
+        .color-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .slider-with-value {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .slider-with-value input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-with-value input[type="number"] {
+            width: 70px;
+            padding: 5px;
+            border: 2px solid var(--border-light);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .font-selector {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .border-style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .border-style-option {
+            padding: 8px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .border-style-option:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .border-style-option.active {
+            border-color: var(--primary-gold);
+            background: rgba(188, 174, 131, 0.1);
+        }
+
+        .text-effect-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .effect-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .effect-btn:hover,
+        .effect-btn.active {
+            background: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+
+        .alignment-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .align-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .align-btn:hover,
+        .align-btn.active {
+            background: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+
+        .bullet-list {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bullet-option {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid var(--border-light);
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .bullet-option:hover,
+        .bullet-option.active {
+            border-color: var(--primary-gold);
+            background: rgba(188, 174, 131, 0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-gold);
+            background: rgba(188, 174, 131, 0.05);
+        }
+
+        .graphics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .graphic-item {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        .graphic-item:hover {
+            border-color: var(--primary-gold);
+            transform: scale(1.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            flex: 2;
+            padding: 12px;
+            background: linear-gradient(to right, var(--primary-gold), #a8996f);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(188, 174, 131, 0.3);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            color: var(--dark-bg);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .layers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .layer-item:hover {
+            background: #f5f5f5;
+        }
+
+        .layer-item.active {
+            background: rgba(188, 174, 131, 0.1);
+            border-left: 3px solid var(--primary-gold);
+        }
+
+        .layer-icon {
+            width: 20px;
+            color: var(--primary-gold);
+        }
+
+        .layer-name {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .layer-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .layer-action-btn {
+            width: 25px;
+            height: 25px;
+            border: none;
+            background: transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .layer-action-btn:hover {
+            background: #f0f0f0;
+            color: var(--primary-gold);
+        }
     </style>
 </head>
 <body>
@@ -70,305 +566,993 @@
         <!-- Header -->
         <div class="design-header">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="templates.html" style="color: white; text-decoration: none;"><i class="fas fa-arrow-left"></i> Back</a>
-                <h1><i class="fas fa-magic"></i> Design Your Card</h1>
+                <a href="templates.html" style="color: white; text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1><i class="fas fa-magic"></i> Professional Card Designer</h1>
                 <span class="template-badge" id="templateName">Chantilly Lace</span>
             </div>
-            <div class="price-display"><i class="fas fa-tag"></i> $14.99</div>
+            <div class="price-display">
+                <i class="fas fa-tag"></i> $19.99
+            </div>
         </div>
 
         <!-- Main Design Area -->
         <div class="design-layout">
-            <!-- Layers Panel -->
-            <div class="layers-panel">
-                <h3><i class="fas fa-layers"></i> Card Layers</h3>
-                <ul class="layers-list" id="layersList"></ul> <!-- Populated by JS -->
-                <button id="addTextFieldBtn" style="width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 2px dashed var(--border-light); border-radius: 8px; color: #666; cursor: pointer;">
-                    <i class="fas fa-plus"></i> Add Text Field
+            <!-- Left Tools Panel -->
+            <div class="tools-panel">
+                <button class="tool-btn active" data-tool="select" data-tooltip="Select (V)">
+                    <i class="fas fa-mouse-pointer"></i>
+                </button>
+                <button class="tool-btn" data-tool="text" data-tooltip="Add Text (T)">
+                    <i class="fas fa-font"></i>
+                </button>
+                <button class="tool-btn" data-tool="image" data-tooltip="Add Image (I)">
+                    <i class="fas fa-image"></i>
+                </button>
+                <button class="tool-btn" data-tool="shape" data-tooltip="Add Shape (S)">
+                    <i class="fas fa-shapes"></i>
+                </button>
+                <button class="tool-btn" data-tool="graphic" data-tooltip="Add Graphic (G)">
+                    <i class="fas fa-star"></i>
+                </button>
+                <div style="width: 100%; height: 1px; background: var(--border-light); margin: 10px 0;"></div>
+                <button class="tool-btn" data-tool="layers" data-tooltip="Layers">
+                    <i class="fas fa-layers"></i>
+                </button>
+                <button class="tool-btn" data-tool="duplicate" data-tooltip="Duplicate (Ctrl+D)">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="tool-btn" data-tool="delete" data-tooltip="Delete (Del)">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="tool-btn" data-tool="undo" data-tooltip="Undo (Ctrl+Z)">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="tool-btn" data-tool="redo" data-tooltip="Redo (Ctrl+Y)">
+                    <i class="fas fa-redo"></i>
                 </button>
             </div>
 
-            <!-- Preview Panel -->
-            <div class="preview-panel">
-                <div class="preview-toolbar">
-                    <div class="page-selector">
+            <!-- Center Canvas Area -->
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <div class="page-controls">
                         <button class="page-btn active" data-page="front">Front</button>
                         <button class="page-btn" data-page="back">Back</button>
                     </div>
                     <div class="zoom-controls">
                         <button class="zoom-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
+                        <span id="zoomLevel">100%</span>
                         <button class="zoom-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
                         <button class="zoom-btn" id="zoomFit"><i class="fas fa-expand"></i></button>
                     </div>
                 </div>
-                <div class="card-canvas" id="cardCanvas" style="transform: scale(1);">
-                    <!-- Card elements will be injected by JavaScript -->
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
-                <div style="text-align: right; margin-top: 15px; color: #999;">7.12in × 5.12in</div>
             </div>
 
-            <!-- Properties Panel -->
+            <!-- Right Properties Panel -->
             <div class="properties-panel" id="propertiesPanel">
                 <div class="properties-header">
                     <h3><i class="fas fa-sliders-h"></i> Properties</h3>
-                    <span style="color: var(--primary-gold);" id="selectedElementName">Select an element</span>
+                    <span style="color: var(--primary-gold);" id="selectedObjectType">No Selection</span>
                 </div>
-                <div id="propertyControls">
-                    <!-- Controls dynamically updated by JS -->
-                    <p style="color: #999; text-align: center;">Click on a card element to edit its properties.</p>
+
+                <!-- Text Properties Section (shown when text is selected) -->
+                <div id="textProperties" style="display: none;">
+                    <div class="property-section">
+                        <h4><i class="fas fa-font"></i> Typography</h4>
+                        <div class="property-row">
+                            <label class="property-label">Font Family</label>
+                            <select class="font-selector" id="fontFamily">
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Great Vibes">Great Vibes</option>
+                                <option value="EB Garamond">EB Garamond</option>
+                                <option value="Parisienne">Parisienne</option>
+                                <option value="Sorts Mill Goudy">Sorts Mill Goudy</option>
+                                <option value="Lato">Lato</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Raleway">Raleway</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Libre Baskerville">Libre Baskerville</option>
+                                <option value="Old Standard TT">Old Standard TT</option>
+                                <option value="Cinzel">Cinzel</option>
+                                <option value="Alex Brush">Alex Brush</option>
+                                <option value="Allura">Allura</option>
+                                <option value="Sacramento">Sacramento</option>
+                                <option value="Dancing Script">Dancing Script</option>
+                                <option value="Pacifico">Pacifico</option>
+                                <option value="Quicksand">Quicksand</option>
+                            </select>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Font Size</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="fontSizeSlider" min="8" max="200" value="48">
+                                <input type="number" id="fontSizeNumber" min="8" max="200" value="48">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Color</label>
+                            <div class="color-row">
+                                <input type="color" id="textColor" value="#333333">
+                                <input type="text" class="property-input" id="textColorHex" value="#333333" maxlength="7">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Opacity</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="textOpacitySlider" min="0" max="100" value="100">
+                                <input type="number" id="textOpacityNumber" min="0" max="100" value="100">%
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Text Effects</label>
+                            <div class="text-effect-buttons">
+                                <button class="effect-btn" id="textBold"><i class="fas fa-bold"></i></button>
+                                <button class="effect-btn" id="textItalic"><i class="fas fa-italic"></i></button>
+                                <button class="effect-btn" id="textUnderline"><i class="fas fa-underline"></i></button>
+                                <button class="effect-btn" id="textStrikethrough"><i class="fas fa-strikethrough"></i></button>
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Alignment</label>
+                            <div class="alignment-buttons">
+                                <button class="align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
+                                <button class="align-btn" data-align="center"><i class="fas fa-align-center"></i></button>
+                                <button class="align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
+                                <button class="align-btn" data-align="justify"><i class="fas fa-align-justify"></i></button>
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Line Height</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="lineHeightSlider" min="0.8" max="3" step="0.1" value="1.2">
+                                <input type="number" id="lineHeightNumber" min="0.8" max="3" step="0.1" value="1.2">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Letter Spacing</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="letterSpacingSlider" min="-2" max="10" step="0.5" value="0">
+                                <input type="number" id="letterSpacingNumber" min="-2" max="10" step="0.5" value="0">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">List Style</label>
+                            <div class="bullet-list">
+                                <div class="bullet-option active" data-list="none">None</div>
+                                <div class="bullet-option" data-list="bullet">• Bullet</div>
+                                <div class="bullet-option" data-list="number">1. Number</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Properties Section (shown when image is selected) -->
+                <div id="imageProperties" style="display: none;">
+                    <div class="property-section">
+                        <h4><i class="fas fa-image"></i> Image Settings</h4>
+                        <div class="property-row">
+                            <label class="property-label">Opacity</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="imageOpacitySlider" min="0" max="100" value="100">
+                                <input type="number" id="imageOpacityNumber" min="0" max="100" value="100">%
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Flip</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="effect-btn" id="flipHorizontal"><i class="fas fa-arrows-alt-h"></i> H</button>
+                                <button class="effect-btn" id="flipVertical"><i class="fas fa-arrows-alt-v"></i> V</button>
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Replace Image</label>
+                            <div class="upload-area" id="replaceImageUpload">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                                <div>Click to replace</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shape Properties Section (shown when shape is selected) -->
+                <div id="shapeProperties" style="display: none;">
+                    <div class="property-section">
+                        <h4><i class="fas fa-shapes"></i> Shape Settings</h4>
+                        <div class="property-row">
+                            <label class="property-label">Fill Color</label>
+                            <div class="color-row">
+                                <input type="color" id="shapeFillColor" value="#BCAE83">
+                                <input type="text" class="property-input" id="shapeFillHex" value="#BCAE83">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Stroke Color</label>
+                            <div class="color-row">
+                                <input type="color" id="shapeStrokeColor" value="#000000">
+                                <input type="text" class="property-input" id="shapeStrokeHex" value="#000000">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Stroke Width</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="strokeWidthSlider" min="0" max="20" value="2">
+                                <input type="number" id="strokeWidthNumber" min="0" max="20" value="2">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Opacity</label>
+                            <div class="slider-with-value">
+                                <input type="range" id="shapeOpacitySlider" min="0" max="100" value="100">
+                                <input type="number" id="shapeOpacityNumber" min="0" max="100" value="100">%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Properties (for all objects) -->
+                <div class="property-section">
+                    <h4><i class="fas fa-object-group"></i> Transform</h4>
+                    <div class="property-row">
+                        <label class="property-label">Position X</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="posXSlider" min="0" max="600" value="0">
+                            <input type="number" id="posXNumber" min="0" max="600" value="0">
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Position Y</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="posYSlider" min="0" max="450" value="0">
+                            <input type="number" id="posYNumber" min="0" max="450" value="0">
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Width</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="widthSlider" min="10" max="600" value="100">
+                            <input type="number" id="widthNumber" min="10" max="600" value="100">
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Height</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="heightSlider" min="10" max="450" value="100">
+                            <input type="number" id="heightNumber" min="10" max="450" value="100">
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Rotation</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="rotationSlider" min="0" max="360" value="0">
+                            <input type="number" id="rotationNumber" min="0" max="360" value="0">°
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Border Properties -->
+                <div class="property-section">
+                    <h4><i class="fas fa-border-all"></i> Card Border</h4>
+                    <div class="property-row">
+                        <label class="property-label">Border Style</label>
+                        <div class="border-style-grid" id="borderStyleGrid">
+                            <div class="border-style-option active" data-border="none">None</div>
+                            <div class="border-style-option" data-border="solid">Solid</div>
+                            <div class="border-style-option" data-border="dashed">Dashed</div>
+                            <div class="border-style-option" data-border="dotted">Dotted</div>
+                            <div class="border-style-option" data-border="double">Double</div>
+                            <div class="border-style-option" data-border="groove">Groove</div>
+                            <div class="border-style-option" data-border="ridge">Ridge</div>
+                            <div class="border-style-option" data-border="inset">Inset</div>
+                            <div class="border-style-option" data-border="outset">Outset</div>
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Border Color</label>
+                        <div class="color-row">
+                            <input type="color" id="borderColor" value="#D4AF37">
+                            <input type="text" class="property-input" id="borderColorHex" value="#D4AF37">
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Border Width</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="borderWidthSlider" min="0" max="20" value="3">
+                            <input type="number" id="borderWidthNumber" min="0" max="20" value="3">px
+                        </div>
+                    </div>
+                    <div class="property-row">
+                        <label class="property-label">Border Radius</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="borderRadiusSlider" min="0" max="50" value="0">
+                            <input type="number" id="borderRadiusNumber" min="0" max="50" value="0">px
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphics Library -->
+                <div class="property-section">
+                    <h4><i class="fas fa-star"></i> Graphics Library</h4>
+                    <div class="graphics-grid" id="graphicsGrid">
+                        <div class="graphic-item" data-graphic="heart"><i class="fas fa-heart"></i></div>
+                        <div class="graphic-item" data-graphic="star"><i class="fas fa-star"></i></div>
+                        <div class="graphic-item" data-graphic="flower"><i class="fas fa-seedling"></i></div>
+                        <div class="graphic-item" data-graphic="crown"><i class="fas fa-crown"></i></div>
+                        <div class="graphic-item" data-graphic="diamond"><i class="fas fa-gem"></i></div>
+                        <div class="graphic-item" data-graphic="circle"><i class="fas fa-circle"></i></div>
+                        <div class="graphic-item" data-graphic="square"><i class="fas fa-square"></i></div>
+                        <div class="graphic-item" data-graphic="triangle"><i class="fas fa-play"></i></div>
+                        <div class="graphic-item" data-graphic="ribbon"><i class="fas fa-ribbon"></i></div>
+                    </div>
+                </div>
+
+                <!-- Layers Panel -->
+                <div class="property-section">
+                    <h4><i class="fas fa-layers"></i> Layers</h4>
+                    <div class="layers-list" id="layersList"></div>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="property-section">
+                    <h4><i class="fas fa-cloud-upload-alt"></i> Upload</h4>
+                    <div class="upload-area" id="imageUpload">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div>Click to upload image from device</div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn-primary" id="continueBtn"><i class="fas fa-save"></i> Save & Continue to Payment</button>
-            <button class="btn-secondary" id="resetBtn"><i class="fas fa-undo-alt"></i> Reset to Default</button>
+            <button class="btn-primary" id="saveBtn">
+                <i class="fas fa-save"></i> Save Design
+            </button>
+            <button class="btn-secondary" id="previewBtn">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn-secondary" id="resetBtn">
+                <i class="fas fa-undo-alt"></i> Reset
+            </button>
         </div>
     </div>
 
     <script>
-        (function() {
-            // --- Data and State ---
-            const templateName = document.getElementById('templateName');
-            const urlParams = new URLSearchParams(window.location.search);
-            templateName.textContent = urlParams.get('template')?.replace(/-/g, ' ') || 'Chantilly Lace';
+        // Initialize Fabric.js canvas
+        const canvas = new fabric.Canvas('designCanvas');
+        let selectedObject = null;
+        let currentPage = 'front';
+        let zoomLevel = 1;
 
-            // Default card structure (for front page)
-            const defaultElements = [
-                { id: 'invitation', type: 'invitation', text: 'You are invited to the wedding of', style: { fontFamily: 'Playfair Display', fontSize: '14px', color: '#666666', textAlign: 'left' } },
-                { id: 'couple1', type: 'couple', text: 'Morgan', style: { fontFamily: 'Playfair Display', fontSize: '48px', color: '#333333', textAlign: 'left' } },
-                { id: 'and', type: 'and', text: 'and', style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#666666', textAlign: 'left' } },
-                { id: 'couple2', type: 'couple', text: 'Elijah', style: { fontFamily: 'Playfair Display', fontSize: '48px', color: '#333333', textAlign: 'left' } },
-                { id: 'date', type: 'date', text: 'may 16, 2027 at 6 in the evening', style: { fontFamily: 'Playfair Display', fontSize: '24px', color: '#BCAE83', textAlign: 'left' } },
-                { id: 'church', type: 'church', text: 'saint raleigh church', style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#666666', textAlign: 'left' } },
-                { id: 'address', type: 'address', text: '496 fullerton street, monterey, ...', style: { fontFamily: 'Playfair Display', fontSize: '14px', color: '#888888', textAlign: 'left' } },
-                { id: 'reception', type: 'reception', text: 'dinner and dancing to follow', style: { fontFamily: 'Playfair Display', fontSize: '16px', color: '#777777', fontStyle: 'italic', textAlign: 'left' } }
-            ];
+        // Template name from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('templateName').textContent = urlParams.get('template')?.replace(/-/g, ' ') || 'Chantilly Lace';
 
-            let elements = JSON.parse(JSON.stringify(defaultElements)); // Clone
-            let selectedElementId = 'couple1';
-            let currentPage = 'front';
-            let canvasScale = 1;
+        // Initialize with default text elements
+        function initializeCard() {
+            canvas.clear();
 
-            // Helper to get element object by ID
-            function getElementById(id) {
-                return elements.find(el => el.id === id);
+            // Add default text elements
+            const invitationLine = new fabric.Text('You are invited to the wedding of', {
+                left: 50,
+                top: 80,
+                fontSize: 14,
+                fontFamily: 'Playfair Display',
+                fill: '#666666',
+                fontWeight: 'normal',
+                charSpacing: 20
+            });
+
+            const name1 = new fabric.Text('Morgan', {
+                left: 50,
+                top: 120,
+                fontSize: 48,
+                fontFamily: 'Playfair Display',
+                fill: '#333333',
+                fontWeight: 'bold'
+            });
+
+            const and = new fabric.Text('and', {
+                left: 50,
+                top: 180,
+                fontSize: 18,
+                fontFamily: 'Playfair Display',
+                fill: '#666666'
+            });
+
+            const name2 = new fabric.Text('Elijah', {
+                left: 50,
+                top: 220,
+                fontSize: 48,
+                fontFamily: 'Playfair Display',
+                fill: '#333333',
+                fontWeight: 'bold'
+            });
+
+            const date = new fabric.Text('may 16, 2027 at 6 in the evening', {
+                left: 50,
+                top: 290,
+                fontSize: 24,
+                fontFamily: 'Playfair Display',
+                fill: '#BCAE83',
+                fontWeight: '600'
+            });
+
+            const church = new fabric.Text('saint raleigh church', {
+                left: 50,
+                top: 330,
+                fontSize: 18,
+                fontFamily: 'Playfair Display',
+                fill: '#666666'
+            });
+
+            const address = new fabric.Text('496 fullerton street, monterey, ...', {
+                left: 50,
+                top: 360,
+                fontSize: 14,
+                fontFamily: 'Playfair Display',
+                fill: '#888888'
+            });
+
+            const reception = new fabric.Text('dinner and dancing to follow', {
+                left: 50,
+                top: 390,
+                fontSize: 16,
+                fontFamily: 'Playfair Display',
+                fill: '#777777',
+                fontStyle: 'italic'
+            });
+
+            canvas.add(invitationLine, name1, and, name2, date, church, address, reception);
+            canvas.renderAll();
+            updateLayersList();
+        }
+
+        initializeCard();
+
+        // Object selection handler
+        canvas.on('selection:created', (e) => {
+            selectedObject = e.selected[0];
+            updatePropertiesPanel();
+        });
+
+        canvas.on('selection:updated', (e) => {
+            selectedObject = e.selected[0];
+            updatePropertiesPanel();
+        });
+
+        canvas.on('selection:cleared', () => {
+            selectedObject = null;
+            hideAllPropertySections();
+            document.getElementById('selectedObjectType').textContent = 'No Selection';
+        });
+
+        canvas.on('object:modified', () => {
+            if (selectedObject) {
+                updatePropertiesPanel();
             }
+        });
 
-            // --- Rendering Functions ---
-            function renderCanvas() {
-                const canvas = document.getElementById('cardCanvas');
-                canvas.innerHTML = ''; // Clear
-                elements.forEach(el => {
-                    const div = document.createElement('div');
-                    div.className = `card-element ${el.id === selectedElementId ? 'selected' : ''}`;
-                    div.dataset.elementId = el.id;
-                    
-                    const label = document.createElement('span');
-                    label.className = 'element-label';
-                    label.textContent = el.id.charAt(0).toUpperCase() + el.id.slice(1);
-                    div.appendChild(label);
+        // Update properties panel based on selected object
+        function updatePropertiesPanel() {
+            if (!selectedObject) return;
 
-                    const contentDiv = document.createElement('div');
-                    contentDiv.textContent = el.text;
-                    // Apply styles
-                    contentDiv.style.fontFamily = el.style.fontFamily;
-                    contentDiv.style.fontSize = el.style.fontSize;
-                    contentDiv.style.color = el.style.color;
-                    contentDiv.style.textAlign = el.style.textAlign;
-                    if (el.style.fontStyle) contentDiv.style.fontStyle = el.style.fontStyle;
-                    
-                    // Add specific classes for styling hooks (optional)
-                    if (el.type === 'invitation') contentDiv.className = 'invitation-line';
-                    if (el.type === 'couple') contentDiv.className = 'couple-names';
-                    if (el.type === 'date') contentDiv.className = 'date';
-                    if (el.type === 'church' || el.type === 'location') contentDiv.className = 'location';
-                    if (el.type === 'address') contentDiv.className = 'address';
-                    if (el.type === 'reception') contentDiv.className = 'reception';
-                    
-                    div.appendChild(contentDiv);
-                    canvas.appendChild(div);
-                });
-                renderLayersList();
-            }
+            // Show/hide appropriate property sections
+            hideAllPropertySections();
 
-            function renderLayersList() {
-                const list = document.getElementById('layersList');
-                list.innerHTML = '';
-                elements.forEach(el => {
-                    const li = document.createElement('li');
-                    li.className = `layer-item ${el.id === selectedElementId ? 'active' : ''}`;
-                    li.dataset.elementId = el.id;
-                    li.innerHTML = `
-                        <span class="layer-icon"><i class="fas fa-font"></i></span>
-                        <span class="layer-name">${el.id}</span>
-                        <span class="layer-visibility"><i class="far fa-eye"></i></span>
-                    `;
-                    li.addEventListener('click', () => selectElement(el.id));
-                    list.appendChild(li);
-                });
-            }
-
-            function renderPropertiesPanel() {
-                const el = getElementById(selectedElementId);
-                if (!el) return;
+            if (selectedObject.type === 'text') {
+                document.getElementById('textProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Text Element';
                 
-                document.getElementById('selectedElementName').textContent = el.id;
-                const panel = document.getElementById('propertyControls');
+                // Update text properties
+                document.getElementById('fontFamily').value = selectedObject.fontFamily;
+                document.getElementById('fontSizeSlider').value = selectedObject.fontSize;
+                document.getElementById('fontSizeNumber').value = selectedObject.fontSize;
+                document.getElementById('textColor').value = selectedObject.fill;
+                document.getElementById('textColorHex').value = selectedObject.fill;
+                document.getElementById('textOpacitySlider').value = selectedObject.opacity * 100;
+                document.getElementById('textOpacityNumber').value = selectedObject.opacity * 100;
                 
-                panel.innerHTML = `
-                    <div class="property-group">
-                        <h4>Text Content</h4>
-                        <div class="property-row">
-                            <label class="property-label">Text</label>
-                            <input type="text" class="property-input" id="propText" value="${el.text.replace(/"/g, '&quot;')}">
-                        </div>
-                    </div>
-                    <div class="property-group">
-                        <h4>Typography</h4>
-                        <div class="property-row">
-                            <label class="property-label">Font Family</label>
-                            <select class="font-selector" id="propFont">
-                                <option value="Playfair Display" ${el.style.fontFamily === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
-                                <option value="Cormorant Garamond" ${el.style.fontFamily === 'Cormorant Garamond' ? 'selected' : ''}>Cormorant Garamond</option>
-                                <option value="Great Vibes" ${el.style.fontFamily === 'Great Vibes' ? 'selected' : ''}>Great Vibes</option>
-                                <option value="Montserrat" ${el.style.fontFamily === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
-                                <option value="Parisienne" ${el.style.fontFamily === 'Parisienne' ? 'selected' : ''}>Parisienne</option>
-                                <option value="Sorts Mill Goudy" ${el.style.fontFamily === 'Sorts Mill Goudy' ? 'selected' : ''}>Sorts Mill Goudy</option>
-                            </select>
-                        </div>
-                        <div class="property-row">
-                            <label class="property-label">Font Size</label>
-                            <input type="range" class="size-slider" id="propSize" min="8" max="72" value="${parseInt(el.style.fontSize)}">
-                            <div style="text-align: right;">${el.style.fontSize}</div>
-                        </div>
-                        <div class="property-row">
-                            <label class="property-label">Color</label>
-                            <div class="color-row">
-                                <input type="color" id="propColor" value="${el.style.color}">
-                                <div class="color-preview" style="background: ${el.style.color};"></div>
-                            </div>
-                        </div>
-                        <div class="property-row">
-                            <label class="property-label">Alignment</label>
-                            <div class="alignment-buttons">
-                                <button class="align-btn ${el.style.textAlign === 'left' ? 'active' : ''}" data-align="left"><i class="fas fa-align-left"></i></button>
-                                <button class="align-btn ${el.style.textAlign === 'center' ? 'active' : ''}" data-align="center"><i class="fas fa-align-center"></i></button>
-                                <button class="align-btn ${el.style.textAlign === 'right' ? 'active' : ''}" data-align="right"><i class="fas fa-align-right"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // Attach event listeners to new controls
-                document.getElementById('propText').addEventListener('input', function(e) {
-                    getElementById(selectedElementId).text = e.target.value;
-                    renderCanvas();
-                });
-                document.getElementById('propFont').addEventListener('change', function(e) {
-                    getElementById(selectedElementId).style.fontFamily = e.target.value;
-                    renderCanvas();
-                });
-                document.getElementById('propSize').addEventListener('input', function(e) {
-                    const newSize = e.target.value + 'px';
-                    getElementById(selectedElementId).style.fontSize = newSize;
-                    renderCanvas();
-                    this.nextElementSibling.textContent = newSize; // Update size display
-                });
-                document.getElementById('propColor').addEventListener('input', function(e) {
-                    getElementById(selectedElementId).style.color = e.target.value;
-                    document.querySelector('.color-preview').style.background = e.target.value;
-                    renderCanvas();
-                });
+                // Update text style buttons
+                document.getElementById('textBold').classList.toggle('active', selectedObject.fontWeight === 'bold');
+                document.getElementById('textItalic').classList.toggle('active', selectedObject.fontStyle === 'italic');
+                document.getElementById('textUnderline').classList.toggle('active', selectedObject.underline);
+                
+                // Update alignment
                 document.querySelectorAll('.align-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        const align = this.dataset.align;
-                        getElementById(selectedElementId).style.textAlign = align;
-                        renderCanvas();
-                    });
-                });
-            }
-
-            // --- Core Actions ---
-            function selectElement(id) {
-                selectedElementId = id;
-                renderCanvas();
-                renderPropertiesPanel();
-            }
-
-            // --- Event Listeners for Global Controls ---
-            document.getElementById('addTextFieldBtn').addEventListener('click', function() {
-                const newId = 'text_' + Date.now();
-                elements.push({
-                    id: newId,
-                    type: 'custom',
-                    text: 'New Text',
-                    style: { fontFamily: 'Playfair Display', fontSize: '18px', color: '#333333', textAlign: 'left' }
-                });
-                selectElement(newId);
-            });
-
-            document.getElementById('resetBtn').addEventListener('click', function() {
-                if (confirm('Reset all changes to default?')) {
-                    elements = JSON.parse(JSON.stringify(defaultElements));
-                    selectElement('couple1');
-                }
-            });
-
-            document.getElementById('continueBtn').addEventListener('click', function() {
-                // Save to localStorage and go to checkout
-                const cardData = {
-                    template: templateName.textContent,
-                    elements: elements,
-                    price: 14.99
-                };
-                localStorage.setItem('papirCardCustomization', JSON.stringify(cardData));
-                window.location.href = '/checkout.html';
-            });
-
-            // Zoom controls
-            document.getElementById('zoomIn').addEventListener('click', function() {
-                canvasScale = Math.min(canvasScale + 0.1, 2);
-                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
-            });
-            document.getElementById('zoomOut').addEventListener('click', function() {
-                canvasScale = Math.max(canvasScale - 0.1, 0.5);
-                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
-            });
-            document.getElementById('zoomFit').addEventListener('click', function() {
-                canvasScale = 1;
-                document.getElementById('cardCanvas').style.transform = `scale(${canvasScale})`;
-            });
-
-            // Page selector (Front/Back)
-            document.querySelectorAll('.page-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentPage = this.dataset.page;
-                    // For demo, just change background color to simulate back page
-                    if (currentPage === 'back') {
-                        document.getElementById('cardCanvas').style.backgroundColor = '#f0f0f0';
-                    } else {
-                        document.getElementById('cardCanvas').style.backgroundColor = '#FFF9F0';
+                    btn.classList.remove('active');
+                    if (btn.dataset.align === selectedObject.textAlign) {
+                        btn.classList.add('active');
                     }
                 });
-            });
+            }
+            else if (selectedObject.type === 'image') {
+                document.getElementById('imageProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Image';
+                
+                document.getElementById('imageOpacitySlider').value = selectedObject.opacity * 100;
+                document.getElementById('imageOpacityNumber').value = selectedObject.opacity * 100;
+            }
+            else if (selectedObject.type === 'rect' || selectedObject.type === 'circle' || selectedObject.type === 'triangle') {
+                document.getElementById('shapeProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Shape';
+                
+                document.getElementById('shapeFillColor').value = selectedObject.fill;
+                document.getElementById('shapeFillHex').value = selectedObject.fill;
+                document.getElementById('shapeStrokeColor').value = selectedObject.stroke || '#000000';
+                document.getElementById('shapeStrokeHex').value = selectedObject.stroke || '#000000';
+                document.getElementById('strokeWidthSlider').value = selectedObject.strokeWidth || 0;
+                document.getElementById('strokeWidthNumber').value = selectedObject.strokeWidth || 0;
+                document.getElementById('shapeOpacitySlider').value = selectedObject.opacity * 100;
+                document.getElementById('shapeOpacityNumber').value = selectedObject.opacity * 100;
+            }
 
-            // Canvas click delegation for element selection
-            document.getElementById('cardCanvas').addEventListener('click', function(e) {
-                const elementDiv = e.target.closest('.card-element');
-                if (elementDiv) {
-                    selectElement(elementDiv.dataset.elementId);
+            // Update common transform properties
+            updateTransformProperties();
+        }
+
+        function hideAllPropertySections() {
+            document.getElementById('textProperties').style.display = 'none';
+            document.getElementById('imageProperties').style.display = 'none';
+            document.getElementById('shapeProperties').style.display = 'none';
+        }
+
+        function updateTransformProperties() {
+            if (!selectedObject) return;
+            
+            document.getElementById('posXSlider').value = Math.round(selectedObject.left);
+            document.getElementById('posXNumber').value = Math.round(selectedObject.left);
+            document.getElementById('posYSlider').value = Math.round(selectedObject.top);
+            document.getElementById('posYNumber').value = Math.round(selectedObject.top);
+            document.getElementById('widthSlider').value = Math.round(selectedObject.width * selectedObject.scaleX);
+            document.getElementById('widthNumber').value = Math.round(selectedObject.width * selectedObject.scaleX);
+            document.getElementById('heightSlider').value = Math.round(selectedObject.height * selectedObject.scaleY);
+            document.getElementById('heightNumber').value = Math.round(selectedObject.height * selectedObject.scaleY);
+            document.getElementById('rotationSlider').value = Math.round(selectedObject.angle);
+            document.getElementById('rotationNumber').value = Math.round(selectedObject.angle);
+        }
+
+        // Add event listeners for all property controls
+        // Text properties
+        document.getElementById('fontFamily').addEventListener('change', (e) => {
+            if (selectedObject?.type === 'text') {
+                selectedObject.set('fontFamily', e.target.value);
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('fontSizeSlider').addEventListener('input', (e) => {
+            if (selectedObject?.type === 'text') {
+                const size = parseInt(e.target.value);
+                selectedObject.set('fontSize', size);
+                document.getElementById('fontSizeNumber').value = size;
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('fontSizeNumber').addEventListener('input', (e) => {
+            if (selectedObject?.type === 'text') {
+                const size = parseInt(e.target.value);
+                selectedObject.set('fontSize', size);
+                document.getElementById('fontSizeSlider').value = size;
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('textColor').addEventListener('input', (e) => {
+            if (selectedObject) {
+                selectedObject.set('fill', e.target.value);
+                document.getElementById('textColorHex').value = e.target.value;
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('textOpacitySlider').addEventListener('input', (e) => {
+            if (selectedObject) {
+                const opacity = parseInt(e.target.value) / 100;
+                selectedObject.set('opacity', opacity);
+                document.getElementById('textOpacityNumber').value = e.target.value;
+                canvas.renderAll();
+            }
+        });
+
+        // Text effects
+        document.getElementById('textBold').addEventListener('click', () => {
+            if (selectedObject?.type === 'text') {
+                const isBold = selectedObject.fontWeight === 'bold';
+                selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
+                document.getElementById('textBold').classList.toggle('active', !isBold);
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('textItalic').addEventListener('click', () => {
+            if (selectedObject?.type === 'text') {
+                const isItalic = selectedObject.fontStyle === 'italic';
+                selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
+                document.getElementById('textItalic').classList.toggle('active', !isItalic);
+                canvas.renderAll();
+            }
+        });
+
+        // Transform properties
+        ['posX', 'posY', 'width', 'height', 'rotation'].forEach(prop => {
+            const slider = document.getElementById(`${prop}Slider`);
+            const number = document.getElementById(`${prop}Number`);
+            
+            if (slider && number) {
+                slider.addEventListener('input', (e) => {
+                    if (selectedObject) {
+                        const value = parseInt(e.target.value);
+                        number.value = value;
+                        
+                        switch(prop) {
+                            case 'posX':
+                                selectedObject.set('left', value);
+                                break;
+                            case 'posY':
+                                selectedObject.set('top', value);
+                                break;
+                            case 'width':
+                                selectedObject.set('scaleX', value / selectedObject.width);
+                                break;
+                            case 'height':
+                                selectedObject.set('scaleY', value / selectedObject.height);
+                                break;
+                            case 'rotation':
+                                selectedObject.set('angle', value);
+                                break;
+                        }
+                        canvas.renderAll();
+                        selectedObject.setCoords();
+                    }
+                });
+
+                number.addEventListener('input', (e) => {
+                    if (selectedObject) {
+                        const value = parseInt(e.target.value);
+                        slider.value = value;
+                        
+                        switch(prop) {
+                            case 'posX':
+                                selectedObject.set('left', value);
+                                break;
+                            case 'posY':
+                                selectedObject.set('top', value);
+                                break;
+                            case 'width':
+                                selectedObject.set('scaleX', value / selectedObject.width);
+                                break;
+                            case 'height':
+                                selectedObject.set('scaleY', value / selectedObject.height);
+                                break;
+                            case 'rotation':
+                                selectedObject.set('angle', value);
+                                break;
+                        }
+                        canvas.renderAll();
+                        selectedObject.setCoords();
+                    }
+                });
+            }
+        });
+
+        // Border controls
+        document.querySelectorAll('.border-style-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.border-style-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                const style = this.dataset.border;
+                const canvasContainer = document.getElementById('canvasContainer');
+                if (style === 'none') {
+                    canvasContainer.style.border = 'none';
+                } else {
+                    canvasContainer.style.borderStyle = style;
                 }
             });
+        });
 
-            // Initialize
-            selectElement('couple1');
-        })();
+        document.getElementById('borderColor').addEventListener('input', (e) => {
+            document.getElementById('canvasContainer').style.borderColor = e.target.value;
+            document.getElementById('borderColorHex').value = e.target.value;
+        });
+
+        document.getElementById('borderWidthSlider').addEventListener('input', (e) => {
+            const width = e.target.value + 'px';
+            document.getElementById('canvasContainer').style.borderWidth = width;
+            document.getElementById('borderWidthNumber').value = e.target.value;
+        });
+
+        document.getElementById('borderRadiusSlider').addEventListener('input', (e) => {
+            const radius = e.target.value + 'px';
+            document.getElementById('canvasContainer').style.borderRadius = radius;
+            document.getElementById('borderRadiusNumber').value = e.target.value;
+        });
+
+        // Image upload
+        document.getElementById('imageUpload').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    fabric.Image.fromURL(f.target.result, (img) => {
+                        img.scaleToWidth(200);
+                        img.set({
+                            left: 100,
+                            top: 100,
+                            cornerColor: '#BCAE83',
+                            cornerSize: 10,
+                            transparentCorners: false
+                        });
+                        canvas.add(img);
+                        canvas.renderAll();
+                        updateLayersList();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Graphics library
+        document.querySelectorAll('.graphic-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const graphic = item.dataset.graphic;
+                let text = '';
+                switch(graphic) {
+                    case 'heart': text = '❤️'; break;
+                    case 'star': text = '⭐'; break;
+                    case 'flower': text = '🌸'; break;
+                    case 'crown': text = '👑'; break;
+                    case 'diamond': text = '💎'; break;
+                    case 'circle': text = '●'; break;
+                    case 'square': text = '■'; break;
+                    case 'triangle': text = '▲'; break;
+                    case 'ribbon': text = '🎀'; break;
+                }
+                
+                const graphicText = new fabric.Text(text, {
+                    left: 100,
+                    top: 100,
+                    fontSize: 50,
+                    fontFamily: 'Segoe UI',
+                    fill: '#BCAE83'
+                });
+                canvas.add(graphicText);
+                canvas.renderAll();
+                updateLayersList();
+            });
+        });
+
+        // Layers list
+        function updateLayersList() {
+            const layersList = document.getElementById('layersList');
+            const objects = canvas.getObjects();
+            
+            layersList.innerHTML = '';
+            objects.reverse().forEach((obj, index) => {
+                const layerDiv = document.createElement('div');
+                layerDiv.className = `layer-item ${obj === selectedObject ? 'active' : ''}`;
+                layerDiv.innerHTML = `
+                    <span class="layer-icon"><i class="fas fa-${obj.type === 'text' ? 'font' : (obj.type === 'image' ? 'image' : 'shapes')}"></i></span>
+                    <span class="layer-name">${obj.type} ${index + 1}</span>
+                    <div class="layer-actions">
+                        <button class="layer-action-btn" onclick="duplicateLayer(${index})"><i class="fas fa-copy"></i></button>
+                        <button class="layer-action-btn" onclick="deleteLayer(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                layerDiv.addEventListener('click', () => {
+                    canvas.setActiveObject(obj);
+                    canvas.renderAll();
+                });
+                layersList.appendChild(layerDiv);
+            });
+        }
+
+        window.duplicateLayer = (index) => {
+            const objects = canvas.getObjects();
+            const obj = objects[objects.length - 1 - index];
+            obj.clone((cloned) => {
+                cloned.set({
+                    left: obj.left + 20,
+                    top: obj.top + 20
+                });
+                canvas.add(cloned);
+                canvas.renderAll();
+                updateLayersList();
+            });
+        };
+
+        window.deleteLayer = (index) => {
+            const objects = canvas.getObjects();
+            const obj = objects[objects.length - 1 - index];
+            canvas.remove(obj);
+            canvas.renderAll();
+            updateLayersList();
+        };
+
+        // Tools
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tool = this.dataset.tool;
+                switch(tool) {
+                    case 'select':
+                        canvas.selection = true;
+                        canvas.defaultCursor = 'default';
+                        break;
+                    case 'text':
+                        const text = new fabric.Text('New Text', {
+                            left: 100,
+                            top: 100,
+                            fontSize: 30,
+                            fontFamily: 'Playfair Display',
+                            fill: '#333333'
+                        });
+                        canvas.add(text);
+                        canvas.setActiveObject(text);
+                        canvas.renderAll();
+                        updateLayersList();
+                        break;
+                    case 'shape':
+                        const rect = new fabric.Rect({
+                            left: 100,
+                            top: 100,
+                            width: 100,
+                            height: 100,
+                            fill: '#BCAE83',
+                            stroke: '#000000',
+                            strokeWidth: 2
+                        });
+                        canvas.add(rect);
+                        canvas.setActiveObject(rect);
+                        canvas.renderAll();
+                        updateLayersList();
+                        break;
+                    case 'duplicate':
+                        if (selectedObject) {
+                            selectedObject.clone((cloned) => {
+                                cloned.set({
+                                    left: selectedObject.left + 20,
+                                    top: selectedObject.top + 20
+                                });
+                                canvas.add(cloned);
+                                canvas.setActiveObject(cloned);
+                                canvas.renderAll();
+                                updateLayersList();
+                            });
+                        }
+                        break;
+                    case 'delete':
+                        if (selectedObject) {
+                            canvas.remove(selectedObject);
+                            canvas.renderAll();
+                            updateLayersList();
+                        }
+                        break;
+                    case 'undo':
+                        // Implement undo
+                        break;
+                    case 'redo':
+                        // Implement redo
+                        break;
+                }
+            });
+        });
+
+        // Zoom controls
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            zoomLevel = Math.min(zoomLevel + 0.1, 3);
+            updateZoom();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            zoomLevel = Math.max(zoomLevel - 0.1, 0.5);
+            updateZoom();
+        });
+
+        document.getElementById('zoomFit').addEventListener('click', () => {
+            zoomLevel = 1;
+            updateZoom();
+        });
+
+        function updateZoom() {
+            const container = document.getElementById('canvasContainer');
+            canvas.setDimensions({
+                width: 600 * zoomLevel,
+                height: 450 * zoomLevel
+            });
+            canvas.renderAll();
+            document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+        }
+
+        // Page selector
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentPage = this.dataset.page;
+                
+                // Change background for back page
+                if (currentPage === 'back') {
+                    document.getElementById('canvasContainer').style.backgroundColor = '#f8f8f8';
+                } else {
+                    document.getElementById('canvasContainer').style.backgroundColor = '#f0f0f0';
+                }
+            });
+        });
+
+        // Save design
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const designData = {
+                objects: canvas.toJSON(),
+                border: {
+                    style: document.querySelector('.border-style-option.active')?.dataset.border || 'none',
+                    color: document.getElementById('borderColor').value,
+                    width: document.getElementById('borderWidthSlider').value,
+                    radius: document.getElementById('borderRadiusSlider').value
+                },
+                page: currentPage,
+                template: document.getElementById('templateName').textContent
+            };
+            
+            localStorage.setItem('papirCardDesign', JSON.stringify(designData));
+            alert('Design saved!');
+        });
+
+        // Preview
+        document.getElementById('previewBtn').addEventListener('click', () => {
+            const dataURL = canvas.toDataURL({
+                format: 'png',
+                quality: 1,
+                multiplier: 2
+            });
+            
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <html>
+                    <head><title>Card Preview</title></head>
+                    <body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0;">
+                        <img src="${dataURL}" style="max-width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    </body>
+                </html>
+            `);
+        });
+
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('Reset all changes?')) {
+                initializeCard();
+                // Reset border
+                document.querySelectorAll('.border-style-option').forEach(opt => opt.classList.remove('active'));
+                document.querySelector('[data-border="none"]').classList.add('active');
+                document.getElementById('canvasContainer').style.border = 'none';
+                document.getElementById('borderColor').value = '#D4AF37';
+                document.getElementById('borderColorHex').value = '#D4AF37';
+                document.getElementById('borderWidthSlider').value = 3;
+                document.getElementById('borderWidthNumber').value = 3;
+                document.getElementById('borderRadiusSlider').value = 0;
+                document.getElementById('borderRadiusNumber').value = 0;
+            }
+        });
+
+        // Update layers list when objects change
+        canvas.on('object:added', updateLayersList);
+        canvas.on('object:removed', updateLayersList);
+        canvas.on('object:modified', updateLayersList);
     </script>
 </body>
 </html>
