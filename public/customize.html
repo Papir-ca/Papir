@@ -6,7 +6,6 @@
     <title>Professional Card Designer - Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600;700&family=Great+Vibes&family=EB+Garamond:wght@400;600;800&family=Parisienne&family=Sorts+Mill+Goudy&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;600;700&family=Raleway:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&family=Libre+Baskerville:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Cinzel:wght@400;700;900&family=Alex+Brush&family=Allura&family=Sacramento&family=Dancing+Script:wght@400;700&family=Pacifico&family=Quicksand:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Fabric.js library for professional canvas manipulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <style>
         * {
@@ -40,7 +39,6 @@
             padding: 20px;
         }
 
-        /* Header */
         .design-header {
             display: flex;
             justify-content: space-between;
@@ -77,7 +75,6 @@
             font-size: 1.2rem;
         }
 
-        /* Main Layout */
         .design-layout {
             display: flex;
             gap: 20px;
@@ -86,7 +83,6 @@
             height: calc(100vh - 120px);
         }
 
-        /* Left Toolbar */
         .tools-panel {
             width: 80px;
             background: white;
@@ -138,7 +134,6 @@
             z-index: 1000;
         }
 
-        /* Center Canvas Area */
         .canvas-area {
             flex: 1;
             background: white;
@@ -215,6 +210,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            transition: border 0.3s ease;
         }
 
         #designCanvas {
@@ -223,9 +219,8 @@
             background: white;
         }
 
-        /* Right Properties Panel */
         .properties-panel {
-            width: 350px;
+            width: 380px;
             background: white;
             border-radius: 15px;
             padding: 20px;
@@ -401,7 +396,7 @@
             color: white;
         }
 
-        .bullet-list {
+        .bullet-options {
             display: flex;
             gap: 10px;
         }
@@ -413,6 +408,7 @@
             border-radius: 5px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
         .bullet-option:hover,
@@ -438,7 +434,7 @@
 
         .graphics-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
@@ -459,6 +455,7 @@
         .graphic-item:hover {
             border-color: var(--primary-gold);
             transform: scale(1.05);
+            background: rgba(188, 174, 131, 0.05);
         }
 
         .action-buttons {
@@ -563,7 +560,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <div class="design-header">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="templates.html" style="color: white; text-decoration: none;">
@@ -577,9 +573,7 @@
             </div>
         </div>
 
-        <!-- Main Design Area -->
         <div class="design-layout">
-            <!-- Left Tools Panel -->
             <div class="tools-panel">
                 <button class="tool-btn active" data-tool="select" data-tooltip="Select (V)">
                     <i class="fas fa-mouse-pointer"></i>
@@ -614,7 +608,6 @@
                 </button>
             </div>
 
-            <!-- Center Canvas Area -->
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div class="page-controls">
@@ -633,14 +626,12 @@
                 </div>
             </div>
 
-            <!-- Right Properties Panel -->
             <div class="properties-panel" id="propertiesPanel">
                 <div class="properties-header">
                     <h3><i class="fas fa-sliders-h"></i> Properties</h3>
                     <span style="color: var(--primary-gold);" id="selectedObjectType">No Selection</span>
                 </div>
 
-                <!-- Text Properties Section (shown when text is selected) -->
                 <div id="textProperties" style="display: none;">
                     <div class="property-section">
                         <h4><i class="fas fa-font"></i> Typography</h4>
@@ -724,8 +715,8 @@
                         </div>
                         <div class="property-row">
                             <label class="property-label">List Style</label>
-                            <div class="bullet-list">
-                                <div class="bullet-option active" data-list="none">None</div>
+                            <div class="bullet-options">
+                                <div class="bullet-option" data-list="none">None</div>
                                 <div class="bullet-option" data-list="bullet">• Bullet</div>
                                 <div class="bullet-option" data-list="number">1. Number</div>
                             </div>
@@ -733,7 +724,6 @@
                     </div>
                 </div>
 
-                <!-- Image Properties Section (shown when image is selected) -->
                 <div id="imageProperties" style="display: none;">
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Image Settings</h4>
@@ -761,7 +751,6 @@
                     </div>
                 </div>
 
-                <!-- Shape Properties Section (shown when shape is selected) -->
                 <div id="shapeProperties" style="display: none;">
                     <div class="property-section">
                         <h4><i class="fas fa-shapes"></i> Shape Settings</h4>
@@ -796,7 +785,6 @@
                     </div>
                 </div>
 
-                <!-- Common Properties (for all objects) -->
                 <div class="property-section">
                     <h4><i class="fas fa-object-group"></i> Transform</h4>
                     <div class="property-row">
@@ -836,7 +824,6 @@
                     </div>
                 </div>
 
-                <!-- Card Border Properties -->
                 <div class="property-section">
                     <h4><i class="fas fa-border-all"></i> Card Border</h4>
                     <div class="property-row">
@@ -876,7 +863,6 @@
                     </div>
                 </div>
 
-                <!-- Graphics Library -->
                 <div class="property-section">
                     <h4><i class="fas fa-star"></i> Graphics Library</h4>
                     <div class="graphics-grid" id="graphicsGrid">
@@ -889,16 +875,17 @@
                         <div class="graphic-item" data-graphic="square"><i class="fas fa-square"></i></div>
                         <div class="graphic-item" data-graphic="triangle"><i class="fas fa-play"></i></div>
                         <div class="graphic-item" data-graphic="ribbon"><i class="fas fa-ribbon"></i></div>
+                        <div class="graphic-item" data-graphic="heart"><i class="fas fa-heart"></i></div>
+                        <div class="graphic-item" data-graphic="star"><i class="fas fa-star"></i></div>
+                        <div class="graphic-item" data-graphic="flower"><i class="fas fa-seedling"></i></div>
                     </div>
                 </div>
 
-                <!-- Layers Panel -->
                 <div class="property-section">
                     <h4><i class="fas fa-layers"></i> Layers</h4>
                     <div class="layers-list" id="layersList"></div>
                 </div>
 
-                <!-- Upload Section -->
                 <div class="property-section">
                     <h4><i class="fas fa-cloud-upload-alt"></i> Upload</h4>
                     <div class="upload-area" id="imageUpload">
@@ -910,7 +897,6 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="action-buttons">
             <button class="btn-primary" id="saveBtn">
                 <i class="fas fa-save"></i> Save Design
@@ -921,25 +907,25 @@
             <button class="btn-secondary" id="resetBtn">
                 <i class="fas fa-undo-alt"></i> Reset
             </button>
+            <button class="btn-secondary" id="closePreviewBtn" style="display: none;">
+                <i class="fas fa-times"></i> Close Preview
+            </button>
         </div>
     </div>
 
     <script>
-        // Initialize Fabric.js canvas
         const canvas = new fabric.Canvas('designCanvas');
         let selectedObject = null;
         let currentPage = 'front';
         let zoomLevel = 1;
+        let previewWindow = null;
 
-        // Template name from URL
         const urlParams = new URLSearchParams(window.location.search);
         document.getElementById('templateName').textContent = urlParams.get('template')?.replace(/-/g, ' ') || 'Chantilly Lace';
 
-        // Initialize with default text elements
         function initializeCard() {
             canvas.clear();
 
-            // Add default text elements
             const invitationLine = new fabric.Text('You are invited to the wedding of', {
                 left: 50,
                 top: 80,
@@ -1017,7 +1003,6 @@
 
         initializeCard();
 
-        // Object selection handler
         canvas.on('selection:created', (e) => {
             selectedObject = e.selected[0];
             updatePropertiesPanel();
@@ -1040,87 +1025,85 @@
             }
         });
 
-        // Update properties panel based on selected object
-        function updatePropertiesPanel() {
-            if (!selectedObject) return;
-
-            // Show/hide appropriate property sections
-            hideAllPropertySections();
-
-            if (selectedObject.type === 'text') {
-                document.getElementById('textProperties').style.display = 'block';
-                document.getElementById('selectedObjectType').textContent = 'Text Element';
-                
-                // Update text properties
-                document.getElementById('fontFamily').value = selectedObject.fontFamily;
-                document.getElementById('fontSizeSlider').value = selectedObject.fontSize;
-                document.getElementById('fontSizeNumber').value = selectedObject.fontSize;
-                document.getElementById('textColor').value = selectedObject.fill;
-                document.getElementById('textColorHex').value = selectedObject.fill;
-                document.getElementById('textOpacitySlider').value = selectedObject.opacity * 100;
-                document.getElementById('textOpacityNumber').value = selectedObject.opacity * 100;
-                
-                // Update text style buttons
-                document.getElementById('textBold').classList.toggle('active', selectedObject.fontWeight === 'bold');
-                document.getElementById('textItalic').classList.toggle('active', selectedObject.fontStyle === 'italic');
-                document.getElementById('textUnderline').classList.toggle('active', selectedObject.underline);
-                
-                // Update alignment
-                document.querySelectorAll('.align-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.dataset.align === selectedObject.textAlign) {
-                        btn.classList.add('active');
-                    }
-                });
-            }
-            else if (selectedObject.type === 'image') {
-                document.getElementById('imageProperties').style.display = 'block';
-                document.getElementById('selectedObjectType').textContent = 'Image';
-                
-                document.getElementById('imageOpacitySlider').value = selectedObject.opacity * 100;
-                document.getElementById('imageOpacityNumber').value = selectedObject.opacity * 100;
-            }
-            else if (selectedObject.type === 'rect' || selectedObject.type === 'circle' || selectedObject.type === 'triangle') {
-                document.getElementById('shapeProperties').style.display = 'block';
-                document.getElementById('selectedObjectType').textContent = 'Shape';
-                
-                document.getElementById('shapeFillColor').value = selectedObject.fill;
-                document.getElementById('shapeFillHex').value = selectedObject.fill;
-                document.getElementById('shapeStrokeColor').value = selectedObject.stroke || '#000000';
-                document.getElementById('shapeStrokeHex').value = selectedObject.stroke || '#000000';
-                document.getElementById('strokeWidthSlider').value = selectedObject.strokeWidth || 0;
-                document.getElementById('strokeWidthNumber').value = selectedObject.strokeWidth || 0;
-                document.getElementById('shapeOpacitySlider').value = selectedObject.opacity * 100;
-                document.getElementById('shapeOpacityNumber').value = selectedObject.opacity * 100;
-            }
-
-            // Update common transform properties
-            updateTransformProperties();
-        }
-
         function hideAllPropertySections() {
             document.getElementById('textProperties').style.display = 'none';
             document.getElementById('imageProperties').style.display = 'none';
             document.getElementById('shapeProperties').style.display = 'none';
         }
 
+        function updatePropertiesPanel() {
+            if (!selectedObject) return;
+
+            hideAllPropertySections();
+
+            if (selectedObject.type === 'text' || selectedObject.type === 'textbox') {
+                document.getElementById('textProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Text Element';
+                
+                document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Playfair Display';
+                document.getElementById('fontSizeSlider').value = selectedObject.fontSize || 48;
+                document.getElementById('fontSizeNumber').value = selectedObject.fontSize || 48;
+                document.getElementById('textColor').value = selectedObject.fill || '#333333';
+                document.getElementById('textColorHex').value = selectedObject.fill || '#333333';
+                document.getElementById('textOpacitySlider').value = (selectedObject.opacity || 1) * 100;
+                document.getElementById('textOpacityNumber').value = (selectedObject.opacity || 1) * 100;
+                
+                document.getElementById('textBold').classList.toggle('active', selectedObject.fontWeight === 'bold');
+                document.getElementById('textItalic').classList.toggle('active', selectedObject.fontStyle === 'italic');
+                document.getElementById('textUnderline').classList.toggle('active', selectedObject.underline === true);
+                document.getElementById('textStrikethrough').classList.toggle('active', selectedObject.linethrough === true);
+                
+                document.querySelectorAll('.align-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.align === selectedObject.textAlign) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                document.getElementById('lineHeightSlider').value = selectedObject.lineHeight || 1.2;
+                document.getElementById('lineHeightNumber').value = selectedObject.lineHeight || 1.2;
+                document.getElementById('letterSpacingSlider').value = (selectedObject.charSpacing || 0) / 100;
+                document.getElementById('letterSpacingNumber').value = (selectedObject.charSpacing || 0) / 100;
+            }
+            else if (selectedObject.type === 'image') {
+                document.getElementById('imageProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Image';
+                
+                document.getElementById('imageOpacitySlider').value = (selectedObject.opacity || 1) * 100;
+                document.getElementById('imageOpacityNumber').value = (selectedObject.opacity || 1) * 100;
+            }
+            else if (selectedObject.type === 'rect' || selectedObject.type === 'circle' || selectedObject.type === 'triangle') {
+                document.getElementById('shapeProperties').style.display = 'block';
+                document.getElementById('selectedObjectType').textContent = 'Shape';
+                
+                document.getElementById('shapeFillColor').value = selectedObject.fill || '#BCAE83';
+                document.getElementById('shapeFillHex').value = selectedObject.fill || '#BCAE83';
+                document.getElementById('shapeStrokeColor').value = selectedObject.stroke || '#000000';
+                document.getElementById('shapeStrokeHex').value = selectedObject.stroke || '#000000';
+                document.getElementById('strokeWidthSlider').value = selectedObject.strokeWidth || 0;
+                document.getElementById('strokeWidthNumber').value = selectedObject.strokeWidth || 0;
+                document.getElementById('shapeOpacitySlider').value = (selectedObject.opacity || 1) * 100;
+                document.getElementById('shapeOpacityNumber').value = (selectedObject.opacity || 1) * 100;
+            }
+
+            updateTransformProperties();
+        }
+
         function updateTransformProperties() {
             if (!selectedObject) return;
             
-            document.getElementById('posXSlider').value = Math.round(selectedObject.left);
-            document.getElementById('posXNumber').value = Math.round(selectedObject.left);
-            document.getElementById('posYSlider').value = Math.round(selectedObject.top);
-            document.getElementById('posYNumber').value = Math.round(selectedObject.top);
-            document.getElementById('widthSlider').value = Math.round(selectedObject.width * selectedObject.scaleX);
-            document.getElementById('widthNumber').value = Math.round(selectedObject.width * selectedObject.scaleX);
-            document.getElementById('heightSlider').value = Math.round(selectedObject.height * selectedObject.scaleY);
-            document.getElementById('heightNumber').value = Math.round(selectedObject.height * selectedObject.scaleY);
-            document.getElementById('rotationSlider').value = Math.round(selectedObject.angle);
-            document.getElementById('rotationNumber').value = Math.round(selectedObject.angle);
+            document.getElementById('posXSlider').value = Math.round(selectedObject.left || 0);
+            document.getElementById('posXNumber').value = Math.round(selectedObject.left || 0);
+            document.getElementById('posYSlider').value = Math.round(selectedObject.top || 0);
+            document.getElementById('posYNumber').value = Math.round(selectedObject.top || 0);
+            document.getElementById('widthSlider').value = Math.round((selectedObject.width || 100) * (selectedObject.scaleX || 1));
+            document.getElementById('widthNumber').value = Math.round((selectedObject.width || 100) * (selectedObject.scaleX || 1));
+            document.getElementById('heightSlider').value = Math.round((selectedObject.height || 100) * (selectedObject.scaleY || 1));
+            document.getElementById('heightNumber').value = Math.round((selectedObject.height || 100) * (selectedObject.scaleY || 1));
+            document.getElementById('rotationSlider').value = Math.round(selectedObject.angle || 0);
+            document.getElementById('rotationNumber').value = Math.round(selectedObject.angle || 0);
         }
 
-        // Add event listeners for all property controls
-        // Text properties
         document.getElementById('fontFamily').addEventListener('change', (e) => {
             if (selectedObject?.type === 'text') {
                 selectedObject.set('fontFamily', e.target.value);
@@ -1163,7 +1146,6 @@
             }
         });
 
-        // Text effects
         document.getElementById('textBold').addEventListener('click', () => {
             if (selectedObject?.type === 'text') {
                 const isBold = selectedObject.fontWeight === 'bold';
@@ -1182,7 +1164,58 @@
             }
         });
 
-        // Transform properties
+        document.getElementById('textUnderline').addEventListener('click', () => {
+            if (selectedObject?.type === 'text') {
+                selectedObject.set('underline', !selectedObject.underline);
+                document.getElementById('textUnderline').classList.toggle('active', selectedObject.underline);
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('textStrikethrough').addEventListener('click', () => {
+            if (selectedObject?.type === 'text') {
+                selectedObject.set('linethrough', !selectedObject.linethrough);
+                document.getElementById('textStrikethrough').classList.toggle('active', selectedObject.linethrough);
+                canvas.renderAll();
+            }
+        });
+
+        document.querySelectorAll('.align-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (selectedObject?.type === 'text') {
+                    document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedObject.set('textAlign', this.dataset.align);
+                    canvas.renderAll();
+                }
+            });
+        });
+
+        document.getElementById('lineHeightSlider').addEventListener('input', (e) => {
+            if (selectedObject?.type === 'text') {
+                const value = parseFloat(e.target.value);
+                selectedObject.set('lineHeight', value);
+                document.getElementById('lineHeightNumber').value = value;
+                canvas.renderAll();
+            }
+        });
+
+        document.getElementById('letterSpacingSlider').addEventListener('input', (e) => {
+            if (selectedObject?.type === 'text') {
+                const value = parseFloat(e.target.value) * 100;
+                selectedObject.set('charSpacing', value);
+                document.getElementById('letterSpacingNumber').value = e.target.value;
+                canvas.renderAll();
+            }
+        });
+
+        document.querySelectorAll('.bullet-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.bullet-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
         ['posX', 'posY', 'width', 'height', 'rotation'].forEach(prop => {
             const slider = document.getElementById(`${prop}Slider`);
             const number = document.getElementById(`${prop}Number`);
@@ -1244,7 +1277,6 @@
             }
         });
 
-        // Border controls
         document.querySelectorAll('.border-style-option').forEach(option => {
             option.addEventListener('click', function() {
                 document.querySelectorAll('.border-style-option').forEach(opt => opt.classList.remove('active'));
@@ -1256,6 +1288,8 @@
                     canvasContainer.style.border = 'none';
                 } else {
                     canvasContainer.style.borderStyle = style;
+                    canvasContainer.style.borderWidth = document.getElementById('borderWidthSlider').value + 'px';
+                    canvasContainer.style.borderColor = document.getElementById('borderColor').value;
                 }
             });
         });
@@ -1277,7 +1311,6 @@
             document.getElementById('borderRadiusNumber').value = e.target.value;
         });
 
-        // Image upload
         document.getElementById('imageUpload').addEventListener('click', () => {
             document.getElementById('fileInput').click();
         });
@@ -1305,7 +1338,6 @@
             }
         });
 
-        // Graphics library
         document.querySelectorAll('.graphic-item').forEach(item => {
             item.addEventListener('click', () => {
                 const graphic = item.dataset.graphic;
@@ -1335,54 +1367,64 @@
             });
         });
 
-        // Layers list
         function updateLayersList() {
             const layersList = document.getElementById('layersList');
             const objects = canvas.getObjects();
             
             layersList.innerHTML = '';
-            objects.reverse().forEach((obj, index) => {
+            objects.slice().reverse().forEach((obj, index) => {
                 const layerDiv = document.createElement('div');
                 layerDiv.className = `layer-item ${obj === selectedObject ? 'active' : ''}`;
+                layerDiv.dataset.index = objects.length - 1 - index;
+                
+                let icon = 'font';
+                if (obj.type === 'image') icon = 'image';
+                else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'triangle') icon = 'shapes';
+                
                 layerDiv.innerHTML = `
-                    <span class="layer-icon"><i class="fas fa-${obj.type === 'text' ? 'font' : (obj.type === 'image' ? 'image' : 'shapes')}"></i></span>
+                    <span class="layer-icon"><i class="fas fa-${icon}"></i></span>
                     <span class="layer-name">${obj.type} ${index + 1}</span>
                     <div class="layer-actions">
-                        <button class="layer-action-btn" onclick="duplicateLayer(${index})"><i class="fas fa-copy"></i></button>
-                        <button class="layer-action-btn" onclick="deleteLayer(${index})"><i class="fas fa-trash"></i></button>
+                        <button class="layer-action-btn" onclick="event.stopPropagation(); duplicateLayer(${objects.length - 1 - index})"><i class="fas fa-copy"></i></button>
+                        <button class="layer-action-btn" onclick="event.stopPropagation(); deleteLayer(${objects.length - 1 - index})"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
+                
                 layerDiv.addEventListener('click', () => {
                     canvas.setActiveObject(obj);
                     canvas.renderAll();
                 });
+                
                 layersList.appendChild(layerDiv);
             });
         }
 
         window.duplicateLayer = (index) => {
             const objects = canvas.getObjects();
-            const obj = objects[objects.length - 1 - index];
-            obj.clone((cloned) => {
-                cloned.set({
-                    left: obj.left + 20,
-                    top: obj.top + 20
+            const obj = objects[index];
+            if (obj) {
+                obj.clone((cloned) => {
+                    cloned.set({
+                        left: obj.left + 20,
+                        top: obj.top + 20
+                    });
+                    canvas.add(cloned);
+                    canvas.renderAll();
+                    updateLayersList();
                 });
-                canvas.add(cloned);
-                canvas.renderAll();
-                updateLayersList();
-            });
+            }
         };
 
         window.deleteLayer = (index) => {
             const objects = canvas.getObjects();
-            const obj = objects[objects.length - 1 - index];
-            canvas.remove(obj);
-            canvas.renderAll();
-            updateLayersList();
+            const obj = objects[index];
+            if (obj) {
+                canvas.remove(obj);
+                canvas.renderAll();
+                updateLayersList();
+            }
         };
 
-        // Tools
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -1439,21 +1481,16 @@
                     case 'delete':
                         if (selectedObject) {
                             canvas.remove(selectedObject);
+                            selectedObject = null;
                             canvas.renderAll();
                             updateLayersList();
+                            hideAllPropertySections();
                         }
-                        break;
-                    case 'undo':
-                        // Implement undo
-                        break;
-                    case 'redo':
-                        // Implement redo
                         break;
                 }
             });
         });
 
-        // Zoom controls
         document.getElementById('zoomIn').addEventListener('click', () => {
             zoomLevel = Math.min(zoomLevel + 0.1, 3);
             updateZoom();
@@ -1470,7 +1507,6 @@
         });
 
         function updateZoom() {
-            const container = document.getElementById('canvasContainer');
             canvas.setDimensions({
                 width: 600 * zoomLevel,
                 height: 450 * zoomLevel
@@ -1479,14 +1515,12 @@
             document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
         }
 
-        // Page selector
         document.querySelectorAll('.page-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentPage = this.dataset.page;
                 
-                // Change background for back page
                 if (currentPage === 'back') {
                     document.getElementById('canvasContainer').style.backgroundColor = '#f8f8f8';
                 } else {
@@ -1495,7 +1529,6 @@
             });
         });
 
-        // Save design
         document.getElementById('saveBtn').addEventListener('click', () => {
             const designData = {
                 objects: canvas.toJSON(),
@@ -1510,10 +1543,9 @@
             };
             
             localStorage.setItem('papirCardDesign', JSON.stringify(designData));
-            alert('Design saved!');
+            alert('Design saved successfully!');
         });
 
-        // Preview
         document.getElementById('previewBtn').addEventListener('click', () => {
             const dataURL = canvas.toDataURL({
                 format: 'png',
@@ -1521,22 +1553,75 @@
                 multiplier: 2
             });
             
-            const previewWindow = window.open('', '_blank');
+            previewWindow = window.open('', '_blank');
             previewWindow.document.write(`
                 <html>
-                    <head><title>Card Preview</title></head>
-                    <body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0;">
-                        <img src="${dataURL}" style="max-width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <head>
+                        <title>Card Preview - Papir</title>
+                        <style>
+                            body { 
+                                display: flex; 
+                                flex-direction: column;
+                                justify-content: center; 
+                                align-items: center; 
+                                min-height: 100vh; 
+                                background: #f0f0f0;
+                                margin: 0;
+                                padding: 20px;
+                                font-family: Arial, sans-serif;
+                            }
+                            .preview-container {
+                                background: white;
+                                padding: 30px;
+                                border-radius: 15px;
+                                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                                text-align: center;
+                            }
+                            img {
+                                max-width: 100%;
+                                max-height: 70vh;
+                                border-radius: 10px;
+                                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                            }
+                            .close-btn {
+                                margin-top: 20px;
+                                padding: 10px 30px;
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                border: none;
+                                border-radius: 30px;
+                                font-size: 1rem;
+                                cursor: pointer;
+                                transition: transform 0.2s;
+                            }
+                            .close-btn:hover {
+                                transform: translateY(-2px);
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="preview-container">
+                            <img src="${dataURL}" alt="Card Preview">
+                            <button class="close-btn" onclick="window.close()">Close Preview</button>
+                        </div>
                     </body>
                 </html>
             `);
+            
+            document.getElementById('closePreviewBtn').style.display = 'block';
         });
 
-        // Reset
+        document.getElementById('closePreviewBtn').addEventListener('click', () => {
+            if (previewWindow && !previewWindow.closed) {
+                previewWindow.close();
+            }
+            document.getElementById('closePreviewBtn').style.display = 'none';
+        });
+
         document.getElementById('resetBtn').addEventListener('click', () => {
             if (confirm('Reset all changes?')) {
                 initializeCard();
-                // Reset border
+                
                 document.querySelectorAll('.border-style-option').forEach(opt => opt.classList.remove('active'));
                 document.querySelector('[data-border="none"]').classList.add('active');
                 document.getElementById('canvasContainer').style.border = 'none';
@@ -1549,7 +1634,6 @@
             }
         });
 
-        // Update layers list when objects change
         canvas.on('object:added', updateLayersList);
         canvas.on('object:removed', updateLayersList);
         canvas.on('object:modified', updateLayersList);
