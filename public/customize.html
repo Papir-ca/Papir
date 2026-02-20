@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Card Designer - Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600;700&family=Great+Vibes&family=EB+Garamond:wght@400;600;800&family=Parisienne&family=Sorts+Mill+Goudy&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;600;700&family=Raleway:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&family=Libre+Baskerville:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Cinzel:wght@400;700;900&family=Alex+Brush&family=Allura&family=Sacramento&family=Dancing+Script:wght@400;700&family=Pacifico&family=Quicksand:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600;700&family=Great+Vibes&family=EB+Garamond:wght@400;600;800&family=Parisienne&family=Sorts+Mill+Goudy&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;600;700&family=Raleway:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&family=Libre+Baskerville:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Cinzel:wght@400;700;900&family=Alex+Brush&family=Allura&family=Sacramento&family=Dancing+Script:wght@400;700&family=Pacifico&family=Quicksand:wght@300;400;600&family=Times+New+Roman&family=Georgia&family=Garamond&family=Palatino&family=Book+Antiqua&family=Didot&family=Bodoni+Moda&family=Franklin+Gothic+Medium&family=Helvetica&family=Arial&family=Verdana&family=Tahoma&family=Trebuchet+MS&family=Impact&family=Comic+Sans+MS&family=Courier+New&family=Brush+Script+MT&family=Lucida+Handwriting&family=Segoe+Script&family=Script+MT+Bold&family=Edwardian+Script+ITC&family=French+Script+MT&family=Monotype+Corsiva&family=Sofia&family=Style+Script&family=Tangerine&family=Mr+Dafoe&family=Allison&family=Waterfall&family=Hurricane&family=Mea+Culpa&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <style>
         * {
@@ -220,7 +220,7 @@
         }
 
         .properties-panel {
-            width: 380px;
+            width: 400px;
             background: white;
             border-radius: 15px;
             padding: 20px;
@@ -285,6 +285,22 @@
             outline: none;
         }
 
+        .text-input-area {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .text-input-area:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+        }
+
         .color-row {
             display: flex;
             gap: 10px;
@@ -323,6 +339,7 @@
             border: 2px solid var(--border-light);
             border-radius: 8px;
             font-size: 0.95rem;
+            max-height: 200px;
         }
 
         .border-style-grid {
@@ -415,6 +432,21 @@
         .bullet-option.active {
             border-color: var(--primary-gold);
             background: rgba(188, 174, 131, 0.1);
+        }
+
+        .lock-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .lock-toggle i {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
         }
 
         .upload-area {
@@ -634,30 +666,71 @@
 
                 <div id="textProperties" style="display: none;">
                     <div class="property-section">
+                        <h4><i class="fas fa-pen"></i> Edit Text</h4>
+                        <textarea class="text-input-area" id="textContent" placeholder="Type your text here...">Sample Text</textarea>
+                    </div>
+
+                    <div class="property-section">
                         <h4><i class="fas fa-font"></i> Typography</h4>
                         <div class="property-row">
                             <label class="property-label">Font Family</label>
-                            <select class="font-selector" id="fontFamily">
-                                <option value="Playfair Display">Playfair Display</option>
-                                <option value="Cormorant Garamond">Cormorant Garamond</option>
-                                <option value="Montserrat">Montserrat</option>
-                                <option value="Great Vibes">Great Vibes</option>
-                                <option value="EB Garamond">EB Garamond</option>
-                                <option value="Parisienne">Parisienne</option>
-                                <option value="Sorts Mill Goudy">Sorts Mill Goudy</option>
-                                <option value="Lato">Lato</option>
-                                <option value="Open Sans">Open Sans</option>
-                                <option value="Raleway">Raleway</option>
-                                <option value="Roboto">Roboto</option>
-                                <option value="Libre Baskerville">Libre Baskerville</option>
-                                <option value="Old Standard TT">Old Standard TT</option>
-                                <option value="Cinzel">Cinzel</option>
-                                <option value="Alex Brush">Alex Brush</option>
-                                <option value="Allura">Allura</option>
-                                <option value="Sacramento">Sacramento</option>
-                                <option value="Dancing Script">Dancing Script</option>
-                                <option value="Pacifico">Pacifico</option>
-                                <option value="Quicksand">Quicksand</option>
+                            <select class="font-selector" id="fontFamily" size="5">
+                                <optgroup label="Elegant Serif">
+                                    <option value="Playfair Display">Playfair Display</option>
+                                    <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                    <option value="EB Garamond">EB Garamond</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Garamond">Garamond</option>
+                                    <option value="Palatino">Palatino</option>
+                                    <option value="Book Antiqua">Book Antiqua</option>
+                                    <option value="Didot">Didot</option>
+                                    <option value="Bodoni Moda">Bodoni Moda</option>
+                                </optgroup>
+                                <optgroup label="Script & Handwriting">
+                                    <option value="Great Vibes">Great Vibes</option>
+                                    <option value="Parisienne">Parisienne</option>
+                                    <option value="Alex Brush">Alex Brush</option>
+                                    <option value="Allura">Allura</option>
+                                    <option value="Sacramento">Sacramento</option>
+                                    <option value="Dancing Script">Dancing Script</option>
+                                    <option value="Pacifico">Pacifico</option>
+                                    <option value="Sofia">Sofia</option>
+                                    <option value="Style Script">Style Script</option>
+                                    <option value="Tangerine">Tangerine</option>
+                                    <option value="Brush Script MT">Brush Script MT</option>
+                                    <option value="Lucida Handwriting">Lucida Handwriting</option>
+                                    <option value="Segoe Script">Segoe Script</option>
+                                    <option value="Script MT Bold">Script MT Bold</option>
+                                    <option value="Edwardian Script ITC">Edwardian Script ITC</option>
+                                    <option value="French Script MT">French Script MT</option>
+                                    <option value="Monotype Corsiva">Monotype Corsiva</option>
+                                    <option value="Mr Dafoe">Mr Dafoe</option>
+                                    <option value="Allison">Allison</option>
+                                    <option value="Waterfall">Waterfall</option>
+                                    <option value="Hurricane">Hurricane</option>
+                                    <option value="Mea Culpa">Mea Culpa</option>
+                                </optgroup>
+                                <optgroup label="Sans Serif">
+                                    <option value="Montserrat">Montserrat</option>
+                                    <option value="Lato">Lato</option>
+                                    <option value="Open Sans">Open Sans</option>
+                                    <option value="Raleway">Raleway</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Helvetica">Helvetica</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Tahoma">Tahoma</option>
+                                    <option value="Trebuchet MS">Trebuchet MS</option>
+                                    <option value="Franklin Gothic Medium">Franklin Gothic Medium</option>
+                                    <option value="Quicksand">Quicksand</option>
+                                </optgroup>
+                                <optgroup label="Display">
+                                    <option value="Cinzel">Cinzel</option>
+                                    <option value="Impact">Impact</option>
+                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                                    <option value="Courier New">Courier New</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="property-row">
@@ -713,14 +786,6 @@
                                 <input type="number" id="letterSpacingNumber" min="-2" max="10" step="0.5" value="0">
                             </div>
                         </div>
-                        <div class="property-row">
-                            <label class="property-label">List Style</label>
-                            <div class="bullet-options">
-                                <div class="bullet-option" data-list="none">None</div>
-                                <div class="bullet-option" data-list="bullet">• Bullet</div>
-                                <div class="bullet-option" data-list="number">1. Number</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -739,13 +804,6 @@
                             <div style="display: flex; gap: 10px;">
                                 <button class="effect-btn" id="flipHorizontal"><i class="fas fa-arrows-alt-h"></i> H</button>
                                 <button class="effect-btn" id="flipVertical"><i class="fas fa-arrows-alt-v"></i> V</button>
-                            </div>
-                        </div>
-                        <div class="property-row">
-                            <label class="property-label">Replace Image</label>
-                            <div class="upload-area" id="replaceImageUpload">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
-                                <div>Click to replace</div>
                             </div>
                         </div>
                     </div>
@@ -786,7 +844,13 @@
                 </div>
 
                 <div class="property-section">
-                    <h4><i class="fas fa-object-group"></i> Transform</h4>
+                    <h4><i class="fas fa-object-group"></i> Transform & Position</h4>
+                    <div class="property-row">
+                        <div class="lock-toggle" id="lockToggle">
+                            <i class="fas fa-unlock" id="lockIcon"></i>
+                            <span id="lockText">Unlocked - Click to lock position</span>
+                        </div>
+                    </div>
                     <div class="property-row">
                         <label class="property-label">Position X</label>
                         <div class="slider-with-value">
@@ -907,9 +971,15 @@
             <button class="btn-secondary" id="resetBtn">
                 <i class="fas fa-undo-alt"></i> Reset
             </button>
-            <button class="btn-secondary" id="closePreviewBtn" style="display: none;">
-                <i class="fas fa-times"></i> Close Preview
-            </button>
+        </div>
+    </div>
+
+    <div id="previewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 90%; max-height: 90%; overflow: auto;">
+            <img id="previewImage" style="max-width: 100%; max-height: 70vh; border-radius: 10px;">
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-primary" onclick="closePreview()">Close Preview</button>
+            </div>
         </div>
     </div>
 
@@ -918,10 +988,18 @@
         let selectedObject = null;
         let currentPage = 'front';
         let zoomLevel = 1;
-        let previewWindow = null;
+        let undoStack = [];
+        let redoStack = [];
+        let frontCanvasState = null;
+        let backCanvasState = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         document.getElementById('templateName').textContent = urlParams.get('template')?.replace(/-/g, ' ') || 'Chantilly Lace';
+
+        function saveState() {
+            undoStack.push(JSON.stringify(canvas));
+            redoStack = [];
+        }
 
         function initializeCard() {
             canvas.clear();
@@ -933,7 +1011,10 @@
                 fontFamily: 'Playfair Display',
                 fill: '#666666',
                 fontWeight: 'normal',
-                charSpacing: 20
+                charSpacing: 20,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const name1 = new fabric.Text('Morgan', {
@@ -942,7 +1023,10 @@
                 fontSize: 48,
                 fontFamily: 'Playfair Display',
                 fill: '#333333',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const and = new fabric.Text('and', {
@@ -950,7 +1034,10 @@
                 top: 180,
                 fontSize: 18,
                 fontFamily: 'Playfair Display',
-                fill: '#666666'
+                fill: '#666666',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const name2 = new fabric.Text('Elijah', {
@@ -959,7 +1046,10 @@
                 fontSize: 48,
                 fontFamily: 'Playfair Display',
                 fill: '#333333',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const date = new fabric.Text('may 16, 2027 at 6 in the evening', {
@@ -968,7 +1058,10 @@
                 fontSize: 24,
                 fontFamily: 'Playfair Display',
                 fill: '#BCAE83',
-                fontWeight: '600'
+                fontWeight: '600',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const church = new fabric.Text('saint raleigh church', {
@@ -976,7 +1069,10 @@
                 top: 330,
                 fontSize: 18,
                 fontFamily: 'Playfair Display',
-                fill: '#666666'
+                fill: '#666666',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const address = new fabric.Text('496 fullerton street, monterey, ...', {
@@ -984,7 +1080,10 @@
                 top: 360,
                 fontSize: 14,
                 fontFamily: 'Playfair Display',
-                fill: '#888888'
+                fill: '#888888',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             const reception = new fabric.Text('dinner and dancing to follow', {
@@ -993,12 +1092,16 @@
                 fontSize: 16,
                 fontFamily: 'Playfair Display',
                 fill: '#777777',
-                fontStyle: 'italic'
+                fontStyle: 'italic',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
             });
 
             canvas.add(invitationLine, name1, and, name2, date, church, address, reception);
             canvas.renderAll();
             updateLayersList();
+            saveState();
         }
 
         initializeCard();
@@ -1023,6 +1126,8 @@
             if (selectedObject) {
                 updatePropertiesPanel();
             }
+            updateLayersList();
+            saveState();
         });
 
         function hideAllPropertySections() {
@@ -1040,6 +1145,7 @@
                 document.getElementById('textProperties').style.display = 'block';
                 document.getElementById('selectedObjectType').textContent = 'Text Element';
                 
+                document.getElementById('textContent').value = selectedObject.text || '';
                 document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Playfair Display';
                 document.getElementById('fontSizeSlider').value = selectedObject.fontSize || 48;
                 document.getElementById('fontSizeNumber').value = selectedObject.fontSize || 48;
@@ -1102,7 +1208,36 @@
             document.getElementById('heightNumber').value = Math.round((selectedObject.height || 100) * (selectedObject.scaleY || 1));
             document.getElementById('rotationSlider').value = Math.round(selectedObject.angle || 0);
             document.getElementById('rotationNumber').value = Math.round(selectedObject.angle || 0);
+
+            const isLocked = selectedObject.lockMovementX === true;
+            document.getElementById('lockIcon').className = isLocked ? 'fas fa-lock' : 'fas fa-unlock';
+            document.getElementById('lockText').textContent = isLocked ? 'Locked - Click to unlock' : 'Unlocked - Click to lock position';
         }
+
+        document.getElementById('lockToggle').addEventListener('click', () => {
+            if (selectedObject) {
+                const isLocked = !selectedObject.lockMovementX;
+                selectedObject.set({
+                    lockMovementX: isLocked,
+                    lockMovementY: isLocked,
+                    lockScalingX: isLocked,
+                    lockScalingY: isLocked,
+                    lockRotation: isLocked,
+                    hasControls: !isLocked,
+                    hasBorders: !isLocked,
+                    selectable: true
+                });
+                canvas.renderAll();
+                updateTransformProperties();
+            }
+        });
+
+        document.getElementById('textContent').addEventListener('input', (e) => {
+            if (selectedObject?.type === 'text') {
+                selectedObject.set('text', e.target.value);
+                canvas.renderAll();
+            }
+        });
 
         document.getElementById('fontFamily').addEventListener('change', (e) => {
             if (selectedObject?.type === 'text') {
@@ -1209,20 +1344,13 @@
             }
         });
 
-        document.querySelectorAll('.bullet-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.bullet-option').forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
         ['posX', 'posY', 'width', 'height', 'rotation'].forEach(prop => {
             const slider = document.getElementById(`${prop}Slider`);
             const number = document.getElementById(`${prop}Number`);
             
             if (slider && number) {
                 slider.addEventListener('input', (e) => {
-                    if (selectedObject) {
+                    if (selectedObject && !selectedObject.lockMovementX) {
                         const value = parseInt(e.target.value);
                         number.value = value;
                         
@@ -1249,7 +1377,7 @@
                 });
 
                 number.addEventListener('input', (e) => {
-                    if (selectedObject) {
+                    if (selectedObject && !selectedObject.lockMovementX) {
                         const value = parseInt(e.target.value);
                         slider.value = value;
                         
@@ -1332,6 +1460,7 @@
                         canvas.add(img);
                         canvas.renderAll();
                         updateLayersList();
+                        saveState();
                     });
                 };
                 reader.readAsDataURL(file);
@@ -1359,11 +1488,15 @@
                     top: 100,
                     fontSize: 50,
                     fontFamily: 'Segoe UI',
-                    fill: '#BCAE83'
+                    fill: '#BCAE83',
+                    selectable: true,
+                    hasControls: true,
+                    hasBorders: true
                 });
                 canvas.add(graphicText);
                 canvas.renderAll();
                 updateLayersList();
+                saveState();
             });
         });
 
@@ -1383,7 +1516,7 @@
                 
                 layerDiv.innerHTML = `
                     <span class="layer-icon"><i class="fas fa-${icon}"></i></span>
-                    <span class="layer-name">${obj.type} ${index + 1}</span>
+                    <span class="layer-name">${obj.type} ${index + 1}${obj.lockMovementX ? ' 🔒' : ''}</span>
                     <div class="layer-actions">
                         <button class="layer-action-btn" onclick="event.stopPropagation(); duplicateLayer(${objects.length - 1 - index})"><i class="fas fa-copy"></i></button>
                         <button class="layer-action-btn" onclick="event.stopPropagation(); deleteLayer(${objects.length - 1 - index})"><i class="fas fa-trash"></i></button>
@@ -1406,11 +1539,16 @@
                 obj.clone((cloned) => {
                     cloned.set({
                         left: obj.left + 20,
-                        top: obj.top + 20
+                        top: obj.top + 20,
+                        lockMovementX: false,
+                        lockMovementY: false,
+                        hasControls: true,
+                        hasBorders: true
                     });
                     canvas.add(cloned);
                     canvas.renderAll();
                     updateLayersList();
+                    saveState();
                 });
             }
         };
@@ -1422,6 +1560,7 @@
                 canvas.remove(obj);
                 canvas.renderAll();
                 updateLayersList();
+                saveState();
             }
         };
 
@@ -1442,12 +1581,16 @@
                             top: 100,
                             fontSize: 30,
                             fontFamily: 'Playfair Display',
-                            fill: '#333333'
+                            fill: '#333333',
+                            selectable: true,
+                            hasControls: true,
+                            hasBorders: true
                         });
                         canvas.add(text);
                         canvas.setActiveObject(text);
                         canvas.renderAll();
                         updateLayersList();
+                        saveState();
                         break;
                     case 'shape':
                         const rect = new fabric.Rect({
@@ -1457,24 +1600,33 @@
                             height: 100,
                             fill: '#BCAE83',
                             stroke: '#000000',
-                            strokeWidth: 2
+                            strokeWidth: 2,
+                            selectable: true,
+                            hasControls: true,
+                            hasBorders: true
                         });
                         canvas.add(rect);
                         canvas.setActiveObject(rect);
                         canvas.renderAll();
                         updateLayersList();
+                        saveState();
                         break;
                     case 'duplicate':
                         if (selectedObject) {
                             selectedObject.clone((cloned) => {
                                 cloned.set({
                                     left: selectedObject.left + 20,
-                                    top: selectedObject.top + 20
+                                    top: selectedObject.top + 20,
+                                    lockMovementX: false,
+                                    lockMovementY: false,
+                                    hasControls: true,
+                                    hasBorders: true
                                 });
                                 canvas.add(cloned);
                                 canvas.setActiveObject(cloned);
                                 canvas.renderAll();
                                 updateLayersList();
+                                saveState();
                             });
                         }
                         break;
@@ -1485,6 +1637,27 @@
                             canvas.renderAll();
                             updateLayersList();
                             hideAllPropertySections();
+                            saveState();
+                        }
+                        break;
+                    case 'undo':
+                        if (undoStack.length > 0) {
+                            redoStack.push(JSON.stringify(canvas));
+                            const previousState = undoStack.pop();
+                            canvas.loadFromJSON(previousState, () => {
+                                canvas.renderAll();
+                                updateLayersList();
+                            });
+                        }
+                        break;
+                    case 'redo':
+                        if (redoStack.length > 0) {
+                            undoStack.push(JSON.stringify(canvas));
+                            const nextState = redoStack.pop();
+                            canvas.loadFromJSON(nextState, () => {
+                                canvas.renderAll();
+                                updateLayersList();
+                            });
                         }
                         break;
                 }
@@ -1519,11 +1692,47 @@
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
+                
+                if (currentPage === 'front') {
+                    frontCanvasState = JSON.stringify(canvas);
+                } else {
+                    backCanvasState = JSON.stringify(canvas);
+                }
+                
                 currentPage = this.dataset.page;
                 
                 if (currentPage === 'back') {
+                    if (backCanvasState) {
+                        canvas.loadFromJSON(backCanvasState, () => {
+                            canvas.renderAll();
+                            updateLayersList();
+                        });
+                    } else {
+                        canvas.clear();
+                        const backText = new fabric.Text('Back of Card', {
+                            left: 200,
+                            top: 200,
+                            fontSize: 24,
+                            fontFamily: 'Playfair Display',
+                            fill: '#999999',
+                            selectable: true,
+                            hasControls: true,
+                            hasBorders: true
+                        });
+                        canvas.add(backText);
+                        canvas.renderAll();
+                        updateLayersList();
+                    }
                     document.getElementById('canvasContainer').style.backgroundColor = '#f8f8f8';
                 } else {
+                    if (frontCanvasState) {
+                        canvas.loadFromJSON(frontCanvasState, () => {
+                            canvas.renderAll();
+                            updateLayersList();
+                        });
+                    } else {
+                        initializeCard();
+                    }
                     document.getElementById('canvasContainer').style.backgroundColor = '#f0f0f0';
                 }
             });
@@ -1531,7 +1740,8 @@
 
         document.getElementById('saveBtn').addEventListener('click', () => {
             const designData = {
-                objects: canvas.toJSON(),
+                front: frontCanvasState || JSON.stringify(canvas),
+                back: backCanvasState,
                 border: {
                     style: document.querySelector('.border-style-option.active')?.dataset.border || 'none',
                     color: document.getElementById('borderColor').value,
@@ -1546,6 +1756,12 @@
             alert('Design saved successfully!');
         });
 
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        window.closePreview = closePreview;
+
         document.getElementById('previewBtn').addEventListener('click', () => {
             const dataURL = canvas.toDataURL({
                 format: 'png',
@@ -1553,74 +1769,30 @@
                 multiplier: 2
             });
             
-            previewWindow = window.open('', '_blank');
-            previewWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Card Preview - Papir</title>
-                        <style>
-                            body { 
-                                display: flex; 
-                                flex-direction: column;
-                                justify-content: center; 
-                                align-items: center; 
-                                min-height: 100vh; 
-                                background: #f0f0f0;
-                                margin: 0;
-                                padding: 20px;
-                                font-family: Arial, sans-serif;
-                            }
-                            .preview-container {
-                                background: white;
-                                padding: 30px;
-                                border-radius: 15px;
-                                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                                text-align: center;
-                            }
-                            img {
-                                max-width: 100%;
-                                max-height: 70vh;
-                                border-radius: 10px;
-                                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                            }
-                            .close-btn {
-                                margin-top: 20px;
-                                padding: 10px 30px;
-                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                color: white;
-                                border: none;
-                                border-radius: 30px;
-                                font-size: 1rem;
-                                cursor: pointer;
-                                transition: transform 0.2s;
-                            }
-                            .close-btn:hover {
-                                transform: translateY(-2px);
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="preview-container">
-                            <img src="${dataURL}" alt="Card Preview">
-                            <button class="close-btn" onclick="window.close()">Close Preview</button>
-                        </div>
-                    </body>
-                </html>
-            `);
-            
-            document.getElementById('closePreviewBtn').style.display = 'block';
-        });
-
-        document.getElementById('closePreviewBtn').addEventListener('click', () => {
-            if (previewWindow && !previewWindow.closed) {
-                previewWindow.close();
-            }
-            document.getElementById('closePreviewBtn').style.display = 'none';
+            document.getElementById('previewImage').src = dataURL;
+            document.getElementById('previewModal').style.display = 'flex';
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
             if (confirm('Reset all changes?')) {
-                initializeCard();
+                if (currentPage === 'front') {
+                    initializeCard();
+                } else {
+                    canvas.clear();
+                    const backText = new fabric.Text('Back of Card', {
+                        left: 200,
+                        top: 200,
+                        fontSize: 24,
+                        fontFamily: 'Playfair Display',
+                        fill: '#999999',
+                        selectable: true,
+                        hasControls: true,
+                        hasBorders: true
+                    });
+                    canvas.add(backText);
+                    canvas.renderAll();
+                    updateLayersList();
+                }
                 
                 document.querySelectorAll('.border-style-option').forEach(opt => opt.classList.remove('active'));
                 document.querySelector('[data-border="none"]').classList.add('active');
@@ -1631,6 +1803,8 @@
                 document.getElementById('borderWidthNumber').value = 3;
                 document.getElementById('borderRadiusSlider').value = 0;
                 document.getElementById('borderRadiusNumber').value = 0;
+                
+                saveState();
             }
         });
 
