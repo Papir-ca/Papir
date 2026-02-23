@@ -404,6 +404,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 0.9rem;
         }
 
         .align-btn:hover,
@@ -978,7 +979,7 @@
         <div style="background: white; padding: 30px; border-radius: 15px; max-width: 90%; max-height: 90%; overflow: auto;">
             <img id="previewImage" style="max-width: 100%; max-height: 70vh; border-radius: 10px;">
             <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-primary" onclick="closePreview()">Close Preview</button>
+                <button class="btn-primary" onclick="document.getElementById('previewModal').style.display='none'">Close Preview</button>
             </div>
         </div>
     </div>
@@ -1141,7 +1142,7 @@
 
             hideAllPropertySections();
 
-            if (selectedObject.type === 'text' || selectedObject.type === 'textbox') {
+            if (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text') {
                 document.getElementById('textProperties').style.display = 'block';
                 document.getElementById('selectedObjectType').textContent = 'Text Element';
                 
@@ -1229,25 +1230,26 @@
                 });
                 canvas.renderAll();
                 updateTransformProperties();
+                updateLayersList();
             }
         });
 
         document.getElementById('textContent').addEventListener('input', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 selectedObject.set('text', e.target.value);
                 canvas.renderAll();
             }
         });
 
         document.getElementById('fontFamily').addEventListener('change', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 selectedObject.set('fontFamily', e.target.value);
                 canvas.renderAll();
             }
         });
 
         document.getElementById('fontSizeSlider').addEventListener('input', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const size = parseInt(e.target.value);
                 selectedObject.set('fontSize', size);
                 document.getElementById('fontSizeNumber').value = size;
@@ -1256,7 +1258,7 @@
         });
 
         document.getElementById('fontSizeNumber').addEventListener('input', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const size = parseInt(e.target.value);
                 selectedObject.set('fontSize', size);
                 document.getElementById('fontSizeSlider').value = size;
@@ -1282,7 +1284,7 @@
         });
 
         document.getElementById('textBold').addEventListener('click', () => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const isBold = selectedObject.fontWeight === 'bold';
                 selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
                 document.getElementById('textBold').classList.toggle('active', !isBold);
@@ -1291,7 +1293,7 @@
         });
 
         document.getElementById('textItalic').addEventListener('click', () => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const isItalic = selectedObject.fontStyle === 'italic';
                 selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
                 document.getElementById('textItalic').classList.toggle('active', !isItalic);
@@ -1300,7 +1302,7 @@
         });
 
         document.getElementById('textUnderline').addEventListener('click', () => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 selectedObject.set('underline', !selectedObject.underline);
                 document.getElementById('textUnderline').classList.toggle('active', selectedObject.underline);
                 canvas.renderAll();
@@ -1308,7 +1310,7 @@
         });
 
         document.getElementById('textStrikethrough').addEventListener('click', () => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 selectedObject.set('linethrough', !selectedObject.linethrough);
                 document.getElementById('textStrikethrough').classList.toggle('active', selectedObject.linethrough);
                 canvas.renderAll();
@@ -1317,17 +1319,18 @@
 
         document.querySelectorAll('.align-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                if (selectedObject?.type === 'text') {
+                if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                     document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    selectedObject.set('textAlign', this.dataset.align);
+                    const alignValue = this.dataset.align;
+                    selectedObject.set('textAlign', alignValue);
                     canvas.renderAll();
                 }
             });
         });
 
         document.getElementById('lineHeightSlider').addEventListener('input', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const value = parseFloat(e.target.value);
                 selectedObject.set('lineHeight', value);
                 document.getElementById('lineHeightNumber').value = value;
@@ -1335,8 +1338,17 @@
             }
         });
 
+        document.getElementById('lineHeightNumber').addEventListener('input', (e) => {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
+                const value = parseFloat(e.target.value);
+                selectedObject.set('lineHeight', value);
+                document.getElementById('lineHeightSlider').value = value;
+                canvas.renderAll();
+            }
+        });
+
         document.getElementById('letterSpacingSlider').addEventListener('input', (e) => {
-            if (selectedObject?.type === 'text') {
+            if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
                 const value = parseFloat(e.target.value) * 100;
                 selectedObject.set('charSpacing', value);
                 document.getElementById('letterSpacingNumber').value = e.target.value;
@@ -1592,6 +1604,9 @@
                         updateLayersList();
                         saveState();
                         break;
+                    case 'image':
+                        document.getElementById('fileInput').click();
+                        break;
                     case 'shape':
                         const rect = new fabric.Rect({
                             left: 100,
@@ -1610,6 +1625,9 @@
                         canvas.renderAll();
                         updateLayersList();
                         saveState();
+                        break;
+                    case 'graphic':
+                        // Graphics are handled by the grid clicks
                         break;
                     case 'duplicate':
                         if (selectedObject) {
@@ -1755,12 +1773,6 @@
             localStorage.setItem('papirCardDesign', JSON.stringify(designData));
             alert('Design saved successfully!');
         });
-
-        function closePreview() {
-            document.getElementById('previewModal').style.display = 'none';
-        }
-
-        window.closePreview = closePreview;
 
         document.getElementById('previewBtn').addEventListener('click', () => {
             const dataURL = canvas.toDataURL({
