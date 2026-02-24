@@ -979,7 +979,7 @@
         <div style="background: white; padding: 30px; border-radius: 15px; max-width: 90%; max-height: 90%; overflow: auto;">
             <img id="previewImage" style="max-width: 100%; max-height: 70vh; border-radius: 10px;">
             <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-primary" onclick="closePreviewModal()">Close Preview</button>
+                <button class="btn-primary" id="closePreviewBtn">Close Preview</button>
             </div>
         </div>
     </div>
@@ -1836,11 +1836,13 @@
         canvas.on('object:added', updateLayersList);
         canvas.on('object:removed', updateLayersList);
         canvas.on('object:modified', updateLayersList);
-        function closePreviewModal() {
-            document.getElementById('previewModal').style.display = 'none';
-        }
+
+    document.getElementById('closePreviewBtn').addEventListener('click', function() {
+        document.getElementById('previewModal').style.display = 'none';
+     });
         
     </script>
 </body>
 </html>
+
 
