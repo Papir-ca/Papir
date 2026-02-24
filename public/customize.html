@@ -979,7 +979,7 @@
         <div style="background: white; padding: 30px; border-radius: 15px; max-width: 90%; max-height: 90%; overflow: auto;">
             <img id="previewImage" style="max-width: 100%; max-height: 70vh; border-radius: 10px;">
             <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-primary" onclick="document.getElementById('previewModal').style.display='none'">Close Preview</button>
+                <button class="btn-primary" onclick="closePreviewModal()">Close Preview</button>
             </div>
         </div>
     </div>
@@ -1243,8 +1243,21 @@
 
         document.getElementById('fontFamily').addEventListener('change', (e) => {
             if (selectedObject && (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text')) {
-                selectedObject.set('fontFamily', e.target.value);
+                const selectedFont = e.target.value;
+
+                // Set the font family
+                selectedObject.set('fontFamily', selectedFont);
+
+                // Force canvas to recognize the font change
                 canvas.renderAll();
+
+                // For some fonts, we need to trigger a re-render
+                setTimeout(() => {
+                    selectedObject.set('fontFamily', selectedFont);
+                    canvas.renderAll();
+                }, 100);
+
+                console.log('Font changed to:', selectedFont); // For debugging
             }
         });
 
@@ -1823,6 +1836,11 @@
         canvas.on('object:added', updateLayersList);
         canvas.on('object:removed', updateLayersList);
         canvas.on('object:modified', updateLayersList);
+        function closePreviewModal() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+        
     </script>
 </body>
 </html>
+
