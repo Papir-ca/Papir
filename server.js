@@ -21,14 +21,12 @@ app.use(helmet({
         "'self'",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com",
-        "https://unpkg.com",
         "'unsafe-inline'",
         "'unsafe-eval'"
       ],
       styleSrc: [
         "'self'",
         "https://cdnjs.cloudflare.com",
-        "https://fonts.googleapis.com",
         "'unsafe-inline'"
       ],
       imgSrc: [
@@ -51,7 +49,6 @@ app.use(helmet({
       fontSrc: [
         "'self'",
         "https://cdnjs.cloudflare.com",
-        "https://fonts.gstatic.com",
         "data:"
       ],
       objectSrc: ["'none'"],
@@ -138,7 +135,7 @@ app.get('/api/health', (req, res) => {
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
-      incrementScan: `POST ${baseUrl}/api/increment-scan`,
+      incrementScan: `POST ${baseUrl}/api/increment-scan`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -192,20 +189,6 @@ app.post('/api/cards', async (req, res) => {
       return res.status(503).json({ 
         success: false,
         error: 'Database service temporarily unavailable'
-      });
-    }
-    
-    // Check if card is active
-    const { data: cardCheck } = await supabaseAdmin
-      .from('cards')
-      .select('status')
-      .eq('card_id', card_id)
-      .single();
-
-    if (cardCheck && cardCheck.status !== 'active') {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Card not activated. Please scan QR code first.' 
       });
     }
     
@@ -298,20 +281,6 @@ app.post('/api/upload-media', async (req, res) => {
       });
     }
     
-    // Check if card is active
-    const { data: card } = await supabaseAdmin
-      .from('cards')
-      .select('status')
-      .eq('card_id', cardId)
-      .single();
-
-    if (card && card.status !== 'active') {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Card not activated. Please scan QR code first.' 
-      });
-    }
-    
     // Convert base64 to buffer
     let base64Data = fileData;
     if (fileData.includes(',')) {
@@ -395,6 +364,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
       .from('cards')
       .select('*')
       .eq('card_id', card_id)
+      .eq('status', 'active')
       .single();
     
     if (error) {
@@ -402,11 +372,14 @@ app.get('/api/cards/:card_id', async (req, res) => {
         return res.status(404).json({ 
           success: false,
           error: 'Card not found',
+          message: `No card found with ID: ${card_id}`
         });
       }
+      
       return res.status(500).json({ 
         success: false,
         error: 'Database query failed',
+        details: error.message
       });
     }
     
@@ -417,7 +390,11 @@ app.get('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    res.json({ success: true, card: data });
+    res.json({ 
+      success: true, 
+      card: data,
+      viewerUrl: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`
+    });
     
   } catch (error) {
     console.error('💥 Error retrieving card:', error);
@@ -631,9 +608,7 @@ app.use((req, res) => {
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
       `${baseUrl}/api/upload-media`,
-      `${baseUrl}/api/activate-card`,
       `${baseUrl}/api/increment-scan`,
-      `${baseUrl}/api/create-checkout`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -665,9 +640,7 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
-  console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
-  console.log(`   Create Checkout: https://papir.ca/api/create-checkout`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -675,8 +648,6 @@ app.listen(PORT, () => {
   console.log('   ✅ IP address tracking');
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
-  console.log('   ✅ Card activation flow');
-  console.log('   ✅ Stripe payment integration');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
