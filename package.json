@@ -1,0 +1,46 @@
+{
+  "name": "papir",
+  "version": "3.0.0",
+  "description": "Papir Platform - Professional Augmented Reality Card Creation System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "deploy": "echo '🚀 Deploying Papir to Railway...' && git push origin main",
+    "test": "node test-flow.js",
+    "health": "curl -s https://papir.ca/api/health | jq .",
+    "cards": "curl -s https://papir.ca/api/cards | jq '.cards | length'"
+  },
+  "keywords": [
+    "papir",
+    "ar",
+    "augmented-reality",
+    "qr-codes",
+    "digital-cards",
+    "business-cards",
+    "interactive-media"
+  ],
+  "author": "Papir",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/papir/papir-ar-platform"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.93.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^6.11.2",
+    "helmet": "^7.2.0",
+    "stripe": "^20.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
