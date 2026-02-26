@@ -5,7 +5,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // ✅ FIXED: Added Stripe import
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,8 +135,7 @@ app.get('/api/health', (req, res) => {
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
-      incrementScan: `POST ${baseUrl}/api/increment-scan`,
-      createCheckout: `POST ${baseUrl}/api/create-checkout` // ✅ ADDED: Checkout endpoint
+      incrementScan: `POST ${baseUrl}/api/increment-scan`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -544,60 +542,6 @@ app.post('/api/increment-scan', async (req, res) => {
   }
 });
 
-// 💳 Create Stripe Checkout Session - ✅ ADDED BACK
-app.post('/api/create-checkout', async (req, res) => {
-  try {
-    const { cardId, templateName, price, customization } = req.body;
-    
-    console.log('💰 Creating checkout session for:', { cardId, templateName, price });
-    
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Papir E-Card: ${templateName}`,
-              description: 'Personalized augmented reality greeting card',
-              metadata: {
-                card_id: cardId,
-                template: templateName
-              }
-            },
-            unit_amount: Math.round(price * 100), // Convert dollars to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${req.protocol}://${req.get('host')}/maker.html?card=${cardId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.protocol}://${req.get('host')}/customize.html?template=${templateName}`,
-      metadata: {
-        card_id: cardId,
-        template: templateName,
-        customization: JSON.stringify(customization)
-      }
-    });
-    
-    console.log('✅ Checkout session created:', session.id);
-    
-    res.json({ 
-      success: true, 
-      sessionId: session.id,
-      url: session.url 
-    });
-    
-  } catch (error) {
-    console.error('❌ Stripe error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -665,7 +609,6 @@ app.use((req, res) => {
       `${baseUrl}/api/cards/:id`,
       `${baseUrl}/api/upload-media`,
       `${baseUrl}/api/increment-scan`,
-      `${baseUrl}/api/create-checkout`, // ✅ ADDED: Show in available endpoints
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -698,7 +641,6 @@ app.listen(PORT, () => {
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
-  console.log(`   Create Checkout: https://papir.ca/api/create-checkout`); // ✅ ADDED: Show in startup log
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -706,7 +648,6 @@ app.listen(PORT, () => {
   console.log('   ✅ IP address tracking');
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
-  console.log('   ✅ Stripe payment integration'); // ✅ ADDED: Show feature
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
