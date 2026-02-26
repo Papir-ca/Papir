@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator | Papir System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            flex: 1;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53, #FFD166, #06D6A0, #118AB2, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+            background-size: 400% 400%;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            color: #a0aec0;
+        }
+        
+        .sync-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .sync-status.online {
+            background: rgba(0, 176, 155, 0.3);
+        }
+        
+        .sync-status.offline {
+            background: rgba(255, 65, 108, 0.3);
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            min-width: 300px;
+            max-width: 500px;
+            flex: 1;
+        }
+        
+        .card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+        
+        .card h2 {
+            color: white;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 i {
+            color: #06D6A0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #a0aec0;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: #667eea;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .qr-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .qr-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #a0aec0;
+        }
+        
+        .qr-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #667eea;
+        }
+        
+        .qr-option.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+            color: white;
+        }
+        
+        .qr-option input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            flex: 1;
+            color: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .qr-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 350px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        #qrCanvas {
+            max-width: 250px;
+            max-height: 250px;
+            display: none;
+        }
+        
+        #qrImage {
+            max-width: 250px;
+            max-height: 250px;
+            display: none;
+            border: 10px solid white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .empty-qr {
+            text-align: center;
+            color: #a0aec0;
+        }
+        
+        .empty-qr i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .qr-info {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .qr-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #06D6A0;
+            margin-bottom: 10px;
+        }
+        
+        .qr-type {
+            display: inline-block;
+            background: rgba(6, 214, 160, 0.2);
+            color: #06D6A0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .qr-url {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #a0aec0;
+            word-break: break-all;
+            text-align: left;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .download-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .download-btn.primary {
+            background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+        }
+        
+        .notification.error {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+        }
+        
+        .notification.info {
+            background: linear-gradient(to right, #36D1DC, #5B86E5);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .recent-qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .recent-qr-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .recent-qr-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .server-url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 10px 0;
+            color: #06D6A0;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .card {
+                max-width: 100%;
+            }
+            
+            .qr-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .sync-status {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px auto;
+                display: inline-flex;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sync-status" id="syncStatus">
+            <i class="fas fa-check-circle"></i>
+            <span>Connected to Papir Backend</span>
+        </div>
+        
+        <div class="header">
+            <h1 class="logo"><i class="fas fa-qrcode"></i> Papir QR Generator</h1>
+            <p class="tagline">Generate phone-scannable QR codes for your Papir Cards</p>
+            <div class="server-url" id="serverUrl">papir.ca - Mobile Ready!</div>
+        </div>
+        
+        <div class="content">
+            <!-- Generator Card -->
+            <div class="card">
+                <h2><i class="fas fa-cogs"></i> QR Code Settings</h2>
+                
+                <div class="form-group">
+                    <label for="cardId">Card ID:</label>
+                    <input type="text" id="cardId" placeholder="e.g., 1234, 5678, 9999" value="1234">
+                    <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
+                        Will become: CARD[number] automatically
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>QR Code Type:</label>
+                    <div class="qr-options">
+                        <div class="qr-option active">
+                            <input type="radio" id="typeCard" name="qrType" value="card" checked>
+                            <label for="typeCard">Papir Card</label>
+                        </div>
+                        <div class="qr-option">
+                            <input type="radio" id="typeUrl" name="qrType" value="url">
+                            <label for="typeUrl">Website URL</label>
+                        </div>
+                        <div class="qr-option">
+                            <input type="radio" id="typeText" name="qrType" value="text">
+                            <label for="typeText">Plain Text</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="dynamicOptions">
+                    <div class="form-group">
+                        <label>Papir Card Options:</label>
+                        <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px;">
+                            <p style="margin-bottom: 10px; color: #a0aec0;">QR code will open the card directly in the Papir viewer.</p>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="autoScan" checked>
+                                <label for="autoScan" style="font-weight: normal;">Direct card view</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>QR Code Size:</label>
+                    <select id="qrSize">
+                        <option value="200">Small (200x200)</option>
+                        <option value="300" selected>Medium (300x300)</option>
+                        <option value="400">Large (400x400)</option>
+                    </select>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" id="generateBtn">
+                        <i class="fas fa-bolt"></i> Generate QR Code
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Preview Card -->
+            <div class="card">
+                <h2><i class="fas fa-eye"></i> QR Code Preview</h2>
+                
+                <div class="qr-display">
+                    <img id="qrImage" alt="QR Code">
+                    <div id="emptyQr" class="empty-qr">
+                        <i class="fas fa-qrcode"></i>
+                        <p>Your QR code will appear here</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Configure settings and click "Generate QR Code"</p>
+                    </div>
+                </div>
+                
+                <div id="qrInfo" style="display: none;">
+                    <div class="qr-info">
+                        <div class="qr-label" id="qrLabel">CARD1234</div>
+                        <div class="qr-type" id="qrType">Papir Card</div>
+                        <div class="qr-url" id="qrUrl"></div>
+                        <p style="color: #a0aec0; margin-bottom: 15px;" id="qrDesc">
+                            Scan this QR code with your phone camera - works on any smartphone!
+                        </p>
+                        
+                        <div class="download-buttons">
+                            <button class="download-btn primary" id="downloadPng">
+                                <i class="fas fa-download"></i> Download PNG
+                            </button>
+                            <button class="download-btn" id="shareBtn">
+                                <i class="fas fa-share-alt"></i> Copy URL
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent QR Codes Section -->
+        <div class="card" style="max-width: 100%; margin-top: 30px; display: none;">
+            <h2><i class="fas fa-history"></i> Recent QR Codes</h2>
+            <div class="recent-qr-grid" id="recentQrGrid">
+                <div style="text-align: center; padding: 40px; color: #a0aec0; grid-column: 1 / -1;">
+                    <i class="fas fa-qrcode" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>No QR codes generated yet. Generate your first one above!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configuration - Use YOUR domain
+        const PAPIR_DOMAIN = 'https://papir.ca';
+        const BACKEND_URL = PAPIR_DOMAIN;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const syncStatus = document.getElementById('syncStatus');
+            const serverUrl = document.getElementById('serverUrl');
+            const cardIdInput = document.getElementById('cardId');
+            const qrTypeRadios = document.querySelectorAll('input[name="qrType"]');
+            const dynamicOptions = document.getElementById('dynamicOptions');
+            const qrSizeSelect = document.getElementById('qrSize');
+            const generateBtn = document.getElementById('generateBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const qrImage = document.getElementById('qrImage');
+            const emptyQr = document.getElementById('emptyQr');
+            const qrInfo = document.getElementById('qrInfo');
+            const qrLabel = document.getElementById('qrLabel');
+            const qrType = document.getElementById('qrType');
+            const qrUrl = document.getElementById('qrUrl');
+            const qrDesc = document.getElementById('qrDesc');
+            const downloadPngBtn = document.getElementById('downloadPng');
+            const shareBtn = document.getElementById('shareBtn');
+            const notification = document.getElementById('notification');
+            const recentQrGrid = document.getElementById('recentQrGrid');
+            
+            // State
+            let currentQRCodeData = null;
+            let recentQrCodes = JSON.parse(localStorage.getItem('papirRecentQrCodes')) || [];
+            
+            // Show notification
+            function showNotification(message, type = 'info') {
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Update sync status
+            function updateSyncStatus(connected) {
+                if (connected) {
+                    syncStatus.className = 'sync-status online';
+                    syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span>';
+                } else {
+                    syncStatus.className = 'sync-status offline';
+                    syncStatus.innerHTML = '<i class="fas fa-times-circle"></i><span>Backend Unavailable</span>';
+                }
+            }
+            
+            // Update dynamic options
+            function updateDynamicOptions() {
+                const qrTypeValue = document.querySelector('input[name="qrType"]:checked').value;
+                let optionsHTML = '';
+                
+                switch(qrTypeValue) {
+                    case 'card':
+                        optionsHTML = `
+                            <div class="form-group">
+                                <label>Papir Card Options:</label>
+                                <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px;">
+                                    <p style="margin-bottom: 10px; color: #a0aec0;">QR code will open the card directly in the Papir viewer.</p>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" id="autoScan" checked>
+                                        <label for="autoScan" style="font-weight: normal;">Direct card view</label>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'url':
+                        optionsHTML = `
+                            <div class="form-group">
+                                <label for="urlInput">Website URL:</label>
+                                <input type="url" id="urlInput" placeholder="https://example.com" value="https://papir.ca">
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'text':
+                        optionsHTML = `
+                            <div class="form-group">
+                                <label for="textInput">Text Content:</label>
+                                <textarea id="textInput" placeholder="Enter text for QR code" rows="4" style="resize: vertical;">Welcome to Papir!</textarea>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                dynamicOptions.innerHTML = optionsHTML;
+            }
+            
+            // Get QR data
+            function getQrData() {
+                const qrTypeValue = document.querySelector('input[name="qrType"]:checked').value;
+                let data = '';
+                let label = '';
+                let description = '';
+                let displayUrl = '';
+                
+                switch(qrTypeValue) {
+                    case 'card':
+                        let cardId = cardIdInput.value.trim();
+                        if (!cardId) {
+                            showNotification('Please enter a Card ID', 'error');
+                            return null;
+                        }
+                        
+                        // Ensure CARD prefix
+                        if (!cardId.toUpperCase().startsWith('CARD')) {
+                            cardId = 'CARD' + cardId;
+                        }
+                        
+                        // Generate viewer URL using YOUR domain
+                        const viewerUrl = `${PAPIR_DOMAIN}/viewer.html?card=${encodeURIComponent(cardId)}`;
+                        
+                        data = viewerUrl;
+                        displayUrl = viewerUrl;
+                        label = cardId;
+                        description = 'Scan with phone camera - works anywhere!';
+                        break;
+                        
+                    case 'url':
+                        const urlInput = document.getElementById('urlInput');
+                        if (!urlInput || !urlInput.value.trim()) {
+                            showNotification('Please enter a URL', 'error');
+                            return null;
+                        }
+                        data = urlInput.value.trim();
+                        displayUrl = data;
+                        label = 'Website URL';
+                        description = 'Scan to visit website';
+                        break;
+                        
+                    case 'text':
+                        const textInput = document.getElementById('textInput');
+                        if (!textInput || !textInput.value.trim()) {
+                            showNotification('Please enter text', 'error');
+                            return null;
+                        }
+                        data = textInput.value.trim();
+                        displayUrl = data;
+                        label = 'Text Message';
+                        description = 'Scan to view text';
+                        break;
+                }
+                
+                return { data, label, description, displayUrl, type: qrTypeValue };
+            }
+            
+            // Generate QR code using QRServer API
+            async function generateQR() {
+                const qrData = getQrData();
+                if (!qrData) return;
+                
+                const generateBtnText = generateBtn.innerHTML;
+                generateBtn.innerHTML = '<span class="loading"></span> Generating...';
+                generateBtn.disabled = true;
+                
+                try {
+                    // Get QR code size
+                    const size = qrSizeSelect.value || '300';
+                    
+                    // Generate QR code using QRServer API
+                    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrData.data)}&format=png&margin=10`;
+                    
+                    // Test if QR code loads
+                    const img = new Image();
+                    img.onload = function() {
+                        // Display QR code
+                        qrImage.src = qrCodeUrl;
+                        qrImage.style.display = 'block';
+                        emptyQr.style.display = 'none';
+                        qrInfo.style.display = 'block';
+                        
+                        // Update info
+                        qrLabel.textContent = qrData.label;
+                        qrType.textContent = qrData.type === 'card' ? 'Papir Card' : qrData.type === 'url' ? 'Website URL' : 'Text';
+                        qrUrl.textContent = qrData.displayUrl;
+                        qrDesc.textContent = qrData.description;
+                        
+                        // Store current QR data
+                        currentQRCodeData = {
+                            ...qrData,
+                            qrCodeUrl: qrCodeUrl,
+                            timestamp: Date.now(),
+                            size: size
+                        };
+                        
+                        // Save to recent QR codes
+                        saveToRecentQrCodes(currentQRCodeData);
+                        
+                        // Show success
+                        showNotification('✅ QR code generated! Scan with any phone camera.', 'success');
+                        
+                        // Reset button
+                        generateBtn.innerHTML = generateBtnText;
+                        generateBtn.disabled = false;
+                    };
+                    
+                    img.onerror = function() {
+                        throw new Error('Failed to generate QR code');
+                    };
+                    
+                    img.src = qrCodeUrl;
+                    
+                } catch (error) {
+                    console.error('QR generation error:', error);
+                    showNotification('Error generating QR code: ' + error.message, 'error');
+                    generateBtn.innerHTML = generateBtnText;
+                    generateBtn.disabled = false;
+                }
+            }
+            
+            // Save to recent QR codes
+            function saveToRecentQrCodes(qrData) {
+                const recentQr = {
+                    label: qrData.label,
+                    type: qrData.type,
+                    displayUrl: qrData.displayUrl,
+                    qrCodeUrl: qrData.qrCodeUrl,
+                    timestamp: qrData.timestamp,
+                    size: qrData.size
+                };
+                
+                recentQrCodes.unshift(recentQr);
+                if (recentQrCodes.length > 6) {
+                    recentQrCodes.pop();
+                }
+                
+                localStorage.setItem('papirRecentQrCodes', JSON.stringify(recentQrCodes));
+                updateRecentQrCodesDisplay();
+            }
+            
+            // Update recent QR codes display
+            function updateRecentQrCodesDisplay() {
+                if (!recentQrGrid) return;
+                
+                if (recentQrCodes.length === 0) {
+                    recentQrGrid.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #a0aec0; grid-column: 1 / -1;">
+                            <i class="fas fa-qrcode" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>No QR codes generated yet. Generate your first one above!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                recentQrCodes.forEach((qr, index) => {
+                    const typeColors = {
+                        'card': '#06D6A0',
+                        'url': '#667eea',
+                        'text': '#FF6B6B'
+                    };
+                    
+                    html += `
+                        <div class="recent-qr-item" data-index="${index}" style="cursor: pointer;">
+                            <div style="background-color: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                                <img src="${qr.qrCodeUrl}" alt="QR Code" style="width: 100%; height: auto; border-radius: 5px;">
+                            </div>
+                            <div style="font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; color: ${typeColors[qr.type] || '#a0aec0'}">
+                                ${qr.label.length > 15 ? qr.label.substring(0, 15) + '...' : qr.label}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #a0aec0;">
+                                ${qr.type === 'card' ? 'Papir Card' : qr.type === 'url' ? 'Website' : 'Text'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                recentQrGrid.innerHTML = html;
+                
+                // Add click event to load recent QR codes
+                document.querySelectorAll('.recent-qr-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        loadRecentQrCode(index);
+                    });
+                });
+            }
+            
+            // Load recent QR code
+            function loadRecentQrCode(index) {
+                const qr = recentQrCodes[index];
+                if (!qr) return;
+                
+                if (qr.type === 'card' && cardIdInput) {
+                    // Extract just the number part
+                    const cardNumber = qr.label.replace('CARD', '');
+                    cardIdInput.value = cardNumber;
+                }
+                
+                // Set QR type
+                document.querySelectorAll('input[name="qrType"]').forEach(radio => {
+                    radio.checked = radio.value === qr.type;
+                    if (radio.checked) {
+                        radio.closest('.qr-option').classList.add('active');
+                    } else {
+                        radio.closest('.qr-option').classList.remove('active');
+                    }
+                });
+                
+                updateDynamicOptions();
+                
+                // Load the QR code
+                qrImage.src = qr.qrCodeUrl;
+                qrImage.style.display = 'block';
+                emptyQr.style.display = 'none';
+                qrInfo.style.display = 'block';
+                
+                qrLabel.textContent = qr.label;
+                qrType.textContent = qr.type === 'card' ? 'Papir Card' : qr.type === 'url' ? 'Website URL' : 'Text';
+                qrUrl.textContent = qr.displayUrl;
+                qrDesc.textContent = qr.type === 'card' 
+                    ? 'Scan with phone camera - works anywhere!' 
+                    : 'Scan to view';
+                
+                currentQRCodeData = qr;
+                
+                showNotification('Loaded QR code: ' + qr.label, 'success');
+            }
+            
+            // Clear QR code
+            function clearQR() {
+                qrImage.style.display = 'none';
+                emptyQr.style.display = 'block';
+                qrInfo.style.display = 'none';
+                currentQRCodeData = null;
+                showNotification('QR code cleared', 'info');
+            }
+            
+            // Download QR code
+            async function downloadQR() {
+                if (!currentQRCodeData || !currentQRCodeData.qrCodeUrl) {
+                    showNotification('No QR code to download', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(currentQRCodeData.qrCodeUrl);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `papir_qr_${currentQRCodeData.label.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    window.URL.revokeObjectURL(url);
+                    showNotification('QR code downloaded!', 'success');
+                } catch (error) {
+                    showNotification('Error downloading QR code: ' + error.message, 'error');
+                }
+            }
+            
+            // Copy URL to clipboard
+            async function copyURL() {
+                if (!currentQRCodeData || !currentQRCodeData.displayUrl) {
+                    showNotification('No URL to copy', 'error');
+                    return;
+                }
+                
+                try {
+                    await navigator.clipboard.writeText(currentQRCodeData.displayUrl);
+                    showNotification('URL copied to clipboard!', 'success');
+                } catch (error) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = currentQRCodeData.displayUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification('URL copied!', 'success');
+                }
+            }
+            
+            // Check backend connection
+            async function checkBackendConnection() {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/health`);
+                    if (response.ok) {
+                        updateSyncStatus(true);
+                        return true;
+                    }
+                } catch (error) {
+                    console.log('Backend not available:', error.message);
+                }
+                
+                updateSyncStatus(false);
+                return false;
+            }
+            
+            // Initialize application
+            async function initializeApp() {
+                console.log('Initializing Papir QR Code Generator...');
+                
+                // Update server URL display
+                serverUrl.textContent = `${PAPIR_DOMAIN} - Mobile Ready!`;
+                serverUrl.style.color = '#06D6A0';
+                
+                // Check backend connection
+                await checkBackendConnection();
+                
+                // Setup event listeners
+                qrTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        document.querySelectorAll('.qr-option').forEach(option => {
+                            option.classList.remove('active');
+                        });
+                        this.closest('.qr-option').classList.add('active');
+                        updateDynamicOptions();
+                    });
+                });
+                
+                generateBtn.addEventListener('click', generateQR);
+                clearBtn.addEventListener('click', clearQR);
+                downloadPngBtn.addEventListener('click', downloadQR);
+                shareBtn.addEventListener('click', copyURL);
+                
+                // Initial dynamic options
+                updateDynamicOptions();
+                
+                // Load recent QR codes
+                updateRecentQrCodesDisplay();
+                
+                console.log('Papir QR Code Generator initialized successfully');
+                
+                // Auto-generate if there's a card ID
+                if (cardIdInput.value.trim()) {
+                    setTimeout(generateQR, 500);
+                }
+            }
+            
+            // Start the app
+            initializeApp();
+        });
+    </script>
+
+    <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
+    <p>
+        <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
+        <a href="maker.html" style="color: #BCAE83; margin: 0 10px;">Create Card</a> | 
+        <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | 
+        <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
+        <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
+    </p>
+    <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. Admin Dashboard</p>
+</footer>
+    
+</body>
+</html>

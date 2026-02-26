@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Papir Page Editor</title>
+    <style>
+        body { margin: 0; font-family: Arial; }
+        .toolbar {
+            background: #2a2a2a;
+            padding: 15px;
+            color: white;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #BCAE83;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .editor {
+            padding: 20px;
+            min-height: 500px;
+            border: 2px dashed #ccc;
+            margin: 20px;
+        }
+        .element {
+            padding: 20px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            background: white;
+            position: relative;
+        }
+        .element:hover {
+            border-color: #BCAE83;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        [contenteditable="true"]:focus {
+            outline: 2px solid #BCAE83;
+            background: #fffaf0;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="addText()">📝 Add Text</button>
+        <button onclick="addHeading()">🔤 Add Heading</button>
+        <button onclick="addButton()">🔘 Add Button</button>
+        <button onclick="addImage()">🖼️ Add Image</button>
+        <button onclick="addSection()">📦 Add Section</button>
+        <button onclick="savePage()" style="background: #06D6A0; margin-left: auto;">💾 Save as index.html</button>
+        <button onclick="loadCurrent()" style="background: #444; color: white;">📂 Load Current Page</button>
+    </div>
+    
+    <div id="editor" class="editor">
+        <div class="element" contenteditable="true">
+            <h1 style="color: #BCAE83;">Welcome to Papir</h1>
+            <p style="color: #666;">Edit this text by clicking on it. Delete this section if you don't want it.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add elements
+        function addText() {
+            const div = document.createElement('div');
+            div.className = 'element';
+            div.contentEditable = true;
+            div.innerHTML = '<p>Edit this text. Double click to change.</p>';
+            addDeleteButton(div);
+            document.getElementById('editor').appendChild(div);
+        }
+
+        function addHeading() {
+            const div = document.createElement('div');
+            div.className = 'element';
+            div.contentEditable = true;
+            div.innerHTML = '<h2 style="color: #BCAE83;">New Section Heading</h2><p>Description goes here...</p>';
+            addDeleteButton(div);
+            document.getElementById('editor').appendChild(div);
+        }
+
+        function addButton() {
+            const div = document.createElement('div');
+            div.className = 'element';
+            div.innerHTML = '<a href="#" style="background: #BCAE83; color: black; padding: 12px 30px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">Button Text</a>';
+            addDeleteButton(div);
+            document.getElementById('editor').appendChild(div);
+        }
+
+        function addImage() {
+            const div = document.createElement('div');
+            div.className = 'element';
+            div.innerHTML = '<img src="https://images.unsplash.com/photo-1545235617-9465d2a55698?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width: 100%; max-width: 600px; border-radius: 10px;">';
+            addDeleteButton(div);
+            document.getElementById('editor').appendChild(div);
+        }
+
+        function addSection() {
+            const div = document.createElement('div');
+            div.className = 'element';
+            div.innerHTML = `
+                <div style="padding: 40px; background: #f9f9f9; border-radius: 10px; text-align: center;">
+                    <h2 style="color: #333;">Section Title</h2>
+                    <p style="color: #666;">Section content goes here. You can edit this text.</p>
+                    <div style="margin-top: 20px;">
+                        <a href="#" style="background: #BCAE83; color: black; padding: 12px 30px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">Action Button</a>
+                    </div>
+                </div>
+            `;
+            addDeleteButton(div);
+            document.getElementById('editor').appendChild(div);
+        }
+
+        function addDeleteButton(element) {
+            const btn = document.createElement('button');
+            btn.className = 'delete-btn';
+            btn.innerHTML = '×';
+            btn.onclick = function() {
+                element.remove();
+            };
+            element.appendChild(btn);
+        }
+
+        // Load current index.html
+        async function loadCurrent() {
+            try {
+                const response = await fetch('/');
+                const html = await response.text();
+                // Extract body content between <body> tags
+                const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                if (bodyMatch) {
+                    document.getElementById('editor').innerHTML = bodyMatch[1];
+                    // Add delete buttons to all elements
+                    document.querySelectorAll('.element').forEach(addDeleteButton);
+                }
+                alert('Current page loaded!');
+            } catch (error) {
+                alert('Could not load current page. Starting fresh.');
+            }
+        }
+
+        // Save as index.html
+        function savePage() {
+            const content = document.getElementById('editor').innerHTML;
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papir - Augmented Reality Greeting Cards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Basic styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        img { max-width: 100%; height: auto; }
+        
+        /* Navigation */
+        .papir-nav {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .papir-nav a {
+            color: #BCAE83;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        .papir-nav a:hover {
+            color: #a8996f;
+        }
+        
+        /* Footer */
+        .papir-footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+        .papir-footer a {
+            color: #BCAE83;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .papir-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .papir-nav a {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+        
+        /* Your custom styles from editor */
+        .element {
+            padding: 20px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="papir-nav">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="maker.html"><i class="fas fa-plus-circle"></i> Create Card</a>
+        <a href="viewer.html"><i class="fas fa-eye"></i> View Demo</a>
+        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+    </nav>
+    
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        ${content.replace(/contenteditable="true"/g, '').replace(/class="element"/g, '').replace(/<button class="delete-btn"[^>]*>×<\/button>/g, '')}
+    </div>
+    
+    <footer class="papir-footer">
+        <p style="font-size: 1.5rem; color: #BCAE83; margin-bottom: 20px;">Papir Cards</p>
+        <p>Transforming physical cards into interactive augmented reality experiences.</p>
+        <div style="margin: 30px 0;">
+            <a href="terms.html">Terms of Service</a> | 
+            <a href="privacy.html">Privacy Policy</a> | 
+            <a href="contact.html">Contact Us</a>
+        </div>
+        <p style="color: #666; margin-top: 30px;">&copy; 2024 Papir. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        // Make images clickable
+        document.querySelectorAll('img').forEach(img => {
+            img.style.cursor = 'pointer';
+            img.onclick = () => window.open(img.src, '_blank');
+        });
+        
+        // Make buttons work
+        document.querySelectorAll('a[href="#"]').forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                alert('Button clicked! In your real page, this would link to maker.html');
+            };
+        });
+    </script>
+</body>
+</html>`;
+
+            // Download the file
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'papir-index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('File saved as papir-index.html! Replace your index.html with this file.');
+        }
+
+        // Add delete buttons to initial elements
+        document.querySelectorAll('.element').forEach(addDeleteButton);
+        
+        // Instructions
+        setTimeout(() => {
+            alert('SIMPLE PAGE BUILDER:\n\n1. Click buttons to add elements\n2. Click on text to edit it\n3. Click × to delete elements\n4. Click "Load Current Page" to edit your current index.html\n5. Click "Save as index.html" when done');
+        }, 500);
+    </script>
+</body>
+</html>
