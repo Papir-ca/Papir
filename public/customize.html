@@ -966,9 +966,6 @@
             <button class="btn-primary" id="saveBtn">
                 <i class="fas fa-save"></i> Save Design
             </button>
-            <button class="btn-primary" id="checkoutBtn">
-                <i class="fas fa-lock"></i> Continue to Payment ($19.99)
-            </button>
             <button class="btn-secondary" id="previewBtn">
                 <i class="fas fa-eye"></i> Preview
             </button>
@@ -1844,82 +1841,8 @@
         document.getElementById('previewModal').style.display = 'none';
      });
         
-        document.getElementById('checkoutBtn').addEventListener('click', async function() {
-            // Generate unique card ID
-            const cardId = 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
-            
-            // Collect all canvas elements data
-            const objects = canvas.getObjects().map(obj => ({
-                type: obj.type,
-                text: obj.text,
-                left: obj.left,
-                top: obj.top,
-                width: obj.width,
-                height: obj.height,
-                scaleX: obj.scaleX,
-                scaleY: obj.scaleY,
-                fontSize: obj.fontSize,
-                fontFamily: obj.fontFamily,
-                fill: obj.fill,
-                fontWeight: obj.fontWeight,
-                fontStyle: obj.fontStyle,
-                underline: obj.underline,
-                linethrough: obj.linethrough,
-                textAlign: obj.textAlign,
-                angle: obj.angle
-            }));
-            
-            // Get border settings
-            const borderStyle = document.querySelector('.border-style-option.active')?.dataset.border || 'none';
-            const borderColor = document.getElementById('borderColor').value;
-            const borderWidth = document.getElementById('borderWidthSlider').value;
-            
-            const customization = {
-                objects: objects,
-                border: {
-                    style: borderStyle,
-                    color: borderColor,
-                    width: borderWidth
-                }
-            };
-            
-            try {
-                // Disable button to prevent double-click
-                const btn = document.getElementById('checkoutBtn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                
-                // Create checkout session
-                const response = await fetch('/api/create-checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cardId: cardId,
-                        templateName: document.getElementById('templateName').textContent,
-                        price: 19.99,
-                        customization: customization
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success && result.url) {
-                    // Redirect to Stripe checkout
-                    window.location.href = result.url;
-                } else {
-                    alert('Error creating checkout: ' + (result.error || 'Unknown error'));
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock"></i> Continue to Payment ($19.99)';
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Failed to start checkout. Please try again.');
-                document.getElementById('checkoutBtn').disabled = false;
-                document.getElementById('checkoutBtn').innerHTML = '<i class="fas fa-lock"></i> Continue to Payment ($19.99)';
-            }
-        });
-        
     </script>
 </body>
 </html>
+
 
