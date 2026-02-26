@@ -24,7 +24,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "type": "commonjs",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
   "repository": {
@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.1",
-    "stripe": "^14.0.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
