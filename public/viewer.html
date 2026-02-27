@@ -751,7 +751,6 @@
                         if (result.success && result.card) {
                             console.log('Card loaded successfully:', result.card);
                             displayCard(result.card);
-                            incrementScanCount(result.card.card_id);
                             return { success: true, card: result.card };
                         } else {
                             throw new Error(result.error || 'Card not found');
@@ -759,13 +758,14 @@
                     } else {
                         throw new Error(`Server returned ${response.status}`);
                     }
+                    
                 } catch (error) {
                     console.error('Error loading card:', error);
-                    showError('Failed to load card');
                     
                     // Show error
                     elements.cardDisplay.classList.remove('active');
                     elements.emptyState.style.display = 'block';
+                    showError(`Error: ${error.message}`);
                     
                     return { success: false, error: error.message };
                 }
