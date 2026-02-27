@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activate Your Papir Card</title>
+    <style>
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .checkbox { margin: 20px 0; }
+        button { background: #06D6A0; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #05b58b; }
+        .error { color: red; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Activate Your Papir Card</h1>
+        <p>Card ID: <strong id="cardId"></strong></p>
+        
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="termsCheckbox">
+                I agree to the <a href="/terms.html" target="_blank">Terms of Service</a> and confirm I purchased this card
+            </label>
+        </div>
+        
+        <button id="activateBtn" disabled>Activate Card</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardId = urlParams.get('card');
+        document.getElementById('cardId').textContent = cardId || 'Not found';
+        
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        const activateBtn = document.getElementById('activateBtn');
+        const messageDiv = document.getElementById('message');
+        
+        termsCheckbox.addEventListener('change', function() {
+            activateBtn.disabled = !this.checked;
+        });
+        
+        activateBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/api/activate-card', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_id: cardId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.innerHTML = '<p style="color: green;">✅ Card activated! Redirecting...</p>';
+                    setTimeout(() => {
+                        window.location.href = `/maker.html?card=${cardId}`;
+                    }, 2000);
+                } else {
+                    messageDiv.innerHTML = `<p style="color: red;">❌ ${result.error}</p>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<p style="color: red;">❌ Activation failed</p>';
+            }
+        });
+    </script>
+</body>
+</html>
