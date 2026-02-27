@@ -378,7 +378,7 @@ app.post('/api/upload-media', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - ADDED HERE
+// 🎟️ Activate Card - FIXED WITH BETTER ERROR HANDLING
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
@@ -387,6 +387,7 @@ app.post('/api/activate-card', async (req, res) => {
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
     
     if (!supabaseAdmin) {
+      console.error('❌ supabaseAdmin is not initialized');
       return res.status(503).json({ 
         success: false,
         error: 'Database service temporarily unavailable'
@@ -400,16 +401,21 @@ app.post('/api/activate-card', async (req, res) => {
       .eq('card_id', card_id)
       .single();
     
-    if (fetchError || !card) {
+    if (fetchError) {
+      console.error('❌ Fetch error:', fetchError);
+      return res.json({ success: false, error: 'Database error: ' + fetchError.message });
+    }
+    
+    if (!card) {
       return res.json({ success: false, error: 'Card not found' });
     }
     
     if (card.status !== 'pending') {
-      return res.json({ success: false, error: 'Card already activated' });
+      return res.json({ success: false, error: `Card already ${card.status}` });
     }
     
     // Activate the card
-    const { error } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('cards')
       .update({
         status: 'active',
@@ -420,14 +426,17 @@ app.post('/api/activate-card', async (req, res) => {
       })
       .eq('card_id', card_id);
     
-    if (error) throw error;
+    if (updateError) {
+      console.error('❌ Update error:', updateError);
+      throw updateError;
+    }
     
     console.log(`✅ Card ${card_id} activated successfully`);
     res.json({ success: true });
     
   } catch (error) {
-    console.error('❌ Activation error:', error);
-    res.json({ success: false, error: 'Server error' });
+    console.error('💥 Activation error details:', error);
+    res.json({ success: false, error: 'Server error: ' + error.message });
   }
 });
 
