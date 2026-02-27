@@ -21,12 +21,14 @@ app.use(helmet({
         "'self'",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com",
+        "https://unpkg.com",
         "'unsafe-inline'",
         "'unsafe-eval'"
       ],
       styleSrc: [
         "'self'",
         "https://cdnjs.cloudflare.com",
+        "https://fonts.googleapis.com",
         "'unsafe-inline'"
       ],
       imgSrc: [
@@ -49,6 +51,7 @@ app.use(helmet({
       fontSrc: [
         "'self'",
         "https://cdnjs.cloudflare.com",
+        "https://fonts.gstatic.com",
         "data:"
       ],
       objectSrc: ["'none'"],
@@ -135,6 +138,7 @@ app.get('/api/health', (req, res) => {
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
+      activateCard: `POST ${baseUrl}/api/activate-card`,
       incrementScan: `POST ${baseUrl}/api/increment-scan`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
@@ -216,7 +220,7 @@ app.post('/api/cards', async (req, res) => {
       file_size: file_size || null,
       file_type: file_type || null,
       scan_count: 0,
-      status: 'pending',
+      status: 'active',
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
       created_at: new Date().toISOString(),
@@ -374,11 +378,20 @@ app.post('/api/upload-media', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card
+// 🎟️ Activate Card - ADDED HERE
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
     
     // Check if card exists and is pending
     const { data: card, error: fetchError } = await supabaseAdmin
@@ -409,10 +422,11 @@ app.post('/api/activate-card', async (req, res) => {
     
     if (error) throw error;
     
+    console.log(`✅ Card ${card_id} activated successfully`);
     res.json({ success: true });
     
   } catch (error) {
-    console.error('Activation error:', error);
+    console.error('❌ Activation error:', error);
     res.json({ success: false, error: 'Server error' });
   }
 });
@@ -435,7 +449,6 @@ app.get('/api/cards/:card_id', async (req, res) => {
       .from('cards')
       .select('*')
       .eq('card_id', card_id)
-      .eq('status', 'active')
       .single();
     
     if (error) {
@@ -443,14 +456,11 @@ app.get('/api/cards/:card_id', async (req, res) => {
         return res.status(404).json({ 
           success: false,
           error: 'Card not found',
-          message: `No card found with ID: ${card_id}`
         });
       }
-      
       return res.status(500).json({ 
         success: false,
         error: 'Database query failed',
-        details: error.message
       });
     }
     
@@ -461,11 +471,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    res.json({ 
-      success: true, 
-      card: data,
-      viewerUrl: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`
-    });
+    res.json({ success: true, card: data });
     
   } catch (error) {
     console.error('💥 Error retrieving card:', error);
