@@ -170,87 +170,89 @@ try {
   console.error('❌ Supabase connection error:', error.message);
 }
 
-// 🎨 Save a Magic Card
+// 🎨 Save or Update a Card
 app.post('/api/cards', async (req, res) => {
   try {
     const { card_id, message_type, message_text, media_url, file_name, file_size, file_type } = req.body;
     
-    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
+    console.log(`📨 Processing card: ${card_id}, Type: ${message_type}`);
     
-    // Get client IP address
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
     
-    // Validation
     if (!card_id || !message_type) {
       return res.status(400).json({ 
         success: false,
-        error: 'Missing required fields',
-        required: ['card_id', 'message_type']
+        error: 'Missing required fields'
       });
     }
     
     if (!supabaseAdmin) {
       return res.status(503).json({ 
         success: false,
-        error: 'Database service temporarily unavailable'
+        error: 'Database unavailable'
       });
     }
     
-    // Check if card is active
-    const { data: cardCheck } = await supabaseAdmin
+    // Check if card exists
+    const { data: existingCard } = await supabaseAdmin
       .from('cards')
-      .select('status')
+      .select('card_id')
       .eq('card_id', card_id)
-      .single();
-
-    if (cardCheck && cardCheck.status !== 'active') {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Card not activated. Please scan QR code first.' 
-      });
-    }
+      .maybeSingle();
     
-    // Prepare database record with ALL fields
-    const cardRecord = {
-      card_id: card_id.trim(),
-      message_type: message_type.trim(),
-      message_text: message_text ? message_text.trim() : null,
-      media_url: media_url || null,
-      file_name: file_name || null,
-      file_size: file_size || null,
-      file_type: file_type || null,
-      status: 'pending', // ✅ MUST be 'pending' for new cards
-      scan_count: 0,
-      created_by_ip: clientIp,
-      updated_by_ip: clientIp,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    let result;
     
-    console.log('📝 Saving card to database:', card_id);
-    
-    const { data, error } = await supabaseAdmin
-      .from('cards')
-      .insert([cardRecord])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('❌ Database error:', error);
+    if (existingCard) {
+      // UPDATE existing card (this happens after activation)
+      console.log(`🔄 Updating card: ${card_id}`);
       
-      if (error.code === '23505') {
-        return res.status(409).json({ 
-          success: false,
-          error: 'Duplicate card ID',
-          message: `Card "${card_id}" already exists. Please use a different ID.`
-        });
-      }
+      const { data, error } = await supabaseAdmin
+        .from('cards')
+        .update({
+          message_type: message_type.trim(),
+          message_text: message_text ? message_text.trim() : null,
+          media_url: media_url || null,
+          file_name: file_name || null,
+          file_size: file_size || null,
+          file_type: file_type || null,
+          updated_by_ip: clientIp,
+          updated_at: new Date().toISOString()
+        })
+        .eq('card_id', card_id)
+        .select()
+        .single();
       
-      return res.status(500).json({ 
-        success: false,
-        error: 'Database operation failed',
-        details: error.message
-      });
+      if (error) throw error;
+      result = data;
+      
+    } else {
+      // INSERT new card (this happens when card is first created/printed)
+      console.log(`🆕 Creating new card: ${card_id}`);
+      
+      const cardRecord = {
+        card_id: card_id.trim(),
+        message_type: message_type.trim(),
+        message_text: message_text ? message_text.trim() : null,
+        media_url: media_url || null,
+        file_name: file_name || null,
+        file_size: file_size || null,
+        file_type: file_type || null,
+        status: 'pending',
+        scan_count: 0,
+        created_by_ip: clientIp,
+        updated_by_ip: clientIp,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabaseAdmin
+        .from('cards')
+        .insert([cardRecord])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      result = data;
     }
     
     console.log(`✅ Card saved: ${card_id}`);
@@ -261,7 +263,7 @@ app.post('/api/cards', async (req, res) => {
     res.status(201).json({ 
       success: true, 
       message: 'Card saved successfully!',
-      card: data,
+      card: result,
       urls: {
         viewer: viewerUrl,
         qrCode: qrCodeUrl
@@ -269,11 +271,11 @@ app.post('/api/cards', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('💥 Unexpected error:', error);
+    console.error('💥 Error:', error);
     res.status(500).json({ 
       success: false,
       error: 'Internal server error',
-      message: 'Please try again later'
+      message: error.message
     });
   }
 });
