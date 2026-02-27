@@ -419,6 +419,7 @@
             <p class="tagline">Scan QR codes or enter Card IDs to view AR content instantly</p>
         </header>
         
+        <!-- QR Scanner Section -->
         <div class="scanner-container">
             <div class="scanner-title">
                 <i class="fas fa-camera"></i> Scan Card QR Code
@@ -443,45 +444,54 @@
             </div>
         </div>
         
+        <!-- Manual Input Section -->
         <div class="manual-input">
             <div class="scanner-title">
                 <i class="fas fa-keyboard"></i> Enter Card ID Manually
             </div>
-            <p style="color: #a0aec0; margin-bottom: 15px;">If you have a Card ID, enter it below:</p>
+            <p style="color: #a0aec0; margin-bottom: 15px;">If you have a Card ID (like CARD6842), enter it below:</p>
             
             <div class="input-group">
-                <input type="text" id="cardIdInput" class="card-input" placeholder="Enter Card ID (e.g., A1B2C3D4)">
+                <input type="text" id="cardIdInput" class="card-input" placeholder="Enter Card ID (e.g., CARD6842)" value="CARD6842">
                 <button class="btn btn-primary" id="loadCardBtn">
                     <i class="fas fa-search"></i> Load Card
                 </button>
             </div>
         </div>
         
+        <!-- Error Message -->
         <div class="error-message" id="errorMessage">
             <i class="fas fa-exclamation-triangle"></i>
             <div id="errorText">Card not found or error loading content</div>
         </div>
         
+        <!-- Card Display Area -->
         <div class="card-display" id="cardDisplay">
             <div class="card-header">
-                <div class="card-id" id="displayCardId"></div>
+                <div class="card-id" id="displayCardId">CARD6842</div>
                 <div class="card-meta">
                     <div class="meta-item">
-                        <i class="fas fa-tag"></i> Type: <span id="displayCardType"></span>
+                        <i class="fas fa-tag"></i> Type: <span id="displayCardType">Text</span>
                     </div>
                     <div class="meta-item">
-                        <i class="fas fa-calendar"></i> Created: <span id="displayCardDate"></span>
+                        <i class="fas fa-calendar"></i> Created: <span id="displayCardDate">Today</span>
                     </div>
                 </div>
             </div>
             
-            <div class="card-content" id="cardContent"></div>
+            <div class="card-content" id="cardContent">
+                <!-- Dynamic content will appear here -->
+                <div class="text-message" id="textMessage">Happy Birthday 😊</div>
+            </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <div class="card-type" id="contentTypeBadge"></div>
+                <div class="card-type" id="contentTypeBadge">
+                    <i class="fas fa-comment"></i> Text Message
+                </div>
             </div>
         </div>
         
+        <!-- Empty State -->
         <div class="empty-state" id="emptyState">
             <i class="fas fa-qrcode"></i>
             <h3>Ready to Scan</h3>
@@ -492,17 +502,23 @@
         </div>
     </div>
     
+    <!-- Notification Element -->
     <div class="notification" id="notification"></div>
     
+    <!-- HTML5 QR Code Scanner Library -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
     <script>
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            
+            // Backend API configuration
             const BACKEND_URL = 'https://papir.ca';
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
             
+            // Get DOM elements
             const elements = {
                 reader: document.getElementById('reader'),
                 cardIdInput: document.getElementById('cardIdInput'),
@@ -519,11 +535,13 @@
                 syncStatus: document.getElementById('syncStatus'),
                 startScanner: document.getElementById('startScanner'),
                 stopScanner: document.getElementById('stopScanner'),
+                textMessage: document.getElementById('textMessage'),
                 contentTypeBadge: document.getElementById('contentTypeBadge')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
             
+            // Increment scan count
             async function incrementScanCount(cardId) {
                 try {
                     console.log('📊 Logging scan for:', cardId);
@@ -539,6 +557,7 @@
                 }
             }
             
+            // Show notification
             function showNotification(message, type = 'success') {
                 elements.notification.textContent = message;
                 elements.notification.className = `notification ${type}`;
@@ -549,6 +568,7 @@
                 }, 3000);
             }
             
+            // Show error message
             function showError(message) {
                 elements.errorText.textContent = message;
                 elements.errorMessage.classList.add('active');
@@ -558,10 +578,12 @@
                 }, 5000);
             }
             
+            // Hide error message
             function hideError() {
                 elements.errorMessage.classList.remove('active');
             }
             
+            // Update sync status
             function updateSyncStatus(connected) {
                 if (connected) {
                     elements.syncStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span>';
@@ -576,6 +598,7 @@
                 }
             }
             
+            // Format date
             function formatDate(dateString) {
                 try {
                     const date = new Date(dateString);
@@ -589,14 +612,14 @@
                 }
             }
             
+            // Display card content
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
-                // 🚨 REDIRECT TO ACTIVATION IF CARD IS PENDING
+                // Check card status
                 if (card.status === 'pending') {
-                    console.log('⏳ Card is pending - redirecting to activation');
                     window.location.href = `/activation.html?card=${card.card_id}`;
-                    return; // STOP EXECUTION - DON'T TRY TO DISPLAY
+                    return;
                 }
                 
                 // Update card info
@@ -622,6 +645,7 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
+                                    <h3 style="color: #333; margin-bottom: 15px;">Image Card</h3>
                                     <img src="${card.media_url}" alt="Card Image" class="card-image">
                                     <p style="color: #666; margin-top: 10px;">${card.message_text || ''}</p>
                                 </div>
@@ -641,6 +665,7 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
+                                    <h3 style="color: #333; margin-bottom: 15px;">Video Card</h3>
                                     <video controls autoplay muted class="card-video">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
@@ -663,6 +688,7 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
+                                    <h3 style="color: #333; margin-bottom: 15px;">Audio Card</h3>
                                     <audio controls autoplay class="card-audio">
                                         <source src="${card.media_url}" type="audio/mpeg">
                                         Your browser doesn't support audio.
@@ -697,13 +723,16 @@
                 
                 showNotification(`Loaded card: ${card.card_id}`, 'success');
                 
+                // Increment scan count
                 incrementScanCount(card.card_id);
             }
             
+            // Load card from backend
             async function loadCard(cardId) {
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
                     
+                    // Show loading state
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
                             <div class="loading" style="margin: 0 auto;"></div>
@@ -722,6 +751,7 @@
                         if (result.success && result.card) {
                             console.log('Card loaded successfully:', result.card);
                             displayCard(result.card);
+                            incrementScanCount(result.card.card_id);
                             return { success: true, card: result.card };
                         } else {
                             throw new Error(result.error || 'Card not found');
@@ -729,22 +759,24 @@
                     } else {
                         throw new Error(`Server returned ${response.status}`);
                     }
-                    
                 } catch (error) {
                     console.error('Error loading card:', error);
+                    showError('Failed to load card');
                     
+                    // Show error
                     elements.cardDisplay.classList.remove('active');
                     elements.emptyState.style.display = 'block';
-                    showError(`Error: ${error.message}`);
                     
                     return { success: false, error: error.message };
                 }
             }
             
+            // Initialize QR code scanner
             function initScanner() {
                 try {
                     html5QrCode = new Html5Qrcode("reader");
                     
+                    // Configure scanner
                     const config = {
                         fps: 10,
                         qrbox: { width: 250, height: 250 },
@@ -752,6 +784,7 @@
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
                     };
                     
+                    // Start scanner - opens to rear camera by default, falls back to front
                     async function startScanner() {
                         try {
                             const cameras = await Html5Qrcode.getCameras();
@@ -789,6 +822,7 @@
                         }
                     }
                     
+                    // Stop scanner
                     function stopScanner() {
                         if (html5QrCode && isScannerActive) {
                             html5QrCode.stop().then(() => {
@@ -802,6 +836,7 @@
                         }
                     }
                     
+                    // QR scan success callback
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
                         
@@ -830,6 +865,7 @@
                         }, 2000);
                     }
                     
+                    // QR scan failure callback
                     function onScanFailure(error) {
                         console.log('Scan failure (expected):', error);
                     }
@@ -843,6 +879,7 @@
                 }
             }
             
+            // Check backend connection
             async function checkBackendConnection() {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/health`);
@@ -858,6 +895,7 @@
                 return false;
             }
             
+            // Check URL for card parameter
             function checkUrlForCard() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const cardParam = urlParams.get('card');
@@ -869,6 +907,7 @@
                 }
             }
             
+            // Initialize the app
             async function initApp() {
                 console.log('Initializing Papir Viewer...');
                 
@@ -902,7 +941,7 @@
             initApp();
         });
     </script>
-    
+
     <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
         <p>
             <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
@@ -912,5 +951,6 @@
         </p>
         <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
     </footer>
+    
 </body>
 </html>
