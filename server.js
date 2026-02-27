@@ -219,12 +219,31 @@ app.post('/api/cards', async (req, res) => {
       file_name: file_name || null,
       file_size: file_size || null,
       file_type: file_type || null,
+      status: 'active', // Card is active immediately after payment/activation
       scan_count: 0,
-      status: 'active',
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      expires_at: null,
+      purchase_id: null,
+      template_id: null,
+      customization: {},
+      font_family: null,
+      font_size: '24px',
+      font_color: null,
+      card_color: null,
+      border_style: null,
+      border_color: null,
+      custom_message: null,
+      custom_date: null,
+      custom_location: null,
+      custom_names: null,
+      payment_status: 'completed', // or 'pending' if you want to track separately
+      activated_at: new Date().toISOString(), // Set activation time if needed
+      activated_by_ip: clientIp,
+      terms_accepted_at: new Date().toISOString(),
+      terms_accepted_ip: clientIp
     };
     
     console.log('📝 Saving card to database:', card_id);
