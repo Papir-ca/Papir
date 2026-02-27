@@ -42,6 +42,8 @@
         });
         
         activateBtn.addEventListener('click', async function() {
+            console.log('🔵 Activate button clicked!');
+            console.log('🔵 Card ID:', cardId);
             try {
                 const response = await fetch('/api/activate-card', {
                     method: 'POST',
@@ -65,4 +67,5 @@
         });
     </script>
 </body>
+
 </html>
