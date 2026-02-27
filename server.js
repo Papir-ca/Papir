@@ -219,7 +219,7 @@ app.post('/api/cards', async (req, res) => {
       file_name: file_name || null,
       file_size: file_size || null,
       file_type: file_type || null,
-      status: 'pending', // Physical cards start as pending
+      status: 'active',
       scan_count: 0,
       created_by_ip: clientIp,
       updated_by_ip: clientIp,
