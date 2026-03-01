@@ -174,7 +174,10 @@ app.post('/api/cards', async (req, res) => {
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
     // Get client IP address
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    if (clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim(); // Take only the first IP
+     } 
     
     // Validation
     if (!card_id || !message_type) {
