@@ -205,7 +205,6 @@ app.post('/api/cards', async (req, res) => {
     let result;
     
     if (existingCard) {
-      // 🔴 YOU'RE MISSING THIS ENTIRE SECTION 🔴
       // UPDATE existing card (this happens after activation)
       console.log(`🔄 Updating existing card: ${card_id}`);
       
@@ -517,29 +516,48 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card (for physical cards)
+// 🎟️ Activate Card - WITH BETTER ERROR LOGGING
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     
-    // Check if card exists and is pending
+    // Fix IP handling
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    if (clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim();
+    }
+    
+    console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
+    
+    if (!supabaseAdmin) {
+      console.error('❌ supabaseAdmin not initialized');
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Check if card exists
     const { data: card, error: fetchError } = await supabaseAdmin
       .from('cards')
       .select('status')
       .eq('card_id', card_id)
       .single();
     
-    if (fetchError || !card) {
+    if (fetchError) {
+      console.error('❌ Fetch error:', fetchError);
+      return res.json({ success: false, error: 'Database error: ' + fetchError.message });
+    }
+    
+    if (!card) {
       return res.json({ success: false, error: 'Card not found' });
     }
     
+    console.log(`📊 Current card status: ${card.status}`);
+    
     if (card.status !== 'pending') {
-      return res.json({ success: false, error: 'Card already activated' });
+      return res.json({ success: false, error: `Card already ${card.status}` });
     }
     
     // Activate the card
-    const { error } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('cards')
       .update({
         status: 'active',
@@ -550,13 +568,17 @@ app.post('/api/activate-card', async (req, res) => {
       })
       .eq('card_id', card_id);
     
-    if (error) throw error;
+    if (updateError) {
+      console.error('❌ Update error:', updateError);
+      throw updateError;
+    }
     
+    console.log(`✅ Card ${card_id} activated successfully`);
     res.json({ success: true });
     
   } catch (error) {
-    console.error('Activation error:', error);
-    res.json({ success: false, error: 'Server error' });
+    console.error('💥 Activation error details:', error);
+    res.json({ success: false, error: 'Server error: ' + error.message });
   }
 });
 
