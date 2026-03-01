@@ -10,7 +10,7 @@ const supabase = createClient(
 
 // Card ID generator - NO PREFIX (matches your maker.html)
 function generateCardId() {
-  return Math.random().toString(36).substr(2, 8).toUpperCase();
+  return 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
 // Configuration
@@ -123,3 +123,4 @@ async function generateCards() {
 
 // Run the generator
 generateCards();
+
