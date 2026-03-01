@@ -1542,12 +1542,27 @@
                 return false;
             }
             
+            // ✅ UPDATED initApp function with URL parameter handling
             async function initApp() {
                 console.log('Initializing Papir Card Maker...');
                 
                 await checkBackendConnection();
                 
-                elements.cardIdInput.value = generateRandomCardId();
+                // CHECK FOR CARD ID IN URL FIRST
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlCardId = urlParams.get('card');
+                
+                if (urlCardId) {
+                    // USE THE CARD ID FROM URL
+                    console.log('🔗 Using card ID from URL:', urlCardId);
+                    elements.cardIdInput.value = urlCardId;
+                } else {
+                    // GENERATE NEW RANDOM ID ONLY IF NO URL PARAMETER
+                    console.log('🎲 Generating new random card ID');
+                    elements.cardIdInput.value = generateRandomCardId();
+                }
+                
+                // ALWAYS MAKE IT READ-ONLY
                 elements.cardIdInput.readOnly = true;
                 
                 setupImageUpload();
