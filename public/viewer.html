@@ -88,12 +88,13 @@
         
         .card-display {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 20px;
             color: #333;
-            margin-top: 30px;
+            margin: 20px auto;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             display: none;
+            max-width: 800px;
         }
         
         .card-display.active {
@@ -107,35 +108,58 @@
         }
         
         .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
         }
         
         .card-id {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #2d4cc7;
-            margin-bottom: 10px;
         }
         
         .card-meta {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
         }
         
         .meta-item {
             background: #f0f8ff;
-            padding: 8px 16px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             color: #2d4cc7;
+            white-space: nowrap;
+        }
+        
+        .close-btn {
+            background: #ff416c;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: #ff2b5e;
+            transform: translateY(-2px);
         }
         
         .card-content {
             text-align: center;
-            padding: 20px 0;
+            padding: 10px 0;
         }
         
         .text-message {
@@ -143,7 +167,7 @@
             font-weight: 600;
             color: #333;
             line-height: 1.4;
-            margin: 30px 0;
+            margin: 20px 0;
             padding: 20px;
             background: #f9f9f9;
             border-radius: 15px;
@@ -151,38 +175,31 @@
         }
         
         .media-container {
-            margin: 30px 0;
+            margin: 0 auto;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
         }
         
         .card-image {
             max-width: 100%;
-            max-height: 400px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
         }
         
         .card-video {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .card-audio {
             width: 100%;
-            max-width: 500px;
-            margin: 20px auto;
-        }
-        
-        .card-type {
-            display: inline-block;
-            background: #e0e6ff;
-            color: #2d4cc7;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px;
+            max-width: 400px;
+            margin: 0 auto;
         }
         
         .manual-input {
@@ -341,6 +358,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -357,7 +375,7 @@
             }
             
             .card-display {
-                padding: 20px;
+                padding: 15px;
             }
             
             .text-message {
@@ -385,6 +403,21 @@
             header {
                 padding-top: 20px;
             }
+            
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .card-meta {
+                flex-wrap: wrap;
+            }
+            
+            .close-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         .loading {
@@ -408,7 +441,7 @@
         <i class="fas fa-arrow-left"></i> Back to Home
     </a>
     
-    <div class="sync-status" id="syncStatus" style="display: none;">
+    <div class="sync-status" id="syncStatus">
         <i class="fas fa-check-circle"></i>
         <span>Connected to Papir Backend</span>
     </div>
@@ -419,7 +452,7 @@
             <p class="tagline">Scan QR codes or enter Card IDs to view AR content instantly</p>
         </header>
         
-        <div class="scanner-container">
+        <div class="scanner-container" id="scannerContainer">
             <div class="scanner-title">
                 <i class="fas fa-camera"></i> Scan Card QR Code
             </div>
@@ -443,7 +476,7 @@
             </div>
         </div>
         
-        <div class="manual-input">
+        <div class="manual-input" id="manualInput">
             <div class="scanner-title">
                 <i class="fas fa-keyboard"></i> Enter Card ID Manually
             </div>
@@ -470,16 +503,15 @@
                         <i class="fas fa-tag"></i> Type: <span id="displayCardType"></span>
                     </div>
                     <div class="meta-item">
-                        <i class="fas fa-calendar"></i> Created: <span id="displayCardDate"></span>
+                        <i class="fas fa-calendar"></i> <span id="displayCardDate"></span>
                     </div>
                 </div>
+                <button class="close-btn" id="closeCardBtn">
+                    <i class="fas fa-times"></i> Close
+                </button>
             </div>
             
             <div class="card-content" id="cardContent"></div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <div class="card-type" id="contentTypeBadge"></div>
-            </div>
         </div>
         
         <div class="empty-state" id="emptyState">
@@ -519,7 +551,9 @@
                 syncStatus: document.getElementById('syncStatus'),
                 startScanner: document.getElementById('startScanner'),
                 stopScanner: document.getElementById('stopScanner'),
-                contentTypeBadge: document.getElementById('contentTypeBadge')
+                scannerContainer: document.getElementById('scannerContainer'),
+                manualInput: document.getElementById('manualInput'),
+                closeCardBtn: document.getElementById('closeCardBtn')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -589,6 +623,13 @@
                 }
             }
             
+            function resetView() {
+                elements.scannerContainer.style.display = 'block';
+                elements.manualInput.style.display = 'block';
+                elements.cardDisplay.classList.remove('active');
+                elements.emptyState.style.display = 'block';
+            }
+            
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
@@ -610,7 +651,6 @@
                                 ${card.message_text || 'No message available'}
                             </div>
                         `;
-                        elements.contentTypeBadge.innerHTML = '<i class="fas fa-comment"></i> Text Message';
                         break;
                         
                     case 'image':
@@ -618,10 +658,8 @@
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
                                     <img src="${card.media_url}" alt="Card Image" class="card-image">
-                                    <p style="color: #666; margin-top: 10px;">${card.message_text || ''}</p>
                                 </div>
                             `;
-                            elements.contentTypeBadge.innerHTML = '<i class="fas fa-image"></i> Image';
                         } else {
                             elements.cardContent.innerHTML = `
                                 <div class="text-message" style="color: #999;">
@@ -640,10 +678,8 @@
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
-                                    <p style="color: #666; margin-top: 10px;">${card.message_text || ''}</p>
                                 </div>
                             `;
-                            elements.contentTypeBadge.innerHTML = '<i class="fas fa-video"></i> Video';
                         } else {
                             elements.cardContent.innerHTML = `
                                 <div class="text-message" style="color: #999;">
@@ -662,10 +698,8 @@
                                         <source src="${card.media_url}" type="audio/mpeg">
                                         Your browser doesn't support audio.
                                     </audio>
-                                    <p style="color: #666; margin-top: 10px;">${card.message_text || ''}</p>
                                 </div>
                             `;
-                            elements.contentTypeBadge.innerHTML = '<i class="fas fa-music"></i> Audio';
                         } else {
                             elements.cardContent.innerHTML = `
                                 <div class="text-message" style="color: #999;">
@@ -682,14 +716,11 @@
                                 Unknown card type: ${card.message_type}
                             </div>
                         `;
-                        elements.contentTypeBadge.innerHTML = `<i class="fas fa-question-circle"></i> ${card.message_type}`;
                 }
                 
                 elements.cardDisplay.classList.add('active');
                 elements.emptyState.style.display = 'none';
                 hideError();
-                
-                showNotification(`Loaded card: ${card.card_id}`, 'success');
                 
                 incrementScanCount(card.card_id);
             }
@@ -698,9 +729,9 @@
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
                     
-                    // HIDE SCANNER SECTION - ADD THIS
-                    document.querySelector('.scanner-container').style.display = 'none';
-                    document.querySelector('.manual-input').style.display = 'none';
+                    // Hide scanner and manual input
+                    elements.scannerContainer.style.display = 'none';
+                    elements.manualInput.style.display = 'none';
                     
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
@@ -892,6 +923,10 @@
                             loadCard(cardId);
                         }
                     }
+                });
+                
+                elements.closeCardBtn.addEventListener('click', function() {
+                    resetView();
                 });
                 
                 console.log('Papir Viewer initialized successfully');
