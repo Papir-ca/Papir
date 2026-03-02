@@ -520,9 +520,6 @@ app.post('/api/activate-card', async (req, res) => {
     
     // Fix IP handling
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    if (clientIp.includes(',')) {
-        clientIp = clientIp.split(',')[0].trim();
-    }
     
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
     
