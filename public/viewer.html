@@ -844,14 +844,21 @@
                         
                         // If QR contains URL, extract card parameter
                         try {
-                            const url = new URL(decodedText);
-                            const cardParam = url.searchParams.get('card');
-                            if (cardParam) {
-                                cardId = cardParam;
+                            if (decodedText.includes('papir.ca') || decodedText.includes('http')) {
+                                const url = new URL(decodedText);
+                                const cardParam = url.searchParams.get('card');
+                                if (cardParam) {
+                                    cardId = cardParam;
+                                }
                             }
                         } catch (error) {
-                            // Not a URL, use as-is
+                            console.log('Not a URL, using raw text:', decodedText);
                         }
+                        
+                        // Clean up the card ID - remove any non-alphanumeric characters
+                        cardId = cardId.replace(/[^a-zA-Z0-9]/g, '');
+                        
+                        console.log('Extracted card ID:', cardId);
                         
                         // Stop scanner immediately
                         if (html5QrCode && isScannerActive) {
@@ -859,18 +866,37 @@
                                 isScannerActive = false;
                                 elements.startScanner.disabled = false;
                                 elements.stopScanner.disabled = true;
+                                
+                                // Small delay to ensure scanner stops completely
+                                setTimeout(() => {
+                                    // Load the card
+                                    if (cardId) {
+                                        loadCard(cardId);
+                                    } else {
+                                        showNotification('Invalid QR code', 'error');
+                                        // Show scanner again
+                                        elements.scannerContainer.style.display = 'block';
+                                        elements.manualInput.style.display = 'block';
+                                    }
+                                }, 100);
                             }).catch(err => {
                                 console.error('Error stopping scanner:', err);
+                                // Still try to load the card even if scanner stop fails
+                                if (cardId) {
+                                    loadCard(cardId);
+                                }
                             });
+                        } else {
+                            // If scanner wasn't active, just load the card
+                            if (cardId) {
+                                loadCard(cardId);
+                            }
                         }
-                        
-                        // Load the card
-                        loadCard(cardId);
                     }
                     
                     function onScanFailure(error) {
                         // Silent failure - just keep scanning
-                        console.log('Scan failure (expected):', error);
+                        // console.log('Scan failure (expected):', error);
                     }
                     
                     elements.startScanner.addEventListener('click', startScanner);
