@@ -628,6 +628,11 @@
                 elements.manualInput.style.display = 'block';
                 elements.cardDisplay.classList.remove('active');
                 elements.emptyState.style.display = 'block';
+                
+                // Re-enable start scanner button if scanner was stopped
+                if (!isScannerActive) {
+                    elements.startScanner.disabled = false;
+                }
             }
             
             function displayCard(card) {
@@ -732,6 +737,14 @@
                     // Hide scanner and manual input
                     elements.scannerContainer.style.display = 'none';
                     elements.manualInput.style.display = 'none';
+                    
+                    // Stop the scanner if it's active
+                    if (html5QrCode && isScannerActive) {
+                        await html5QrCode.stop();
+                        isScannerActive = false;
+                        elements.startScanner.disabled = false;
+                        elements.stopScanner.disabled = true;
+                    }
                     
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
@@ -846,21 +859,22 @@
                             // Not a URL, use as-is
                         }
                         
-                        if (isScannerActive) {
-                            html5QrCode.pause();
+                        // Immediately stop the scanner
+                        if (html5QrCode && isScannerActive) {
+                            html5QrCode.stop().then(() => {
+                                isScannerActive = false;
+                                elements.startScanner.disabled = false;
+                                elements.stopScanner.disabled = true;
+                            }).catch(err => {
+                                console.error('Error stopping scanner:', err);
+                            });
                         }
                         
                         loadCard(cardId);
-                        
-                        setTimeout(() => {
-                            if (isScannerActive) {
-                                html5QrCode.resume();
-                            }
-                        }, 2000);
                     }
                     
                     function onScanFailure(error) {
-                        console.log('Scan failure (expected):', error);
+                        // Silent failure - don't log every frame
                     }
                     
                     elements.startScanner.addEventListener('click', startScanner);
