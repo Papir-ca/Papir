@@ -89,14 +89,14 @@
         }
         
         .card-display {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             color: #333;
-            margin: 20px auto;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+            box-shadow: none;
             display: none;
-            max-width: 800px;
+            max-width: 100%;
         }
         
         .card-display.active {
@@ -105,23 +105,25 @@
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 15px;
             margin-bottom: 15px;
+            background: transparent;
+            color: white;
         }
         
         .card-id {
             font-size: 22px;
             font-weight: bold;
-            color: #2d4cc7;
+            color: #06D6A0;
         }
         
         .card-meta {
@@ -131,12 +133,13 @@
         }
         
         .meta-item {
-            background: #f0f8ff;
+            background: rgba(6, 214, 160, 0.2);
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 13px;
-            color: #2d4cc7;
+            color: #06D6A0;
             white-space: nowrap;
+            border: 1px solid rgba(6, 214, 160, 0.3);
         }
         
         .close-btn {
@@ -161,17 +164,17 @@
         
         .card-content {
             text-align: center;
-            padding: 10px 0;
+            padding: 0;
         }
         
         .text-message {
             font-size: 32px;
             font-weight: 600;
-            color: #333;
+            color: white;
             line-height: 1.4;
             margin: 20px 0;
             padding: 20px;
-            background: #f9f9f9;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             border-left: 5px solid #06D6A0;
         }
@@ -185,17 +188,18 @@
         
         .card-image {
             max-width: 100%;
-            max-height: 500px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            border-radius: 0;
+            box-shadow: none;
             object-fit: contain;
         }
         
         .card-video {
             max-width: 100%;
-            max-height: 500px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100%;
             background: black;
         }
         
@@ -265,6 +269,26 @@
         
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .speed-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .speed-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .speed-btn.active {
+            background: #06D6A0;
+            color: white;
         }
         
         .error-message {
@@ -388,7 +412,7 @@
             }
             
             .card-display {
-                padding: 15px;
+                padding: 0;
             }
             
             .text-message {
@@ -430,6 +454,14 @@
             .close-btn {
                 width: 100%;
                 justify-content: center;
+            }
+            
+            .speed-controls {
+                flex-wrap: wrap;
+            }
+            
+            .card-video {
+                max-height: 100vh;
             }
         }
         
@@ -657,6 +689,23 @@
                 elements.emptyState.style.display = 'none';
             }
             
+            function setPlaybackRate(rate, playerId) {
+                const player = document.getElementById(playerId);
+                if (player) {
+                    player.playbackRate = rate;
+                    
+                    // Update active button state
+                    const buttons = document.querySelectorAll(`.speed-btn[data-player="${playerId}"]`);
+                    buttons.forEach(btn => {
+                        if (btn.dataset.rate == rate) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+            }
+            
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
@@ -671,7 +720,7 @@
                 
                 elements.cardContent.innerHTML = '';
                 
-                // Auto-play based on media type with FULL CONTROLS including speed
+                // Auto-play based on media type with visible speed controls
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -701,16 +750,22 @@
                     case 'video':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
-                                    <video controls autoplay playsinline class="card-video">
+                                <div class="media-container" style="flex-direction: column;">
+                                    <video controls autoplay playsinline class="card-video" id="videoPlayer" style="width: 100%; background: black;">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
+                                    <div class="speed-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="0.5" onclick="setPlaybackRate(0.5, 'videoPlayer')">0.5x</button>
+                                        <button class="speed-btn active" data-player="videoPlayer" data-rate="1.0" onclick="setPlaybackRate(1.0, 'videoPlayer')">1x</button>
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="1.5" onclick="setPlaybackRate(1.5, 'videoPlayer')">1.5x</button>
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="2.0" onclick="setPlaybackRate(2.0, 'videoPlayer')">2x</button>
+                                    </div>
                                 </div>
                             `;
-                            // Ensure video plays on mobile
+                            // Ensure video plays
                             setTimeout(() => {
-                                const video = document.querySelector('.card-video');
+                                const video = document.getElementById('videoPlayer');
                                 if (video) {
                                     video.volume = 1;
                                     video.muted = false;
@@ -730,16 +785,22 @@
                     case 'audio':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
-                                    <audio controls autoplay class="card-audio">
+                                <div class="media-container" style="flex-direction: column;">
+                                    <audio controls autoplay class="card-audio" id="audioPlayer" style="width: 100%;">
                                         <source src="${card.media_url}" type="audio/mpeg">
                                         Your browser doesn't support audio.
                                     </audio>
+                                    <div class="speed-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="0.5" onclick="setPlaybackRate(0.5, 'audioPlayer')">0.5x</button>
+                                        <button class="speed-btn active" data-player="audioPlayer" data-rate="1.0" onclick="setPlaybackRate(1.0, 'audioPlayer')">1x</button>
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="1.5" onclick="setPlaybackRate(1.5, 'audioPlayer')">1.5x</button>
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="2.0" onclick="setPlaybackRate(2.0, 'audioPlayer')">2x</button>
+                                    </div>
                                 </div>
                             `;
-                            // Ensure audio plays on mobile
+                            // Ensure audio plays
                             setTimeout(() => {
-                                const audio = document.querySelector('.card-audio');
+                                const audio = document.getElementById('audioPlayer');
                                 if (audio) {
                                     audio.volume = 1;
                                     audio.muted = false;
