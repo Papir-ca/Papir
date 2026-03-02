@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Card Generator | Papir</title>
+    <title>Card Generator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -657,7 +657,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="sync-status" id="syncStatus">
+        <div class="sync-status" id="syncStatus" style="display: none;">
             <i class="fas fa-check-circle"></i>
             <span>Connected to Papir Backend</span>
         </div>
@@ -668,7 +668,7 @@
         
         <header>
             <h1><i class="fas fa-magic"></i> Papir AR Card Creator</h1>
-            <p>Design magical AR cards with text, images, video or audio. Your cards are saved securely through our backend API.</p>
+            <p>Design magical cards with text, images, video or audio.</p>
         </header>
         
         <div class="card-creator">
@@ -701,7 +701,7 @@
                 <div class="form-group" id="textMessageContainer">
                     <label for="message">Your Message:</label>
                     <div class="message-input">
-                        <textarea id="message" placeholder="Enter your message here...">Happy Birthday 😊</textarea>
+                        <textarea id="message" placeholder="Type your message here..." style="opacity: 0.7;">Type your message here...</textarea>
                     </div>
                 </div>
                 
@@ -756,14 +756,8 @@
                 </div>
                 
                 <div class="button-container">
-                    <button class="btn btn-primary" id="generateBtn">
-                        <i class="fas fa-bolt"></i> Generate Card
-                    </button>
                     <button class="btn btn-success" id="saveBtn">
                         <i class="fas fa-save"></i> Save to Database
-                    </button>
-                    <button class="btn btn-secondary" id="testBtn">
-                        <i class="fas fa-play"></i> Test Card
                     </button>
                 </div>
             </div>
@@ -782,7 +776,7 @@
                 </div>
                 
                 <div class="preview-instructions">
-                    <i class="fas fa-info-circle"></i> This is how your AR card will appear. The card ID and content type will be visible when the card is scanned in AR mode.
+                    <i class="fas fa-info-circle"></i> This is how your card will appear. The card ID and content type will be visible when the card is scanned.
                 </div>
             </div>
         </div>
@@ -1572,13 +1566,6 @@
                 updateMediaUploadVisibility();
                 
                 generatePreview();
-                
-                elements.generateBtn.addEventListener('click', function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        showNotification(`Card ${cardData.card_id} preview generated!`, 'success');
-                    }
-                });
                 
                 elements.saveBtn.addEventListener('click', async function() {
                     const cardData = generatePreview();
