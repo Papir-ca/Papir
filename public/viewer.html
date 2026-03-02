@@ -670,7 +670,7 @@
                 
                 elements.cardContent.innerHTML = '';
                 
-                // Auto-play based on media type
+                // Auto-play based on media type with FULL CONTROLS
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -701,7 +701,7 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
-                                    <video controls autoplay muted playsinline class="card-video">
+                                    <video controls autoplay playsinline class="card-video">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
@@ -710,7 +710,11 @@
                             // Ensure video plays on mobile
                             setTimeout(() => {
                                 const video = document.querySelector('.card-video');
-                                if (video) video.play().catch(e => console.log('Video autoplay prevented:', e));
+                                if (video) {
+                                    video.volume = 1; // Ensure volume is up
+                                    video.muted = false; // Ensure not muted
+                                    video.play().catch(e => console.log('Video autoplay prevented:', e));
+                                }
                             }, 100);
                         } else {
                             elements.cardContent.innerHTML = `
@@ -735,7 +739,11 @@
                             // Ensure audio plays on mobile
                             setTimeout(() => {
                                 const audio = document.querySelector('.card-audio');
-                                if (audio) audio.play().catch(e => console.log('Audio autoplay prevented:', e));
+                                if (audio) {
+                                    audio.volume = 1; // Ensure volume is up
+                                    audio.muted = false; // Ensure not muted
+                                    audio.play().catch(e => console.log('Audio autoplay prevented:', e));
+                                }
                             }, 100);
                         } else {
                             elements.cardContent.innerHTML = `
