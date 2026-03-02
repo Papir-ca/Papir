@@ -774,8 +774,8 @@
                     </div>
                 </div>
                 
-                <div class="button-container">
-                    <button class="btn btn-success" id="saveBtn" style="font-size: 0.85rem; padding: 8px 15px;">
+                <div class="button-container" style="display: flex; justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-success" id="saveBtn" style="font-size: 1.2rem; padding: 15px 40px; min-width: 200px;">
                         <i class="fas fa-save"></i> Save
                     </button>
                 </div>
@@ -788,9 +788,7 @@
                 
                 <div class="preview-card">
                     <div class="card-content" id="cardPreview">
-                        <div class="card-id-display">CARD6842</div>
                         <div class="text-content">Happy Birthday 😊</div>
-                        <div class="content-type-display">Text Message</div>
                     </div>
                 </div>
                 
@@ -974,10 +972,7 @@
                 let typeDisplay = contentType.charAt(0).toUpperCase() + contentType.slice(1);
                 if (contentType === 'text') typeDisplay = 'Text Message';
                 
-                let previewHTML = `
-                    <div class="card-id-display">${fullCardId}</div>
-                    <div class="content-type-display">${typeDisplay}</div>
-                `;
+                let previewHTML = ``;
                 
                 if (contentType === 'text') {
                     previewHTML += `<div class="text-content">${message || 'Your text message will appear here'}</div>`;
