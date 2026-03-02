@@ -29,6 +29,7 @@
             text-align: center;
             padding: 20px 0 40px 0;
             position: relative;
+            transition: opacity 0.3s ease;
         }
         
         .logo {
@@ -54,6 +55,7 @@
             margin-bottom: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
+            transition: opacity 0.3s ease;
         }
         
         .scanner-title {
@@ -207,6 +209,7 @@
             border-radius: 15px;
             padding: 25px;
             margin-top: 30px;
+            transition: opacity 0.3s ease;
         }
         
         .input-group {
@@ -361,6 +364,15 @@
             display: none;
         }
         
+        .hidden {
+            display: none !important;
+        }
+        
+        .header-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -447,7 +459,7 @@
     </div>
     
     <div class="container">
-        <header>
+        <header id="pageHeader">
             <h1 class="logo">📱 Papir Viewer</h1>
             <p class="tagline">Scan QR codes or enter Card IDs to view AR content instantly</p>
         </header>
@@ -553,7 +565,8 @@
                 stopScanner: document.getElementById('stopScanner'),
                 scannerContainer: document.getElementById('scannerContainer'),
                 manualInput: document.getElementById('manualInput'),
-                closeCardBtn: document.getElementById('closeCardBtn')
+                closeCardBtn: document.getElementById('closeCardBtn'),
+                pageHeader: document.getElementById('pageHeader')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -626,6 +639,7 @@
             function resetView() {
                 elements.scannerContainer.style.display = 'block';
                 elements.manualInput.style.display = 'block';
+                elements.pageHeader.style.display = 'block';
                 elements.cardDisplay.classList.remove('active');
                 elements.emptyState.style.display = 'block';
                 
@@ -633,6 +647,13 @@
                 if (!isScannerActive) {
                     elements.startScanner.disabled = false;
                 }
+            }
+            
+            function hideAllExceptCard() {
+                elements.scannerContainer.style.display = 'none';
+                elements.manualInput.style.display = 'none';
+                elements.pageHeader.style.display = 'none';
+                elements.emptyState.style.display = 'none';
             }
             
             function displayCard(card) {
@@ -649,6 +670,7 @@
                 
                 elements.cardContent.innerHTML = '';
                 
+                // Auto-play based on media type
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -679,12 +701,17 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
-                                    <video controls autoplay muted class="card-video">
+                                    <video controls autoplay muted playsinline class="card-video">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
                                 </div>
                             `;
+                            // Ensure video plays on mobile
+                            setTimeout(() => {
+                                const video = document.querySelector('.card-video');
+                                if (video) video.play().catch(e => console.log('Video autoplay prevented:', e));
+                            }, 100);
                         } else {
                             elements.cardContent.innerHTML = `
                                 <div class="text-message" style="color: #999;">
@@ -705,6 +732,11 @@
                                     </audio>
                                 </div>
                             `;
+                            // Ensure audio plays on mobile
+                            setTimeout(() => {
+                                const audio = document.querySelector('.card-audio');
+                                if (audio) audio.play().catch(e => console.log('Audio autoplay prevented:', e));
+                            }, 100);
                         } else {
                             elements.cardContent.innerHTML = `
                                 <div class="text-message" style="color: #999;">
@@ -724,7 +756,7 @@
                 }
                 
                 elements.cardDisplay.classList.add('active');
-                elements.emptyState.style.display = 'none';
+                hideAllExceptCard();
                 hideError();
                 
                 incrementScanCount(card.card_id);
@@ -734,9 +766,8 @@
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
                     
-                    // Hide scanner and manual input
-                    elements.scannerContainer.style.display = 'none';
-                    elements.manualInput.style.display = 'none';
+                    // Hide everything and show loading
+                    hideAllExceptCard();
                     
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
@@ -745,7 +776,6 @@
                         </div>
                     `;
                     elements.cardDisplay.classList.add('active');
-                    elements.emptyState.style.display = 'none';
                     hideError();
                     
                     const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -768,7 +798,7 @@
                     console.error('Error loading card:', error);
                     
                     elements.cardDisplay.classList.remove('active');
-                    elements.emptyState.style.display = 'block';
+                    resetView();
                     showError(`Error: ${error.message}`);
                     
                     return { success: false, error: error.message };
@@ -874,9 +904,7 @@
                                         loadCard(cardId);
                                     } else {
                                         showNotification('Invalid QR code', 'error');
-                                        // Show scanner again
-                                        elements.scannerContainer.style.display = 'block';
-                                        elements.manualInput.style.display = 'block';
+                                        resetView();
                                     }
                                 }, 100);
                             }).catch(err => {
@@ -884,12 +912,16 @@
                                 // Still try to load the card even if scanner stop fails
                                 if (cardId) {
                                     loadCard(cardId);
+                                } else {
+                                    resetView();
                                 }
                             });
                         } else {
                             // If scanner wasn't active, just load the card
                             if (cardId) {
                                 loadCard(cardId);
+                            } else {
+                                showNotification('Invalid QR code', 'error');
                             }
                         }
                     }
@@ -930,7 +962,11 @@
                 if (cardParam) {
                     console.log('Found card in URL:', cardParam);
                     elements.cardIdInput.value = cardParam;
-                    loadCard(cardParam);
+                    
+                    // Auto-load the card when opened from phone camera
+                    setTimeout(() => {
+                        loadCard(cardParam);
+                    }, 100);
                 }
             }
             
