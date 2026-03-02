@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Generator | Papir</title>
+    <title>Card Creator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -14,41 +14,37 @@
         }
         
         body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            color: white;
         }
         
         .container {
             max-width: 1200px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
         header {
             text-align: center;
-            color: white;
-            padding: 20px;
+            padding: 20px 0 40px 0;
             position: relative;
         }
         
-        header h1 {
-            font-size: 2.8rem;
+        .logo {
+            font-size: 42px;
+            font-weight: bold;
             margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.5;
+        .tagline {
+            font-size: 18px;
+            opacity: 0.8;
+            color: #a0aec0;
         }
         
         .card-creator {
@@ -59,22 +55,26 @@
         }
         
         .form-section {
-            background: white;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             padding: 30px;
             flex: 1;
             min-width: 300px;
             max-width: 550px;
+            backdrop-filter: blur(10px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         
         .preview-section {
-            background: white;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             padding: 30px;
             flex: 1;
             min-width: 300px;
             max-width: 550px;
+            backdrop-filter: blur(10px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
@@ -82,17 +82,17 @@
         
         .section-title {
             font-size: 1.5rem;
-            color: #333;
+            color: white;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
         .section-title i {
-            color: #6a11cb;
+            color: #06D6A0;
         }
         
         .form-group {
@@ -103,7 +103,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #444;
+            color: #a0aec0;
         }
         
         .card-id-container {
@@ -112,58 +112,81 @@
         }
         
         .card-id-prefix {
-            background: #f0f0f0;
+            background: rgba(255, 255, 255, 0.1);
             padding: 12px 15px;
             border-radius: 8px;
             font-weight: bold;
-            color: #555;
-            border: 1px solid #ddd;
+            color: #06D6A0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         #cardId {
             flex: 1;
             padding: 12px 15px;
-            border: 2px solid #ddd;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             font-size: 1rem;
+            color: white;
             transition: border-color 0.3s;
         }
         
         #cardId:focus {
-            border-color: #6a11cb;
+            border-color: #06D6A0;
             outline: none;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        #cardId[readonly] {
+            background: rgba(255, 255, 255, 0.1);
+            color: #06D6A0;
+            font-weight: 600;
         }
         
         .content-type-dropdown {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #ddd;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             font-size: 1rem;
-            background-color: white;
+            color: white;
             cursor: pointer;
             transition: border-color 0.3s;
         }
         
         .content-type-dropdown:focus {
-            border-color: #6a11cb;
+            border-color: #06D6A0;
             outline: none;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .content-type-dropdown option {
+            background: #1a1a2e;
+            color: white;
         }
         
         .message-input textarea {
             width: 100%;
             padding: 15px;
-            border: 2px solid #ddd;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             font-size: 1rem;
+            color: white;
             resize: vertical;
             min-height: 120px;
             transition: border-color 0.3s;
         }
         
         .message-input textarea:focus {
-            border-color: #6a11cb;
+            border-color: #06D6A0;
             outline: none;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .message-input textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .media-upload-container {
@@ -176,34 +199,33 @@
         }
         
         .upload-area {
-            border: 2px dashed #6a11cb;
+            border: 2px dashed #06D6A0;
             border-radius: 8px;
             padding: 30px 20px;
             text-align: center;
-            background-color: #f9f5ff;
+            background: rgba(6, 214, 160, 0.05);
             cursor: pointer;
             transition: all 0.3s;
         }
         
         .upload-area:hover {
-            background-color: #f0e6ff;
-            border-color: #2575fc;
+            background: rgba(6, 214, 160, 0.1);
         }
         
         .upload-area i {
             font-size: 3rem;
-            color: #6a11cb;
+            color: #06D6A0;
             margin-bottom: 15px;
         }
         
         .upload-text {
-            color: #555;
+            color: #a0aec0;
             margin-bottom: 10px;
             font-size: 1.1rem;
         }
         
         .upload-subtext {
-            color: #777;
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.9rem;
             margin-bottom: 15px;
         }
@@ -226,7 +248,7 @@
             max-height: 200px;
             border-radius: 8px;
             margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         
         .preview-audio {
@@ -243,7 +265,7 @@
         
         .preview-filename {
             font-size: 0.9rem;
-            color: #555;
+            color: #a0aec0;
             margin-top: 10px;
             word-break: break-all;
         }
@@ -275,39 +297,27 @@
         }
         
         .btn {
-            padding: 14px 25px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: all 0.3s;
-            flex: 1;
-            min-width: 150px;
         }
         
         .btn-primary {
-            background: linear-gradient(to right, #6a11cb, #2575fc);
+            background: linear-gradient(to right, #06D6A0, #118AB2);
             color: white;
         }
         
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #e0e0e0;
-            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3);
         }
         
         .btn-success {
@@ -320,8 +330,18 @@
             box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
         }
         
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
         .preview-card {
-            border: 2px dashed #ccc;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             padding: 30px;
             text-align: center;
@@ -331,7 +351,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 25px;
-            background-color: #f9f9f9;
+            background: rgba(0, 0, 0, 0.2);
             min-height: 300px;
         }
         
@@ -341,15 +361,15 @@
         
         .text-content {
             font-size: 2rem;
-            color: #333;
+            color: white;
             font-weight: 600;
             margin: 20px 0;
         }
         
         .card-id-display {
             font-size: 1.2rem;
-            color: #666;
-            background: #f0f0f0;
+            color: #06D6A0;
+            background: rgba(6, 214, 160, 0.1);
             padding: 8px 15px;
             border-radius: 20px;
             display: inline-block;
@@ -358,8 +378,8 @@
         
         .content-type-display {
             display: inline-block;
-            background: #e0e6ff;
-            color: #2d4cc7;
+            background: rgba(6, 214, 160, 0.2);
+            color: #06D6A0;
             padding: 5px 12px;
             border-radius: 15px;
             font-size: 0.9rem;
@@ -372,21 +392,24 @@
         }
         
         .preview-instructions {
-            background-color: #f0f8ff;
+            background: rgba(0, 0, 0, 0.3);
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
             font-size: 0.9rem;
-            color: #555;
+            color: #a0aec0;
             line-height: 1.5;
+            border-left: 4px solid #06D6A0;
         }
         
         .card-list {
-            background: white;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             padding: 30px;
             margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
         }
         
         .cards-table {
@@ -396,16 +419,17 @@
         }
         
         .cards-table th {
-            background-color: #f5f5f5;
+            background: rgba(6, 214, 160, 0.2);
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 2px solid #eee;
-            color: #555;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            color: #06D6A0;
         }
         
         .cards-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a0aec0;
         }
         
         .empty-row {
@@ -423,24 +447,25 @@
             padding: 6px 12px;
             border-radius: 5px;
             border: none;
-            background: #f0f0f0;
+            background: rgba(255, 255, 255, 0.1);
             cursor: pointer;
             font-size: 0.85rem;
             transition: all 0.2s;
+            color: white;
         }
         
         .action-btn:hover {
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.2);
         }
         
         .action-btn.view {
-            background: #e0e6ff;
-            color: #2d4cc7;
+            background: rgba(6, 214, 160, 0.3);
+            color: #06D6A0;
         }
         
         .action-btn.delete {
-            background: #ffe0e0;
-            color: #c72d2d;
+            background: rgba(255, 107, 107, 0.3);
+            color: #FF6B6B;
         }
         
         .notification {
@@ -448,7 +473,7 @@
             top: 20px;
             right: 20px;
             padding: 15px 25px;
-            border-radius: 8px;
+            border-radius: 10px;
             color: white;
             font-weight: 600;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -468,7 +493,7 @@
         }
         
         .notification.error {
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            background: linear-gradient(to right, #FF6B6B, #FF8E53);
         }
         
         .notification.info {
@@ -479,46 +504,38 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
             padding: 12px 24px;
             border-radius: 8px;
             text-decoration: none;
-            color: #6a11cb;
+            color: white;
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .scanner-nav-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-            background: #f8f5ff;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
         
         .sync-status {
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
+            background: rgba(0, 176, 155, 0.2);
+            color: #06D6A0;
             padding: 8px 15px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
-            backdrop-filter: blur(5px);
-        }
-        
-        .sync-status.online {
-            background: rgba(0, 176, 155, 0.3);
-        }
-        
-        .sync-status.offline {
-            background: rgba(255, 65, 108, 0.3);
+            display: none;
         }
         
         .qr-code-img {
@@ -555,15 +572,16 @@
         .share-url-input {
             flex: 1;
             padding: 10px 15px;
-            border: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
+            color: white;
             font-size: 0.9rem;
-            background: #f9f9f9;
         }
         
         .copy-btn {
             padding: 10px 20px;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
+            background: linear-gradient(to right, #06D6A0, #118AB2);
             color: white;
             border: none;
             border-radius: 8px;
@@ -574,7 +592,7 @@
         
         .copy-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+            box-shadow: 0 5px 15px rgba(6, 214, 160, 0.4);
         }
         
         .phone-test-btn {
@@ -608,11 +626,12 @@
             }
             
             .btn {
-                min-width: 100%;
+                width: 100%;
+                justify-content: center;
             }
             
-            header h1 {
-                font-size: 2.2rem;
+            .logo {
+                font-size: 32px;
             }
             
             .scanner-nav-button, .sync-status {
@@ -626,7 +645,7 @@
             }
             
             header {
-                padding-top: 60px;
+                padding-top: 20px;
             }
             
             .qr-code-img {
@@ -643,8 +662,8 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #6a11cb;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #06D6A0;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -657,7 +676,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="sync-status" id="syncStatus" style="display: none;">
+        <div class="sync-status" id="syncStatus">
             <i class="fas fa-check-circle"></i>
             <span>Connected to Papir Backend</span>
         </div>
@@ -667,8 +686,8 @@
         </a>
         
         <header>
-            <h1><i class="fas fa-magic"></i> Papir Card Creator</h1>
-            <p>Design magical cards with text, images, video or audio.</p>
+            <h1 class="logo">📱 Papir Card Creator</h1>
+            <p class="tagline">Design magical cards with text, images, video or audio</p>
         </header>
         
         <div class="card-creator">
@@ -678,12 +697,12 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="cardId">Card ID (Required):</label>
+                    <label for="cardId">Card ID:</label>
                     <div class="card-id-container">
                         <div class="card-id-prefix">CARD</div>
-                        <input type="text" id="cardId" placeholder="6842" value="6842" readonly>
+                        <input type="text" id="cardId" readonly>
                     </div>
-                    <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                    <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
                         Unique ID for your card - auto-generated
                     </div>
                 </div>
@@ -701,7 +720,7 @@
                 <div class="form-group" id="textMessageContainer">
                     <label for="message">Your Message:</label>
                     <div class="message-input">
-                        <textarea id="message" placeholder="Type your message here..." style="opacity: 0.6;"></textarea>
+                        <textarea id="message" placeholder="Type your message here..."></textarea>
                     </div>
                 </div>
                 
@@ -785,21 +804,21 @@
             <div class="section-title">
                 <i class="fas fa-qrcode"></i> Your Card's QR Code
             </div>
-            <p>Scan this QR code with any phone camera to view your card!</p>
+            <p style="color: #a0aec0;">Scan this QR code with any phone camera to view your card!</p>
             
             <div style="text-align: center; padding: 30px;">
                 <div id="qrCodeContainer" style="margin: 0 auto; max-width: 300px;"></div>
                 
                 <div style="margin-top: 20px;">
-                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <h4 style="color: #2d4cc7; margin-bottom: 10px;">Share Your Card:</h4>
+                    <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #06D6A0;">
+                        <h4 style="color: #06D6A0; margin-bottom: 10px;">Share Your Card:</h4>
                         <div class="share-url-container">
                             <input type="text" id="shareableUrl" class="share-url-input" readonly>
                             <button class="copy-btn" onclick="copyShareUrl()">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
-                        <p style="font-size: 0.9rem; color: #666;">
+                        <p style="font-size: 0.9rem; color: #a0aec0;">
                             <i class="fas fa-mobile-alt"></i> Works on any smartphone - no app needed!
                         </p>
                     </div>
@@ -823,7 +842,7 @@
             <div class="section-title">
                 <i class="fas fa-list"></i> Saved Cards (Admin Only)
             </div>
-            <p>Cards saved to your secure backend database.</p>
+            <p style="color: #a0aec0;">Cards saved to your secure backend database.</p>
             
             <table class="cards-table">
                 <thead>
@@ -869,9 +888,7 @@
                 cardIdInput: document.getElementById('cardId'),
                 contentTypeSelect: document.getElementById('contentType'),
                 messageInput: document.getElementById('message'),
-                generateBtn: document.getElementById('generateBtn'),
                 saveBtn: document.getElementById('saveBtn'),
-                testBtn: document.getElementById('testBtn'),
                 cardPreview: document.getElementById('cardPreview'),
                 cardsTableBody: document.getElementById('cardsTableBody'),
                 notification: document.getElementById('notification'),
@@ -967,19 +984,19 @@
                 } else if (contentType === 'image' && currentMedia.image) {
                     previewHTML += `
                         <img src="${currentMedia.image.url}" alt="Image Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin: 20px 0;">
-                        <div style="color: #666; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
+                        <div style="color: #a0aec0; font-size: 0.9rem;">Image: ${currentMedia.image.name}</div>
                     `;
                 } else if (contentType === 'video' && currentMedia.video) {
                     previewHTML += `
-                        <div style="color: #666; margin: 20px 0;">
-                            <i class="fas fa-video" style="font-size: 3rem; color: #6a11cb;"></i>
+                        <div style="color: #a0aec0; margin: 20px 0;">
+                            <i class="fas fa-video" style="font-size: 3rem; color: #06D6A0;"></i>
                             <div>Video: ${currentMedia.video.name}</div>
                         </div>
                     `;
                 } else if (contentType === 'audio' && currentMedia.audio) {
                     previewHTML += `
-                        <div style="color: #666; margin: 20px 0;">
-                            <i class="fas fa-music" style="font-size: 3rem; color: #6a11cb;"></i>
+                        <div style="color: #a0aec0; margin: 20px 0;">
+                            <i class="fas fa-music" style="font-size: 3rem; color: #06D6A0;"></i>
                             <div>Audio: ${currentMedia.audio.name}</div>
                         </div>
                     `;
@@ -1251,7 +1268,7 @@
                         <p>Type: <strong>${cardData.message_type}</strong></p>
                     </div>
                     <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
-                    <p style="color: #666; margin-bottom: 20px;">Scan with phone camera</p>
+                    <p style="color: #a0aec0; margin-bottom: 20px;">Scan with phone camera</p>
                 `;
                 
                 elements.shareableUrl.value = viewerUrl;
@@ -1536,27 +1553,22 @@
                 return false;
             }
             
-            // ✅ UPDATED initApp function with URL parameter handling
             async function initApp() {
                 console.log('Initializing Papir Card Maker...');
                 
                 await checkBackendConnection();
                 
-                // CHECK FOR CARD ID IN URL FIRST
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlCardId = urlParams.get('card');
                 
                 if (urlCardId) {
-                    // USE THE CARD ID FROM URL
                     console.log('🔗 Using card ID from URL:', urlCardId);
                     elements.cardIdInput.value = urlCardId;
                 } else {
-                    // GENERATE NEW RANDOM ID ONLY IF NO URL PARAMETER
                     console.log('🎲 Generating new random card ID');
                     elements.cardIdInput.value = generateRandomCardId();
                 }
                 
-                // ALWAYS MAKE IT READ-ONLY
                 elements.cardIdInput.readOnly = true;
                 
                 setupImageUpload();
@@ -1571,15 +1583,6 @@
                     const cardData = generatePreview();
                     if (cardData) {
                         await saveCardToBackend(cardData);
-                    }
-                });
-                
-                elements.testBtn.addEventListener('click', function() {
-                    const cardData = generatePreview();
-                    if (cardData) {
-                        showNotification(`Testing card ${cardData.card_id}...`, 'info');
-                        const viewerUrl = `viewer.html?card=${encodeURIComponent(cardData.card_id)}`;
-                        window.open(viewerUrl, '_blank');
                     }
                 });
                 
@@ -1600,14 +1603,14 @@
         });
     </script>
 
- <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
-     <p>
-         <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> |
-         <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> |
-         <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
-         <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
-     </p>
-     <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
-</footer>
+    <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
+        <p>
+            <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> |
+            <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> |
+            <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
+            <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
+        </p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
+    </footer>
 </body>
 </html>
