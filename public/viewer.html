@@ -196,6 +196,7 @@
             max-height: 500px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
         }
         
         .card-audio {
@@ -264,6 +265,26 @@
         
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .speed-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .speed-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .speed-btn.active {
+            background: #06D6A0;
+            color: white;
         }
         
         .error-message {
@@ -429,6 +450,10 @@
             .close-btn {
                 width: 100%;
                 justify-content: center;
+            }
+            
+            .speed-controls {
+                flex-wrap: wrap;
             }
         }
         
@@ -656,6 +681,23 @@
                 elements.emptyState.style.display = 'none';
             }
             
+            function setPlaybackRate(rate, playerId) {
+                const player = document.getElementById(playerId);
+                if (player) {
+                    player.playbackRate = rate;
+                    
+                    // Update active button state
+                    const buttons = document.querySelectorAll(`.speed-btn[data-player="${playerId}"]`);
+                    buttons.forEach(btn => {
+                        if (btn.dataset.rate == rate) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+            }
+            
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
@@ -670,7 +712,7 @@
                 
                 elements.cardContent.innerHTML = '';
                 
-                // Auto-play based on media type with FULL CONTROLS including speed
+                // Auto-play based on media type with visible speed controls
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -700,20 +742,37 @@
                     case 'video':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
-                                    <video controls autoplay playsinline class="card-video">
+                                <div class="media-container" style="flex-direction: column;">
+                                    <video controls autoplay playsinline class="card-video" id="videoPlayer" style="width: 100%;">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
+                                    <div class="speed-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="0.5" onclick="setPlaybackRate(0.5, 'videoPlayer')">0.5x</button>
+                                        <button class="speed-btn active" data-player="videoPlayer" data-rate="1.0" onclick="setPlaybackRate(1.0, 'videoPlayer')">1x</button>
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="1.5" onclick="setPlaybackRate(1.5, 'videoPlayer')">1.5x</button>
+                                        <button class="speed-btn" data-player="videoPlayer" data-rate="2.0" onclick="setPlaybackRate(2.0, 'videoPlayer')">2x</button>
+                                    </div>
                                 </div>
                             `;
-                            // Ensure video plays on mobile
+                            // Request fullscreen on mobile
                             setTimeout(() => {
-                                const video = document.querySelector('.card-video');
+                                const video = document.getElementById('videoPlayer');
                                 if (video) {
                                     video.volume = 1;
                                     video.muted = false;
                                     video.play().catch(e => console.log('Video autoplay prevented:', e));
+                                    
+                                    // Try to enter fullscreen on mobile
+                                    if (window.innerWidth <= 768) {
+                                        if (video.requestFullscreen) {
+                                            video.requestFullscreen();
+                                        } else if (video.webkitEnterFullscreen) {
+                                            video.webkitEnterFullscreen();
+                                        } else if (video.webkitRequestFullscreen) {
+                                            video.webkitRequestFullscreen();
+                                        }
+                                    }
                                 }
                             }, 100);
                         } else {
@@ -729,16 +788,22 @@
                     case 'audio':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
-                                    <audio controls autoplay class="card-audio">
+                                <div class="media-container" style="flex-direction: column;">
+                                    <audio controls autoplay class="card-audio" id="audioPlayer" style="width: 100%;">
                                         <source src="${card.media_url}" type="audio/mpeg">
                                         Your browser doesn't support audio.
                                     </audio>
+                                    <div class="speed-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="0.5" onclick="setPlaybackRate(0.5, 'audioPlayer')">0.5x</button>
+                                        <button class="speed-btn active" data-player="audioPlayer" data-rate="1.0" onclick="setPlaybackRate(1.0, 'audioPlayer')">1x</button>
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="1.5" onclick="setPlaybackRate(1.5, 'audioPlayer')">1.5x</button>
+                                        <button class="speed-btn" data-player="audioPlayer" data-rate="2.0" onclick="setPlaybackRate(2.0, 'audioPlayer')">2x</button>
+                                    </div>
                                 </div>
                             `;
                             // Ensure audio plays on mobile
                             setTimeout(() => {
-                                const audio = document.querySelector('.card-audio');
+                                const audio = document.getElementById('audioPlayer');
                                 if (audio) {
                                     audio.volume = 1;
                                     audio.muted = false;
