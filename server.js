@@ -175,9 +175,6 @@ app.post('/api/cards', async (req, res) => {
     
     // Get client IP address
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    if (clientIp.includes(',')) {
-        clientIp = clientIp.split(',')[0].trim(); // Take only the first IP
-     } 
     
     // Validation
     if (!card_id || !message_type) {
@@ -539,9 +536,6 @@ app.post('/api/activate-card', async (req, res) => {
     
     // Fix IP handling
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    if (clientIp.includes(',')) {
-        clientIp = clientIp.split(',')[0].trim();
-    }
     
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
     
