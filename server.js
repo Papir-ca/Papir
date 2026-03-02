@@ -174,7 +174,10 @@ app.post('/api/cards', async (req, res) => {
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
     // Get client IP address
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown'; 
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    if (clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim(); // Take only the first IP
+     } 
     
     // Validation
     if (!card_id || !message_type) {
@@ -205,18 +208,34 @@ app.post('/api/cards', async (req, res) => {
       // UPDATE existing card (this happens after activation)
       console.log(`🔄 Updating existing card: ${card_id}`);
       
+      // First, check if created_by_ip is null (card was script-generated)
+      const { data: cardCheck } = await supabaseAdmin
+        .from('cards')
+        .select('created_by_ip')
+        .eq('card_id', card_id)
+        .single();
+      
+      // Prepare update data
+      const updateData = {
+        message_type: message_type.trim(),
+        message_text: message_text ? message_text.trim() : null,
+        media_url: media_url || null,
+        file_name: file_name || null,
+        file_size: file_size || null,
+        file_type: file_type || null,
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      };
+      
+      // OPTION B: Set created_by_ip on first user interaction
+      if (!cardCheck?.created_by_ip) {
+        console.log(`📝 Setting created_by_ip for first time: ${clientIp}`);
+        updateData.created_by_ip = clientIp;
+      }
+      
       const { data, error } = await supabaseAdmin
         .from('cards')
-        .update({
-          message_type: message_type.trim(),
-          message_text: message_text ? message_text.trim() : null,
-          media_url: media_url || null,
-          file_name: file_name || null,
-          file_size: file_size || null,
-          file_type: file_type || null,
-          updated_by_ip: clientIp,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('card_id', card_id)
         .select()
         .single();
@@ -520,6 +539,9 @@ app.post('/api/activate-card', async (req, res) => {
     
     // Fix IP handling
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    if (clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim();
+    }
     
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
     
