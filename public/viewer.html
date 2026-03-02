@@ -698,6 +698,10 @@
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
                     
+                    // HIDE SCANNER SECTION - ADD THIS
+                    document.querySelector('.scanner-container').style.display = 'none';
+                    document.querySelector('.manual-input').style.display = 'none';
+                    
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
                             <div class="loading" style="margin: 0 auto;"></div>
