@@ -89,14 +89,14 @@
         }
         
         .card-display {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             color: #333;
-            margin: 20px auto;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+            box-shadow: none;
             display: none;
-            max-width: 800px;
+            max-width: 100%;
         }
         
         .card-display.active {
@@ -105,76 +105,41 @@
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         
         .card-header {
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            background: transparent;
+            color: white;
         }
         
         .card-id {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #2d4cc7;
-            margin-bottom: 10px;
         }
         
         .card-meta {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
         }
         
         .meta-item {
             background: #f0f8ff;
-            padding: 8px 16px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             color: #2d4cc7;
-        }
-        
-        .card-content {
-            text-align: center;
-            padding: 20px 0;
-        }
-        
-        .text-message {
-            font-size: 32px;
-            font-weight: 600;
-            color: #333;
-            line-height: 1.4;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 15px;
-            border-left: 5px solid #06D6A0;
-        }
-        
-        .media-container {
-            margin: 30px 0;
-        }
-        
-        .card-image {
-            max-width: 100%;
-            max-height: 500px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-video {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-        
-        .card-audio {
-            width: 100%;
-            max-width: 500px;
-            margin: 20px auto;
+            white-space: nowrap;
+            border: 1px solid rgba(45, 76, 199, 0.3);
         }
         
         .close-btn {
@@ -190,12 +155,58 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
-            margin-top: 15px;
         }
         
         .close-btn:hover {
             background: #ff2b5e;
             transform: translateY(-2px);
+        }
+        
+        .card-content {
+            text-align: center;
+            padding: 0;
+        }
+        
+        .text-message {
+            font-size: 32px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.4;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid #06D6A0;
+        }
+        
+        .media-container {
+            margin: 0 auto;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .card-image {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 0;
+            box-shadow: none;
+            object-fit: contain;
+        }
+        
+        .card-video {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100%;
+            background: black;
+        }
+        
+        .card-audio {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
         }
         
         .manual-input {
@@ -261,9 +272,9 @@
         }
         
         .speed-btn {
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
             padding: 5px 10px;
             font-size: 12px;
@@ -273,7 +284,7 @@
         }
         
         .speed-btn:hover {
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.2);
         }
         
         .speed-btn.active {
@@ -383,6 +394,11 @@
             display: none !important;
         }
         
+        .header-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -397,7 +413,7 @@
             }
             
             .card-display {
-                padding: 20px;
+                padding: 0;
             }
             
             .text-message {
@@ -426,13 +442,27 @@
                 padding-top: 20px;
             }
             
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .card-meta {
+                flex-wrap: wrap;
+            }
+            
             .close-btn {
                 width: 100%;
                 justify-content: center;
             }
             
+            .speed-controls {
+                flex-wrap: wrap;
+            }
+            
             .card-video {
-                max-width: 100%;
+                max-height: 100vh;
             }
         }
         
@@ -519,18 +549,15 @@
                         <i class="fas fa-tag"></i> Type: <span id="displayCardType"></span>
                     </div>
                     <div class="meta-item">
-                        <i class="fas fa-calendar"></i> Created: <span id="displayCardDate"></span>
+                        <i class="fas fa-calendar"></i> <span id="displayCardDate"></span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card-content" id="cardContent"></div>
-            
-            <div style="text-align: center; margin-top: 20px;">
                 <button class="close-btn" id="closeCardBtn">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
+            
+            <div class="card-content" id="cardContent"></div>
         </div>
         
         <div class="empty-state" id="emptyState">
@@ -663,13 +690,6 @@
                 elements.emptyState.style.display = 'none';
             }
             
-            function setPlaybackRate(rate, playerId) {
-                const player = document.getElementById(playerId);
-                if (player) {
-                    player.playbackRate = rate;
-                }
-            }
-            
             function displayCard(card) {
                 console.log('Displaying card:', card);
                 
@@ -714,14 +734,14 @@
                     case 'video':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
+                                <div class="media-container" style="flex-direction: column;">
                                     <video controls autoplay playsinline class="card-video" id="videoPlayer">
                                         <source src="${card.media_url}" type="video/mp4">
                                         Your browser doesn't support video.
                                     </video>
                                     <div style="margin-top: 10px;">
                                         <button class="speed-btn" onclick="document.getElementById('videoPlayer').playbackRate = 0.5">0.5x</button>
-                                        <button class="speed-btn active" onclick="document.getElementById('videoPlayer').playbackRate = 1.0">1x</button>
+                                        <button class="speed-btn" onclick="document.getElementById('videoPlayer').playbackRate = 1.0">1x</button>
                                         <button class="speed-btn" onclick="document.getElementById('videoPlayer').playbackRate = 1.5">1.5x</button>
                                         <button class="speed-btn" onclick="document.getElementById('videoPlayer').playbackRate = 2.0">2x</button>
                                     </div>
@@ -748,14 +768,14 @@
                     case 'audio':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
-                                <div class="media-container">
+                                <div class="media-container" style="flex-direction: column;">
                                     <audio controls autoplay class="card-audio" id="audioPlayer">
                                         <source src="${card.media_url}" type="audio/mpeg">
                                         Your browser doesn't support audio.
                                     </audio>
                                     <div style="margin-top: 10px;">
                                         <button class="speed-btn" onclick="document.getElementById('audioPlayer').playbackRate = 0.5">0.5x</button>
-                                        <button class="speed-btn active" onclick="document.getElementById('audioPlayer').playbackRate = 1.0">1x</button>
+                                        <button class="speed-btn" onclick="document.getElementById('audioPlayer').playbackRate = 1.0">1x</button>
                                         <button class="speed-btn" onclick="document.getElementById('audioPlayer').playbackRate = 1.5">1.5x</button>
                                         <button class="speed-btn" onclick="document.getElementById('audioPlayer').playbackRate = 2.0">2x</button>
                                     </div>
