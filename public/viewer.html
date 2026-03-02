@@ -670,7 +670,7 @@
                 
                 elements.cardContent.innerHTML = '';
                 
-                // Auto-play based on media type with FULL CONTROLS
+                // Auto-play based on media type with FULL CONTROLS including speed
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -711,8 +711,8 @@
                             setTimeout(() => {
                                 const video = document.querySelector('.card-video');
                                 if (video) {
-                                    video.volume = 1; // Ensure volume is up
-                                    video.muted = false; // Ensure not muted
+                                    video.volume = 1;
+                                    video.muted = false;
                                     video.play().catch(e => console.log('Video autoplay prevented:', e));
                                 }
                             }, 100);
@@ -740,8 +740,8 @@
                             setTimeout(() => {
                                 const audio = document.querySelector('.card-audio');
                                 if (audio) {
-                                    audio.volume = 1; // Ensure volume is up
-                                    audio.muted = false; // Ensure not muted
+                                    audio.volume = 1;
+                                    audio.muted = false;
                                     audio.play().catch(e => console.log('Audio autoplay prevented:', e));
                                 }
                             }, 100);
