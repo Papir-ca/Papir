@@ -738,14 +738,6 @@
                     elements.scannerContainer.style.display = 'none';
                     elements.manualInput.style.display = 'none';
                     
-                    // Stop the scanner if it's active
-                    if (html5QrCode && isScannerActive) {
-                        await html5QrCode.stop();
-                        isScannerActive = false;
-                        elements.startScanner.disabled = false;
-                        elements.stopScanner.disabled = true;
-                    }
-                    
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
                             <div class="loading" style="margin: 0 auto;"></div>
@@ -847,8 +839,10 @@
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
                         
+                        // Extract card ID from QR code data
                         let cardId = decodedText;
                         
+                        // If QR contains URL, extract card parameter
                         try {
                             const url = new URL(decodedText);
                             const cardParam = url.searchParams.get('card');
@@ -859,7 +853,7 @@
                             // Not a URL, use as-is
                         }
                         
-                        // Immediately stop the scanner
+                        // Stop scanner immediately
                         if (html5QrCode && isScannerActive) {
                             html5QrCode.stop().then(() => {
                                 isScannerActive = false;
@@ -870,11 +864,13 @@
                             });
                         }
                         
+                        // Load the card
                         loadCard(cardId);
                     }
                     
                     function onScanFailure(error) {
-                        // Silent failure - don't log every frame
+                        // Silent failure - just keep scanning
+                        console.log('Scan failure (expected):', error);
                     }
                     
                     elements.startScanner.addEventListener('click', startScanner);
