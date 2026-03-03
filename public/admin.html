@@ -150,13 +150,20 @@
             font-weight: bold;
         }
         
-        /* Date Range Selector */
+        /* Date Range Selector - Compact Layout */
         .date-range-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
+            width: 100%;
+        }
+        
+        .range-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
         }
         
         .range-btn {
@@ -167,6 +174,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.85rem;
+            white-space: nowrap;
         }
         
         .range-btn.active {
@@ -174,36 +182,39 @@
             color: black;
         }
         
-        .custom-date-inputs {
+        .custom-date-group {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             align-items: center;
-            margin-left: auto;
+            margin-left: 10px;
         }
         
         .date-input {
             background: #333;
             border: 1px solid #555;
             color: white;
-            padding: 5px 10px;
+            padding: 5px 8px;
             border-radius: 5px;
-            font-size: 0.85rem;
-        }
-        
-        .date-input:focus {
-            outline: none;
-            border-color: #BCAE83;
+            font-size: 0.8rem;
+            width: 120px;
         }
         
         .apply-btn {
             background: #BCAE83;
             color: black;
             border: none;
-            padding: 5px 15px;
+            padding: 5px 12px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .export-wrapper {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
         }
         
         .export-btn {
@@ -218,13 +229,133 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            white-space: nowrap;
         }
         
         .export-btn:hover {
             background: #27ae60;
         }
         
-        /* Heat map - MUCH SMALLER */
+        /* Export Modal */
+        .export-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+        }
+        
+        .export-modal-content {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            margin: 100px auto;
+            border: 1px solid #BCAE83;
+        }
+        
+        .export-modal-content h3 {
+            color: #BCAE83;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .export-option-group {
+            margin-bottom: 25px;
+        }
+        
+        .export-option-group h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .column-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #333;
+            border-radius: 8px;
+        }
+        
+        .column-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .column-checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .export-date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .export-date-input {
+            background: #444;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .export-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .export-generate-btn {
+            background: #2ecc71;
+            color: black;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .export-cancel-btn {
+            background: #ff416c;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .select-all-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        /* Heat map */
         .heatmap-container {
             margin-top: 15px;
             width: 50%;
@@ -280,48 +411,48 @@
         .filter-btn.status-active { background: #2ecc71; color: black; }
         .filter-btn.status-pending { background: #f39c12; color: black; }
         
-        /* Cards Table */
-        .cards-table-container { background: #2a2a2a; border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
-        table { width: 100%; border-collapse: collapse; }
+        /* Cards Table - Full Columns */
+        .cards-table-container { background: #2a2a2a; border-radius: 10px; overflow-x: auto; margin-bottom: 40px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1800px; }
         th { 
             background: #364B4A; 
-            padding: 12px 10px; 
+            padding: 10px 8px; 
             text-align: left; 
             font-weight: 600; 
             color: #BCAE83;
             cursor: grab;
             user-select: none;
-            font-size: 0.9rem;
-            position: relative;
+            font-size: 0.8rem;
+            white-space: nowrap;
         }
         th:active { cursor: grabbing; }
         th.drag-over { background: #4a6a68; }
-        td { padding: 10px; border-bottom: 1px solid #444; font-size: 0.9rem; }
+        td { padding: 8px; border-bottom: 1px solid #444; font-size: 0.8rem; white-space: nowrap; }
         tr:hover { background: #333; }
         
         /* Action Buttons */
-        .action-btns { display: flex; gap: 3px; flex-wrap: wrap; }
-        .action-btn { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.3s; }
+        .action-btns { display: flex; gap: 2px; flex-wrap: wrap; }
+        .action-btn { padding: 3px 6px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.7rem; transition: all 0.3s; }
         .view-btn { background: #BCAE83; color: black; }
         .qr-btn { background: #364B4A; color: white; }
         .copy-btn { background: #555; color: white; }
         .action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
         
         /* Status Badges */
-        .status-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+        .status-badge { padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; display: inline-block; }
         .status-pending { background: #f39c12; color: black; }
         .status-active { background: #2ecc71; color: black; }
         .status-deleted { background: #e74c3c; color: white; }
         
         /* Type badges */
-        .type-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; }
+        .type-badge { padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
         .type-text { background: #3498db; }
         .type-image { background: #2ecc71; }
         .type-video { background: #e74c3c; }
         .type-audio { background: #9b59b6; }
         
         /* Media URL */
-        .media-url { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #06D6A0; font-size: 0.85rem; }
+        .media-url { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #06D6A0; font-size: 0.75rem; }
         .media-url a { color: #06D6A0; text-decoration: none; }
         .media-url a:hover { text-decoration: underline; }
         
@@ -348,22 +479,27 @@
                 <i class="fas fa-chart-line"></i> Card Analytics & Insights
             </div>
             
-            <!-- Date Range Selector with Custom Range -->
+            <!-- Date Range Selector - Compact Layout -->
             <div class="date-range-container">
-                <button class="range-btn active" data-range="7">Last 7 Days</button>
-                <button class="range-btn" data-range="30">Last 30 Days</button>
-                <button class="range-btn" data-range="90">Last 90 Days</button>
-                <button class="range-btn" data-range="365">Last Year</button>
+                <div class="range-group">
+                    <button class="range-btn active" data-range="7">7D</button>
+                    <button class="range-btn" data-range="30">30D</button>
+                    <button class="range-btn" data-range="90">90D</button>
+                    <button class="range-btn" data-range="365">1Y</button>
+                </div>
                 
-                <div class="custom-date-inputs">
+                <div class="custom-date-group">
                     <input type="date" id="startDate" class="date-input">
+                    <span style="color: #aaa;">-</span>
                     <input type="date" id="endDate" class="date-input">
                     <button class="apply-btn" id="applyCustomRange">Apply</button>
                 </div>
                 
-                <button class="export-btn" id="exportCSVBtn">
-                    <i class="fas fa-download"></i> Export CSV
-                </button>
+                <div class="export-wrapper">
+                    <button class="export-btn" id="exportCSVBtn">
+                        <i class="fas fa-download"></i> Generate Report .CSV
+                    </button>
+                </div>
             </div>
             
             <div class="analytics-grid">
@@ -411,7 +547,7 @@
                 </div>
             </div>
             
-            <!-- Heatmap - Now Half Size -->
+            <!-- Heatmap -->
             <div class="heatmap-container">
                 <div class="chart-header" style="margin-bottom: 8px;">
                     <h3><i class="fas fa-calendar-week"></i> Scan Heat Map</h3>
@@ -424,6 +560,34 @@
                     <span>⬤ Low</span>
                     <span>⬤ Medium</span>
                     <span>⬤ High</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export Modal -->
+        <div class="export-modal" id="exportModal">
+            <div class="export-modal-content">
+                <h3>📄 Generate CSV Report</h3>
+                
+                <div class="export-option-group">
+                    <h4>Select Columns to Include <button class="select-all-btn" id="selectAllColumns">Select All</button></h4>
+                    <div class="column-checkbox-grid" id="columnCheckboxGrid">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="export-option-group">
+                    <h4>Date Range</h4>
+                    <div class="export-date-range">
+                        <input type="date" id="exportStartDate" class="export-date-input">
+                        <span style="color: white;">to</span>
+                        <input type="date" id="exportEndDate" class="export-date-input">
+                    </div>
+                </div>
+                
+                <div class="export-actions">
+                    <button class="export-cancel-btn" id="exportCancelBtn">Cancel</button>
+                    <button class="export-generate-btn" id="exportGenerateBtn">Generate CSV</button>
                 </div>
             </div>
         </div>
@@ -447,60 +611,44 @@
         
         <!-- Stats -->
         <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="totalCards">0</div>
-                <div class="stat-label">Total</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pendingCards">0</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="activeCards">0</div>
-                <div class="stat-label">Active</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="videoCards">0</div>
-                <div class="stat-label">Video</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="imageCards">0</div>
-                <div class="stat-label">Image</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="audioCards">0</div>
-                <div class="stat-label">Audio</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="textCards">0</div>
-                <div class="stat-label">Text</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalScans">0</div>
-                <div class="stat-label">Scans</div>
-            </div>
+            <div class="stat-card"><div class="stat-value" id="totalCards">0</div><div class="stat-label">Total</div></div>
+            <div class="stat-card"><div class="stat-value" id="pendingCards">0</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-value" id="activeCards">0</div><div class="stat-label">Active</div></div>
+            <div class="stat-card"><div class="stat-value" id="videoCards">0</div><div class="stat-label">Video</div></div>
+            <div class="stat-card"><div class="stat-value" id="imageCards">0</div><div class="stat-label">Image</div></div>
+            <div class="stat-card"><div class="stat-value" id="audioCards">0</div><div class="stat-label">Audio</div></div>
+            <div class="stat-card"><div class="stat-value" id="textCards">0</div><div class="stat-label">Text</div></div>
+            <div class="stat-card"><div class="stat-value" id="totalScans">0</div><div class="stat-label">Scans</div></div>
         </div>
         
-        <!-- Cards Table -->
+        <!-- Cards Table - All Columns -->
         <div class="cards-table-container">
             <table id="sortableTable">
                 <thead id="tableHeader">
                     <tr id="headerRow">
                         <th draggable="true" data-column="card_id">Card ID</th>
                         <th draggable="true" data-column="status">Status</th>
-                        <th draggable="true" data-column="type">Type</th>
-                        <th draggable="true" data-column="file_name">File Name</th>
-                        <th draggable="true" data-column="size">Size</th>
+                        <th draggable="true" data-column="message_type">Message Type</th>
+                        <th draggable="true" data-column="message_text">Message Text</th>
                         <th draggable="true" data-column="media_url">Media URL</th>
-                        <th draggable="true" data-column="scans">Scans</th>
-                        <th draggable="true" data-column="created">Created</th>
-                        <th draggable="true" data-column="ip">IP Address</th>
+                        <th draggable="true" data-column="file_name">File Name</th>
+                        <th draggable="true" data-column="file_size">File Size</th>
+                        <th draggable="true" data-column="file_type">File Type</th>
+                        <th draggable="true" data-column="scan_count">Scans</th>
+                        <th draggable="true" data-column="created_by_ip">Created IP</th>
+                        <th draggable="true" data-column="updated_by_ip">Updated IP</th>
+                        <th draggable="true" data-column="created_at">Created</th>
+                        <th draggable="true" data-column="updated_at">Updated</th>
+                        <th draggable="true" data-column="activated_at">Activated</th>
+                        <th draggable="true" data-column="activated_by_ip">Activated IP</th>
+                        <th draggable="true" data-column="terms_accepted_at">Terms Accepted</th>
+                        <th draggable="true" data-column="terms_accepted_ip">Terms IP</th>
                         <th style="cursor: default; background: #364B4A;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="10" class="loading">
+                        <td colspan="18" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -551,21 +699,29 @@
         let scansChart = null;
         let scanLogs = [];
         
-        // Column definitions
-        const columns = [
+        // All possible columns for display and export
+        const allColumns = [
             { id: 'card_id', name: 'Card ID' },
             { id: 'status', name: 'Status' },
-            { id: 'type', name: 'Type' },
-            { id: 'file_name', name: 'File Name' },
-            { id: 'size', name: 'Size' },
+            { id: 'message_type', name: 'Message Type' },
+            { id: 'message_text', name: 'Message Text' },
             { id: 'media_url', name: 'Media URL' },
-            { id: 'scans', name: 'Scans' },
-            { id: 'created', name: 'Created' },
-            { id: 'ip', name: 'IP Address' }
+            { id: 'file_name', name: 'File Name' },
+            { id: 'file_size', name: 'File Size' },
+            { id: 'file_type', name: 'File Type' },
+            { id: 'scan_count', name: 'Scans' },
+            { id: 'created_by_ip', name: 'Created IP' },
+            { id: 'updated_by_ip', name: 'Updated IP' },
+            { id: 'created_at', name: 'Created' },
+            { id: 'updated_at', name: 'Updated' },
+            { id: 'activated_at', name: 'Activated' },
+            { id: 'activated_by_ip', name: 'Activated IP' },
+            { id: 'terms_accepted_at', name: 'Terms Accepted' },
+            { id: 'terms_accepted_ip', name: 'Terms IP' }
         ];
         
         // Current column order
-        let columnOrder = columns.map(col => col.id);
+        let columnOrder = allColumns.map(col => col.id);
         
         // DOM Elements
         const searchInput = document.getElementById('searchInput');
@@ -582,9 +738,36 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const applyCustomBtn = document.getElementById('applyCustomRange');
-        const exportCSVBtn = document.getElementById('exportCSVBtn');
+        const exportBtn = document.getElementById('exportCSVBtn');
+        const exportModal = document.getElementById('exportModal');
+        const exportCancelBtn = document.getElementById('exportCancelBtn');
+        const exportGenerateBtn = document.getElementById('exportGenerateBtn');
+        const exportStartDate = document.getElementById('exportStartDate');
+        const exportEndDate = document.getElementById('exportEndDate');
+        const selectAllBtn = document.getElementById('selectAllColumns');
+        const columnCheckboxGrid = document.getElementById('columnCheckboxGrid');
         
         let draggedColumn = null;
+        
+        // Populate column checkboxes
+        function populateColumnCheckboxes() {
+            let html = '';
+            allColumns.forEach(col => {
+                html += `
+                    <label class="column-checkbox-item">
+                        <input type="checkbox" class="export-column" value="${col.id}" checked>
+                        ${col.name}
+                    </label>
+                `;
+            });
+            columnCheckboxGrid.innerHTML = html;
+        }
+        
+        // Select All columns
+        selectAllBtn.addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('.export-column');
+            checkboxes.forEach(cb => cb.checked = true);
+        });
         
         // Setup drag and drop
         function setupDragAndDrop() {
@@ -649,7 +832,7 @@
             let headerHtml = '';
             
             columnOrder.forEach(colId => {
-                const column = columns.find(c => c.id === colId);
+                const column = allColumns.find(c => c.id === colId);
                 if (column) {
                     headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
                 }
@@ -903,7 +1086,7 @@
             container.innerHTML = html;
         }
         
-        // Generate heatmap (smaller version)
+        // Generate heatmap
         function generateHeatmap() {
             const container = document.getElementById('heatmapContainer');
             let html = '';
@@ -956,39 +1139,69 @@
             container.innerHTML = html;
         }
         
-        // Export to CSV with ALL columns
+        // Export to CSV with selected columns
         function exportToCSV() {
-            if (scanLogs.length === 0) {
-                alert('No data to export');
+            const selectedColumns = [];
+            document.querySelectorAll('.export-column:checked').forEach(cb => {
+                selectedColumns.push(cb.value);
+            });
+            
+            if (selectedColumns.length === 0) {
+                alert('Please select at least one column');
                 return;
             }
             
-            // Get all unique card IDs from scan logs
-            const cardIds = [...new Set(scanLogs.map(log => log.card_id))];
+            const startDate = exportStartDate.value;
+            const endDate = exportEndDate.value;
             
-            // Create CSV header with ALL columns
-            let csv = 'Card ID,Status,Type,File Name,File Size,Media URL,Scan Count,IP Address,User Agent,Scanned At\n';
+            if (!startDate || !endDate) {
+                alert('Please select start and end dates');
+                return;
+            }
+            
+            // Filter cards by date range (simplified - you may want to add this to your API)
+            const filteredCards = allCards.filter(card => {
+                const cardDate = new Date(card.created_at).toISOString().split('T')[0];
+                return cardDate >= startDate && cardDate <= endDate;
+            });
+            
+            if (filteredCards.length === 0) {
+                alert('No cards found in selected date range');
+                return;
+            }
+            
+            // Create CSV header
+            let csv = selectedColumns.map(col => {
+                const column = allColumns.find(c => c.id === col);
+                return column ? column.name : col;
+            }).join(',') + '\n';
             
             // Add data rows
-            scanLogs.forEach(log => {
-                const card = allCards.find(c => c.card_id === log.card_id) || {};
-                
-                const status = card.status || 'N/A';
-                const type = card.message_type || 'N/A';
-                const fileName = card.file_name || 'N/A';
-                const fileSize = card.file_size ? formatFileSize(card.file_size) : 'N/A';
-                const mediaUrl = card.media_url || 'N/A';
-                const scanCount = card.scan_count || 0;
-                
-                // Escape any commas in fields
-                const escapeField = (field) => {
-                    if (field && field.includes(',')) {
-                        return `"${field}"`;
+            filteredCards.forEach(card => {
+                const row = selectedColumns.map(col => {
+                    let value = card[col] || '';
+                    
+                    // Format dates
+                    if (col.includes('_at') && value) {
+                        value = new Date(value).toLocaleString();
                     }
-                    return field;
-                };
+                    
+                    // Format file size
+                    if (col === 'file_size' && value) {
+                        const bytes = parseInt(value);
+                        if (bytes < 1024) value = bytes + ' B';
+                        else if (bytes < 1024 * 1024) value = (bytes / 1024).toFixed(1) + ' KB';
+                        else value = (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                    }
+                    
+                    // Escape commas
+                    if (value && value.toString().includes(',')) {
+                        return `"${value}"`;
+                    }
+                    return value || '';
+                }).join(',');
                 
-                csv += `${escapeField(log.card_id)},${escapeField(status)},${escapeField(type)},${escapeField(fileName)},${escapeField(fileSize)},${escapeField(mediaUrl)},${scanCount},${escapeField(log.ip_address || 'N/A')},${escapeField(log.user_agent || 'N/A')},${new Date(log.scanned_at).toLocaleString()}\n`;
+                csv += row + '\n';
             });
             
             // Create download link
@@ -996,14 +1209,14 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            
-            const dateStr = new Date().toISOString().split('T')[0];
-            a.download = `papir-scans-${dateStr}.csv`;
+            a.download = `papir-cards-${startDate}-to-${endDate}.csv`;
             
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+            
+            exportModal.style.display = 'none';
         }
         
         // Filter cards
@@ -1024,7 +1237,8 @@
                     card.card_id.toLowerCase().includes(searchTerm) ||
                     (card.file_name && card.file_name.toLowerCase().includes(searchTerm)) ||
                     card.message_type.toLowerCase().includes(searchTerm) ||
-                    (card.status && card.status.toLowerCase().includes(searchTerm))
+                    (card.status && card.status.toLowerCase().includes(searchTerm)) ||
+                    (card.message_text && card.message_text.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -1041,7 +1255,7 @@
             if (filteredCards.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="10" style="text-align: center; padding: 40px; color: #aaa;">
+                        <td colspan="18" style="text-align: center; padding: 40px; color: #aaa;">
                             No cards found matching your criteria.
                         </td>
                     </tr>
@@ -1052,30 +1266,34 @@
             let html = '';
             filteredCards.forEach(card => {
                 const typeClass = `type-${card.message_type}`;
-                const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
+                const typeDisplay = card.message_type ? card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1) : 'N/A';
                 const sizeDisplay = card.file_size ? formatFileSize(card.file_size) : 'N/A';
                 const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
                 
                 const statusClass = card.status === 'pending' ? 'status-pending' : 
                                    card.status === 'active' ? 'status-active' : 'status-deleted';
                 const statusText = card.status ? card.status.toUpperCase() : 'UNKNOWN';
                 
+                // Create data object for all columns
                 const columnData = {
                     card_id: `<td><strong>${card.card_id}</strong></td>`,
                     status: `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`,
-                    type: `<td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>`,
+                    message_type: `<td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>`,
+                    message_text: `<td>${card.message_text ? card.message_text.substring(0, 30) + (card.message_text.length > 30 ? '...' : '') : 'N/A'}</td>`,
+                    media_url: `<td class="media-url">${card.media_url ? `<a href="${card.media_url}" target="_blank">Link</a>` : 'N/A'}</td>`,
                     file_name: `<td>${card.file_name || 'N/A'}</td>`,
-                    size: `<td>${sizeDisplay}</td>`,
-                    media_url: `<td class="media-url">${card.media_url ? 
-                        `<div>
-                            <a href="${card.media_url}" target="_blank">View</a><br>
-                            <small style="color: #aaa; font-size: 0.7rem;">${card.media_url.substring(0, 30)}...</small>
-                        </div>` 
-                        : 'N/A'}</td>`,
-                    scans: `<td style="text-align: center; font-weight: bold; color: #BCAE83;">${card.scan_count || 0}</td>`,
-                    created: `<td>${new Date(card.created_at).toLocaleDateString()}</td>`,
-                    ip: `<td>${card.created_by_ip || 'N/A'}</td>`
+                    file_size: `<td>${sizeDisplay}</td>`,
+                    file_type: `<td>${card.file_type || 'N/A'}</td>`,
+                    scan_count: `<td style="text-align: center; font-weight: bold; color: #BCAE83;">${card.scan_count || 0}</td>`,
+                    created_by_ip: `<td>${card.created_by_ip || 'N/A'}</td>`,
+                    updated_by_ip: `<td>${card.updated_by_ip || 'N/A'}</td>`,
+                    created_at: `<td>${new Date(card.created_at).toLocaleDateString()}</td>`,
+                    updated_at: `<td>${card.updated_at ? new Date(card.updated_at).toLocaleDateString() : 'N/A'}</td>`,
+                    activated_at: `<td>${card.activated_at ? new Date(card.activated_at).toLocaleDateString() : 'N/A'}</td>`,
+                    activated_by_ip: `<td>${card.activated_by_ip || 'N/A'}</td>`,
+                    terms_accepted_at: `<td>${card.terms_accepted_at ? new Date(card.terms_accepted_at).toLocaleDateString() : 'N/A'}</td>`,
+                    terms_accepted_ip: `<td>${card.terms_accepted_ip || 'N/A'}</td>`
                 };
                 
                 let rowHtml = '<tr>';
@@ -1083,6 +1301,7 @@
                     rowHtml += columnData[colId] || '<td>N/A</td>';
                 });
                 
+                // Actions column
                 rowHtml += `
                     <td>
                         <div class="action-btns">
@@ -1157,7 +1376,7 @@
             if (show) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="10" class="loading">
+                        <td colspan="18" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -1239,13 +1458,32 @@
                 }
             });
             
-            exportCSVBtn.addEventListener('click', exportToCSV);
+            exportBtn.addEventListener('click', () => {
+                // Set default dates to last 30 days
+                const end = new Date();
+                const start = new Date();
+                start.setDate(start.getDate() - 30);
+                
+                exportStartDate.value = start.toISOString().split('T')[0];
+                exportEndDate.value = end.toISOString().split('T')[0];
+                
+                exportModal.style.display = 'block';
+            });
+            
+            exportCancelBtn.addEventListener('click', () => {
+                exportModal.style.display = 'none';
+            });
+            
+            exportGenerateBtn.addEventListener('click', exportToCSV);
             
             closeModalBtn.addEventListener('click', closeModal);
             copyQrUrlBtn.addEventListener('click', copyQrUrl);
             downloadQrBtn.addEventListener('click', downloadQr);
             
             window.addEventListener('click', function(event) {
+                if (event.target === exportModal) {
+                    exportModal.style.display = 'none';
+                }
                 if (event.target === qrModal) {
                     closeModal();
                 }
@@ -1253,6 +1491,7 @@
         }
         
         // Initial load
+        populateColumnCheckboxes();
         initializeEventListeners();
         loadAdminData();
         
