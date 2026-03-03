@@ -396,43 +396,6 @@
             margin-left: 10px;
         }
         
-        /* Heat map */
-        .heatmap-container {
-            margin-top: 15px;
-            width: 50%;
-        }
-        
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-        }
-        
-        .heatmap-cell {
-            aspect-ratio: 1;
-            background: #2a2a2a;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            color: #aaa;
-            transition: all 0.2s;
-        }
-        
-        .heatmap-cell:hover {
-            transform: scale(1.2);
-            z-index: 10;
-        }
-        
-        .heatmap-label {
-            display: flex;
-            gap: 15px;
-            margin-top: 8px;
-            color: #aaa;
-            font-size: 0.75rem;
-        }
-        
         /* Search Bar */
         .search-bar { background: #2a2a2a; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
         .search-input { width: 100%; padding: 12px 20px; background: #333; border: 2px solid #444; border-radius: 8px; color: white; font-size: 16px; }
@@ -603,22 +566,6 @@
                     <div class="top-cards-list" id="topCardsList">
                         <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Heatmap -->
-            <div class="heatmap-container">
-                <div class="chart-header" style="margin-bottom: 8px;">
-                    <h3><i class="fas fa-calendar-week"></i> Scan Heat Map</h3>
-                    <span>Last 30 days</span>
-                </div>
-                <div id="heatmapContainer" class="heatmap-grid">
-                    <!-- Heatmap will be generated here -->
-                </div>
-                <div class="heatmap-label">
-                    <span>⬤ Low</span>
-                    <span>⬤ Medium</span>
-                    <span>⬤ High</span>
                 </div>
             </div>
         </div>
@@ -1029,9 +976,6 @@
             
             // Update top cards
             updateTopCards();
-            
-            // Generate heatmap
-            generateHeatmap();
         }
         
         // Update scans chart
@@ -1153,59 +1097,6 @@
             container.innerHTML = html;
         }
         
-        // Generate heatmap
-        function generateHeatmap() {
-            const container = document.getElementById('heatmapContainer');
-            let html = '';
-            
-            // Group scans by date for last 28 days
-            const scanByDate = {};
-            const now = new Date();
-            
-            for (let i = 0; i < 28; i++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toDateString();
-                scanByDate[dateStr] = 0;
-            }
-            
-            scanLogs.forEach(log => {
-                const logDate = new Date(log.scanned_at);
-                const daysDiff = Math.floor((now - logDate) / (1000 * 60 * 60 * 24));
-                
-                if (daysDiff < 28) {
-                    const dateStr = logDate.toDateString();
-                    if (scanByDate[dateStr] !== undefined) {
-                        scanByDate[dateStr]++;
-                    }
-                }
-            });
-            
-            const scanValues = Object.values(scanByDate);
-            const maxScans = Math.max(...scanValues, 1);
-            
-            for (let week = 0; week < 4; week++) {
-                for (let day = 0; day < 7; day++) {
-                    const date = new Date(now);
-                    date.setDate(date.getDate() - (week * 7 + (6 - day)));
-                    const dateStr = date.toDateString();
-                    const scanCount = scanByDate[dateStr] || 0;
-                    
-                    const intensity = scanCount / maxScans;
-                    let bgColor = '#2a2a2a';
-                    
-                    if (intensity > 0.6) bgColor = '#f39c12';
-                    else if (intensity > 0.3) bgColor = '#BCAE83';
-                    else if (intensity > 0) bgColor = '#4a4a4a';
-                    
-                    const dayNum = date.getDate();
-                    html += `<div class="heatmap-cell" style="background: ${bgColor}" title="${date.toDateString()}: ${scanCount} scans">${dayNum}</div>`;
-                }
-            }
-            
-            container.innerHTML = html;
-        }
-        
         // Export to CSV with selected columns
         function exportToCSV() {
             const selectedColumns = [];
@@ -1226,7 +1117,7 @@
                 return;
             }
             
-            // Filter cards by date range (simplified - you may want to add this to your API)
+            // Filter cards by date range
             const filteredCards = allCards.filter(card => {
                 const cardDate = new Date(card.created_at).toISOString().split('T')[0];
                 return cardDate >= startDate && cardDate <= endDate;
@@ -1564,8 +1455,7 @@
         
         setTimeout(setupDragAndDrop, 500);
         
-        // Auto-refresh every 30 seconds
-        setInterval(loadAdminData, 30000);
+        // AUTO-REFRESH REMOVED - No setInterval
     </script>
 
     <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
