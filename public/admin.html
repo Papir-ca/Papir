@@ -21,6 +21,12 @@
         .stat-value { font-size: 2rem; color: #BCAE83; font-weight: bold; }
         .stat-label { color: #aaa; margin-top: 5px; }
         
+        /* Controls */
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .filter-btn.active { background: #BCAE83; color: black; }
+        .status-filter-group { display: flex; gap: 10px; margin-left: auto; }
+        
         /* Cards Table */
         .cards-table-container { background: #2a2a2a; border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
         table { width: 100%; border-collapse: collapse; }
@@ -36,6 +42,19 @@
         .copy-btn { background: #555; color: white; }
         .action-btn:hover { opacity: 0.9; transform: translateY(-2px); }
         
+        /* Status Badges */
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
+        .status-pending { background: #f39c12; color: black; }
+        .status-active { background: #2ecc71; color: black; }
+        .status-deleted { background: #e74c3c; color: white; }
+        
+        /* Type badges */
+        .type-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .type-text { background: #3498db; }
+        .type-image { background: #2ecc71; }
+        .type-video { background: #e74c3c; }
+        .type-audio { background: #9b59b6; }
+        
         /* Media URL */
         .media-url { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #06D6A0; }
         .media-url a { color: #06D6A0; text-decoration: none; }
@@ -47,22 +66,10 @@
         .modal-qr { width: 250px; height: 250px; margin: 20px auto; border: 10px solid white; border-radius: 10px; }
         .close-modal { background: #ff416c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px; }
         
-        /* Controls */
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-btn { padding: 8px 16px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .filter-btn.active { background: #BCAE83; color: black; }
-        
         /* Loading */
         .loading { text-align: center; padding: 40px; color: #aaa; }
         .spinner { border: 4px solid #333; border-top: 4px solid #BCAE83; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Type badges */
-        .type-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .type-text { background: #3498db; }
-        .type-image { background: #2ecc71; }
-        .type-video { background: #e74c3c; }
-        .type-audio { background: #9b59b6; }
     </style>
 </head>
 <body>
@@ -75,14 +82,20 @@
             <input type="text" class="search-input" id="searchInput" placeholder="Search by Card ID, file name, or type...">
         </div>
         
-        <!-- Controls -->
+        <!-- Controls - Type Filters -->
         <div class="controls">
             <button class="filter-btn active" data-filter="all">All Cards</button>
             <button class="filter-btn" data-filter="video">Video Cards</button>
             <button class="filter-btn" data-filter="image">Image Cards</button>
             <button class="filter-btn" data-filter="audio">Audio Cards</button>
             <button class="filter-btn" data-filter="text">Text Cards</button>
-            <button class="filter-btn" id="refreshBtn">🔄 Refresh</button>
+            
+            <!-- Status Filters -->
+            <div class="status-filter-group">
+                <button class="filter-btn" data-status="pending">⏳ Pending</button>
+                <button class="filter-btn" data-status="active">✅ Active</button>
+                <button class="filter-btn" id="refreshBtn">🔄 Refresh</button>
+            </div>
         </div>
         
         <!-- Stats -->
@@ -90,6 +103,14 @@
             <div class="stat-card">
                 <div class="stat-value" id="totalCards">0</div>
                 <div class="stat-label">Total Cards</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCards">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeCards">0</div>
+                <div class="stat-label">Active</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="videoCards">0</div>
@@ -118,6 +139,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Status</th>
                         <th>Card ID</th>
                         <th>Type</th>
                         <th>File Name</th>
@@ -131,7 +153,7 @@
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="9" class="loading">
+                        <td colspan="10" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -166,22 +188,22 @@
             window.location.href = 'admin-login.html';
         }
 
-        // LOGOUT FUNCTION - FIXED
+        // LOGOUT FUNCTION
         function logout() {
             sessionStorage.removeItem('adminLoggedIn');
             window.location.href = 'admin-login.html';
         }
         
-        // END OF AUTHENTICATION
-        
         let allCards = [];
-        let currentFilter = 'all';
+        let currentTypeFilter = 'all';
+        let currentStatusFilter = 'all';
         let currentQRData = null;
         
         // DOM Elements
         const searchInput = document.getElementById('searchInput');
         const refreshBtn = document.getElementById('refreshBtn');
-        const filterBtns = document.querySelectorAll('.filter-btn');
+        const filterBtns = document.querySelectorAll('.filter-btn[data-filter]');
+        const statusBtns = document.querySelectorAll('.filter-btn[data-status]');
         const qrModal = document.getElementById('qrModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
@@ -210,6 +232,8 @@
         // Update statistics
         function updateStats(cards) {
             document.getElementById('totalCards').textContent = cards.length;
+            document.getElementById('pendingCards').textContent = cards.filter(c => c.status === 'pending').length;
+            document.getElementById('activeCards').textContent = cards.filter(c => c.status === 'active').length;
             document.getElementById('videoCards').textContent = cards.filter(c => c.message_type === 'video').length;
             document.getElementById('imageCards').textContent = cards.filter(c => c.message_type === 'image').length;
             document.getElementById('audioCards').textContent = cards.filter(c => c.message_type === 'audio').length;
@@ -224,8 +248,13 @@
             let filteredCards = allCards;
             
             // Apply type filter
-            if (currentFilter !== 'all') {
-                filteredCards = filteredCards.filter(card => card.message_type === currentFilter);
+            if (currentTypeFilter !== 'all') {
+                filteredCards = filteredCards.filter(card => card.message_type === currentTypeFilter);
+            }
+            
+            // Apply status filter
+            if (currentStatusFilter !== 'all') {
+                filteredCards = filteredCards.filter(card => card.status === currentStatusFilter);
             }
             
             // Apply search filter
@@ -234,7 +263,8 @@
                 filteredCards = filteredCards.filter(card => 
                     card.card_id.toLowerCase().includes(searchTerm) ||
                     (card.file_name && card.file_name.toLowerCase().includes(searchTerm)) ||
-                    card.message_type.toLowerCase().includes(searchTerm)
+                    card.message_type.toLowerCase().includes(searchTerm) ||
+                    (card.status && card.status.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -248,7 +278,7 @@
             if (cards.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px; color: #aaa;">
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #aaa;">
                             No cards found matching your criteria.
                         </td>
                     </tr>
@@ -264,6 +294,11 @@
                 const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
                 
+                // Status badge
+                const statusClass = card.status === 'pending' ? 'status-pending' : 
+                                   card.status === 'active' ? 'status-active' : 'status-deleted';
+                const statusText = card.status ? card.status.toUpperCase() : 'UNKNOWN';
+                
                 // Generate a unique ID for each action button
                 const viewBtnId = `view-btn-${card.card_id}`;
                 const qrBtnId = `qr-btn-${card.card_id}`;
@@ -271,6 +306,7 @@
                 
                 html += `
                     <tr>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td><strong>${card.card_id}</strong></td>
                         <td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>
                         <td>${card.file_name || 'N/A'}</td>
@@ -395,7 +431,7 @@
             if (show) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="loading">
+                        <td colspan="10" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -412,18 +448,25 @@
             // Refresh button
             refreshBtn.addEventListener('click', loadAdminData);
             
-            // Logout button - FIXED
+            // Logout button
             logoutBtn.addEventListener('click', logout);
             
-            // Filter buttons
+            // Type filter buttons
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Skip the refresh button (it has no data-filter)
-                    if (!this.dataset.filter) return;
-                    
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    currentFilter = this.dataset.filter;
+                    currentTypeFilter = this.dataset.filter;
+                    filterAndDisplayCards();
+                });
+            });
+            
+            // Status filter buttons
+            statusBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    statusBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentStatusFilter = this.dataset.status;
                     filterAndDisplayCards();
                 });
             });
@@ -450,15 +493,15 @@
     </script>
 
     <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
-    <p>
-        <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
-        <a href="maker.html" style="color: #BCAE83; margin: 0 10px;">Create Card</a> | 
-        <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | 
-        <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
-        <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
-    </p>
-    <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. Admin Dashboard</p>
-</footer>
+        <p>
+            <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
+            <a href="maker.html" style="color: #BCAE83; margin: 0 10px;">Create Card</a> | 
+            <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | 
+            <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
+            <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
+        </p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. Admin Dashboard</p>
+    </footer>
     
 </body>
 </html>
