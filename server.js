@@ -135,7 +135,8 @@ app.get('/api/health', (req, res) => {
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
-      incrementScan: `POST ${baseUrl}/api/increment-scan`
+      incrementScan: `POST ${baseUrl}/api/increment-scan`,
+      scanLogs: `GET ${baseUrl}/api/scan-logs`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -592,12 +593,15 @@ app.post('/api/activate-card', async (req, res) => {
   }
 });
 
-// 🔢 Increment scan count
+// 🔢 STEP 2: Increment scan count AND log individual scan (UPDATED)
 app.post('/api/increment-scan', async (req, res) => {
   try {
     const { card_id } = req.body;
     
-    console.log(`📊 Incrementing scan count for: ${card_id}`);
+    // Get client IP
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    
+    console.log(`📊 Processing scan for: ${card_id} from IP: ${clientIp}`);
     
     if (!supabaseAdmin) {
       return res.status(503).json({ 
@@ -606,7 +610,22 @@ app.post('/api/increment-scan', async (req, res) => {
       });
     }
     
-    // Get current count
+    // 1. Log the individual scan
+    const { error: logError } = await supabaseAdmin
+      .from('scan_logs')
+      .insert({
+        card_id: card_id,
+        ip_address: clientIp,
+        user_agent: req.headers['user-agent'] || 'unknown',
+        scanned_at: new Date().toISOString()
+      });
+    
+    if (logError) {
+      console.error('❌ Failed to log scan:', logError);
+      // Continue anyway - don't block the scan count update
+    }
+    
+    // 2. Get current count
     const { data: card, error: fetchError } = await supabaseAdmin
       .from('cards')
       .select('scan_count')
@@ -618,7 +637,7 @@ app.post('/api/increment-scan', async (req, res) => {
       return res.json({ success: false, error: fetchError.message });
     }
     
-    // Increment by 1
+    // 3. Increment by 1
     const currentCount = card?.scan_count || 0;
     const { error } = await supabaseAdmin
       .from('cards')
@@ -630,12 +649,36 @@ app.post('/api/increment-scan', async (req, res) => {
       return res.json({ success: false, error: error.message });
     }
     
-    console.log(`✅ Scan count updated: ${card_id} now has ${currentCount + 1} scans`);
+    console.log(`✅ Scan logged and count updated: ${card_id} now has ${currentCount + 1} scans`);
     res.json({ success: true, count: currentCount + 1 });
     
   } catch (error) {
     console.error('💥 Increment error:', error);
     res.json({ success: false, error: error.message });
+  }
+});
+
+// 📊 STEP 4: Get scan logs for analytics (NEW)
+app.get('/api/scan-logs', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    const { data, error } = await supabaseAdmin
+      .from('scan_logs')
+      .select('*')
+      .gte('scanned_at', cutoffDate.toISOString())
+      .order('scanned_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    res.json({ success: true, logs: data || [] });
+    
+  } catch (error) {
+    console.error('Error fetching scan logs:', error);
+    res.json({ success: false, error: error.message, logs: [] });
   }
 });
 
@@ -707,6 +750,7 @@ app.use((req, res) => {
       `${baseUrl}/api/upload-media`,
       `${baseUrl}/api/activate-card`,
       `${baseUrl}/api/increment-scan`,
+      `${baseUrl}/api/scan-logs`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -740,6 +784,7 @@ app.listen(PORT, () => {
   console.log(`   Upload: https://papir.ca/api/upload-media`);
   console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
+  console.log(`   Scan Logs: https://papir.ca/api/scan-logs`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -747,6 +792,8 @@ app.listen(PORT, () => {
   console.log('   ✅ IP address tracking');
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
+  console.log('   ✅ Individual scan logging');
+  console.log('   ✅ Analytics dashboard');
   console.log('   ✅ Card activation flow (physical cards)');
   console.log('   ✅ 24/7 Railway hosting');
   
