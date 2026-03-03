@@ -40,6 +40,7 @@
             cursor: grab;
             user-select: none;
             font-size: 0.9rem;
+            position: relative;
         }
         th:active { cursor: grabbing; }
         th.drag-over { background: #4a6a68; }
@@ -156,7 +157,7 @@
                         <th draggable="true" data-column="scans">Scans</th>
                         <th draggable="true" data-column="created">Created</th>
                         <th draggable="true" data-column="ip">IP Address</th>
-                        <th>Actions</th>
+                        <th style="cursor: default; background: #364B4A;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="cardsTableBody">
@@ -206,7 +207,22 @@
         let currentTypeFilter = 'all';
         let currentStatusFilters = [];
         let currentQRData = null;
-        let columnOrder = ['card_id', 'status', 'type', 'file_name', 'size', 'media_url', 'scans', 'created', 'ip'];
+        
+        // Column definitions - this maps column IDs to their display properties
+        const columns = [
+            { id: 'card_id', name: 'Card ID' },
+            { id: 'status', name: 'Status' },
+            { id: 'type', name: 'Type' },
+            { id: 'file_name', name: 'File Name' },
+            { id: 'size', name: 'Size' },
+            { id: 'media_url', name: 'Media URL' },
+            { id: 'scans', name: 'Scans' },
+            { id: 'created', name: 'Created' },
+            { id: 'ip', name: 'IP Address' }
+        ];
+        
+        // Current column order (starts as default)
+        let columnOrder = columns.map(col => col.id);
         
         // DOM Elements
         const searchInput = document.getElementById('searchInput');
@@ -219,9 +235,9 @@
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
         const downloadQrBtn = document.getElementById('downloadQrBtn');
         const logoutBtn = document.getElementById('logoutBtn');
-        const headerRow = document.getElementById('headerRow');
+        const tableHeader = document.getElementById('tableHeader');
+        
         let draggedColumn = null;
-        let dragStartIndex = -1;
         
         // Setup drag and drop
         function setupDragAndDrop() {
@@ -238,7 +254,6 @@
         
         function handleDragStart(e) {
             draggedColumn = e.target;
-            dragStartIndex = e.target.cellIndex;
             e.dataTransfer.setData('text/plain', e.target.dataset.column);
             e.target.style.opacity = '0.5';
         }
@@ -256,26 +271,24 @@
             e.preventDefault();
             e.target.classList.remove('drag-over');
             
-            const fromColumn = e.dataTransfer.getData('text/plain');
-            const toColumn = e.target.dataset.column;
+            const fromColumnId = e.dataTransfer.getData('text/plain');
+            const toColumnId = e.target.dataset.column;
             
-            if (!fromColumn || !toColumn || fromColumn === toColumn) return;
+            if (!fromColumnId || !toColumnId || fromColumnId === toColumnId) return;
             
-            const fromIndex = columnOrder.indexOf(fromColumn);
-            const toIndex = columnOrder.indexOf(toColumn);
+            // Find indices in the column order
+            const fromIndex = columnOrder.indexOf(fromColumnId);
+            const toIndex = columnOrder.indexOf(toColumnId);
             
             if (fromIndex !== -1 && toIndex !== -1) {
-                // Reorder the array
+                // Reorder the column array
                 const newOrder = [...columnOrder];
                 const [movedItem] = newOrder.splice(fromIndex, 1);
                 newOrder.splice(toIndex, 0, movedItem);
                 columnOrder = newOrder;
                 
-                // Re-render the table
-                filterAndDisplayCards();
-                
-                // Re-attach drag events after re-render
-                setTimeout(setupDragAndDrop, 0);
+                // Re-render the table with new column order
+                renderTable();
             }
         }
         
@@ -284,6 +297,27 @@
             document.querySelectorAll('th').forEach(th => {
                 th.classList.remove('drag-over');
             });
+        }
+        
+        // Render the table headers based on current column order
+        function renderTableHeaders() {
+            const headerRow = document.getElementById('headerRow');
+            let headerHtml = '';
+            
+            columnOrder.forEach(colId => {
+                const column = columns.find(c => c.id === colId);
+                if (column) {
+                    headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
+                }
+            });
+            
+            // Add Actions column (always last, not draggable)
+            headerHtml += `<th style="cursor: default; background: #364B4A;">Actions</th>`;
+            
+            headerRow.innerHTML = headerHtml;
+            
+            // Re-attach drag events
+            setTimeout(setupDragAndDrop, 0);
         }
         
         // Load admin data
@@ -296,7 +330,7 @@
                 if (result.success && result.cards) {
                     allCards = result.cards;
                     updateStats(allCards);
-                    filterAndDisplayCards();
+                    renderTable();
                 }
             } catch (error) {
                 console.error('Admin load error:', error);
@@ -319,8 +353,8 @@
             document.getElementById('totalScans').textContent = totalScans;
         }
         
-        // Filter and display cards
-        function filterAndDisplayCards() {
+        // Filter cards based on current filters
+        function filterCards() {
             let filteredCards = allCards;
             
             // Apply type filter
@@ -344,14 +378,21 @@
                 );
             }
             
-            displayCards(filteredCards);
+            return filteredCards;
         }
         
-        // Display cards in table with reordered columns
-        function displayCards(cards) {
+        // Render the entire table
+        function renderTable() {
+            // First update headers
+            renderTableHeaders();
+            
+            // Then get filtered cards
+            const filteredCards = filterCards();
+            
+            // Render table body
             const tbody = document.getElementById('cardsTableBody');
             
-            if (cards.length === 0) {
+            if (filteredCards.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="10" style="text-align: center; padding: 40px; color: #aaa;">
@@ -363,7 +404,7 @@
             }
             
             let html = '';
-            cards.forEach(card => {
+            filteredCards.forEach(card => {
                 const typeClass = `type-${card.message_type}`;
                 const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
                 const sizeDisplay = card.file_size ? formatFileSize(card.file_size) : 'N/A';
@@ -375,8 +416,8 @@
                                    card.status === 'active' ? 'status-active' : 'status-deleted';
                 const statusText = card.status ? card.status.toUpperCase() : 'UNKNOWN';
                 
-                // Create data object for reordering
-                const rowData = {
+                // Create a map of column data
+                const columnData = {
                     card_id: `<td><strong>${card.card_id}</strong></td>`,
                     status: `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`,
                     type: `<td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>`,
@@ -395,8 +436,8 @@
                 
                 // Build row in current column order
                 let rowHtml = '<tr>';
-                columnOrder.forEach(col => {
-                    rowHtml += rowData[col] || '<td>N/A</td>';
+                columnOrder.forEach(colId => {
+                    rowHtml += columnData[colId] || '<td>N/A</td>';
                 });
                 
                 // Add actions column (always last)
@@ -415,9 +456,6 @@
             });
             
             tbody.innerHTML = html;
-            
-            // Re-attach drag and drop listeners after table redraw
-            setTimeout(setupDragAndDrop, 0);
         }
         
         // Format file size
@@ -510,13 +548,13 @@
                 }
             }
             
-            filterAndDisplayCards();
+            renderTable();
         }
         
         // Initialize event listeners
         function initializeEventListeners() {
             // Search input
-            searchInput.addEventListener('input', filterAndDisplayCards);
+            searchInput.addEventListener('input', renderTable);
             
             // Refresh button
             refreshBtn.addEventListener('click', loadAdminData);
@@ -530,7 +568,7 @@
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentTypeFilter = this.dataset.filter;
-                    filterAndDisplayCards();
+                    renderTable();
                 });
             });
             
