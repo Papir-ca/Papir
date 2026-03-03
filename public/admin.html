@@ -42,6 +42,7 @@
             font-size: 0.9rem;
         }
         th:active { cursor: grabbing; }
+        th.drag-over { background: #4a6a68; }
         td { padding: 10px; border-bottom: 1px solid #444; font-size: 0.9rem; }
         tr:hover { background: #333; }
         
@@ -145,7 +146,7 @@
         <div class="cards-table-container">
             <table id="sortableTable">
                 <thead id="tableHeader">
-                    <tr>
+                    <tr id="headerRow">
                         <th draggable="true" data-column="card_id">Card ID</th>
                         <th draggable="true" data-column="status">Status</th>
                         <th draggable="true" data-column="type">Type</th>
@@ -203,7 +204,7 @@
         
         let allCards = [];
         let currentTypeFilter = 'all';
-        let currentStatusFilters = []; // Array for multiple status filters
+        let currentStatusFilters = [];
         let currentQRData = null;
         let columnOrder = ['card_id', 'status', 'type', 'file_name', 'size', 'media_url', 'scans', 'created', 'ip'];
         
@@ -218,52 +219,72 @@
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
         const downloadQrBtn = document.getElementById('downloadQrBtn');
         const logoutBtn = document.getElementById('logoutBtn');
-        const tableHeader = document.getElementById('tableHeader');
+        const headerRow = document.getElementById('headerRow');
         let draggedColumn = null;
+        let dragStartIndex = -1;
         
-        // Drag and drop reordering
-        tableHeader.querySelectorAll('th[draggable="true"]').forEach(th => {
-            th.addEventListener('dragstart', (e) => {
-                draggedColumn = e.target;
-                e.dataTransfer.setData('text/plain', e.target.dataset.column);
-                e.target.style.opacity = '0.5';
-            });
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const headers = document.querySelectorAll('#headerRow th[draggable="true"]');
             
-            th.addEventListener('dragend', (e) => {
-                e.target.style.opacity = '1';
+            headers.forEach(th => {
+                th.addEventListener('dragstart', handleDragStart);
+                th.addEventListener('dragover', handleDragOver);
+                th.addEventListener('dragleave', handleDragLeave);
+                th.addEventListener('drop', handleDrop);
+                th.addEventListener('dragend', handleDragEnd);
             });
+        }
+        
+        function handleDragStart(e) {
+            draggedColumn = e.target;
+            dragStartIndex = e.target.cellIndex;
+            e.dataTransfer.setData('text/plain', e.target.dataset.column);
+            e.target.style.opacity = '0.5';
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
             
-            th.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.target.style.borderLeft = '2px solid #BCAE83';
-            });
+            const fromColumn = e.dataTransfer.getData('text/plain');
+            const toColumn = e.target.dataset.column;
             
-            th.addEventListener('dragleave', (e) => {
-                e.target.style.borderLeft = 'none';
-            });
+            if (!fromColumn || !toColumn || fromColumn === toColumn) return;
             
-            th.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.target.style.borderLeft = 'none';
+            const fromIndex = columnOrder.indexOf(fromColumn);
+            const toIndex = columnOrder.indexOf(toColumn);
+            
+            if (fromIndex !== -1 && toIndex !== -1) {
+                // Reorder the array
+                const newOrder = [...columnOrder];
+                const [movedItem] = newOrder.splice(fromIndex, 1);
+                newOrder.splice(toIndex, 0, movedItem);
+                columnOrder = newOrder;
                 
-                const fromColumn = e.dataTransfer.getData('text/plain');
-                const toColumn = e.target.dataset.column;
+                // Re-render the table
+                filterAndDisplayCards();
                 
-                if (fromColumn && toColumn && fromColumn !== toColumn) {
-                    const fromIndex = columnOrder.indexOf(fromColumn);
-                    const toIndex = columnOrder.indexOf(toColumn);
-                    
-                    if (fromIndex !== -1 && toIndex !== -1) {
-                        // Reorder the array
-                        const [movedItem] = columnOrder.splice(fromIndex, 1);
-                        columnOrder.splice(toIndex, 0, movedItem);
-                        
-                        // Redraw the table with new column order
-                        filterAndDisplayCards();
-                    }
-                }
+                // Re-attach drag events after re-render
+                setTimeout(setupDragAndDrop, 0);
+            }
+        }
+        
+        function handleDragEnd(e) {
+            e.target.style.opacity = '1';
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('drag-over');
             });
-        });
+        }
         
         // Load admin data
         async function loadAdminData() {
@@ -307,7 +328,7 @@
                 filteredCards = filteredCards.filter(card => card.message_type === currentTypeFilter);
             }
             
-            // Apply status filters (if any are active)
+            // Apply status filters
             if (currentStatusFilters.length > 0) {
                 filteredCards = filteredCards.filter(card => currentStatusFilters.includes(card.status));
             }
@@ -394,6 +415,9 @@
             });
             
             tbody.innerHTML = html;
+            
+            // Re-attach drag and drop listeners after table redraw
+            setTimeout(setupDragAndDrop, 0);
         }
         
         // Format file size
@@ -536,6 +560,9 @@
         // Initial load
         initializeEventListeners();
         loadAdminData();
+        
+        // Setup drag and drop initially
+        setTimeout(setupDragAndDrop, 500);
         
         // Auto-refresh every 30 seconds
         setInterval(loadAdminData, 30000);
