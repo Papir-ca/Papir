@@ -25,6 +25,8 @@
         .controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
         .filter-btn { padding: 6px 12px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; }
         .filter-btn.active { background: #BCAE83; color: black; }
+        .filter-btn.status-active { background: #2ecc71; color: black; }
+        .filter-btn.status-pending { background: #f39c12; color: black; }
         
         /* Cards Table */
         .cards-table-container { background: #2a2a2a; border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
@@ -98,9 +100,9 @@
             <button class="filter-btn" data-filter="image">Image</button>
             <button class="filter-btn" data-filter="audio">Audio</button>
             <button class="filter-btn" data-filter="text">Text</button>
-            <button class="filter-btn" data-status="pending">Pending</button>
-            <button class="filter-btn" data-status="active">Active</button>
-            <button class="filter-btn" id="refreshBtn">Refresh</button>
+            <button class="filter-btn" id="pendingFilterBtn">⏳ Pending</button>
+            <button class="filter-btn" id="activeFilterBtn">✅ Active</button>
+            <button class="filter-btn" id="refreshBtn">🔄 Refresh</button>
         </div>
         
         <!-- Stats -->
@@ -201,7 +203,7 @@
         
         let allCards = [];
         let currentTypeFilter = 'all';
-        let currentStatusFilter = 'all';
+        let currentStatusFilters = []; // Array for multiple status filters
         let currentQRData = null;
         let columnOrder = ['card_id', 'status', 'type', 'file_name', 'size', 'media_url', 'scans', 'created', 'ip'];
         
@@ -209,7 +211,8 @@
         const searchInput = document.getElementById('searchInput');
         const refreshBtn = document.getElementById('refreshBtn');
         const filterBtns = document.querySelectorAll('.filter-btn[data-filter]');
-        const statusBtns = document.querySelectorAll('.filter-btn[data-status]');
+        const pendingFilterBtn = document.getElementById('pendingFilterBtn');
+        const activeFilterBtn = document.getElementById('activeFilterBtn');
         const qrModal = document.getElementById('qrModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const copyQrUrlBtn = document.getElementById('copyQrUrlBtn');
@@ -304,9 +307,9 @@
                 filteredCards = filteredCards.filter(card => card.message_type === currentTypeFilter);
             }
             
-            // Apply status filter
-            if (currentStatusFilter !== 'all') {
-                filteredCards = filteredCards.filter(card => card.status === currentStatusFilter);
+            // Apply status filters (if any are active)
+            if (currentStatusFilters.length > 0) {
+                filteredCards = filteredCards.filter(card => currentStatusFilters.includes(card.status));
             }
             
             // Apply search filter
@@ -459,6 +462,33 @@
             }
         }
         
+        // Toggle status filter
+        function toggleStatusFilter(status) {
+            const index = currentStatusFilters.indexOf(status);
+            if (index === -1) {
+                currentStatusFilters.push(status);
+            } else {
+                currentStatusFilters.splice(index, 1);
+            }
+            
+            // Update button styles
+            if (status === 'pending') {
+                if (currentStatusFilters.includes('pending')) {
+                    pendingFilterBtn.classList.add('status-pending');
+                } else {
+                    pendingFilterBtn.classList.remove('status-pending');
+                }
+            } else if (status === 'active') {
+                if (currentStatusFilters.includes('active')) {
+                    activeFilterBtn.classList.add('status-active');
+                } else {
+                    activeFilterBtn.classList.remove('status-active');
+                }
+            }
+            
+            filterAndDisplayCards();
+        }
+        
         // Initialize event listeners
         function initializeEventListeners() {
             // Search input
@@ -480,14 +510,14 @@
                 });
             });
             
-            // Status filter buttons
-            statusBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    statusBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentStatusFilter = this.dataset.status;
-                    filterAndDisplayCards();
-                });
+            // Pending filter button (toggle)
+            pendingFilterBtn.addEventListener('click', function() {
+                toggleStatusFilter('pending');
+            });
+            
+            // Active filter button (toggle)
+            activeFilterBtn.addEventListener('click', function() {
+                toggleStatusFilter('active');
             });
             
             // Modal buttons
