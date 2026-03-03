@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papir - Augmented Reality Greeting Cards</title>
+    <title>Papir - Physical Cards, Digital Magic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -14,40 +14,39 @@
         }
 
         :root {
-            --primary-gold: #BCAE83;
-            --primary-teal: #06D6A0;
-            --dark-bg: #1a1a1a;
-            --light-bg: #f9f9f9;
-            --text-dark: #333;
-            --text-light: #666;
+            --gold: #BCAE83;
+            --teal: #06D6A0;
+            --dark: #1a1a2e;
+            --darker: #16213e;
+            --light-text: #a0aec0;
             --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
         }
 
         body {
-            color: var(--text-dark);
+            color: var(--dark);
             line-height: 1.6;
         }
 
-        /* Header & Navigation */
+        /* Header */
         .header {
             background: var(--white);
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
+            padding: 15px 0;
         }
 
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 80px;
         }
 
         .logo {
@@ -59,115 +58,91 @@
         .logo-text {
             font-size: 28px;
             font-weight: 700;
-            color: var(--dark-bg);
-            margin-left: 10px;
+            color: var(--dark);
+            letter-spacing: -0.5px;
         }
 
         .logo-text span:first-child {
-            color: var(--primary-gold);
+            color: var(--gold);
         }
 
         .logo-text span:last-child {
-            color: var(--primary-teal);
+            color: var(--teal);
         }
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 40px;
             align-items: center;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: var(--text-dark);
+            color: var(--dark);
             font-weight: 500;
             transition: var(--transition);
-            padding: 5px 0;
-            position: relative;
+            font-size: 1rem;
         }
 
         .nav-links a:hover {
-            color: var(--primary-gold);
-        }
-
-        .nav-links a:hover::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--primary-gold);
-        }
-
-        .nav-cta {
-            background: var(--primary-gold);
-            color: var(--white) !important;
-            padding: 10px 25px !important;
-            border-radius: 30px;
-            margin-left: 20px;
-        }
-
-        .nav-cta:hover {
-            background: #a8996f;
-            transform: translateY(-2px);
-        }
-
-        .nav-cta:hover::after {
-            display: none;
+            color: var(--gold);
         }
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, #f8f5f0 0%, #ffffff 100%);
-            padding: 150px 20px 100px;
+            background: linear-gradient(135deg, #faf9f7 0%, #ffffff 100%);
+            padding: 160px 20px 100px;
             text-align: center;
             position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(188, 174, 131, 0.1) 0%, rgba(188, 174, 131, 0) 70%);
         }
 
         .hero h1 {
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             margin-bottom: 20px;
-            color: var(--dark-bg);
+            color: var(--dark);
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
+            font-weight: 700;
+            line-height: 1.2;
         }
 
         .hero h1 span {
-            color: var(--primary-gold);
+            color: var(--gold);
+            position: relative;
+        }
+
+        .hero h1 span::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(188, 174, 131, 0.2);
+            z-index: -1;
         }
 
         .hero p {
             font-size: 1.2rem;
-            color: var(--text-light);
+            color: #4a5568;
             max-width: 600px;
             margin: 0 auto 40px;
+            opacity: 0.9;
         }
 
         .hero-buttons {
             display: flex;
             gap: 20px;
             justify-content: center;
-            margin-top: 40px;
+            margin-top: 30px;
         }
 
         .btn-primary {
-            background: var(--primary-gold);
+            background: var(--gold);
             color: var(--white);
-            padding: 15px 35px;
-            border-radius: 30px;
+            padding: 16px 40px;
+            border-radius: 40px;
             text-decoration: none;
             font-weight: 600;
             font-size: 1.1rem;
@@ -175,254 +150,249 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 5px 15px rgba(188, 174, 131, 0.3);
+            box-shadow: 0 10px 20px rgba(188, 174, 131, 0.2);
         }
 
         .btn-primary:hover {
             background: #a8996f;
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(188, 174, 131, 0.4);
+            box-shadow: 0 15px 30px rgba(188, 174, 131, 0.3);
         }
 
         .btn-secondary {
             background: transparent;
-            color: var(--primary-gold);
-            padding: 15px 35px;
-            border-radius: 30px;
+            color: var(--dark);
+            padding: 16px 40px;
+            border-radius: 40px;
             text-decoration: none;
             font-weight: 600;
             font-size: 1.1rem;
             transition: var(--transition);
-            border: 2px solid var(--primary-gold);
+            border: 2px solid #e2e8f0;
             display: inline-flex;
             align-items: center;
             gap: 10px;
         }
 
         .btn-secondary:hover {
-            background: rgba(188, 174, 131, 0.1);
+            border-color: var(--gold);
+            background: rgba(188, 174, 131, 0.05);
             transform: translateY(-3px);
         }
 
-        /* Features Section */
+        /* How It Works - Simplified for Physical Cards */
+        .process {
+            padding: 100px 20px;
+            background: var(--white);
+        }
+
         .section-title {
             text-align: center;
             font-size: 2.5rem;
             margin-bottom: 20px;
-            color: var(--dark-bg);
+            color: var(--dark);
+            font-weight: 600;
         }
 
         .section-subtitle {
             text-align: center;
-            color: var(--text-light);
-            max-width: 700px;
+            color: #4a5568;
+            max-width: 600px;
             margin: 0 auto 60px;
             font-size: 1.1rem;
         }
 
-        .section-padding {
-            padding: 100px 20px;
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .process-step {
+            text-align: center;
+            padding: 40px 30px;
+            background: #faf9f7;
+            border-radius: 20px;
+            transition: var(--transition);
+        }
+
+        .process-step:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--gold);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 25px;
+        }
+
+        .process-step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .process-step p {
+            color: #4a5568;
+            font-size: 0.95rem;
+        }
+
+        /* Features - Clean Grid */
+        .features {
+            padding: 80px 20px;
+            background: #faf9f7;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        .feature-card {
+        .feature-item {
+            text-align: center;
+            padding: 30px;
             background: var(--white);
             border-radius: 15px;
-            padding: 40px 30px;
-            text-align: center;
-            box-shadow: var(--shadow);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             transition: var(--transition);
-            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        .feature-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .feature-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, rgba(188, 174, 131, 0.1) 0%, rgba(6, 214, 160, 0.1) 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 25px;
             font-size: 2rem;
-            color: var(--primary-gold);
+            color: var(--gold);
+            margin-bottom: 20px;
         }
 
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--dark-bg);
+        .feature-item h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--dark);
         }
 
-        /* How It Works */
-        .how-it-works {
-            background: var(--light-bg);
+        .feature-item p {
+            color: #4a5568;
+            font-size: 0.9rem;
         }
 
-        .steps-container {
-            display: flex;
-            justify-content: space-between;
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-            flex-wrap: wrap;
-        }
-
-        .steps-container::before {
-            content: '';
-            position: absolute;
-            top: 40px;
-            left: 10%;
-            right: 10%;
-            height: 2px;
-            background: var(--primary-gold);
-            opacity: 0.3;
-            z-index: 1;
-        }
-
-        .step {
-            flex: 1;
-            min-width: 200px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-            padding: 0 20px;
-            margin-bottom: 30px;
-        }
-
-        .step-number {
-            width: 80px;
-            height: 80px;
-            background: var(--white);
-            border: 3px solid var(--primary-gold);
-            color: var(--primary-gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0 auto 25px;
-            box-shadow: var(--shadow);
-        }
-
-        /* Demo Section */
+        /* Demo QR Section */
         .demo {
-            background: linear-gradient(135deg, var(--dark-bg) 0%, #2a2a2a 100%);
+            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
             color: var(--white);
             text-align: center;
+            padding: 100px 20px;
         }
 
         .demo .section-title {
             color: var(--white);
         }
 
-        .demo .section-subtitle {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
         .demo-container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            border-radius: 30px;
             padding: 50px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .demo-qr {
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
             background: var(--white);
-            border-radius: 15px;
+            border-radius: 20px;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
-            color: var(--dark-bg);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Use Cases */
-        .use-cases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .use-case-card {
-            background: var(--white);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: var(--shadow);
+            font-size: 3rem;
+            color: var(--dark);
+            cursor: pointer;
             transition: var(--transition);
         }
 
-        .use-case-card:hover {
-            transform: translateY(-5px);
+        .demo-qr:hover {
+            transform: scale(1.05);
+        }
+
+        .demo p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+        }
+
+        /* Use Cases - Simplified */
+        .use-cases {
+            padding: 100px 20px;
+            background: var(--white);
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .use-case {
+            text-align: center;
         }
 
         .use-case-icon {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: var(--primary-gold);
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--gold);
         }
 
-        /* CTA Section */
-        .cta-section {
-            background: linear-gradient(135deg, var(--primary-gold) 0%, #a8996f 100%);
-            color: var(--white);
-            text-align: center;
-            padding: 80px 20px;
+        .use-case h4 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: var(--dark);
         }
 
-        .cta-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        .cta-section p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto 40px;
-            opacity: 0.9;
+        .use-case p {
+            font-size: 0.85rem;
+            color: #4a5568;
         }
 
         /* Footer */
         .footer {
-            background: var(--dark-bg);
+            background: var(--dark);
             color: var(--white);
-            padding: 80px 20px 40px;
+            padding: 60px 20px 30px;
         }
 
         .footer-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 50px;
-            max-width: 1200px;
-            margin: 0 auto 60px;
+            max-width: 1000px;
+            margin: 0 auto 50px;
         }
 
-        .footer-column h3 {
-            color: var(--primary-gold);
-            margin-bottom: 25px;
-            font-size: 1.3rem;
+        .footer-column h4 {
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
         }
 
         .footer-links {
@@ -430,17 +400,18 @@
         }
 
         .footer-links li {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .footer-links a {
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             transition: var(--transition);
+            font-size: 0.9rem;
         }
 
         .footer-links a:hover {
-            color: var(--primary-gold);
+            color: var(--gold);
             padding-left: 5px;
         }
 
@@ -449,57 +420,45 @@
             padding-top: 30px;
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
-            max-width: 1200px;
+            font-size: 0.9rem;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        /* Responsive */
+        .footer-bottom a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
         @media (max-width: 768px) {
             .nav-container {
                 flex-direction: column;
-                height: auto;
-                padding: 20px;
-            }
-
-            .nav-links {
-                flex-direction: column;
                 gap: 15px;
-                margin-top: 20px;
-                width: 100%;
             }
-
-            .nav-cta {
-                margin-left: 0;
-                width: 100%;
-                text-align: center;
+            
+            .nav-links {
+                gap: 20px;
             }
-
+            
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
             }
-
+            
             .hero-buttons {
                 flex-direction: column;
                 align-items: center;
             }
-
-            .steps-container::before {
-                display: none;
+            
+            .process-grid,
+            .features-grid,
+            .use-cases-grid {
+                grid-template-columns: 1fr;
             }
-
-            .step {
-                min-width: 100%;
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
             }
-        }
-
-        /* Animations */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .floating {
-            animation: float 5s ease-in-out infinite;
         }
     </style>
 </head>
@@ -513,230 +472,151 @@
                 </div>
             </a>
             <nav class="nav-links">
+                <a href="#process">How It Works</a>
                 <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="#use-cases">Use Cases</a>
                 <a href="#demo">Try Demo</a>
-                <a href="dashboard.html" class="nav-cta">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
+                <a href="#use-cases">Uses</a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="hero">
-        <h1>Where <span>Physical Cards</span> Meet <span>Digital Magic</span></h1>
-        <p>Create personalized augmented reality greeting cards that come alive with videos, audio, and interactive content when scanned. No app required.</p>
+        <h1>Physical Cards<br>with <span>Digital Magic</span></h1>
+        <p>Create personalized cards that come alive with video, audio, and images when scanned. No app required.</p>
         <div class="hero-buttons">
-            <a href="templates.html" class="btn-primary">
-                <i class="fas fa-plus-circle"></i> Create Your First Card
+            <a href="maker.html" class="btn-primary">
+                <i class="fas fa-plus-circle"></i> Create Your Card
             </a>
             <a href="#demo" class="btn-secondary">
-                <i class="fas fa-play-circle"></i> Watch Demo
+                <i class="fas fa-play-circle"></i> See Demo
             </a>
+        </div>
+    </section>
+
+    <!-- Process -->
+    <section id="process" class="process">
+        <h2 class="section-title">Simple Process</h2>
+        <p class="section-subtitle">Three steps to create your interactive card</p>
+        
+        <div class="process-grid">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <h3>Activate Your Card</h3>
+                <p>Scan the QR code on your physical card and accept the terms to activate it.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <h3>Add Your Content</h3>
+                <p>Upload a video, audio message, or image that will play when the card is scanned.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <h3>Share & Delight</h3>
+                <p>Give the physical card to someone special. They scan and see your magic.</p>
+            </div>
         </div>
     </section>
 
     <!-- Features -->
-    <section id="features" class="section-padding">
-        <h2 class="section-title">Why Choose Papir?</h2>
-        <p class="section-subtitle">Transform ordinary greeting cards into unforgettable interactive experiences</p>
+    <section id="features" class="features">
+        <h2 class="section-title">What You Can Add</h2>
+        <p class="section-subtitle">Choose the type of magic for your card</p>
         
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <h3>Video Messages</h3>
-                <p>Record personalized video greetings that play instantly when the QR code is scanned.</p>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fas fa-video"></i></div>
+                <h4>Video Messages</h4>
+                <p>Record personal video greetings that play instantly when scanned</p>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-music"></i>
-                </div>
-                <h3>Audio Notes</h3>
-                <p>Add voice messages, favorite songs, or sound effects that create emotional connections.</p>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fas fa-music"></i></div>
+                <h4>Audio Notes</h4>
+                <p>Add voice messages, songs, or sound effects</p>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-images"></i>
-                </div>
-                <h3>Photo Galleries</h3>
-                <p>Create beautiful slideshows of memories that appear in augmented reality.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-qrcode"></i>
-                </div>
-                <h3>No App Needed</h3>
-                <p>Recipients simply scan with their smartphone camera - no downloads required.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-print"></i>
-                </div>
-                <h3>Print Anywhere</h3>
-                <p>Print at home or use professional printing services. Works with any printer.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h3>Track Engagement</h3>
-                <p>See when your cards are scanned and how recipients interact with your content.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section id="how-it-works" class="section-padding how-it-works">
-        <h2 class="section-title">How It Works</h2>
-        <p class="section-subtitle">Four simple steps to create magical AR cards</p>
-        
-        <div class="steps-container">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h3>Design Your Card</h3>
-                <p>Use our intuitive online editor to design your card front and back.</p>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">2</div>
-                <h3>Add AR Content</h3>
-                <p>Upload videos, audio, images, or text that will appear when scanned.</p>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">3</div>
-                <h3>Print with QR Code</h3>
-                <p>Print your card with the unique QR code included automatically.</p>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">4</div>
-                <h3>Share & Enjoy</h3>
-                <p>Share the physical card and watch the magic happen when scanned.</p>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fas fa-image"></i></div>
+                <h4>Photo Galleries</h4>
+                <p>Create beautiful image slideshows</p>
             </div>
         </div>
     </section>
 
     <!-- Demo -->
-    <section id="demo" class="section-padding demo">
-        <h2 class="section-title">Try It Yourself</h2>
-        <p class="section-subtitle">Scan this demo QR code to see Papir in action</p>
-        
+    <section id="demo" class="demo">
         <div class="demo-container">
-            <div class="demo-qr floating">
+            <div class="demo-qr" onclick="window.location.href='viewer.html?card=demo'">
                 <i class="fas fa-qrcode"></i>
             </div>
-            <p style="margin-bottom: 30px; font-size: 1.1rem;">Point your smartphone camera at the QR code above to see a live demo.</p>
-            <a href="viewer.html?card=demo" class="btn-primary" style="background: var(--primary-teal);">
-                <i class="fas fa-external-link-alt"></i> Or View Demo in Browser
+            <h2 class="section-title">Try It Now</h2>
+            <p>Scan this QR code with your phone camera to see a live demo card.</p>
+            <a href="viewer.html?card=demo" class="btn-primary" style="background: var(--teal);">
+                <i class="fas fa-external-link-alt"></i> View Demo in Browser
             </a>
         </div>
     </section>
 
     <!-- Use Cases -->
-    <section id="use-cases" class="section-padding">
-        <h2 class="section-title">Perfect For Every Occasion</h2>
-        <p class="section-subtitle">From personal celebrations to professional networking</p>
+    <section id="use-cases" class="use-cases">
+        <h2 class="section-title">Perfect For</h2>
         
         <div class="use-cases-grid">
-            <div class="use-case-card">
+            <div class="use-case">
                 <div class="use-case-icon">🎂</div>
-                <h3>Birthday Cards</h3>
-                <p>Surprise loved ones with video birthday messages and memory slideshows.</p>
+                <h4>Birthday Cards</h4>
+                <p>Video messages from afar</p>
             </div>
-            
-            <div class="use-case-card">
+            <div class="use-case">
                 <div class="use-case-icon">💍</div>
-                <h3>Wedding Invitations</h3>
-                <p>Share your love story, venue tours, and wedding details in AR.</p>
+                <h4>Weddings</h4>
+                <p>Invitations with love stories</p>
             </div>
-            
-            <div class="use-case-card">
+            <div class="use-case">
                 <div class="use-case-icon">👔</div>
-                <h3>Business Cards</h3>
-                <p>Showcase your portfolio, company video, or contact details dynamically.</p>
+                <h4>Business</h4>
+                <p>Video business cards</p>
             </div>
-            
-            <div class="use-case-card">
-                <div class="use-case-icon">🎓</div>
-                <h3>Educational Tools</h3>
-                <p>Create interactive learning materials that come alive with additional content.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <div class="use-case-icon">🏢</div>
-                <h3>Real Estate</h3>
-                <p>Property cards with virtual tours, floor plans, and neighborhood guides.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <div class="use-case-icon">🎨</div>
-                <h3>Art & Photography</h3>
-                <p>Physical prints with behind-the-scenes videos and artist commentary.</p>
+            <div class="use-case">
+                <div class="use-case-icon">🎁</div>
+                <h4>Gifts</h4>
+                <p>Personalized messages</p>
             </div>
         </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section">
-        <h2>Ready to Create Magic?</h2>
-        <p>Join thousands who are transforming their greeting cards with augmented reality.</p>
-        <a href="templates.html" class="btn-primary" style="background: var(--white); color: var(--primary-gold);">
-            <i class="fas fa-rocket"></i> Start Creating Free
-        </a>
-        <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">No credit card required • First 5 cards free</p>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-grid">
             <div class="footer-column">
-                <h3>Papir</h3>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">Transforming physical cards into interactive augmented reality experiences.</p>
+                <h4>Papir</h4>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem; line-height: 1.6;">Physical cards that come alive with digital magic.</p>
             </div>
-            
             <div class="footer-column">
-                <h3>Quick Links</h3>
+                <h4>Product</h4>
                 <ul class="footer-links">
-                    <li><a href="templates.html">Create Card</a></li>
-                    <li><a href="viewer.html">View Demo</a></li>
-                    <li><a href="dashboard.html">Dashboard</a></li>
-                    <li><a href="admin-login.html">Admin</a></li>
+                    <li><a href="maker.html">Create Card</a></li>
+                    <li><a href="#demo">View Demo</a></li>
+                    <li><a href="#process">How It Works</a></li>
                 </ul>
             </div>
-            
             <div class="footer-column">
-                <h3>Resources</h3>
+                <h4>Support</h4>
                 <ul class="footer-links">
-                    <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#use-cases">Use Cases</a></li>
-                    <li><a href="#demo">Live Demo</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="contact.html">Contact</a></li>
                 </ul>
             </div>
-            
             <div class="footer-column">
-                <h3>Legal</h3>
+                <h4>Connect</h4>
                 <ul class="footer-links">
-                    <li><a href="terms.html">Terms of Service</a></li>
-                    <li><a href="privacy.html">Privacy Policy</a></li>
-                    <li><a href="contact.html">Contact Us</a></li>
+                    <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+                    <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
                 </ul>
             </div>
         </div>
-        
         <div class="footer-bottom">
-            <p>&copy; 2024 Papir. All rights reserved. Made with ❤️ for card lovers everywhere.</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">papir.ca • The future of greeting cards</p>
+            <p>© 2024 Papir. All rights reserved. | <a href="index.html">Home</a></p>
         </div>
     </footer>
 
@@ -758,23 +638,15 @@
             });
         });
 
-        // Add scroll effect to header
+        // Header scroll effect
         window.addEventListener('scroll', function() {
             const header = document.querySelector('.header');
-            if(window.scrollY > 100) {
+            if(window.scrollY > 50) {
                 header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
             } else {
-                header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.05)';
+                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
             }
         });
-
-        // Demo QR interaction
-        const demoQr = document.querySelector('.demo-qr');
-        if(demoQr) {
-            demoQr.addEventListener('click', function() {
-                window.location.href = 'viewer.html?card=demo';
-            });
-        }
     </script>
 </body>
 </html>
