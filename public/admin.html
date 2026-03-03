@@ -150,30 +150,31 @@
             font-weight: bold;
         }
         
-        /* Date Range Selector - Compact Layout */
+        /* Date Range Selector - Tight Layout */
         .date-range-container {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: flex-start;
             width: 100%;
         }
         
         .range-group {
             display: flex;
-            gap: 5px;
+            gap: 3px;
             flex-wrap: wrap;
         }
         
         .range-btn {
-            padding: 6px 12px;
+            padding: 5px 10px;
             background: #444;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
         }
         
@@ -184,35 +185,75 @@
         
         .custom-date-group {
             display: flex;
-            gap: 5px;
+            gap: 3px;
             align-items: center;
-            margin-left: 10px;
         }
         
         .date-input {
             background: #333;
             border: 1px solid #555;
             color: white;
-            padding: 5px 8px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            width: 120px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            width: 100px;
         }
         
         .apply-btn {
             background: #BCAE83;
             color: black;
             border: none;
-            padding: 5px 12px;
-            border-radius: 5px;
+            padding: 4px 10px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
             white-space: nowrap;
         }
         
+        /* Controls Row with Export on Far Right */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filters-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-btn {
+            padding: 5px 10px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .filter-btn.active {
+            background: #BCAE83;
+            color: black;
+        }
+        
+        .filter-btn.status-active {
+            background: #2ecc71;
+            color: black;
+        }
+        
+        .filter-btn.status-pending {
+            background: #f39c12;
+            color: black;
+        }
+        
         .export-wrapper {
-            margin-left: auto;
             display: flex;
             align-items: center;
         }
@@ -221,10 +262,10 @@
             background: #2ecc71;
             color: black;
             border: none;
-            padding: 6px 15px;
-            border-radius: 5px;
+            padding: 5px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -404,16 +445,39 @@
         .stat-value { font-size: 1.5rem; color: #BCAE83; font-weight: bold; }
         .stat-label { color: #aaa; margin-top: 3px; font-size: 0.8rem; }
         
-        /* Controls */
-        .controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        .filter-btn { padding: 6px 12px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; }
-        .filter-btn.active { background: #BCAE83; color: black; }
-        .filter-btn.status-active { background: #2ecc71; color: black; }
-        .filter-btn.status-pending { background: #f39c12; color: black; }
+        /* Cards Table - With Visible Horizontal Scroll */
+        .cards-table-container {
+            background: #2a2a2a;
+            border-radius: 10px;
+            overflow-x: auto;
+            overflow-y: visible;
+            margin-bottom: 40px;
+            max-width: 100%;
+            border: 1px solid #444;
+            scrollbar-width: thin;
+            scrollbar-color: #BCAE83 #333;
+        }
         
-        /* Cards Table - Full Columns */
-        .cards-table-container { background: #2a2a2a; border-radius: 10px; overflow-x: auto; margin-bottom: 40px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1800px; }
+        .cards-table-container::-webkit-scrollbar {
+            height: 12px;
+            background: #333;
+        }
+        
+        .cards-table-container::-webkit-scrollbar-thumb {
+            background: #BCAE83;
+            border-radius: 6px;
+        }
+        
+        .cards-table-container::-webkit-scrollbar-track {
+            background: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 2000px;
+        }
+        
         th { 
             background: #364B4A; 
             padding: 10px 8px; 
@@ -425,6 +489,7 @@
             font-size: 0.8rem;
             white-space: nowrap;
         }
+        
         th:active { cursor: grabbing; }
         th.drag-over { background: #4a6a68; }
         td { padding: 8px; border-bottom: 1px solid #444; font-size: 0.8rem; white-space: nowrap; }
@@ -479,7 +544,7 @@
                 <i class="fas fa-chart-line"></i> Card Analytics & Insights
             </div>
             
-            <!-- Date Range Selector - Compact Layout -->
+            <!-- Date Range Selector - Tight Layout -->
             <div class="date-range-container">
                 <div class="range-group">
                     <button class="range-btn active" data-range="7">7D</button>
@@ -493,12 +558,6 @@
                     <span style="color: #aaa;">-</span>
                     <input type="date" id="endDate" class="date-input">
                     <button class="apply-btn" id="applyCustomRange">Apply</button>
-                </div>
-                
-                <div class="export-wrapper">
-                    <button class="export-btn" id="exportCSVBtn">
-                        <i class="fas fa-download"></i> Generate Report .CSV
-                    </button>
                 </div>
             </div>
             
@@ -597,16 +656,24 @@
             <input type="text" class="search-input" id="searchInput" placeholder="Search by Card ID, file name, or type...">
         </div>
         
-        <!-- Controls - All on One Line -->
-        <div class="controls">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="video">Video</button>
-            <button class="filter-btn" data-filter="image">Image</button>
-            <button class="filter-btn" data-filter="audio">Audio</button>
-            <button class="filter-btn" data-filter="text">Text</button>
-            <button class="filter-btn" id="pendingFilterBtn">⏳ Pending</button>
-            <button class="filter-btn" id="activeFilterBtn">✅ Active</button>
-            <button class="filter-btn" id="refreshBtn">🔄 Refresh</button>
+        <!-- Controls Row with Export on Far Right -->
+        <div class="controls-row">
+            <div class="filters-group">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="video">Video</button>
+                <button class="filter-btn" data-filter="image">Image</button>
+                <button class="filter-btn" data-filter="audio">Audio</button>
+                <button class="filter-btn" data-filter="text">Text</button>
+                <button class="filter-btn" id="pendingFilterBtn">⏳ Pending</button>
+                <button class="filter-btn" id="activeFilterBtn">✅ Active</button>
+                <button class="filter-btn" id="refreshBtn">🔄 Refresh</button>
+            </div>
+            
+            <div class="export-wrapper">
+                <button class="export-btn" id="exportCSVBtn">
+                    <i class="fas fa-download"></i> Generate Report .CSV
+                </button>
+            </div>
         </div>
         
         <!-- Stats -->
@@ -621,7 +688,7 @@
             <div class="stat-card"><div class="stat-value" id="totalScans">0</div><div class="stat-label">Scans</div></div>
         </div>
         
-        <!-- Cards Table - All Columns -->
+        <!-- Cards Table - With Visible Horizontal Scroll -->
         <div class="cards-table-container">
             <table id="sortableTable">
                 <thead id="tableHeader">
