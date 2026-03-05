@@ -522,7 +522,7 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - CLEAN VERSION (UPDATED)
+// 🎟️ Activate Card - FIXED with message_type
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
@@ -550,14 +550,21 @@ app.post('/api/activate-card', async (req, res) => {
     }
     
     if (!card) {
-      // Card doesn't exist - create and activate it
+      // Card doesn't exist - create and activate it with a default message_type
       console.log(`📝 Card ${card_id} not found - creating new card`);
       
       const { error: insertError } = await supabaseAdmin
         .from('cards')
         .insert({
           card_id: card_id,
+          message_type: 'pending', // Add this - required field
+          message_text: null,
+          media_url: null,
+          file_name: null,
+          file_size: null,
+          file_type: null,
           status: 'active',
+          scan_count: 0,
           activated_at: new Date().toISOString(),
           activated_by_ip: clientIp,
           terms_accepted_at: new Date().toISOString(),
