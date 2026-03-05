@@ -289,6 +289,90 @@
             background-color: #ff2b5e;
         }
         
+        /* Activation Section */
+        .activation-section {
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid #f39c12;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .activation-section h3 {
+            color: #f39c12;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .activation-section p {
+            color: #a0aec0;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .terms-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+        
+        .terms-box ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .terms-box li {
+            margin-bottom: 5px;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-warning:hover:not(:disabled) {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .button-container {
             display: flex;
             gap: 15px;
@@ -325,9 +409,14 @@
             color: white;
         }
         
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
+        }
+        
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .btn-secondary {
@@ -707,6 +796,32 @@
                     </div>
                 </div>
                 
+                <!-- Integrated Activation Section -->
+                <div class="activation-section" id="activationSection">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Card Not Activated</h3>
+                    <p>This card needs to be activated before you can save content. Please review and accept the terms.</p>
+                    
+                    <div class="terms-box">
+                        <p><strong>Terms of Service Agreement</strong></p>
+                        <p>By activating this card, you agree to the following:</p>
+                        <ul>
+                            <li>You are the legitimate owner of this card</li>
+                            <li>You will not upload illegal or inappropriate content</li>
+                            <li>Your IP address will be recorded for security purposes</li>
+                            <li>You accept the Terms of Service and Privacy Policy</li>
+                        </ul>
+                    </div>
+                    
+                    <label class="terms-checkbox">
+                        <input type="checkbox" id="activationTermsCheckbox">
+                        <span>I agree to the <a href="terms.html" target="_blank" style="color: #06D6A0;">Terms of Service</a> and <a href="privacy.html" target="_blank" style="color: #06D6A0;">Privacy Policy</a></span>
+                    </label>
+                    
+                    <button class="btn-warning" id="activateFromMakerBtn" disabled>
+                        <i class="fas fa-check-circle"></i> Activate Card
+                    </button>
+                </div>
+                
                 <div class="form-group">
                     <label for="contentType">Content Type:</label>
                     <select id="contentType" class="content-type-dropdown">
@@ -775,7 +890,7 @@
                 </div>
                 
                 <div class="button-container" style="display: flex; justify-content: center; margin-top: 30px;">
-                    <button class="btn btn-success" id="saveBtn" style="font-size: 1.2rem; padding: 15px 40px; min-width: 200px;">
+                    <button class="btn btn-success" id="saveBtn" style="font-size: 1.2rem; padding: 15px 40px; min-width: 200px;" disabled>
                         <i class="fas fa-save"></i> Save
                     </button>
                 </div>
@@ -871,6 +986,7 @@
             const BACKEND_URL = 'https://papir.ca';
             let isConnected = false;
             let currentQRCodeData = null;
+            let isCardActivated = false;
             
             let currentMedia = {
                 image: null,
@@ -878,8 +994,9 @@
                 audio: null
             };
             
+            // ADDED CARD PREFIX to match generate-cards.js
             function generateRandomCardId() {
-                return Math.random().toString(36).substr(2, 8).toUpperCase();
+                return 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
             }
             
             const elements = {
@@ -902,7 +1019,10 @@
                 audioInput: document.getElementById('audioInput'),
                 removeImageBtn: document.getElementById('removeImageBtn'),
                 removeVideoBtn: document.getElementById('removeVideoBtn'),
-                removeAudioBtn: document.getElementById('removeAudioBtn')
+                removeAudioBtn: document.getElementById('removeAudioBtn'),
+                activationSection: document.getElementById('activationSection'),
+                activationCheckbox: document.getElementById('activationTermsCheckbox'),
+                activateBtn: document.getElementById('activateFromMakerBtn')
             };
             
             function showNotification(message, type = 'success') {
@@ -1014,6 +1134,82 @@
                 
                 return cardData;
             }
+            
+            // Check card status on load
+            async function checkCardStatus() {
+                const cardId = elements.cardIdInput.value.trim();
+                if (!cardId) return;
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.card) {
+                        if (result.card.status === 'active') {
+                            // Card is already active
+                            elements.activationSection.style.display = 'none';
+                            elements.saveBtn.disabled = false;
+                            isCardActivated = true;
+                        } else {
+                            // Card needs activation
+                            elements.activationSection.style.display = 'block';
+                            elements.saveBtn.disabled = true;
+                            isCardActivated = false;
+                        }
+                    } else {
+                        // New card - show activation
+                        elements.activationSection.style.display = 'block';
+                        elements.saveBtn.disabled = true;
+                        isCardActivated = false;
+                    }
+                } catch (error) {
+                    console.error('Error checking card status:', error);
+                }
+            }
+            
+            // Activate from maker page
+            elements.activateBtn.addEventListener('click', async function() {
+                const cardId = elements.cardIdInput.value.trim();
+                
+                if (!elements.activationCheckbox.checked) {
+                    showNotification('Please accept the terms to activate', 'error');
+                    return;
+                }
+                
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<span class="loading"></span> Activating...';
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ card_id: cardId })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification('Card activated successfully!', 'success');
+                        elements.activationSection.style.display = 'none';
+                        elements.saveBtn.disabled = false;
+                        isCardActivated = true;
+                    } else {
+                        showNotification('Activation failed: ' + result.error, 'error');
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
+                    }
+                } catch (error) {
+                    console.error('Activation error:', error);
+                    showNotification('Activation failed', 'error');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
+                }
+            });
+            
+            // Terms checkbox enables activation button
+            elements.activationCheckbox.addEventListener('change', function() {
+                elements.activateBtn.disabled = !this.checked;
+            });
             
             function setupImageUpload() {
                 const imageUploadArea = document.getElementById('imageUploadArea');
@@ -1346,6 +1542,12 @@
             };
             
             async function saveCardToBackend(cardData) {
+                // Check if card is activated
+                if (!isCardActivated) {
+                    showNotification('Please activate the card first', 'error');
+                    return { success: false, error: 'Card not activated' };
+                }
+                
                 try {
                     if (!isConnected) {
                         showNotification('Backend server not connected. Make sure your Railway app is running', 'error');
@@ -1574,6 +1776,9 @@
                 
                 generatePreview();
                 
+                // Check card status after ID is set
+                setTimeout(checkCardStatus, 100);
+                
                 elements.saveBtn.addEventListener('click', async function() {
                     const cardData = generatePreview();
                     if (cardData) {
@@ -1581,7 +1786,11 @@
                     }
                 });
                 
-                elements.cardIdInput.addEventListener('input', generatePreview);
+                elements.cardIdInput.addEventListener('input', function() {
+                    generatePreview();
+                    checkCardStatus();
+                });
+                
                 elements.messageInput.addEventListener('input', generatePreview);
                 
                 elements.contentTypeSelect.addEventListener('change', function() {
