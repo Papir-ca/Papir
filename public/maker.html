@@ -289,78 +289,83 @@
             background-color: #ff2b5e;
         }
         
-        /* Activation Section */
+        /* Simplified Activation Section */
         .activation-section {
             background: rgba(243, 156, 18, 0.1);
-            border: 1px solid #f39c12;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-left: 4px solid #f39c12;
+            border-left: 3px solid #f39c12;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
         }
         
-        .activation-section h3 {
-            color: #f39c12;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-        
-        .activation-section p {
-            color: #a0aec0;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-        
-        .terms-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            color: #ccc;
-        }
-        
-        .terms-box ul {
-            margin-left: 20px;
-            margin-top: 10px;
-        }
-        
-        .terms-box li {
-            margin-bottom: 5px;
-        }
-        
-        .terms-checkbox {
+        .activation-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            color: #a0aec0;
+            margin-bottom: 12px;
         }
         
-        .terms-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+        .activation-header i {
+            color: #f39c12;
+            font-size: 1rem;
+        }
+        
+        .activation-header span {
+            color: #f39c12;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .activation-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .terms-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .terms-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .terms-label span {
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+        
+        .terms-label a {
+            color: #06D6A0;
+            text-decoration: none;
+        }
+        
+        .terms-label a:hover {
+            text-decoration: underline;
         }
         
         .btn-warning {
             background: #f39c12;
             color: white;
-            width: 100%;
-            padding: 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 5px;
+            white-space: nowrap;
+            transition: all 0.3s;
         }
         
         .btn-warning:hover:not(:disabled) {
@@ -745,6 +750,20 @@
             .share-url-container {
                 flex-direction: column;
             }
+            
+            .activation-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .terms-label {
+                min-width: 100%;
+            }
+            
+            .btn-warning {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         .loading {
@@ -796,30 +815,23 @@
                     </div>
                 </div>
                 
-                <!-- Integrated Activation Section -->
+                <!-- Simplified Activation Section -->
                 <div class="activation-section" id="activationSection">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Card Not Activated</h3>
-                    <p>This card needs to be activated before you can save content. Please review and accept the terms.</p>
-                    
-                    <div class="terms-box">
-                        <p><strong>Terms of Service Agreement</strong></p>
-                        <p>By activating this card, you agree to the following:</p>
-                        <ul>
-                            <li>You are the legitimate owner of this card</li>
-                            <li>You will not upload illegal or inappropriate content</li>
-                            <li>Your IP address will be recorded for security purposes</li>
-                            <li>You accept the Terms of Service and Privacy Policy</li>
-                        </ul>
+                    <div class="activation-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Card Needs Activation</span>
                     </div>
                     
-                    <label class="terms-checkbox">
-                        <input type="checkbox" id="activationTermsCheckbox">
-                        <span>I agree to the <a href="terms.html" target="_blank" style="color: #06D6A0;">Terms of Service</a> and <a href="privacy.html" target="_blank" style="color: #06D6A0;">Privacy Policy</a></span>
-                    </label>
-                    
-                    <button class="btn-warning" id="activateFromMakerBtn" disabled>
-                        <i class="fas fa-check-circle"></i> Activate Card
-                    </button>
+                    <div class="activation-row">
+                        <label class="terms-label">
+                            <input type="checkbox" id="activationTermsCheckbox">
+                            <span>I agree to the <a href="terms.html" target="_blank">Terms of Service</a> and <a href="privacy.html" target="_blank">Privacy Policy</a></span>
+                        </label>
+                        
+                        <button class="btn-warning" id="activateFromMakerBtn" disabled>
+                            <i class="fas fa-check-circle"></i> Activate Card
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -1177,6 +1189,7 @@
                 }
                 
                 try {
+                    const originalText = this.innerHTML;
                     this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Activating...';
                     
@@ -1194,13 +1207,13 @@
                         elements.saveBtn.disabled = false;
                         isCardActivated = true;
                     } else {
-                        showNotification('Activation failed: ' + result.error, 'error');
+                        showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
                         this.disabled = false;
                         this.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
                     }
                 } catch (error) {
                     console.error('Activation error:', error);
-                    showNotification('Activation failed', 'error');
+                    showNotification('Activation failed - please try again', 'error');
                     this.disabled = false;
                     this.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
                 }
