@@ -1147,13 +1147,23 @@
                 return cardData;
             }
             
-            // Check card status on load
+            // UPDATED: Check card status on load - handles 404 for new cards
             async function checkCardStatus() {
                 const cardId = elements.cardIdInput.value.trim();
                 if (!cardId) return;
                 
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
+                    
+                    // If card doesn't exist (404), treat as new card needing activation
+                    if (response.status === 404) {
+                        console.log('🆕 New card - needs activation');
+                        elements.activationSection.style.display = 'block';
+                        elements.saveBtn.disabled = true;
+                        isCardActivated = false;
+                        return;
+                    }
+                    
                     const result = await response.json();
                     
                     if (result.success && result.card) {
@@ -1168,11 +1178,6 @@
                             elements.saveBtn.disabled = true;
                             isCardActivated = false;
                         }
-                    } else {
-                        // New card - show activation
-                        elements.activationSection.style.display = 'block';
-                        elements.saveBtn.disabled = true;
-                        isCardActivated = false;
                     }
                 } catch (error) {
                     console.error('Error checking card status:', error);
