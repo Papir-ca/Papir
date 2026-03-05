@@ -312,6 +312,36 @@
             color: white;
             margin-bottom: 10px;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .export-type-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .export-type-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            cursor: pointer;
+            padding: 10px 15px;
+            background: #333;
+            border-radius: 8px;
+            flex: 1;
+        }
+        
+        .export-type-option.active {
+            background: #BCAE83;
+            color: black;
+        }
+        
+        .export-type-option input[type="radio"] {
+            cursor: pointer;
         }
         
         .column-checkbox-grid {
@@ -383,6 +413,17 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+        }
+        
+        .clear-all-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
         }
         
         .select-all-btn {
@@ -576,7 +617,23 @@
                 <h3>📄 Generate CSV Report</h3>
                 
                 <div class="export-option-group">
-                    <h4>Select Columns to Include <button class="select-all-btn" id="selectAllColumns">Select All</button></h4>
+                    <h4>Report Type</h4>
+                    <div class="export-type-selector">
+                        <label class="export-type-option active" id="cardDataTypeOption">
+                            <input type="radio" name="exportType" value="cardData" checked> Card Data (one row per card)
+                        </label>
+                        <label class="export-type-option" id="scanLogsTypeOption">
+                            <input type="radio" name="exportType" value="scanLogs"> Scan Logs (one row per scan)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="export-option-group">
+                    <h4>
+                        Select Columns to Include 
+                        <button class="select-all-btn" id="selectAllColumns">Select All</button>
+                        <button class="clear-all-btn" id="clearAllColumns">Clear All</button>
+                    </h4>
                     <div class="column-checkbox-grid" id="columnCheckboxGrid">
                         <!-- Will be populated by JavaScript -->
                     </div>
@@ -704,6 +761,7 @@
         }
         
         let allCards = [];
+        let allScanLogs = [];
         let currentTypeFilter = 'all';
         let currentStatusFilters = [];
         let currentQRData = null;
@@ -711,7 +769,7 @@
         let customStartDate = null;
         let customEndDate = null;
         let scansChart = null;
-        let scanLogs = [];
+        let currentExportType = 'cardData';
         
         // All possible columns for display and export
         const allColumns = [
@@ -732,6 +790,14 @@
             { id: 'activated_by_ip', name: 'Activated IP' },
             { id: 'terms_accepted_at', name: 'Terms Accepted' },
             { id: 'terms_accepted_ip', name: 'Terms IP' }
+        ];
+        
+        // Scan log columns (for the second export type)
+        const scanLogColumns = [
+            { id: 'card_id', name: 'Card ID' },
+            { id: 'scanned_at', name: 'Scan Time' },
+            { id: 'ip_address', name: 'IP Address' },
+            { id: 'user_agent', name: 'User Agent' }
         ];
         
         // Current column order
@@ -759,14 +825,21 @@
         const exportStartDate = document.getElementById('exportStartDate');
         const exportEndDate = document.getElementById('exportEndDate');
         const selectAllBtn = document.getElementById('selectAllColumns');
+        const clearAllBtn = document.getElementById('clearAllColumns');
         const columnCheckboxGrid = document.getElementById('columnCheckboxGrid');
+        const cardDataTypeOption = document.getElementById('cardDataTypeOption');
+        const scanLogsTypeOption = document.getElementById('scanLogsTypeOption');
+        const exportTypeRadios = document.querySelectorAll('input[name="exportType"]');
         
         let draggedColumn = null;
         
-        // Populate column checkboxes
+        // Populate column checkboxes based on export type
         function populateColumnCheckboxes() {
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            let columns = exportType === 'cardData' ? allColumns : scanLogColumns;
+            
             let html = '';
-            allColumns.forEach(col => {
+            columns.forEach(col => {
                 html += `
                     <label class="column-checkbox-item">
                         <input type="checkbox" class="export-column" value="${col.id}" checked>
@@ -777,10 +850,30 @@
             columnCheckboxGrid.innerHTML = html;
         }
         
+        // Switch between card data and scan logs
+        exportTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'cardData') {
+                    cardDataTypeOption.classList.add('active');
+                    scanLogsTypeOption.classList.remove('active');
+                } else {
+                    scanLogsTypeOption.classList.add('active');
+                    cardDataTypeOption.classList.remove('active');
+                }
+                populateColumnCheckboxes();
+            });
+        });
+        
         // Select All columns
         selectAllBtn.addEventListener('click', () => {
             const checkboxes = document.querySelectorAll('.export-column');
             checkboxes.forEach(cb => cb.checked = true);
+        });
+        
+        // Clear All columns
+        clearAllBtn.addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('.export-column');
+            checkboxes.forEach(cb => cb.checked = false);
         });
         
         // Setup drag and drop
@@ -862,13 +955,17 @@
         async function loadAdminData() {
             showLoading(true);
             try {
+                // Load cards
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
                 const cardsResult = await cardsResponse.json();
                 
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
                     updateStats(allCards);
+                    
+                    // Load scan logs
                     await loadScanLogs();
+                    
                     renderTable();
                 }
             } catch (error) {
@@ -891,12 +988,12 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    scanLogs = result.logs || [];
+                    allScanLogs = result.logs || [];
                     updateAnalytics();
                 }
             } catch (error) {
                 console.error('Error loading scan logs:', error);
-                scanLogs = [];
+                allScanLogs = [];
             }
         }
         
@@ -916,21 +1013,21 @@
         
         // Update analytics with real data
         function updateAnalytics() {
-            const totalScans = scanLogs.length;
+            const totalScans = allScanLogs.length;
             
             // Average scans per card
-            const cardsWithScans = new Set(scanLogs.map(log => log.card_id)).size;
+            const cardsWithScans = new Set(allScanLogs.map(log => log.card_id)).size;
             const avgScans = cardsWithScans > 0 ? (totalScans / cardsWithScans).toFixed(1) : 0;
             
             // Scans today
             const today = new Date().toDateString();
-            const todayScans = scanLogs.filter(log => 
+            const todayScans = allScanLogs.filter(log => 
                 new Date(log.scanned_at).toDateString() === today
             ).length;
             
             // Peak hour
             const hourCounts = Array(24).fill(0);
-            scanLogs.forEach(log => {
+            allScanLogs.forEach(log => {
                 const hour = new Date(log.scanned_at).getHours();
                 hourCounts[hour]++;
             });
@@ -942,12 +1039,12 @@
             
             // Calculate trends
             const now = new Date();
-            const currentPeriod = scanLogs.filter(log => {
+            const currentPeriod = allScanLogs.filter(log => {
                 const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
                 return daysDiff <= currentTimeRange;
             }).length;
             
-            const previousPeriod = scanLogs.filter(log => {
+            const previousPeriod = allScanLogs.filter(log => {
                 const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
                 return daysDiff > currentTimeRange && daysDiff <= currentTimeRange * 2;
             }).length;
@@ -994,7 +1091,7 @@
                 days[dateStr] = 0;
             }
             
-            scanLogs.forEach(log => {
+            allScanLogs.forEach(log => {
                 const logDate = new Date(log.scanned_at);
                 const daysDiff = Math.floor((now - logDate) / (1000 * 60 * 60 * 24));
                 
@@ -1050,7 +1147,7 @@
         // Update top cards
         function updateTopCards() {
             const scanCounts = {};
-            scanLogs.forEach(log => {
+            allScanLogs.forEach(log => {
                 scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1;
             });
             
@@ -1117,57 +1214,105 @@
                 return;
             }
             
-            // Filter cards by date range
-            const filteredCards = allCards.filter(card => {
-                const cardDate = new Date(card.created_at).toISOString().split('T')[0];
-                return cardDate >= startDate && cardDate <= endDate;
-            });
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            let filename = '';
+            let csv = '';
             
-            if (filteredCards.length === 0) {
-                alert('No cards found in selected date range');
-                return;
-            }
-            
-            // Create CSV header
-            let csv = selectedColumns.map(col => {
-                const column = allColumns.find(c => c.id === col);
-                return column ? column.name : col;
-            }).join(',') + '\n';
-            
-            // Add data rows
-            filteredCards.forEach(card => {
-                const row = selectedColumns.map(col => {
-                    let value = card[col] || '';
-                    
-                    // Format dates
-                    if (col.includes('_at') && value) {
-                        value = new Date(value).toLocaleString();
-                    }
-                    
-                    // Format file size
-                    if (col === 'file_size' && value) {
-                        const bytes = parseInt(value);
-                        if (bytes < 1024) value = bytes + ' B';
-                        else if (bytes < 1024 * 1024) value = (bytes / 1024).toFixed(1) + ' KB';
-                        else value = (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-                    }
-                    
-                    // Escape commas
-                    if (value && value.toString().includes(',')) {
-                        return `"${value}"`;
-                    }
-                    return value || '';
-                }).join(',');
+            if (exportType === 'cardData') {
+                // Export card data
+                const filteredCards = allCards.filter(card => {
+                    const cardDate = new Date(card.created_at).toISOString().split('T')[0];
+                    return cardDate >= startDate && cardDate <= endDate;
+                });
                 
-                csv += row + '\n';
-            });
+                if (filteredCards.length === 0) {
+                    alert('No cards found in selected date range');
+                    return;
+                }
+                
+                // Create CSV header
+                csv = selectedColumns.map(col => {
+                    const column = allColumns.find(c => c.id === col);
+                    return column ? column.name : col;
+                }).join(',') + '\n';
+                
+                // Add data rows
+                filteredCards.forEach(card => {
+                    const row = selectedColumns.map(col => {
+                        let value = card[col] || '';
+                        
+                        // Format dates
+                        if (col.includes('_at') && value) {
+                            value = new Date(value).toLocaleString();
+                        }
+                        
+                        // Format file size
+                        if (col === 'file_size' && value) {
+                            const bytes = parseInt(value);
+                            if (bytes < 1024) value = bytes + ' B';
+                            else if (bytes < 1024 * 1024) value = (bytes / 1024).toFixed(1) + ' KB';
+                            else value = (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                        }
+                        
+                        // Escape commas
+                        if (value && value.toString().includes(',')) {
+                            return `"${value}"`;
+                        }
+                        return value || '';
+                    }).join(',');
+                    
+                    csv += row + '\n';
+                });
+                
+                filename = `papir-cards-${startDate}-to-${endDate}.csv`;
+                
+            } else {
+                // Export scan logs
+                const filteredLogs = allScanLogs.filter(log => {
+                    const logDate = new Date(log.scanned_at).toISOString().split('T')[0];
+                    return logDate >= startDate && logDate <= endDate;
+                });
+                
+                if (filteredLogs.length === 0) {
+                    alert('No scan logs found in selected date range');
+                    return;
+                }
+                
+                // Create CSV header
+                csv = selectedColumns.map(col => {
+                    const column = scanLogColumns.find(c => c.id === col);
+                    return column ? column.name : col;
+                }).join(',') + '\n';
+                
+                // Add data rows
+                filteredLogs.forEach(log => {
+                    const row = selectedColumns.map(col => {
+                        let value = log[col] || '';
+                        
+                        // Format scan time
+                        if (col === 'scanned_at' && value) {
+                            value = new Date(value).toLocaleString();
+                        }
+                        
+                        // Escape commas
+                        if (value && value.toString().includes(',')) {
+                            return `"${value}"`;
+                        }
+                        return value || '';
+                    }).join(',');
+                    
+                    csv += row + '\n';
+                });
+                
+                filename = `papir-scan-logs-${startDate}-to-${endDate}.csv`;
+            }
             
             // Create download link
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `papir-cards-${startDate}-to-${endDate}.csv`;
+            a.download = filename;
             
             document.body.appendChild(a);
             a.click();
@@ -1425,6 +1570,7 @@
                 exportStartDate.value = start.toISOString().split('T')[0];
                 exportEndDate.value = end.toISOString().split('T')[0];
                 
+                populateColumnCheckboxes();
                 exportModal.style.display = 'block';
             });
             
@@ -1449,13 +1595,12 @@
         }
         
         // Initial load
-        populateColumnCheckboxes();
         initializeEventListeners();
         loadAdminData();
         
         setTimeout(setupDragAndDrop, 500);
         
-        // AUTO-REFRESH REMOVED - No setInterval
+        // AUTO-REFRESH REMOVED
     </script>
 
     <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
