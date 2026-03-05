@@ -400,17 +400,9 @@ app.get('/api/cards/:card_id', async (req, res) => {
       .from('cards')
       .select('*')
       .eq('card_id', card_id)
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
     
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ 
-          success: false,
-          error: 'Card not found',
-          message: `No card found with ID: ${card_id}`
-        });
-      }
-      
       return res.status(500).json({ 
         success: false,
         error: 'Database query failed',
@@ -530,7 +522,7 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - WITH BETTER ERROR LOGGING
+// 🎟️ Activate Card - CLEAN VERSION (UPDATED)
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
@@ -545,12 +537,12 @@ app.post('/api/activate-card', async (req, res) => {
       return res.status(503).json({ success: false, error: 'Database unavailable' });
     }
     
-    // Check if card exists
+    // Check if card exists using maybeSingle() to avoid errors
     const { data: card, error: fetchError } = await supabaseAdmin
       .from('cards')
       .select('status')
       .eq('card_id', card_id)
-      .single();
+      .maybeSingle();
     
     if (fetchError) {
       console.error('❌ Fetch error:', fetchError);
@@ -558,13 +550,41 @@ app.post('/api/activate-card', async (req, res) => {
     }
     
     if (!card) {
-      return res.json({ success: false, error: 'Card not found' });
+      // Card doesn't exist - create and activate it
+      console.log(`📝 Card ${card_id} not found - creating new card`);
+      
+      const { error: insertError } = await supabaseAdmin
+        .from('cards')
+        .insert({
+          card_id: card_id,
+          status: 'active',
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_ip: clientIp,
+          created_by_ip: clientIp,
+          updated_by_ip: clientIp,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (insertError) {
+        console.error('❌ Insert error:', insertError);
+        return res.json({ success: false, error: 'Failed to create card: ' + insertError.message });
+      }
+      
+      console.log(`✅ Card ${card_id} created and activated successfully`);
+      return res.json({ success: true });
     }
     
     console.log(`📊 Current card status: ${card.status}`);
     
+    if (card.status === 'active') {
+      return res.json({ success: false, error: 'Card already active' });
+    }
+    
     if (card.status !== 'pending') {
-      return res.json({ success: false, error: `Card already ${card.status}` });
+      return res.json({ success: false, error: `Card cannot be activated (status: ${card.status})` });
     }
     
     // Activate the card
