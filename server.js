@@ -296,7 +296,7 @@ app.post('/api/cards', async (req, res) => {
   }
 });
 
-// 🖼️ Upload Media Files to Supabase Storage
+// 🖼️ Upload Media Files to Supabase Storage - WITH FILE TYPE VALIDATION
 app.post('/api/upload-media', async (req, res) => {
   try {
     const { fileData, fileName, fileType, cardId } = req.body;
@@ -307,6 +307,44 @@ app.post('/api/upload-media', async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         error: 'Missing required fields: fileData, fileName, cardId' 
+      });
+    }
+    
+    // File type validation
+    const allowedTypes = {
+      'image': ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'],
+      'video': ['video/mp4', 'video/webm', 'video/quicktime', 'video/mov'],
+      'audio': ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/mp4', 'audio/ogg']
+    };
+    
+    // Determine file category from fileType or fileName
+    let fileCategory = null;
+    if (fileType) {
+      if (fileType.startsWith('image/')) fileCategory = 'image';
+      else if (fileType.startsWith('video/')) fileCategory = 'video';
+      else if (fileType.startsWith('audio/')) fileCategory = 'audio';
+    }
+    
+    // If fileType doesn't give category, try extension
+    if (!fileCategory) {
+      const ext = fileName.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) fileCategory = 'image';
+      else if (['mp4', 'webm', 'mov', 'quicktime'].includes(ext)) fileCategory = 'video';
+      else if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) fileCategory = 'audio';
+    }
+    
+    if (!fileCategory) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Could not determine file type' 
+      });
+    }
+    
+    // Check if file type is allowed for its category
+    if (fileType && !allowedTypes[fileCategory].includes(fileType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `File type ${fileType} not allowed for ${fileCategory} uploads` 
       });
     }
     
@@ -400,7 +438,7 @@ app.get('/api/cards/:card_id', async (req, res) => {
       .from('cards')
       .select('*')
       .eq('card_id', card_id)
-      .maybeSingle(); // Changed from .single() to .maybeSingle()
+      .maybeSingle();
     
     if (error) {
       return res.status(500).json({ 
@@ -557,7 +595,7 @@ app.post('/api/activate-card', async (req, res) => {
         .from('cards')
         .insert({
           card_id: card_id,
-          message_type: 'pending', // Add this - required field
+          message_type: 'pending',
           message_text: null,
           media_url: null,
           file_name: null,
@@ -822,6 +860,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Individual scan logging');
   console.log('   ✅ Analytics dashboard');
   console.log('   ✅ Card activation flow (physical cards)');
+  console.log('   ✅ File type validation on server');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
