@@ -88,7 +88,7 @@
             line-height: 1.6;
         }
         
-        /* Confirmation Modal for Physical Cards */
+        /* Confirmation Modal for Card Viewing */
         .confirmation-modal {
             display: none;
             position: fixed;
@@ -163,6 +163,27 @@
             color: #f39c12;
             font-size: 16px;
             width: 20px;
+        }
+        
+        .legal-notice {
+            background: #1e3a3a;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #06D6A0;
+            font-size: 0.9rem;
+        }
+        
+        .legal-notice strong {
+            color: #06D6A0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .legal-notice p {
+            color: #a0aec0;
+            margin-bottom: 0;
+            font-size: 0.85rem;
         }
         
         .confirmation-buttons {
@@ -609,46 +630,33 @@
         <span>Connected to Papir Backend</span>
     </div>
     
-    <!-- Double Confirmation Modal for Physical Cards -->
+    <!-- Confirmation Modal for Card Viewing -->
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
             <h3>
                 <i class="fas fa-exclamation-triangle"></i>
-                Confirm Activation
+                <span id="modalTitle">Confirm Viewing</span>
             </h3>
             
-            <p>This is a physical card that requires activation. Please confirm the following:</p>
+            <p id="modalDescription">Please confirm the following before viewing this card:</p>
             
-            <div class="confirmation-list">
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    I am the intended recipient of this physical card
-                </li>
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    This card was purchased by someone else for me
-                </li>
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    I have read and agree to the <a href="terms.html" style="color: #06D6A0;">Terms of Service</a> and <a href="privacy.html" style="color: #06D6A0;">Privacy Policy</a>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    My IP address will be recorded as legal proof of activation
-                </li>
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    I understand this is a one-time activation and cannot be undone
-                </li>
+            <div class="confirmation-list" id="confirmationList">
+                <!-- Will be populated dynamically -->
+            </div>
+            
+            <!-- Legal notice about permanent IP recording -->
+            <div class="legal-notice" id="legalNotice">
+                <strong>🔒 Legal Proof of Consent</strong>
+                <p>Your IP address (<span id="legalIpDisplay">detecting...</span>) will be permanently recorded as proof of your acceptance under GDPR Article 7. This record is retained indefinitely and cannot be deleted.</p>
             </div>
             
             <div class="ip-display" id="modalClientIp">
-                <i class="fas fa-network-wired"></i> Detecting your IP...
+                <i class="fas fa-network-wired"></i> Your IP: <span id="ipAddressValue">detecting...</span>
             </div>
             
             <div class="confirmation-buttons">
                 <button class="btn-confirm" id="confirmActivationBtn">
-                    <i class="fas fa-check-circle"></i> Yes, Activate My Card
+                    <i class="fas fa-check-circle"></i> <span id="confirmBtnText">Confirm & View</span>
                 </button>
                 <button class="btn-cancel" id="cancelActivationBtn">
                     Cancel
@@ -671,7 +679,7 @@
             <div id="reader"></div>
             
             <div class="scanner-instructions">
-                <p><i class="fas fa-lightbulb"></i> Point your camera at a Papir Card QR code. The card content will appear automatically.</p>
+                <p><i class="fas fa-lightbulb"></i> Point your camera at a Papir Card QR code. You will be asked to confirm before viewing.</p>
                 <p style="margin-top: 10px; font-size: 14px; opacity: 0.7;">
                     <i class="fas fa-mobile-alt"></i> Works on any smartphone with a camera
                 </p>
@@ -745,7 +753,8 @@
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
-            let pendingCardId = null; // Store card ID while waiting for confirmation
+            let pendingCardId = null;
+            let pendingCardData = null;
             let clientIp = 'unknown';
             
             const elements = {
@@ -768,11 +777,18 @@
                 manualInput: document.getElementById('manualInput'),
                 closeCardBtn: document.getElementById('closeCardBtn'),
                 pageHeader: document.getElementById('pageHeader'),
-                // New confirmation modal elements
+                // Confirmation modal elements
                 confirmationModal: document.getElementById('confirmationModal'),
                 confirmActivationBtn: document.getElementById('confirmActivationBtn'),
                 cancelActivationBtn: document.getElementById('cancelActivationBtn'),
-                modalClientIp: document.getElementById('modalClientIp')
+                modalClientIp: document.getElementById('modalClientIp'),
+                ipAddressValue: document.getElementById('ipAddressValue'),
+                legalIpDisplay: document.getElementById('legalIpDisplay'),
+                modalTitle: document.getElementById('modalTitle'),
+                modalDescription: document.getElementById('modalDescription'),
+                confirmationList: document.getElementById('confirmationList'),
+                confirmBtnText: document.getElementById('confirmBtnText'),
+                legalNotice: document.getElementById('legalNotice')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -784,9 +800,13 @@
                     const data = await response.json();
                     clientIp = data.ip;
                     elements.modalClientIp.innerHTML = `<i class="fas fa-network-wired"></i> Your IP: ${clientIp}`;
+                    elements.ipAddressValue.textContent = clientIp;
+                    elements.legalIpDisplay.textContent = clientIp;
                 } catch (error) {
                     console.log('Could not detect IP');
                     elements.modalClientIp.innerHTML = `<i class="fas fa-network-wired"></i> Your IP will be recorded`;
+                    elements.ipAddressValue.textContent = 'will be recorded';
+                    elements.legalIpDisplay.textContent = 'will be recorded';
                 }
             }
             detectClientIp();
@@ -864,6 +884,7 @@
                 elements.emptyState.style.display = 'block';
                 elements.confirmationModal.classList.remove('active');
                 pendingCardId = null;
+                pendingCardData = null;
                 
                 // Stop any playing media
                 const video = document.querySelector('.card-video');
@@ -888,66 +909,86 @@
                 elements.emptyState.style.display = 'none';
             }
             
-            // Function to handle physical card activation
-            async function activatePhysicalCard() {
-                if (!pendingCardId) return;
+            // Show confirmation modal with appropriate text
+            function showConfirmationModal(cardData) {
+                pendingCardId = cardData.card_id;
+                pendingCardData = cardData;
+                
+                // Customize modal based on card status
+                if (cardData.status === 'pending') {
+                    // First time activation
+                    elements.modalTitle.textContent = 'Activate Card';
+                    elements.modalDescription.textContent = 'This card needs to be activated before viewing. Please confirm:';
+                    elements.confirmBtnText.textContent = 'Activate & View';
+                    elements.confirmationList.innerHTML = `
+                        <li><i class="fas fa-check-circle"></i> I am the intended recipient of this physical card</li>
+                        <li><i class="fas fa-check-circle"></i> I have read and agree to the <a href="terms.html" style="color: #06D6A0;">Terms of Service</a> and <a href="privacy.html" style="color: #06D6A0;">Privacy Policy</a></li>
+                        <li><i class="fas fa-check-circle"></i> I understand my IP address will be permanently recorded as legal proof</li>
+                    `;
+                    elements.legalNotice.style.display = 'block';
+                } else {
+                    // Already active - just confirm viewing
+                    elements.modalTitle.textContent = 'Confirm Viewing';
+                    elements.modalDescription.textContent = 'Please confirm before viewing this card:';
+                    elements.confirmBtnText.textContent = 'Confirm & View';
+                    elements.confirmationList.innerHTML = `
+                        <li><i class="fas fa-check-circle"></i> I acknowledge this card was created by another user</li>
+                        <li><i class="fas fa-check-circle"></i> I understand the content may include media (images/video/audio)</li>
+                        <li><i class="fas fa-check-circle"></i> My IP address will be recorded for analytics (retained 30 days)</li>
+                    `;
+                    elements.legalNotice.style.display = 'none'; // Only show permanent notice for activations
+                }
+                
+                elements.confirmationModal.classList.add('active');
+                hideAllExceptCard(); // Hide scanner while showing modal
+            }
+            
+            // Function to handle confirmation
+            async function handleConfirmation() {
+                if (!pendingCardId || !pendingCardData) return;
                 
                 try {
                     elements.confirmActivationBtn.disabled = true;
-                    elements.confirmActivationBtn.innerHTML = '<span class="loading"></span> Activating...';
+                    elements.confirmActivationBtn.innerHTML = '<span class="loading"></span> Processing...';
                     
-                    const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            card_id: pendingCardId,
-                            source: 'viewer'  // 👈 ADDED source parameter
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        elements.confirmationModal.classList.remove('active');
-                        showNotification('Card activated successfully!', 'success');
-                        // Now load the activated card
-                        loadCard(pendingCardId);
+                    if (pendingCardData.status === 'pending') {
+                        // Need to activate first
+                        const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                card_id: pendingCardId,
+                                source: 'viewer'
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showNotification('Card activated successfully!', 'success');
+                            // Now show the content
+                            displayCardContent(pendingCardData);
+                        } else {
+                            showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
+                            resetView();
+                        }
                     } else {
-                        showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
-                        elements.confirmationModal.classList.remove('active');
-                        resetView();
+                        // Already active - just show content and log view
+                        displayCardContent(pendingCardData);
                     }
                 } catch (error) {
-                    console.error('Activation error:', error);
-                    showNotification('Activation failed - please try again', 'error');
-                    elements.confirmationModal.classList.remove('active');
+                    console.error('Confirmation error:', error);
+                    showNotification('Processing failed - please try again', 'error');
                     resetView();
                 } finally {
                     elements.confirmActivationBtn.disabled = false;
-                    elements.confirmActivationBtn.innerHTML = '<i class="fas fa-check-circle"></i> Yes, Activate My Card';
+                    elements.confirmActivationBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span id="confirmBtnText">' + elements.confirmBtnText.textContent + '</span>';
                 }
             }
             
-            // Confirmation modal buttons
-            elements.confirmActivationBtn.addEventListener('click', activatePhysicalCard);
-            elements.cancelActivationBtn.addEventListener('click', function() {
+            // Display the actual card content
+            function displayCardContent(card) {
                 elements.confirmationModal.classList.remove('active');
-                pendingCardId = null;
-                resetView();
-                showNotification('Activation cancelled', 'info');
-            });
-            
-            function displayCard(card) {
-                console.log('Displaying card:', card);
-                
-                // Check if this is a physical card that needs activation
-                if (card.status === 'pending') {
-                    // Show confirmation modal instead of displaying content
-                    pendingCardId = card.card_id;
-                    elements.confirmationModal.classList.add('active');
-                    hideAllExceptCard(); // Hide scanner while showing modal
-                    return;
-                }
                 
                 elements.displayCardId.textContent = card.card_id;
                 elements.displayCardType.textContent = card.message_type;
@@ -955,7 +996,6 @@
                 
                 elements.cardContent.innerHTML = '';
                 
-                // Auto-play based on media type
                 switch(card.message_type) {
                     case 'text':
                         elements.cardContent.innerHTML = `
@@ -973,12 +1013,7 @@
                                 </div>
                             `;
                         } else {
-                            elements.cardContent.innerHTML = `
-                                <div class="text-message" style="color: #999;">
-                                    <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                                    <div>No image available</div>
-                                </div>
-                            `;
+                            elements.cardContent.innerHTML = `<div class="text-message">No image available</div>`;
                         }
                         break;
                         
@@ -986,28 +1021,13 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
-                                    <video controls autoplay playsinline class="card-video" style="width: 100%; background: black;">
+                                    <video controls autoplay playsinline class="card-video">
                                         <source src="${card.media_url}" type="video/mp4">
-                                        Your browser doesn't support video.
                                     </video>
                                 </div>
                             `;
-                            // Ensure video plays
-                            setTimeout(() => {
-                                const video = document.querySelector('.card-video');
-                                if (video) {
-                                    video.volume = 1;
-                                    video.muted = false;
-                                    video.play().catch(e => console.log('Video autoplay prevented:', e));
-                                }
-                            }, 100);
                         } else {
-                            elements.cardContent.innerHTML = `
-                                <div class="text-message" style="color: #999;">
-                                    <i class="fas fa-video" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                                    <div>No video available</div>
-                                </div>
-                            `;
+                            elements.cardContent.innerHTML = `<div class="text-message">No video available</div>`;
                         }
                         break;
                         
@@ -1015,53 +1035,41 @@
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
                                 <div class="media-container">
-                                    <audio controls autoplay class="card-audio" style="width: 100%;">
+                                    <audio controls autoplay class="card-audio">
                                         <source src="${card.media_url}" type="audio/mpeg">
-                                        Your browser doesn't support audio.
                                     </audio>
                                 </div>
                             `;
-                            // Ensure audio plays
-                            setTimeout(() => {
-                                const audio = document.querySelector('.card-audio');
-                                if (audio) {
-                                    audio.volume = 1;
-                                    audio.muted = false;
-                                    audio.play().catch(e => console.log('Audio autoplay prevented:', e));
-                                }
-                            }, 100);
                         } else {
-                            elements.cardContent.innerHTML = `
-                                <div class="text-message" style="color: #999;">
-                                    <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                                    <div>No audio available</div>
-                                </div>
-                            `;
+                            elements.cardContent.innerHTML = `<div class="text-message">No audio available</div>`;
                         }
                         break;
-                        
-                    default:
-                        elements.cardContent.innerHTML = `
-                            <div class="text-message" style="color: #999;">
-                                Unknown card type: ${card.message_type}
-                            </div>
-                        `;
                 }
                 
                 elements.cardDisplay.classList.add('active');
                 hideAllExceptCard();
                 hideError();
                 
+                // Log the scan
                 incrementScanCount(card.card_id);
             }
+            
+            // Confirmation modal buttons
+            elements.confirmActivationBtn.addEventListener('click', handleConfirmation);
+            elements.cancelActivationBtn.addEventListener('click', function() {
+                elements.confirmationModal.classList.remove('active');
+                pendingCardId = null;
+                pendingCardData = null;
+                resetView();
+                showNotification('Viewing cancelled', 'info');
+            });
             
             async function loadCard(cardId) {
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
                     
-                    // Hide everything and show loading
+                    // Show loading state
                     hideAllExceptCard();
-                    
                     elements.cardContent.innerHTML = `
                         <div style="text-align: center; padding: 40px;">
                             <div class="loading" style="margin: 0 auto;"></div>
@@ -1078,7 +1086,10 @@
                         
                         if (result.success && result.card) {
                             console.log('Card loaded successfully:', result.card);
-                            displayCard(result.card);
+                            
+                            // Show confirmation modal first
+                            showConfirmationModal(result.card);
+                            
                             return { success: true, card: result.card };
                         } else {
                             throw new Error(result.error || 'Card not found');
