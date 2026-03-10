@@ -1133,9 +1133,10 @@
             document.getElementById('totalCountries').textContent = countries.size || 0;
             document.getElementById('totalLocated').textContent = locatedCount || 0;
             
+            // Show summary text
             const summary = document.getElementById('locationSummary');
             if (cities.size === 0) {
-                summary.innerHTML = 'No location data available yet.';
+                summary.innerHTML = 'No location data available yet. This will populate as cards are activated.';
             } else {
                 const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0];
                 summary.innerHTML = `
@@ -1144,13 +1145,14 @@
                 `;
             }
             
+            // Update top locations list
             const sortedCities = Object.entries(cityCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
             
             const topLocationsList = document.getElementById('topLocationsList');
             if (sortedCities.length === 0) {
-                topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet</div>';
+                topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet. Cards need to be activated first.</div>';
             } else {
                 let html = '';
                 sortedCities.forEach(([city, count]) => {
@@ -1382,6 +1384,7 @@
                     const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
                     
                     if (response.status === 429) {
+                        console.log('Rate limited, continuing...');
                         continue;
                     }
                     
@@ -1403,14 +1406,34 @@
         // Load scan logs
         async function loadScanLogs() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`);
-                if (response.status === 429) return;
+                let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
+                
+                if (customStartDate && customEndDate) {
+                    const start = new Date(customStartDate);
+                    const end = new Date(customEndDate);
+                    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                    url = `${BACKEND_URL}/api/scan-logs?days=${diffDays}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (response.status === 429) {
+                    console.log('Rate limited for scan logs, will retry...');
+                    setTimeout(loadScanLogs, 5000);
+                    return;
+                }
+                
                 const result = await response.json();
+                
                 if (result.success) {
                     allScanLogs = result.logs || [];
                     updateAnalytics();
+                    updateTopCards();
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error loading scan logs:', error);
+                allScanLogs = [];
+            }
         }
         
         // Load abandoned cards
@@ -1471,11 +1494,56 @@
         
         function updateAnalytics() {
             const totalScans = allScanLogs.length;
+            
             document.getElementById('totalScansAnalytics').textContent = totalScans;
-            document.getElementById('avgScansPerCard').textContent = allCards.length > 0 ? (totalScans / allCards.length).toFixed(1) : 0;
-            document.getElementById('activeToday').textContent = allScanLogs.filter(log => new Date(log.scanned_at).toDateString() === new Date().toDateString()).length;
+            
+            const cardsWithScans = new Set(allScanLogs.map(log => log.card_id)).size;
+            const avgScans = cardsWithScans > 0 ? (totalScans / cardsWithScans).toFixed(1) : 0;
+            document.getElementById('avgScansPerCard').textContent = avgScans;
+            
+            const today = new Date().toDateString();
+            const todayScans = allScanLogs.filter(log => 
+                new Date(log.scanned_at).toDateString() === today
+            ).length;
+            document.getElementById('activeToday').textContent = todayScans;
+            
+            const hourCounts = Array(24).fill(0);
+            allScanLogs.forEach(log => {
+                const hour = new Date(log.scanned_at).getHours();
+                hourCounts[hour]++;
+            });
+            
+            const peakHourIndex = hourCounts.indexOf(Math.max(...hourCounts));
+            const peakHourStr = peakHourIndex >= 0 
+                ? `${peakHourIndex}:00 - ${peakHourIndex + 1}:00 (${hourCounts[peakHourIndex]} scans)` 
+                : '--';
+            document.getElementById('peakHour').textContent = peakHourStr;
+            
+            const now = new Date();
+            const currentPeriod = allScanLogs.filter(log => {
+                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
+                return daysDiff <= currentTimeRange;
+            }).length;
+            
+            const previousPeriod = allScanLogs.filter(log => {
+                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
+                return daysDiff > currentTimeRange && daysDiff <= currentTimeRange * 2;
+            }).length;
+            
+            const trendPercent = previousPeriod > 0 
+                ? Math.round(((currentPeriod - previousPeriod) / previousPeriod) * 100) 
+                : 0;
+            
+            const trendIcon = trendPercent >= 0 ? '↑' : '↓';
+            const trendClass = trendPercent >= 0 ? 'trend-up' : 'trend-down';
+            document.getElementById('scanTrend').innerHTML = `<span class="${trendClass}">${trendIcon} ${Math.abs(trendPercent)}%</span> vs previous`;
+            
+            const periodText = customStartDate && customEndDate 
+                ? `${customStartDate} to ${customEndDate}`
+                : `Last ${currentTimeRange} days`;
+            document.getElementById('scanPeriod').textContent = periodText;
+            
             updateScansChart();
-            updateTopCards();
         }
         
         function updateScansChart() {
@@ -1518,15 +1586,28 @@
         
         function updateTopCards() {
             const scanCounts = {};
-            allScanLogs.forEach(log => scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1);
+            allScanLogs.forEach(log => {
+                scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1;
+            });
             
-            const topCards = Object.entries(scanCounts)
-                .map(([id, count]) => ({ id, count, card: allCards.find(c => c.card_id === id) }))
-                .filter(c => c.card)
-                .sort((a, b) => b.count - a.count)
+            const cardDetails = [];
+            Object.keys(scanCounts).forEach(cardId => {
+                const card = allCards.find(c => c.card_id === cardId);
+                if (card) {
+                    cardDetails.push({
+                        card_id: card.card_id,
+                        message_type: card.message_type,
+                        scan_count: scanCounts[cardId]
+                    });
+                }
+            });
+            
+            const topCards = cardDetails
+                .sort((a, b) => b.scan_count - a.scan_count)
                 .slice(0, 5);
             
             const container = document.getElementById('topCardsList');
+            
             if (topCards.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No scans yet</div>';
                 return;
@@ -1534,14 +1615,17 @@
             
             let html = '';
             topCards.forEach((card, index) => {
+                const typeClass = `type-${card.message_type}`;
+                const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
+                
                 html += `
                     <div class="top-card-item">
                         <div class="top-card-info">
                             <div class="top-card-rank">${index + 1}</div>
-                            <span class="top-card-id">${card.id}</span>
-                            <span class="top-card-type type-${card.card.message_type}">${card.card.message_type}</span>
+                            <span class="top-card-id">${card.card_id}</span>
+                            <span class="top-card-type ${typeClass}">${typeDisplay}</span>
                         </div>
-                        <div class="top-card-scans">${card.count}</div>
+                        <div class="top-card-scans">${card.scan_count}</div>
                     </div>
                 `;
             });
