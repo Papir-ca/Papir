@@ -6,6 +6,9 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Add Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { background: #1a1a1a; color: white; padding: 20px; }
@@ -458,6 +461,13 @@
             margin-bottom: 20px;
         }
         
+        .grid-3col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
         .info-box {
             background: #2a2a2a;
             border-radius: 10px;
@@ -490,6 +500,68 @@
             border-left: 3px solid #f39c12;
             border-radius: 4px;
             margin-bottom: 5px;
+        }
+        
+        /* Map Container */
+        .map-container {
+            height: 300px;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px solid #444;
+        }
+        
+        .location-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .location-stat-card {
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .location-stat-value {
+            font-size: 1.3rem;
+            color: #BCAE83;
+            font-weight: bold;
+        }
+        
+        .location-stat-label {
+            color: #aaa;
+            font-size: 0.7rem;
+        }
+        
+        .top-locations-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .location-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .location-item:last-child {
+            border-bottom: none;
+        }
+        
+        .location-name {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .location-count {
+            color: #BCAE83;
+            font-weight: bold;
         }
         
         .status-message {
@@ -733,7 +805,44 @@
             </div>
         </div>
         
-        <!-- New: Abandoned Cards and Mismatch Alerts Grid -->
+        <!-- Location Heatmap Section -->
+        <div class="analytics-section">
+            <div class="analytics-title">
+                <i class="fas fa-globe-americas"></i> Activation Heatmap
+            </div>
+            
+            <div class="grid-3col">
+                <!-- Map -->
+                <div class="info-box">
+                    <h4><i class="fas fa-map-marked-alt"></i> Geographic Distribution</h4>
+                    <div id="heatmapContainer" class="map-container"></div>
+                    <div class="location-stats">
+                        <div class="location-stat-card">
+                            <div class="location-stat-value" id="totalLocations">0</div>
+                            <div class="location-stat-label">Cities</div>
+                        </div>
+                        <div class="location-stat-card">
+                            <div class="location-stat-value" id="totalCountries">0</div>
+                            <div class="location-stat-label">Countries</div>
+                        </div>
+                        <div class="location-stat-card">
+                            <div class="location-stat-value" id="totalLocated">0</div>
+                            <div class="location-stat-label">Activations</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top Locations List -->
+                <div class="info-box">
+                    <h4><i class="fas fa-list"></i> Top Locations</h4>
+                    <div class="top-locations-list" id="topLocationsList">
+                        <div style="text-align: center; color: #aaa; padding: 20px;">Loading location data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Abandoned Cards and Mismatch Alerts Grid -->
         <div class="grid-2col">
             <!-- Abandoned Cards Section -->
             <div class="info-box">
@@ -906,6 +1015,7 @@
         let allCards = [];
         let allCardDetails = [];
         let allScanLogs = [];
+        let allActivations = [];
         let currentTypeFilter = 'all';
         let currentStatusFilters = [];
         let currentQRData = null;
@@ -914,6 +1024,8 @@
         let customEndDate = null;
         let scansChart = null;
         let currentExportType = 'cardData';
+        let heatmapLayer = null;
+        let map = null;
         
         // All possible columns for display and export
         const allColumns = [
@@ -978,6 +1090,7 @@
         const scanLogsTypeOption = document.getElementById('scanLogsTypeOption');
         const exportTypeRadios = document.querySelectorAll('input[name="exportType"]');
         const statusMessage = document.getElementById('statusMessage');
+        const heatmapContainer = document.getElementById('heatmapContainer');
         
         let draggedColumn = null;
         
@@ -991,6 +1104,119 @@
                 setTimeout(() => {
                     statusMessage.style.display = 'none';
                 }, timeout);
+            }
+        }
+        
+        // Initialize map
+        function initMap() {
+            if (!map) {
+                map = L.map('heatmapContainer').setView([20, 0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+                heatmapLayer = L.layerGroup().addTo(map);
+            }
+        }
+        
+        // Update heatmap with activation data
+        function updateHeatmap() {
+            initMap();
+            
+            // Clear existing markers
+            if (heatmapLayer) {
+                heatmapLayer.clearLayers();
+            }
+            
+            // Count locations by city
+            const locationCounts = {};
+            const locations = [];
+            
+            allActivations.forEach(act => {
+                if (act.latitude && act.longitude) {
+                    const key = `${act.latitude},${act.longitude}`;
+                    locationCounts[key] = (locationCounts[key] || 0) + 1;
+                    
+                    if (!locations.find(l => l.lat === act.latitude && l.lng === act.longitude)) {
+                        locations.push({
+                            lat: act.latitude,
+                            lng: act.longitude,
+                            city: act.city,
+                            country: act.country,
+                            count: 0
+                        });
+                    }
+                }
+            });
+            
+            // Update counts and add markers
+            locations.forEach(loc => {
+                const key = `${loc.lat},${loc.lng}`;
+                loc.count = locationCounts[key] || 1;
+                
+                // Determine marker size based on count
+                const size = Math.min(20 + (loc.count * 2), 40);
+                
+                const marker = L.circleMarker([loc.lat, loc.lng], {
+                    radius: size / 3,
+                    color: '#BCAE83',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: '#f39c12',
+                    fillOpacity: 0.6
+                }).bindPopup(`
+                    <b>${loc.city || 'Unknown'}, ${loc.country || 'Unknown'}</b><br>
+                    Activations: ${loc.count}
+                `);
+                
+                heatmapLayer.addLayer(marker);
+            });
+            
+            // Update stats
+            const uniqueCities = new Set(allActivations.filter(a => a.city).map(a => `${a.city},${a.country}`)).size;
+            const uniqueCountries = new Set(allActivations.filter(a => a.country).map(a => a.country)).size;
+            const locatedActivations = allActivations.filter(a => a.latitude).length;
+            
+            document.getElementById('totalLocations').textContent = uniqueCities;
+            document.getElementById('totalCountries').textContent = uniqueCountries;
+            document.getElementById('totalLocated').textContent = locatedActivations;
+            
+            // Update top locations list
+            const cityCounts = {};
+            allActivations.forEach(act => {
+                if (act.city && act.country) {
+                    const key = `${act.city}, ${act.country}`;
+                    cityCounts[key] = (cityCounts[key] || 0) + 1;
+                }
+            });
+            
+            const sortedCities = Object.entries(cityCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const topLocationsList = document.getElementById('topLocationsList');
+            if (sortedCities.length === 0) {
+                topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet</div>';
+            } else {
+                let html = '';
+                sortedCities.forEach(([city, count]) => {
+                    let flag = '';
+                    if (city.includes('United States')) flag = '🇺🇸';
+                    else if (city.includes('Canada')) flag = '🇨🇦';
+                    else if (city.includes('United Kingdom')) flag = '🇬🇧';
+                    else if (city.includes('India')) flag = '🇮🇳';
+                    else if (city.includes('Australia')) flag = '🇦🇺';
+                    
+                    html += `
+                        <div class="location-item">
+                            <span class="location-name">
+                                <span class="flag-icon">${flag}</span>
+                                ${city}
+                            </span>
+                            <span class="location-count">${count}</span>
+                        </div>
+                    `;
+                });
+                topLocationsList.innerHTML = html;
             }
         }
         
@@ -1122,6 +1348,41 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
+        // Load all activations for heatmap
+        async function loadAllActivations() {
+            try {
+                // We need to collect activations from all cards
+                const activations = [];
+                
+                // Use a Set to avoid duplicates
+                const seenIds = new Set();
+                
+                for (const card of allCardDetails) {
+                    if (card.activation_history && Array.isArray(card.activation_history)) {
+                        card.activation_history.forEach(act => {
+                            // Create a unique ID for this activation
+                            const id = `${card.card_id}-${act.activated_at}`;
+                            if (!seenIds.has(id) && act.location_data) {
+                                seenIds.add(id);
+                                activations.push({
+                                    ...act,
+                                    latitude: act.location_data?.latitude,
+                                    longitude: act.location_data?.longitude,
+                                    city: act.city || act.location_data?.city,
+                                    country: act.country || act.location_data?.country
+                                });
+                            }
+                        });
+                    }
+                }
+                
+                allActivations = activations;
+                updateHeatmap();
+            } catch (error) {
+                console.error('Error loading activations:', error);
+            }
+        }
+        
         // Load admin data with timeout protection
         async function loadAdminData() {
             // Set a timeout to prevent infinite loading
@@ -1166,7 +1427,7 @@
                     loadAbandonedCards().catch(e => console.log('Abandoned failed:', e));
                     loadMismatchAlerts().catch(e => console.log('Mismatch failed:', e));
                     
-                    // Load detailed data in the background (don't await)
+                    // Load detailed data in the background
                     loadDetailedData().catch(e => console.log('Details failed:', e));
                 }
             } catch (error) {
@@ -1210,6 +1471,9 @@
                 
                 // Re-render after each batch
                 renderTable();
+                
+                // Update heatmap with new activation data
+                await loadAllActivations();
                 
                 // Delay between batches
                 if (i + batchSize < allCards.length) {
@@ -1962,6 +2226,7 @@
             refreshBtn.addEventListener('click', () => {
                 // Clear cache and reload
                 allCardDetails = [];
+                allActivations = [];
                 loadAdminData();
             });
             
