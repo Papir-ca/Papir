@@ -525,6 +525,56 @@
         .media-url a { color: #06D6A0; text-decoration: none; }
         .media-url a:hover { text-decoration: underline; }
         
+        /* Activation History Dropdown */
+        .history-dropdown {
+            background: #333;
+            border-radius: 5px;
+            padding: 5px;
+            margin-top: 5px;
+            font-size: 0.7rem;
+        }
+        
+        .history-item {
+            padding: 3px 5px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-source {
+            background: #BCAE83;
+            color: black;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+        
+        .history-ip {
+            color: #06D6A0;
+            font-family: monospace;
+        }
+        
+        .toggle-history-btn {
+            background: #444;
+            color: #aaa;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .toggle-history-btn:hover {
+            background: #555;
+            color: white;
+        }
+        
         /* QR Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
         .modal-content { background: #2a2a2a; padding: 30px; border-radius: 15px; max-width: 500px; margin: 100px auto; text-align: center; }
@@ -710,16 +760,14 @@
                         <th draggable="true" data-column="updated_by_ip">Updated IP</th>
                         <th draggable="true" data-column="created_at">Created</th>
                         <th draggable="true" data-column="updated_at">Updated</th>
-                        <th draggable="true" data-column="activated_at">Activated</th>
-                        <th draggable="true" data-column="activated_by_ip">Activated IP</th>
-                        <th draggable="true" data-column="terms_accepted_at">Terms Accepted</th>
-                        <th draggable="true" data-column="terms_accepted_ip">Terms IP</th>
+                        <th draggable="true" data-column="activation_history">Activation History</th>
+                        <th draggable="true" data-column="recent_scans">Recent Scans</th>
                         <th style="cursor: default; background: #364B4A;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="18" class="loading">
+                        <td colspan="16" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -761,6 +809,7 @@
         }
         
         let allCards = [];
+        let allCardDetails = []; // Will store cards with activation history
         let allScanLogs = [];
         let currentTypeFilter = 'all';
         let currentStatusFilters = [];
@@ -801,7 +850,11 @@
         ];
         
         // Current column order
-        let columnOrder = allColumns.map(col => col.id);
+        let columnOrder = [
+            'card_id', 'status', 'message_type', 'message_text', 'media_url', 
+            'file_name', 'file_size', 'file_type', 'scan_count', 'created_by_ip',
+            'updated_by_ip', 'created_at', 'updated_at', 'activation_history', 'recent_scans'
+        ];
         
         // DOM Elements
         const searchInput = document.getElementById('searchInput');
@@ -939,9 +992,15 @@
             let headerHtml = '';
             
             columnOrder.forEach(colId => {
-                const column = allColumns.find(c => c.id === colId);
-                if (column) {
-                    headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
+                if (colId === 'activation_history') {
+                    headerHtml += `<th draggable="true" data-column="activation_history">Activation History</th>`;
+                } else if (colId === 'recent_scans') {
+                    headerHtml += `<th draggable="true" data-column="recent_scans">Recent Scans</th>`;
+                } else {
+                    const column = allColumns.find(c => c.id === colId);
+                    if (column) {
+                        headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
+                    }
                 }
             });
             
@@ -951,16 +1010,34 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load admin data
+        // Load admin data using the new admin endpoint
         async function loadAdminData() {
             showLoading(true);
             try {
-                // Load cards
+                // First load all cards basic info
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
                 const cardsResult = await cardsResponse.json();
                 
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
+                    
+                    // Then load detailed data for each card
+                    allCardDetails = [];
+                    for (const card of allCards) {
+                        try {
+                            const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
+                            const detailResult = await detailResponse.json();
+                            if (detailResult.success) {
+                                allCardDetails.push(detailResult.card);
+                            } else {
+                                allCardDetails.push(card);
+                            }
+                        } catch (error) {
+                            console.error(`Error loading details for ${card.card_id}:`, error);
+                            allCardDetails.push(card);
+                        }
+                    }
+                    
                     updateStats(allCards);
                     
                     // Load scan logs
@@ -981,7 +1058,10 @@
                 let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
                 
                 if (customStartDate && customEndDate) {
-                    url = `${BACKEND_URL}/api/scan-logs?start=${customStartDate}&end=${customEndDate}`;
+                    const start = new Date(customStartDate);
+                    const end = new Date(customEndDate);
+                    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                    url = `${BACKEND_URL}/api/scan-logs?days=${diffDays}`;
                 }
                 
                 const response = await fetch(url);
@@ -1324,7 +1404,7 @@
         
         // Filter cards
         function filterCards() {
-            let filteredCards = allCards;
+            let filteredCards = allCardDetails.length > 0 ? allCardDetails : allCards;
             
             if (currentTypeFilter !== 'all') {
                 filteredCards = filteredCards.filter(card => card.message_type === currentTypeFilter);
@@ -1348,6 +1428,51 @@
             return filteredCards;
         }
         
+        // Render activation history HTML
+        function renderActivationHistory(card) {
+            if (!card.activation_history || card.activation_history.length === 0) {
+                return '<td>No activations</td>';
+            }
+            
+            let html = '<td>';
+            card.activation_history.forEach(act => {
+                const date = new Date(act.activated_at).toLocaleDateString();
+                html += `
+                    <div class="history-item">
+                        <span class="history-source">${act.activation_source}</span>
+                        <span class="history-ip">${act.activated_by_ip}</span>
+                        <span style="color: #aaa;">${date}</span>
+                    </div>
+                `;
+            });
+            html += '</td>';
+            return html;
+        }
+        
+        // Render recent scans HTML
+        function renderRecentScans(card) {
+            if (!card.scan_history || card.scan_history.length === 0) {
+                return '<td>No scans</td>';
+            }
+            
+            let html = '<td>';
+            // Show only last 3 scans
+            card.scan_history.slice(0, 3).forEach(scan => {
+                const date = new Date(scan.scanned_at).toLocaleString();
+                html += `
+                    <div class="history-item">
+                        <span class="history-ip">${scan.ip_address}</span>
+                        <span style="color: #aaa;">${date}</span>
+                    </div>
+                `;
+            });
+            if (card.scan_history.length > 3) {
+                html += `<div style="color: #aaa; font-size: 0.6rem; margin-top: 2px;">+${card.scan_history.length - 3} more</div>`;
+            }
+            html += '</td>';
+            return html;
+        }
+        
         // Render table
         function renderTable() {
             renderTableHeaders();
@@ -1358,7 +1483,7 @@
             if (filteredCards.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="18" style="text-align: center; padding: 40px; color: #aaa;">
+                        <td colspan="16" style="text-align: center; padding: 40px; color: #aaa;">
                             No cards found matching your criteria.
                         </td>
                     </tr>
@@ -1393,15 +1518,19 @@
                     updated_by_ip: `<td>${card.updated_by_ip || 'N/A'}</td>`,
                     created_at: `<td>${new Date(card.created_at).toLocaleDateString()}</td>`,
                     updated_at: `<td>${card.updated_at ? new Date(card.updated_at).toLocaleDateString() : 'N/A'}</td>`,
-                    activated_at: `<td>${card.activated_at ? new Date(card.activated_at).toLocaleDateString() : 'N/A'}</td>`,
-                    activated_by_ip: `<td>${card.activated_by_ip || 'N/A'}</td>`,
-                    terms_accepted_at: `<td>${card.terms_accepted_at ? new Date(card.terms_accepted_at).toLocaleDateString() : 'N/A'}</td>`,
-                    terms_accepted_ip: `<td>${card.terms_accepted_ip || 'N/A'}</td>`
+                    activation_history: renderActivationHistory(card),
+                    recent_scans: renderRecentScans(card)
                 };
                 
                 let rowHtml = '<tr>';
                 columnOrder.forEach(colId => {
-                    rowHtml += columnData[colId] || '<td>N/A</td>';
+                    if (colId === 'activation_history') {
+                        rowHtml += columnData.activation_history;
+                    } else if (colId === 'recent_scans') {
+                        rowHtml += columnData.recent_scans;
+                    } else {
+                        rowHtml += columnData[colId] || '<td>N/A</td>';
+                    }
                 });
                 
                 // Actions column
@@ -1479,7 +1608,7 @@
             if (show) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="18" class="loading">
+                        <td colspan="16" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
