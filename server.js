@@ -136,7 +136,8 @@ app.get('/api/health', (req, res) => {
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
       incrementScan: `POST ${baseUrl}/api/increment-scan`,
-      scanLogs: `GET ${baseUrl}/api/scan-logs`
+      scanLogs: `GET ${baseUrl}/api/scan-logs`,
+      adminCard: `GET ${baseUrl}/api/admin/cards/:id`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -563,7 +564,7 @@ app.delete('/api/cards/:card_id', async (req, res) => {
 // 🎟️ Activate Card - WITH SOURCE PARAMETER SUPPORT
 app.post('/api/activate-card', async (req, res) => {
   try {
-    const { card_id, source } = req.body;  // 👈 ADD source here
+    const { card_id, source } = req.body;
     
     // Fix IP handling
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
@@ -627,7 +628,7 @@ app.post('/api/activate-card', async (req, res) => {
           terms_accepted_at: new Date().toISOString(),
           terms_accepted_ip: clientIp,
           user_agent: req.headers['user-agent'] || 'unknown',
-          activation_source: source || 'viewer'  // 👈 USE source parameter
+          activation_source: source || 'viewer'
         });
       
       if (logError) {
@@ -674,7 +675,7 @@ app.post('/api/activate-card', async (req, res) => {
         terms_accepted_at: new Date().toISOString(),
         terms_accepted_ip: clientIp,
         user_agent: req.headers['user-agent'] || 'unknown',
-        activation_source: source || 'viewer'  // 👈 USE source parameter
+        activation_source: source || 'viewer'
       });
     
     if (logError) {
@@ -780,6 +781,76 @@ app.get('/api/scan-logs', async (req, res) => {
   }
 });
 
+// 📊 Get Card with Complete Activation History (FOR ADMIN USE ONLY)
+app.get('/api/admin/cards/:card_id', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Get card data
+    const { data: card, error: cardError } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .eq('card_id', card_id)
+      .maybeSingle();
+    
+    if (cardError) throw cardError;
+    
+    if (!card) {
+      return res.status(404).json({ success: false, error: 'Card not found' });
+    }
+    
+    // Get ALL activation history (for complete audit trail)
+    const { data: activations, error: actError } = await supabaseAdmin
+      .from('card_activations')
+      .select('*')
+      .eq('card_id', card_id)
+      .order('created_at', { ascending: false });
+    
+    if (actError) throw actError;
+    
+    // Get scan logs (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: scans, error: scanError } = await supabaseAdmin
+      .from('scan_logs')
+      .select('*')
+      .eq('card_id', card_id)
+      .gte('scanned_at', thirtyDaysAgo.toISOString())
+      .order('scanned_at', { ascending: false });
+    
+    if (scanError) throw scanError;
+    
+    // Return comprehensive card data for admin
+    res.json({
+      success: true,
+      card: {
+        ...card,
+        // Include the most recent activation for backward compatibility
+        activated_at: activations?.[0]?.activated_at || null,
+        activated_by_ip: activations?.[0]?.activated_by_ip || null,
+        terms_accepted_at: activations?.[0]?.terms_accepted_at || null,
+        terms_accepted_ip: activations?.[0]?.terms_accepted_ip || null,
+        activation_source: activations?.[0]?.activation_source || null,
+        // Full history arrays
+        activation_history: activations || [],
+        scan_history: scans || [],
+        total_scans: card.scan_count || 0,
+        recent_scans: scans?.length || 0
+      },
+      viewerUrl: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`
+    });
+    
+  } catch (error) {
+    console.error('Error fetching admin card data:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -849,6 +920,7 @@ app.use((req, res) => {
       `${baseUrl}/api/activate-card`,
       `${baseUrl}/api/increment-scan`,
       `${baseUrl}/api/scan-logs`,
+      `${baseUrl}/api/admin/cards/:id`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -883,6 +955,7 @@ app.listen(PORT, () => {
   console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
   console.log(`   Scan Logs: https://papir.ca/api/scan-logs`);
+  console.log(`   Admin Card: https://papir.ca/api/admin/cards/:id`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -894,6 +967,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Analytics dashboard');
   console.log('   ✅ Card activation flow (physical cards)');
   console.log('   ✅ File type validation on server');
+  console.log('   ✅ Admin endpoint with activation history');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
