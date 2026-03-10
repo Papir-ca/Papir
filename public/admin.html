@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Papir Admin - Card Management</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css-all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
@@ -492,41 +492,29 @@
             margin-bottom: 5px;
         }
         
+        .status-message {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .status-message.info {
+            border-left: 4px solid #3498db;
+        }
+        
+        .status-message.warning {
+            border-left: 4px solid #f39c12;
+        }
+        
+        .status-message.error {
+            border-left: 4px solid #e74c3c;
+        }
+        
         .flag-icon {
             font-size: 1.2rem;
             margin-right: 5px;
-        }
-        
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        
-        .loading-spinner {
-            border: 4px solid #333;
-            border-top: 4px solid #BCAE83;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        
-        .rate-limit-message {
-            background: #332b1a;
-            border-left: 4px solid #f39c12;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
         }
         
         /* Cards Table - With Visible Horizontal Scroll */
@@ -673,11 +661,8 @@
         <h1>📊 Papir Admin Dashboard</h1>
         <button id="logoutBtn" style="float: right; background: #ff416c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: -15px; font-size: 14px; font-weight: bold;">Logout</button>
         
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-            <div class="loading-spinner"></div>
-            <div style="margin-top: 20px; color: #BCAE83;">Loading data...</div>
-        </div>
+        <!-- Status Message -->
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
         
         <!-- Analytics Dashboard Section -->
         <div class="analytics-section">
@@ -765,12 +750,6 @@
                     <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Rate Limit Message (hidden by default) -->
-        <div id="rateLimitMessage" class="rate-limit-message" style="display: none; margin-bottom: 20px;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="rateLimitText">Rate limit hit. Slowing down requests...</span>
         </div>
         
         <!-- Export Modal -->
@@ -935,13 +914,6 @@
         let customEndDate = null;
         let scansChart = null;
         let currentExportType = 'cardData';
-        let isLoading = false;
-        let rateLimitCount = 0;
-        
-        // Cache for card details
-        const cardDetailsCache = {};
-        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-        let lastLoadTime = 0;
         
         // All possible columns for display and export
         const allColumns = [
@@ -1005,29 +977,21 @@
         const cardDataTypeOption = document.getElementById('cardDataTypeOption');
         const scanLogsTypeOption = document.getElementById('scanLogsTypeOption');
         const exportTypeRadios = document.querySelectorAll('input[name="exportType"]');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const rateLimitMessage = document.getElementById('rateLimitMessage');
-        const rateLimitText = document.getElementById('rateLimitText');
+        const statusMessage = document.getElementById('statusMessage');
         
         let draggedColumn = null;
         
-        // Show/hide loading overlay
-        function setLoading(loading) {
-            isLoading = loading;
-            loadingOverlay.style.display = loading ? 'flex' : 'none';
-        }
-        
-        // Show rate limit message
-        function showRateLimit(message) {
-            rateLimitCount++;
-            rateLimitText.textContent = message || `Rate limit hit. Retrying with slower speed... (${rateLimitCount})`;
-            rateLimitMessage.style.display = 'block';
-            setTimeout(() => {
-                rateLimitCount--;
-                if (rateLimitCount <= 0) {
-                    rateLimitMessage.style.display = 'none';
-                }
-            }, 3000);
+        // Show status message
+        function showStatus(message, type = 'info', timeout = 5000) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            statusMessage.style.display = 'block';
+            
+            if (timeout > 0) {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, timeout);
+            }
         }
         
         // Populate column checkboxes based on export type
@@ -1158,26 +1122,26 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load admin data with caching and rate limiting protection
-        async function loadAdminData(forceRefresh = false) {
-            const now = Date.now();
+        // Load admin data with timeout protection
+        async function loadAdminData() {
+            // Set a timeout to prevent infinite loading
+            const timeoutId = setTimeout(() => {
+                showStatus('Loading taking longer than expected. Please refresh.', 'warning');
+            }, 15000);
             
-            // Use cache if available and not forced refresh
-            if (!forceRefresh && now - lastLoadTime < 30000) { // 30 seconds cache
-                console.log('Using cached data');
-                renderTable();
-                return;
-            }
-            
-            setLoading(true);
             try {
-                // Load cards list
+                // First load basic cards (this should always work)
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
                 
                 if (cardsResponse.status === 429) {
-                    showRateLimit('Too many requests. Waiting before retry...');
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                    setLoading(false);
+                    showStatus('Rate limited. Please wait a moment and refresh.', 'error');
+                    clearTimeout(timeoutId);
+                    
+                    // Still show basic table with what we have
+                    if (allCards.length > 0) {
+                        allCardDetails = allCards;
+                        renderTable();
+                    }
                     return;
                 }
                 
@@ -1186,117 +1150,72 @@
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
                     
-                    // Clear old cache entries
-                    const now = Date.now();
-                    Object.keys(cardDetailsCache).forEach(key => {
-                        if (now - cardDetailsCache[key].timestamp > CACHE_TTL) {
-                            delete cardDetailsCache[key];
-                        }
-                    });
+                    // Start with basic card data
+                    allCardDetails = [...allCards];
                     
-                    // Only load details for cards we don't have in cache
-                    const cardsToLoad = [];
-                    allCards.forEach(card => {
-                        if (!cardDetailsCache[card.card_id] || forceRefresh) {
-                            cardsToLoad.push(card);
-                        }
-                    });
-                    
-                    // Load details with delays to avoid rate limiting
-                    allCardDetails = [];
-                    
-                    // First add cached cards
-                    allCards.forEach(card => {
-                        if (cardDetailsCache[card.card_id]) {
-                            allCardDetails.push(cardDetailsCache[card.card_id].data);
-                        }
-                    });
-                    
-                    // Then load new cards in small batches
-                    const batchSize = 3; // Smaller batches
-                    for (let i = 0; i < cardsToLoad.length; i += batchSize) {
-                        const batch = cardsToLoad.slice(i, i + batchSize);
-                        
-                        const batchPromises = batch.map(async (card) => {
-                            try {
-                                // Add delay between requests
-                                await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
-                                
-                                const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
-                                
-                                if (detailResponse.status === 429) {
-                                    showRateLimit(`Rate limited for ${card.card_id}, using basic data`);
-                                    return card;
-                                }
-                                
-                                const detailResult = await detailResponse.json();
-                                if (detailResult.success) {
-                                    // Cache the result
-                                    cardDetailsCache[card.card_id] = {
-                                        data: detailResult.card,
-                                        timestamp: Date.now()
-                                    };
-                                    return detailResult.card;
-                                }
-                                return card;
-                            } catch (error) {
-                                console.error(`Error loading details for ${card.card_id}:`, error);
-                                return card;
-                            }
-                        });
-                        
-                        const batchResults = await Promise.all(batchPromises);
-                        
-                        // Update allCardDetails with new data
-                        batchResults.forEach(cardData => {
-                            const index = allCardDetails.findIndex(c => c.card_id === cardData.card_id);
-                            if (index >= 0) {
-                                allCardDetails[index] = cardData;
-                            } else {
-                                allCardDetails.push(cardData);
-                            }
-                        });
-                        
-                        // Sort to maintain original order
-                        allCardDetails.sort((a, b) => {
-                            const indexA = allCards.findIndex(c => c.card_id === a.card_id);
-                            const indexB = allCards.findIndex(c => c.card_id === b.card_id);
-                            return indexA - indexB;
-                        });
-                        
-                        // Update stats and render progressively
-                        updateStats(allCards);
-                        renderTable();
-                        
-                        // Longer delay between batches
-                        if (i + batchSize < cardsToLoad.length) {
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                        }
-                    }
-                    
+                    // Update stats and render basic table immediately
                     updateStats(allCards);
-                    
-                    // Load scan logs
-                    await loadScanLogs();
-                    
-                    // Load abandoned and mismatch data (in parallel)
-                    await Promise.all([
-                        loadAbandonedCards(),
-                        loadMismatchAlerts()
-                    ]);
-                    
-                    lastLoadTime = Date.now();
                     renderTable();
+                    
+                    clearTimeout(timeoutId);
+                    
+                    // Then load scan logs (non-critical)
+                    loadScanLogs().catch(e => console.log('Scan logs failed:', e));
+                    
+                    // Load abandoned and mismatch data (non-critical)
+                    loadAbandonedCards().catch(e => console.log('Abandoned failed:', e));
+                    loadMismatchAlerts().catch(e => console.log('Mismatch failed:', e));
+                    
+                    // Load detailed data in the background (don't await)
+                    loadDetailedData().catch(e => console.log('Details failed:', e));
                 }
             } catch (error) {
                 console.error('Admin load error:', error);
-                if (error.message.includes('429')) {
-                    showRateLimit('Rate limit exceeded. Please wait a moment.');
-                } else {
-                    alert('Error loading cards: ' + error.message);
+                showStatus('Error loading data: ' + error.message, 'error');
+                clearTimeout(timeoutId);
+            }
+        }
+        
+        // Load detailed card data in background
+        async function loadDetailedData() {
+            const batchSize = 2;
+            for (let i = 0; i < allCards.length; i += batchSize) {
+                const batch = allCards.slice(i, i + batchSize);
+                
+                const batchPromises = batch.map(async (card) => {
+                    try {
+                        const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
+                        
+                        if (detailResponse.status === 429) {
+                            showStatus('Rate limited, showing basic data', 'warning', 3000);
+                            return card;
+                        }
+                        
+                        const detailResult = await detailResponse.json();
+                        if (detailResult.success) {
+                            // Update the card in allCardDetails
+                            const index = allCardDetails.findIndex(c => c.card_id === card.card_id);
+                            if (index >= 0) {
+                                allCardDetails[index] = detailResult.card;
+                            }
+                        }
+                        return detailResult.card || card;
+                    } catch (error) {
+                        console.error(`Error loading ${card.card_id}:`, error);
+                        return card;
+                    }
+                });
+                
+                await Promise.all(batchPromises);
+                
+                // Re-render after each batch
+                renderTable();
+                
+                // Delay between batches
+                if (i + batchSize < allCards.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
-            setLoading(false);
         }
         
         // Load scan logs
@@ -1314,8 +1233,6 @@
                 const response = await fetch(url);
                 
                 if (response.status === 429) {
-                    showRateLimit('Rate limited for scan logs');
-                    allScanLogs = [];
                     return;
                 }
                 
@@ -1337,7 +1254,6 @@
                 const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
                 
                 if (response.status === 429) {
-                    showRateLimit('Rate limited for abandoned cards');
                     return;
                 }
                 
@@ -1368,7 +1284,6 @@
                 }
             } catch (error) {
                 console.error('Error loading abandoned cards:', error);
-                document.getElementById('abandonedCardsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
             }
         }
         
@@ -1378,7 +1293,6 @@
                 const response = await fetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
                 
                 if (response.status === 429) {
-                    showRateLimit('Rate limited for mismatch alerts');
                     return;
                 }
                 
@@ -1392,7 +1306,7 @@
                     }
                     
                     let html = '';
-                    result.alerts.forEach(alert => {
+                    result.alerts.slice(0, 10).forEach(alert => {
                         let flag = '';
                         if (alert.activation_country === 'United States') flag = '🇺🇸';
                         else if (alert.activation_country === 'Canada') flag = '🇨🇦';
@@ -1415,7 +1329,6 @@
                 }
             } catch (error) {
                 console.error('Error loading mismatch alerts:', error);
-                document.getElementById('mismatchAlertsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
             }
         }
         
@@ -1833,7 +1746,7 @@
             }
             
             let html = '<td>';
-            card.activation_history.forEach(act => {
+            card.activation_history.slice(0, 3).forEach(act => {
                 const date = new Date(act.activated_at).toLocaleDateString();
                 let flag = '';
                 if (act.country === 'United States') flag = '🇺🇸';
@@ -1849,6 +1762,9 @@
                     </div>
                 `;
             });
+            if (card.activation_history.length > 3) {
+                html += `<div style="color: #aaa; font-size: 0.6rem; margin-top: 2px;">+${card.activation_history.length - 3} more</div>`;
+            }
             html += '</td>';
             return html;
         }
@@ -2013,21 +1929,6 @@
                 .catch(err => console.error('Copy failed:', err));
         }
         
-        // Show loading
-        function showLoading(show) {
-            const tbody = document.getElementById('cardsTableBody');
-            if (show) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="20" class="loading">
-                            <div class="spinner"></div>
-                            <div>Loading cards...</div>
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-        
         // Toggle status filter
         function toggleStatusFilter(status) {
             const index = currentStatusFilters.indexOf(status);
@@ -2058,7 +1959,11 @@
         function initializeEventListeners() {
             searchInput.addEventListener('input', renderTable);
             
-            refreshBtn.addEventListener('click', () => loadAdminData(true));
+            refreshBtn.addEventListener('click', () => {
+                // Clear cache and reload
+                allCardDetails = [];
+                loadAdminData();
+            });
             
             logoutBtn.addEventListener('click', logout);
             
@@ -2135,7 +2040,11 @@
         
         // Initial load
         initializeEventListeners();
-        loadAdminData();
+        
+        // Start loading with a small delay to ensure DOM is ready
+        setTimeout(() => {
+            loadAdminData();
+        }, 100);
         
         setTimeout(setupDragAndDrop, 500);
     </script>
