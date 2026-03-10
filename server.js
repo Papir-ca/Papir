@@ -560,13 +560,16 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - FIXED with message_type
+// 🎟️ Activate Card - WITH SEPARATE ACTIVATION LOGGING
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id } = req.body;
     
     // Fix IP handling
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    if (clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim();
+    }
     
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp}`);
     
@@ -603,10 +606,6 @@ app.post('/api/activate-card', async (req, res) => {
           file_type: null,
           status: 'active',
           scan_count: 0,
-          activated_at: new Date().toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          terms_accepted_ip: clientIp,
           created_by_ip: clientIp,
           updated_by_ip: clientIp,
           created_at: new Date().toISOString(),
@@ -616,6 +615,24 @@ app.post('/api/activate-card', async (req, res) => {
       if (insertError) {
         console.error('❌ Insert error:', insertError);
         return res.json({ success: false, error: 'Failed to create card: ' + insertError.message });
+      }
+      
+      // Also log the activation in the new table
+      const { error: logError } = await supabaseAdmin
+        .from('card_activations')
+        .insert({
+          card_id: card_id,
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_ip: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          activation_source: 'viewer'
+        });
+      
+      if (logError) {
+        console.error('❌ Failed to log activation:', logError);
+        // Continue anyway - card is still activated
       }
       
       console.log(`✅ Card ${card_id} created and activated successfully`);
@@ -632,15 +649,13 @@ app.post('/api/activate-card', async (req, res) => {
       return res.json({ success: false, error: `Card cannot be activated (status: ${card.status})` });
     }
     
-    // Activate the card
+    // Activate the card (update status only - remove activation fields from cards table)
     const { error: updateError } = await supabaseAdmin
       .from('cards')
       .update({
         status: 'active',
-        activated_at: new Date().toISOString(),
-        activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
       })
       .eq('card_id', card_id);
     
@@ -649,7 +664,29 @@ app.post('/api/activate-card', async (req, res) => {
       throw updateError;
     }
     
-    console.log(`✅ Card ${card_id} activated successfully`);
+    // Log the activation in the new table with source detection
+    // Determine if this activation came from maker or viewer
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const activationSource = userAgent.includes('Mozilla') ? 'viewer' : 'maker'; // Simple heuristic
+    
+    const { error: logError } = await supabaseAdmin
+      .from('card_activations')
+      .insert({
+        card_id: card_id,
+        activated_at: new Date().toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: userAgent,
+        activation_source: activationSource
+      });
+    
+    if (logError) {
+      console.error('❌ Failed to log activation:', logError);
+      // Continue anyway - card is still activated
+    }
+    
+    console.log(`✅ Card ${card_id} activated successfully (logged to activations table)`);
     res.json({ success: true });
     
   } catch (error) {
