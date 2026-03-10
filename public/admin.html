@@ -6,9 +6,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Add Leaflet for maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { background: #1a1a1a; color: white; padding: 20px; }
@@ -502,39 +499,41 @@
             margin-bottom: 5px;
         }
         
-        /* Map Container */
-        .map-container {
-            height: 300px;
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            border: 2px solid #444;
-        }
-        
-        .location-stats {
+        /* Location Stats */
+        .location-stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-top: 15px;
+            margin-bottom: 20px;
         }
         
         .location-stat-card {
             background: #333;
-            padding: 10px;
+            padding: 15px;
             border-radius: 8px;
             text-align: center;
         }
         
         .location-stat-value {
-            font-size: 1.3rem;
+            font-size: 1.8rem;
             color: #BCAE83;
             font-weight: bold;
         }
         
         .location-stat-label {
             color: #aaa;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .location-summary {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            color: #aaa;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-top: 15px;
         }
         
         .top-locations-list {
@@ -545,7 +544,7 @@
         .location-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px;
+            padding: 10px;
             border-bottom: 1px solid #444;
         }
         
@@ -556,7 +555,7 @@
         .location-name {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
         
         .location-count {
@@ -805,18 +804,17 @@
             </div>
         </div>
         
-        <!-- Location Heatmap Section -->
+        <!-- Simplified Location Stats (No Map) -->
         <div class="analytics-section">
             <div class="analytics-title">
-                <i class="fas fa-globe-americas"></i> Activation Heatmap
+                <i class="fas fa-globe-americas"></i> Activation Locations
             </div>
             
-            <div class="grid-3col">
-                <!-- Map -->
+            <div class="grid-2col">
+                <!-- Location Stats -->
                 <div class="info-box">
-                    <h4><i class="fas fa-map-marked-alt"></i> Geographic Distribution</h4>
-                    <div id="heatmapContainer" class="map-container"></div>
-                    <div class="location-stats">
+                    <h4><i class="fas fa-chart-pie"></i> Location Summary</h4>
+                    <div class="location-stats-grid">
                         <div class="location-stat-card">
                             <div class="location-stat-value" id="totalLocations">0</div>
                             <div class="location-stat-label">Cities</div>
@@ -830,12 +828,16 @@
                             <div class="location-stat-label">Activations</div>
                         </div>
                     </div>
+                    
+                    <div id="locationSummary" class="location-summary">
+                        Loading location data...
+                    </div>
                 </div>
                 
                 <!-- Top Locations List -->
                 <div class="info-box">
                     <h4><i class="fas fa-list"></i> Top Locations</h4>
-                    <div class="top-locations-list" id="topLocationsList">
+                    <div id="topLocationsList" class="top-locations-list">
                         <div style="text-align: center; color: #aaa; padding: 20px;">Loading location data...</div>
                     </div>
                 </div>
@@ -1024,8 +1026,13 @@
         let customEndDate = null;
         let scansChart = null;
         let currentExportType = 'cardData';
-        let heatmapLayer = null;
-        let map = null;
+        let isLoading = false;
+        let rateLimitCount = 0;
+        
+        // Cache for card details
+        const cardDetailsCache = {};
+        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        let lastLoadTime = 0;
         
         // All possible columns for display and export
         const allColumns = [
@@ -1090,7 +1097,6 @@
         const scanLogsTypeOption = document.getElementById('scanLogsTypeOption');
         const exportTypeRadios = document.querySelectorAll('input[name="exportType"]');
         const statusMessage = document.getElementById('statusMessage');
-        const heatmapContainer = document.getElementById('heatmapContainer');
         
         let draggedColumn = null;
         
@@ -1107,88 +1113,54 @@
             }
         }
         
-        // Initialize map
-        function initMap() {
-            if (!map) {
-                map = L.map('heatmapContainer').setView([20, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                }).addTo(map);
-                heatmapLayer = L.layerGroup().addTo(map);
-            }
+        // Show rate limit message
+        function showRateLimit(message) {
+            rateLimitCount++;
+            statusMessage.textContent = message || `Rate limit hit. Retrying with slower speed... (${rateLimitCount})`;
+            statusMessage.className = 'status-message warning';
+            statusMessage.style.display = 'block';
+            setTimeout(() => {
+                rateLimitCount--;
+                if (rateLimitCount <= 0) {
+                    statusMessage.style.display = 'none';
+                }
+            }, 3000);
         }
         
-        // Update heatmap with activation data
-        function updateHeatmap() {
-            initMap();
-            
-            // Clear existing markers
-            if (heatmapLayer) {
-                heatmapLayer.clearLayers();
-            }
-            
-            // Count locations by city
-            const locationCounts = {};
-            const locations = [];
-            
-            allActivations.forEach(act => {
-                if (act.latitude && act.longitude) {
-                    const key = `${act.latitude},${act.longitude}`;
-                    locationCounts[key] = (locationCounts[key] || 0) + 1;
-                    
-                    if (!locations.find(l => l.lat === act.latitude && l.lng === act.longitude)) {
-                        locations.push({
-                            lat: act.latitude,
-                            lng: act.longitude,
-                            city: act.city,
-                            country: act.country,
-                            count: 0
-                        });
-                    }
-                }
-            });
-            
-            // Update counts and add markers
-            locations.forEach(loc => {
-                const key = `${loc.lat},${loc.lng}`;
-                loc.count = locationCounts[key] || 1;
-                
-                // Determine marker size based on count
-                const size = Math.min(20 + (loc.count * 2), 40);
-                
-                const marker = L.circleMarker([loc.lat, loc.lng], {
-                    radius: size / 3,
-                    color: '#BCAE83',
-                    weight: 2,
-                    opacity: 0.8,
-                    fillColor: '#f39c12',
-                    fillOpacity: 0.6
-                }).bindPopup(`
-                    <b>${loc.city || 'Unknown'}, ${loc.country || 'Unknown'}</b><br>
-                    Activations: ${loc.count}
-                `);
-                
-                heatmapLayer.addLayer(marker);
-            });
-            
-            // Update stats
-            const uniqueCities = new Set(allActivations.filter(a => a.city).map(a => `${a.city},${a.country}`)).size;
-            const uniqueCountries = new Set(allActivations.filter(a => a.country).map(a => a.country)).size;
-            const locatedActivations = allActivations.filter(a => a.latitude).length;
-            
-            document.getElementById('totalLocations').textContent = uniqueCities;
-            document.getElementById('totalCountries').textContent = uniqueCountries;
-            document.getElementById('totalLocated').textContent = locatedActivations;
-            
-            // Update top locations list
+        // Update location stats (no map)
+        function updateLocationStats() {
+            const cities = new Set();
+            const countries = new Set();
+            let locatedCount = 0;
             const cityCounts = {};
+            
             allActivations.forEach(act => {
-                if (act.city && act.country) {
+                if (act.city) {
+                    cities.add(`${act.city}, ${act.country}`);
                     const key = `${act.city}, ${act.country}`;
                     cityCounts[key] = (cityCounts[key] || 0) + 1;
                 }
+                if (act.country) countries.add(act.country);
+                if (act.latitude) locatedCount++;
             });
             
+            document.getElementById('totalLocations').textContent = cities.size;
+            document.getElementById('totalCountries').textContent = countries.size;
+            document.getElementById('totalLocated').textContent = locatedCount;
+            
+            // Show summary text
+            const summary = document.getElementById('locationSummary');
+            if (cities.size === 0) {
+                summary.innerHTML = 'No location data available yet.';
+            } else {
+                const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0];
+                summary.innerHTML = `
+                    <p>📍 Activations span <strong>${countries.size}</strong> countries and <strong>${cities.size}</strong> cities.</p>
+                    <p>🌍 Most active: <strong>${topCity ? topCity[0] : 'N/A'}</strong> (${topCity ? topCity[1] : 0} activations)</p>
+                `;
+            }
+            
+            // Update top locations list
             const sortedCities = Object.entries(cityCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
@@ -1217,6 +1189,37 @@
                     `;
                 });
                 topLocationsList.innerHTML = html;
+            }
+        }
+        
+        // Load all activations for location stats
+        async function loadAllActivations() {
+            try {
+                const activations = [];
+                const seenIds = new Set();
+                
+                for (const card of allCardDetails) {
+                    if (card.activation_history && Array.isArray(card.activation_history)) {
+                        card.activation_history.forEach(act => {
+                            const id = `${card.card_id}-${act.activated_at}`;
+                            if (!seenIds.has(id) && act.location_data) {
+                                seenIds.add(id);
+                                activations.push({
+                                    ...act,
+                                    latitude: act.location_data?.latitude,
+                                    longitude: act.location_data?.longitude,
+                                    city: act.city || act.location_data?.city,
+                                    country: act.country || act.location_data?.country
+                                });
+                            }
+                        });
+                    }
+                }
+                
+                allActivations = activations;
+                updateLocationStats();
+            } catch (error) {
+                console.error('Error loading activations:', error);
             }
         }
         
@@ -1348,61 +1351,24 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load all activations for heatmap
-        async function loadAllActivations() {
-            try {
-                // We need to collect activations from all cards
-                const activations = [];
-                
-                // Use a Set to avoid duplicates
-                const seenIds = new Set();
-                
-                for (const card of allCardDetails) {
-                    if (card.activation_history && Array.isArray(card.activation_history)) {
-                        card.activation_history.forEach(act => {
-                            // Create a unique ID for this activation
-                            const id = `${card.card_id}-${act.activated_at}`;
-                            if (!seenIds.has(id) && act.location_data) {
-                                seenIds.add(id);
-                                activations.push({
-                                    ...act,
-                                    latitude: act.location_data?.latitude,
-                                    longitude: act.location_data?.longitude,
-                                    city: act.city || act.location_data?.city,
-                                    country: act.country || act.location_data?.country
-                                });
-                            }
-                        });
-                    }
-                }
-                
-                allActivations = activations;
-                updateHeatmap();
-            } catch (error) {
-                console.error('Error loading activations:', error);
+        // Load admin data with caching and rate limiting protection
+        async function loadAdminData(forceRefresh = false) {
+            const now = Date.now();
+            
+            // Use cache if available and not forced refresh
+            if (!forceRefresh && now - lastLoadTime < 30000) { // 30 seconds cache
+                console.log('Using cached data');
+                renderTable();
+                return;
             }
-        }
-        
-        // Load admin data with timeout protection
-        async function loadAdminData() {
-            // Set a timeout to prevent infinite loading
-            const timeoutId = setTimeout(() => {
-                showStatus('Loading taking longer than expected. Please refresh.', 'warning');
-            }, 15000);
             
             try {
-                // First load basic cards (this should always work)
+                // First load basic cards
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
                 
                 if (cardsResponse.status === 429) {
-                    showStatus('Rate limited. Please wait a moment and refresh.', 'error');
-                    clearTimeout(timeoutId);
-                    
-                    // Still show basic table with what we have
-                    if (allCards.length > 0) {
-                        allCardDetails = allCards;
-                        renderTable();
-                    }
+                    showRateLimit('Too many requests. Waiting before retry...');
+                    await new Promise(resolve => setTimeout(resolve, 5000));
                     return;
                 }
                 
@@ -1411,6 +1377,22 @@
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
                     
+                    // Clear old cache entries
+                    const now = Date.now();
+                    Object.keys(cardDetailsCache).forEach(key => {
+                        if (now - cardDetailsCache[key].timestamp > CACHE_TTL) {
+                            delete cardDetailsCache[key];
+                        }
+                    });
+                    
+                    // Only load details for cards we don't have in cache
+                    const cardsToLoad = [];
+                    allCards.forEach(card => {
+                        if (!cardDetailsCache[card.card_id] || forceRefresh) {
+                            cardsToLoad.push(card);
+                        }
+                    });
+                    
                     // Start with basic card data
                     allCardDetails = [...allCards];
                     
@@ -1418,49 +1400,68 @@
                     updateStats(allCards);
                     renderTable();
                     
-                    clearTimeout(timeoutId);
+                    // Then load detailed data in background
+                    if (cardsToLoad.length > 0) {
+                        loadDetailedData(cardsToLoad).catch(e => console.log('Details failed:', e));
+                    } else {
+                        // If all cards are cached, use cached data
+                        allCardDetails = allCards.map(card => cardDetailsCache[card.card_id]?.data || card);
+                        renderTable();
+                        loadAllActivations().catch(e => console.log('Activations failed:', e));
+                    }
                     
-                    // Then load scan logs (non-critical)
+                    // Load scan logs (non-critical)
                     loadScanLogs().catch(e => console.log('Scan logs failed:', e));
                     
                     // Load abandoned and mismatch data (non-critical)
                     loadAbandonedCards().catch(e => console.log('Abandoned failed:', e));
                     loadMismatchAlerts().catch(e => console.log('Mismatch failed:', e));
                     
-                    // Load detailed data in the background
-                    loadDetailedData().catch(e => console.log('Details failed:', e));
+                    lastLoadTime = Date.now();
                 }
             } catch (error) {
                 console.error('Admin load error:', error);
-                showStatus('Error loading data: ' + error.message, 'error');
-                clearTimeout(timeoutId);
+                if (error.message.includes('429')) {
+                    showRateLimit('Rate limit exceeded. Please wait a moment.');
+                } else {
+                    showStatus('Error loading data: ' + error.message, 'error');
+                }
             }
         }
         
         // Load detailed card data in background
-        async function loadDetailedData() {
+        async function loadDetailedData(cardsToLoad) {
             const batchSize = 2;
-            for (let i = 0; i < allCards.length; i += batchSize) {
-                const batch = allCards.slice(i, i + batchSize);
+            for (let i = 0; i < cardsToLoad.length; i += batchSize) {
+                const batch = cardsToLoad.slice(i, i + batchSize);
                 
                 const batchPromises = batch.map(async (card) => {
                     try {
+                        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+                        
                         const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
                         
                         if (detailResponse.status === 429) {
-                            showStatus('Rate limited, showing basic data', 'warning', 3000);
+                            showRateLimit(`Rate limited for ${card.card_id}, using basic data`);
                             return card;
                         }
                         
                         const detailResult = await detailResponse.json();
                         if (detailResult.success) {
+                            // Cache the result
+                            cardDetailsCache[card.card_id] = {
+                                data: detailResult.card,
+                                timestamp: Date.now()
+                            };
+                            
                             // Update the card in allCardDetails
                             const index = allCardDetails.findIndex(c => c.card_id === card.card_id);
                             if (index >= 0) {
                                 allCardDetails[index] = detailResult.card;
                             }
+                            return detailResult.card;
                         }
-                        return detailResult.card || card;
+                        return card;
                     } catch (error) {
                         console.error(`Error loading ${card.card_id}:`, error);
                         return card;
@@ -1472,11 +1473,11 @@
                 // Re-render after each batch
                 renderTable();
                 
-                // Update heatmap with new activation data
+                // Update activations with new data
                 await loadAllActivations();
                 
                 // Delay between batches
-                if (i + batchSize < allCards.length) {
+                if (i + batchSize < cardsToLoad.length) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
@@ -1497,6 +1498,8 @@
                 const response = await fetch(url);
                 
                 if (response.status === 429) {
+                    showRateLimit('Rate limited for scan logs');
+                    allScanLogs = [];
                     return;
                 }
                 
@@ -1518,6 +1521,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
                 
                 if (response.status === 429) {
+                    showRateLimit('Rate limited for abandoned cards');
                     return;
                 }
                 
@@ -1548,6 +1552,7 @@
                 }
             } catch (error) {
                 console.error('Error loading abandoned cards:', error);
+                document.getElementById('abandonedCardsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
             }
         }
         
@@ -1557,6 +1562,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
                 
                 if (response.status === 429) {
+                    showRateLimit('Rate limited for mismatch alerts');
                     return;
                 }
                 
@@ -1593,6 +1599,7 @@
                 }
             } catch (error) {
                 console.error('Error loading mismatch alerts:', error);
+                document.getElementById('mismatchAlertsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
             }
         }
         
@@ -2223,12 +2230,7 @@
         function initializeEventListeners() {
             searchInput.addEventListener('input', renderTable);
             
-            refreshBtn.addEventListener('click', () => {
-                // Clear cache and reload
-                allCardDetails = [];
-                allActivations = [];
-                loadAdminData();
-            });
+            refreshBtn.addEventListener('click', () => loadAdminData(true));
             
             logoutBtn.addEventListener('click', logout);
             
