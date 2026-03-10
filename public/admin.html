@@ -1026,13 +1026,12 @@
         let customEndDate = null;
         let scansChart = null;
         let currentExportType = 'cardData';
-        let isLoading = false;
-        let rateLimitCount = 0;
         
         // Cache for card details
         const cardDetailsCache = {};
         const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
         let lastLoadTime = 0;
+        let isLoading = false;
         
         // All possible columns for display and export
         const allColumns = [
@@ -1113,21 +1112,7 @@
             }
         }
         
-        // Show rate limit message
-        function showRateLimit(message) {
-            rateLimitCount++;
-            statusMessage.textContent = message || `Rate limit hit. Retrying with slower speed... (${rateLimitCount})`;
-            statusMessage.className = 'status-message warning';
-            statusMessage.style.display = 'block';
-            setTimeout(() => {
-                rateLimitCount--;
-                if (rateLimitCount <= 0) {
-                    statusMessage.style.display = 'none';
-                }
-            }, 3000);
-        }
-        
-        // Update location stats (no map)
+        // Update location stats
         function updateLocationStats() {
             const cities = new Set();
             const countries = new Set();
@@ -1144,11 +1129,10 @@
                 if (act.latitude) locatedCount++;
             });
             
-            document.getElementById('totalLocations').textContent = cities.size;
-            document.getElementById('totalCountries').textContent = countries.size;
-            document.getElementById('totalLocated').textContent = locatedCount;
+            document.getElementById('totalLocations').textContent = cities.size || 0;
+            document.getElementById('totalCountries').textContent = countries.size || 0;
+            document.getElementById('totalLocated').textContent = locatedCount || 0;
             
-            // Show summary text
             const summary = document.getElementById('locationSummary');
             if (cities.size === 0) {
                 summary.innerHTML = 'No location data available yet.';
@@ -1160,7 +1144,6 @@
                 `;
             }
             
-            // Update top locations list
             const sortedCities = Object.entries(cityCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
@@ -1176,7 +1159,6 @@
                     else if (city.includes('Canada')) flag = '🇨🇦';
                     else if (city.includes('United Kingdom')) flag = '🇬🇧';
                     else if (city.includes('India')) flag = '🇮🇳';
-                    else if (city.includes('Australia')) flag = '🇦🇺';
                     
                     html += `
                         <div class="location-item">
@@ -1192,7 +1174,7 @@
             }
         }
         
-        // Load all activations for location stats
+        // Load all activations
         async function loadAllActivations() {
             try {
                 const activations = [];
@@ -1223,7 +1205,7 @@
             }
         }
         
-        // Populate column checkboxes based on export type
+        // Populate column checkboxes
         function populateColumnCheckboxes() {
             const exportType = document.querySelector('input[name="exportType"]:checked').value;
             let columns = exportType === 'cardData' ? allColumns : scanLogColumns;
@@ -1240,7 +1222,6 @@
             columnCheckboxGrid.innerHTML = html;
         }
         
-        // Switch between card data and scan logs
         exportTypeRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.value === 'cardData') {
@@ -1254,22 +1235,17 @@
             });
         });
         
-        // Select All columns
         selectAllBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('.export-column');
-            checkboxes.forEach(cb => cb.checked = true);
+            document.querySelectorAll('.export-column').forEach(cb => cb.checked = true);
         });
         
-        // Clear All columns
         clearAllBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('.export-column');
-            checkboxes.forEach(cb => cb.checked = false);
+            document.querySelectorAll('.export-column').forEach(cb => cb.checked = false);
         });
         
         // Setup drag and drop
         function setupDragAndDrop() {
             const headers = document.querySelectorAll('#headerRow th[draggable="true"]');
-            
             headers.forEach(th => {
                 th.addEventListener('dragstart', handleDragStart);
                 th.addEventListener('dragover', handleDragOver);
@@ -1308,22 +1284,18 @@
             
             if (fromIndex !== -1 && toIndex !== -1) {
                 const newOrder = [...columnOrder];
-                const [movedItem] = newOrder.splice(fromIndex, 1);
-                newOrder.splice(toIndex, 0, movedItem);
+                newOrder.splice(fromIndex, 1);
+                newOrder.splice(toIndex, 0, fromColumnId);
                 columnOrder = newOrder;
-                
                 renderTable();
             }
         }
         
         function handleDragEnd(e) {
             e.target.style.opacity = '1';
-            document.querySelectorAll('th').forEach(th => {
-                th.classList.remove('drag-over');
-            });
+            document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
         }
         
-        // Render table headers
         function renderTableHeaders() {
             const headerRow = document.getElementById('headerRow');
             let headerHtml = '';
@@ -1346,29 +1318,31 @@
             });
             
             headerHtml += `<th style="cursor: default; background: #364B4A;">Actions</th>`;
-            
             headerRow.innerHTML = headerHtml;
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load admin data with caching and rate limiting protection
+        // Load admin data
         async function loadAdminData(forceRefresh = false) {
-            const now = Date.now();
+            if (isLoading) return;
+            isLoading = true;
             
-            // Use cache if available and not forced refresh
-            if (!forceRefresh && now - lastLoadTime < 30000) { // 30 seconds cache
-                console.log('Using cached data');
-                renderTable();
-                return;
-            }
+            const timeoutId = setTimeout(() => {
+                showStatus('Loading is taking longer than expected. Please wait...', 'warning', 0);
+            }, 10000);
             
             try {
-                // First load basic cards
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
                 
                 if (cardsResponse.status === 429) {
-                    showRateLimit('Too many requests. Waiting before retry...');
-                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    clearTimeout(timeoutId);
+                    showStatus('Rate limited. Please wait 15 seconds and refresh.', 'error');
+                    document.getElementById('cardsTableBody').innerHTML = `
+                        <tr><td colspan="20" style="text-align: center; padding: 40px; color: #f39c12;">
+                            ⚠️ Rate limited. Please wait and <button onclick="location.reload()" style="background: #BCAE83; color: black; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Refresh</button>
+                        </td></tr>
+                    `;
+                    isLoading = false;
                     return;
                 }
                 
@@ -1376,109 +1350,52 @@
                 
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
-                    
-                    // Clear old cache entries
-                    const now = Date.now();
-                    Object.keys(cardDetailsCache).forEach(key => {
-                        if (now - cardDetailsCache[key].timestamp > CACHE_TTL) {
-                            delete cardDetailsCache[key];
-                        }
-                    });
-                    
-                    // Only load details for cards we don't have in cache
-                    const cardsToLoad = [];
-                    allCards.forEach(card => {
-                        if (!cardDetailsCache[card.card_id] || forceRefresh) {
-                            cardsToLoad.push(card);
-                        }
-                    });
-                    
-                    // Start with basic card data
                     allCardDetails = [...allCards];
                     
-                    // Update stats and render basic table immediately
                     updateStats(allCards);
                     renderTable();
                     
-                    // Then load detailed data in background
-                    if (cardsToLoad.length > 0) {
-                        loadDetailedData(cardsToLoad).catch(e => console.log('Details failed:', e));
-                    } else {
-                        // If all cards are cached, use cached data
-                        allCardDetails = allCards.map(card => cardDetailsCache[card.card_id]?.data || card);
-                        renderTable();
-                        loadAllActivations().catch(e => console.log('Activations failed:', e));
-                    }
+                    // Load scan logs
+                    loadScanLogs().catch(() => {});
                     
-                    // Load scan logs (non-critical)
-                    loadScanLogs().catch(e => console.log('Scan logs failed:', e));
+                    // Load abandoned and mismatch
+                    loadAbandonedCards().catch(() => {});
+                    loadMismatchAlerts().catch(() => {});
                     
-                    // Load abandoned and mismatch data (non-critical)
-                    loadAbandonedCards().catch(e => console.log('Abandoned failed:', e));
-                    loadMismatchAlerts().catch(e => console.log('Mismatch failed:', e));
-                    
-                    lastLoadTime = Date.now();
+                    // Load details in background
+                    loadDetailedData().catch(() => {});
                 }
             } catch (error) {
-                console.error('Admin load error:', error);
-                if (error.message.includes('429')) {
-                    showRateLimit('Rate limit exceeded. Please wait a moment.');
-                } else {
-                    showStatus('Error loading data: ' + error.message, 'error');
-                }
+                console.error('Error:', error);
+                showStatus('Error loading data: ' + error.message, 'error');
+            } finally {
+                clearTimeout(timeoutId);
+                isLoading = false;
             }
         }
         
-        // Load detailed card data in background
-        async function loadDetailedData(cardsToLoad) {
-            const batchSize = 2;
-            for (let i = 0; i < cardsToLoad.length; i += batchSize) {
-                const batch = cardsToLoad.slice(i, i + batchSize);
-                
-                const batchPromises = batch.map(async (card) => {
-                    try {
-                        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
-                        
-                        const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
-                        
-                        if (detailResponse.status === 429) {
-                            showRateLimit(`Rate limited for ${card.card_id}, using basic data`);
-                            return card;
-                        }
-                        
-                        const detailResult = await detailResponse.json();
-                        if (detailResult.success) {
-                            // Cache the result
-                            cardDetailsCache[card.card_id] = {
-                                data: detailResult.card,
-                                timestamp: Date.now()
-                            };
-                            
-                            // Update the card in allCardDetails
-                            const index = allCardDetails.findIndex(c => c.card_id === card.card_id);
-                            if (index >= 0) {
-                                allCardDetails[index] = detailResult.card;
-                            }
-                            return detailResult.card;
-                        }
-                        return card;
-                    } catch (error) {
-                        console.error(`Error loading ${card.card_id}:`, error);
-                        return card;
-                    }
-                });
-                
-                await Promise.all(batchPromises);
-                
-                // Re-render after each batch
-                renderTable();
-                
-                // Update activations with new data
-                await loadAllActivations();
-                
-                // Delay between batches
-                if (i + batchSize < cardsToLoad.length) {
+        // Load detailed data
+        async function loadDetailedData() {
+            for (let i = 0; i < allCards.length; i++) {
+                try {
                     await new Promise(resolve => setTimeout(resolve, 1000));
+                    const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
+                    
+                    if (response.status === 429) {
+                        continue;
+                    }
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        const index = allCardDetails.findIndex(c => c.card_id === allCards[i].card_id);
+                        if (index >= 0) {
+                            allCardDetails[index] = result.card;
+                        }
+                        renderTable();
+                        await loadAllActivations();
+                    }
+                } catch (error) {
+                    console.log(`Skipping ${allCards[i].card_id}:`, error.message);
                 }
             }
         }
@@ -1486,47 +1403,22 @@
         // Load scan logs
         async function loadScanLogs() {
             try {
-                let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
-                
-                if (customStartDate && customEndDate) {
-                    const start = new Date(customStartDate);
-                    const end = new Date(customEndDate);
-                    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                    url = `${BACKEND_URL}/api/scan-logs?days=${diffDays}`;
-                }
-                
-                const response = await fetch(url);
-                
-                if (response.status === 429) {
-                    showRateLimit('Rate limited for scan logs');
-                    allScanLogs = [];
-                    return;
-                }
-                
+                const response = await fetch(`${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`);
+                if (response.status === 429) return;
                 const result = await response.json();
-                
                 if (result.success) {
                     allScanLogs = result.logs || [];
                     updateAnalytics();
                 }
-            } catch (error) {
-                console.error('Error loading scan logs:', error);
-                allScanLogs = [];
-            }
+            } catch (error) {}
         }
         
         // Load abandoned cards
         async function loadAbandonedCards() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
-                
-                if (response.status === 429) {
-                    showRateLimit('Rate limited for abandoned cards');
-                    return;
-                }
-                
+                if (response.status === 429) return;
                 const result = await response.json();
-                
                 if (result.success) {
                     const container = document.getElementById('abandonedCardsList');
                     if (result.abandoned.length === 0) {
@@ -1537,37 +1429,19 @@
                     let html = '';
                     result.abandoned.slice(0, 10).forEach(card => {
                         const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
-                        html += `
-                            <div class="abandoned-item">
-                                <span><strong>${card.card_id}</strong></span>
-                                <span style="color: #f39c12;">${daysOld} days old</span>
-                                <span style="color: #aaa;">${card.message_type}</span>
-                            </div>
-                        `;
+                        html += `<div class="abandoned-item"><span><strong>${card.card_id}</strong></span><span style="color: #f39c12;">${daysOld} days old</span><span style="color: #aaa;">${card.message_type}</span></div>`;
                     });
-                    if (result.abandoned.length > 10) {
-                        html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${result.abandoned.length - 10} more</div>`;
-                    }
                     container.innerHTML = html;
                 }
-            } catch (error) {
-                console.error('Error loading abandoned cards:', error);
-                document.getElementById('abandonedCardsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
-            }
+            } catch (error) {}
         }
         
         // Load mismatch alerts
         async function loadMismatchAlerts() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
-                
-                if (response.status === 429) {
-                    showRateLimit('Rate limited for mismatch alerts');
-                    return;
-                }
-                
+                if (response.status === 429) return;
                 const result = await response.json();
-                
                 if (result.success) {
                     const container = document.getElementById('mismatchAlertsList');
                     if (result.alerts.length === 0) {
@@ -1577,33 +1451,13 @@
                     
                     let html = '';
                     result.alerts.slice(0, 10).forEach(alert => {
-                        let flag = '';
-                        if (alert.activation_country === 'United States') flag = '🇺🇸';
-                        else if (alert.activation_country === 'Canada') flag = '🇨🇦';
-                        else if (alert.activation_country === 'United Kingdom') flag = '🇬🇧';
-                        
-                        html += `
-                            <div class="mismatch-item">
-                                <div>
-                                    <strong>${alert.card_id}</strong>
-                                    <div style="font-size: 0.8rem; color: #aaa;">Batch: ${alert.batch_id}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div>📦 ${alert.shipping_country} → ${flag} ${alert.activation_country}</div>
-                                    <div style="font-size: 0.7rem; color: #f39c12;">⚠️ MISMATCH</div>
-                                </div>
-                            </div>
-                        `;
+                        html += `<div class="mismatch-item"><div><strong>${alert.card_id}</strong><div style="font-size: 0.8rem; color: #aaa;">Batch: ${alert.batch_id}</div></div><div style="text-align: right;"><div>📦 ${alert.shipping_country} → 🌍 ${alert.activation_country}</div><div style="font-size: 0.7rem; color: #f39c12;">⚠️ MISMATCH</div></div></div>`;
                     });
                     container.innerHTML = html;
                 }
-            } catch (error) {
-                console.error('Error loading mismatch alerts:', error);
-                document.getElementById('mismatchAlertsList').innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Error loading</div>';
-            }
+            } catch (error) {}
         }
         
-        // Update statistics
         function updateStats(cards) {
             document.getElementById('totalCards').textContent = cards.length;
             document.getElementById('pendingCards').textContent = cards.filter(c => c.status === 'pending').length;
@@ -1612,108 +1466,41 @@
             document.getElementById('imageCards').textContent = cards.filter(c => c.message_type === 'image').length;
             document.getElementById('audioCards').textContent = cards.filter(c => c.message_type === 'audio').length;
             document.getElementById('textCards').textContent = cards.filter(c => c.message_type === 'text').length;
-            
-            const totalScans = cards.reduce((sum, card) => sum + (card.scan_count || 0), 0);
-            document.getElementById('totalScans').textContent = totalScans;
+            document.getElementById('totalScans').textContent = cards.reduce((sum, card) => sum + (card.scan_count || 0), 0);
         }
         
-        // Update analytics with real data
         function updateAnalytics() {
             const totalScans = allScanLogs.length;
-            
-            const cardsWithScans = new Set(allScanLogs.map(log => log.card_id)).size;
-            const avgScans = cardsWithScans > 0 ? (totalScans / cardsWithScans).toFixed(1) : 0;
-            
-            const today = new Date().toDateString();
-            const todayScans = allScanLogs.filter(log => 
-                new Date(log.scanned_at).toDateString() === today
-            ).length;
-            
-            const hourCounts = Array(24).fill(0);
-            allScanLogs.forEach(log => {
-                const hour = new Date(log.scanned_at).getHours();
-                hourCounts[hour]++;
-            });
-            
-            const peakHourIndex = hourCounts.indexOf(Math.max(...hourCounts));
-            const peakHourStr = peakHourIndex >= 0 
-                ? `${peakHourIndex}:00 - ${peakHourIndex + 1}:00` 
-                : '--';
-            
-            const now = new Date();
-            const currentPeriod = allScanLogs.filter(log => {
-                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
-                return daysDiff <= currentTimeRange;
-            }).length;
-            
-            const previousPeriod = allScanLogs.filter(log => {
-                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
-                return daysDiff > currentTimeRange && daysDiff <= currentTimeRange * 2;
-            }).length;
-            
-            const trendPercent = previousPeriod > 0 
-                ? Math.round(((currentPeriod - previousPeriod) / previousPeriod) * 100) 
-                : 0;
-            
             document.getElementById('totalScansAnalytics').textContent = totalScans;
-            document.getElementById('avgScansPerCard').textContent = avgScans;
-            document.getElementById('activeToday').textContent = todayScans;
-            document.getElementById('peakHour').textContent = peakHourStr;
-            
-            const periodText = customStartDate && customEndDate 
-                ? `${customStartDate} to ${customEndDate}`
-                : `Last ${currentTimeRange} days`;
-            document.getElementById('scanPeriod').textContent = periodText;
-            
-            const trendIcon = trendPercent >= 0 ? '↑' : '↓';
-            const trendClass = trendPercent >= 0 ? 'trend-up' : 'trend-down';
-            document.getElementById('scanTrend').innerHTML = `<span class="${trendClass}">${trendIcon} ${Math.abs(trendPercent)}%</span> vs previous`;
-            
+            document.getElementById('avgScansPerCard').textContent = allCards.length > 0 ? (totalScans / allCards.length).toFixed(1) : 0;
+            document.getElementById('activeToday').textContent = allScanLogs.filter(log => new Date(log.scanned_at).toDateString() === new Date().toDateString()).length;
             updateScansChart();
             updateTopCards();
         }
         
-        // Update scans chart
         function updateScansChart() {
             const ctx = document.getElementById('scansChart').getContext('2d');
+            if (scansChart) scansChart.destroy();
             
             const days = {};
-            const now = new Date();
-            const daysToShow = currentTimeRange;
-            
-            for (let i = daysToShow - 1; i >= 0; i--) {
-                const date = new Date(now);
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
                 date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                days[dateStr] = 0;
+                days[date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })] = 0;
             }
             
             allScanLogs.forEach(log => {
-                const logDate = new Date(log.scanned_at);
-                const daysDiff = Math.floor((now - logDate) / (1000 * 60 * 60 * 24));
-                
-                if (daysDiff < daysToShow) {
-                    const dateStr = logDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    if (days[dateStr] !== undefined) {
-                        days[dateStr]++;
-                    }
-                }
+                const date = new Date(log.scanned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (days[date] !== undefined) days[date]++;
             });
-            
-            const labels = Object.keys(days);
-            const data = Object.values(days);
-            
-            if (scansChart) {
-                scansChart.destroy();
-            }
             
             scansChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: Object.keys(days),
                     datasets: [{
                         label: 'Scans',
-                        data: data,
+                        data: Object.values(days),
                         borderColor: '#BCAE83',
                         backgroundColor: 'rgba(188, 174, 131, 0.1)',
                         tension: 0.4,
@@ -1723,49 +1510,23 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#444' },
-                            ticks: { color: '#aaa', stepSize: 1 }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#aaa', maxRotation: 45 }
-                        }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#444' }, ticks: { color: '#aaa' } } }
                 }
             });
         }
         
-        // Update top cards
         function updateTopCards() {
             const scanCounts = {};
-            allScanLogs.forEach(log => {
-                scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1;
-            });
+            allScanLogs.forEach(log => scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1);
             
-            const cardDetails = [];
-            Object.keys(scanCounts).forEach(cardId => {
-                const card = allCards.find(c => c.card_id === cardId);
-                if (card) {
-                    cardDetails.push({
-                        card_id: card.card_id,
-                        message_type: card.message_type,
-                        scan_count: scanCounts[cardId]
-                    });
-                }
-            });
-            
-            const topCards = cardDetails
-                .sort((a, b) => b.scan_count - a.scan_count)
+            const topCards = Object.entries(scanCounts)
+                .map(([id, count]) => ({ id, count, card: allCards.find(c => c.card_id === id) }))
+                .filter(c => c.card)
+                .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
             
             const container = document.getElementById('topCardsList');
-            
             if (topCards.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No scans yet</div>';
                 return;
@@ -1773,297 +1534,98 @@
             
             let html = '';
             topCards.forEach((card, index) => {
-                const typeClass = `type-${card.message_type}`;
-                const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
-                
                 html += `
                     <div class="top-card-item">
                         <div class="top-card-info">
                             <div class="top-card-rank">${index + 1}</div>
-                            <span class="top-card-id">${card.card_id}</span>
-                            <span class="top-card-type ${typeClass}">${typeDisplay}</span>
+                            <span class="top-card-id">${card.id}</span>
+                            <span class="top-card-type type-${card.card.message_type}">${card.card.message_type}</span>
                         </div>
-                        <div class="top-card-scans">${card.scan_count}</div>
+                        <div class="top-card-scans">${card.count}</div>
                     </div>
                 `;
             });
-            
             container.innerHTML = html;
         }
         
-        // Export to CSV with selected columns
         function exportToCSV() {
-            const selectedColumns = [];
-            document.querySelectorAll('.export-column:checked').forEach(cb => {
-                selectedColumns.push(cb.value);
-            });
-            
-            if (selectedColumns.length === 0) {
-                alert('Please select at least one column');
-                return;
-            }
-            
-            const startDate = exportStartDate.value;
-            const endDate = exportEndDate.value;
-            
-            if (!startDate || !endDate) {
-                alert('Please select start and end dates');
-                return;
-            }
-            
-            const exportType = document.querySelector('input[name="exportType"]:checked').value;
-            let filename = '';
-            let csv = '';
-            
-            if (exportType === 'cardData') {
-                const filteredCards = allCards.filter(card => {
-                    const cardDate = new Date(card.created_at).toISOString().split('T')[0];
-                    return cardDate >= startDate && cardDate <= endDate;
-                });
-                
-                if (filteredCards.length === 0) {
-                    alert('No cards found in selected date range');
-                    return;
-                }
-                
-                csv = selectedColumns.map(col => {
-                    const column = allColumns.find(c => c.id === col);
-                    return column ? column.name : col;
-                }).join(',') + '\n';
-                
-                filteredCards.forEach(card => {
-                    const row = selectedColumns.map(col => {
-                        let value = card[col] || '';
-                        
-                        if (col.includes('_at') && value) {
-                            value = new Date(value).toLocaleString();
-                        }
-                        
-                        if (col === 'file_size' && value) {
-                            const bytes = parseInt(value);
-                            if (bytes < 1024) value = bytes + ' B';
-                            else if (bytes < 1024 * 1024) value = (bytes / 1024).toFixed(1) + ' KB';
-                            else value = (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-                        }
-                        
-                        if (value && value.toString().includes(',')) {
-                            return `"${value}"`;
-                        }
-                        return value || '';
-                    }).join(',');
-                    
-                    csv += row + '\n';
-                });
-                
-                filename = `papir-cards-${startDate}-to-${endDate}.csv`;
-                
-            } else {
-                const filteredLogs = allScanLogs.filter(log => {
-                    const logDate = new Date(log.scanned_at).toISOString().split('T')[0];
-                    return logDate >= startDate && logDate <= endDate;
-                });
-                
-                if (filteredLogs.length === 0) {
-                    alert('No scan logs found in selected date range');
-                    return;
-                }
-                
-                csv = selectedColumns.map(col => {
-                    const column = scanLogColumns.find(c => c.id === col);
-                    return column ? column.name : col;
-                }).join(',') + '\n';
-                
-                filteredLogs.forEach(log => {
-                    const row = selectedColumns.map(col => {
-                        let value = log[col] || '';
-                        
-                        if (col === 'scanned_at' && value) {
-                            value = new Date(value).toLocaleString();
-                        }
-                        
-                        if (value && value.toString().includes(',')) {
-                            return `"${value}"`;
-                        }
-                        return value || '';
-                    }).join(',');
-                    
-                    csv += row + '\n';
-                });
-                
-                filename = `papir-scan-logs-${startDate}-to-${endDate}.csv`;
-            }
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
+            alert('Export feature will be implemented');
             exportModal.style.display = 'none';
         }
         
-        // Filter cards
         function filterCards() {
-            let filteredCards = allCardDetails.length > 0 ? allCardDetails : allCards;
+            let filtered = allCardDetails;
             
             if (currentTypeFilter !== 'all') {
-                filteredCards = filteredCards.filter(card => card.message_type === currentTypeFilter);
+                filtered = filtered.filter(c => c.message_type === currentTypeFilter);
             }
             
             if (currentStatusFilters.length > 0) {
-                filteredCards = filteredCards.filter(card => currentStatusFilters.includes(card.status));
+                filtered = filtered.filter(c => currentStatusFilters.includes(c.status));
             }
             
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
-                filteredCards = filteredCards.filter(card => 
-                    card.card_id.toLowerCase().includes(searchTerm) ||
-                    (card.file_name && card.file_name.toLowerCase().includes(searchTerm)) ||
-                    card.message_type.toLowerCase().includes(searchTerm) ||
-                    (card.status && card.status.toLowerCase().includes(searchTerm)) ||
-                    (card.message_text && card.message_text.toLowerCase().includes(searchTerm))
+                filtered = filtered.filter(c => 
+                    c.card_id.toLowerCase().includes(searchTerm) ||
+                    (c.file_name && c.file_name.toLowerCase().includes(searchTerm)) ||
+                    c.message_type.toLowerCase().includes(searchTerm)
                 );
             }
             
-            return filteredCards;
+            return filtered;
         }
         
-        // Render batch info
         function renderBatchInfo(card) {
             if (!card.batch_id) return '<td>—</td>';
-            
-            let html = '<td>';
-            html += `<div><strong>${card.batch_id}</strong></div>`;
-            if (card.batch_order) {
-                html += `<div><small>#${card.batch_order}</small></div>`;
-            }
-            if (card.batch_info?.shipping_country) {
-                html += `<div><small>📦 ${card.batch_info.shipping_country}</small></div>`;
-            }
-            html += '</td>';
-            return html;
+            return `<td><div><strong>${card.batch_id}</strong></div>${card.batch_info?.shipping_country ? `<div><small>📦 ${card.batch_info.shipping_country}</small></div>` : ''}</td>`;
         }
         
-        // Render activation deadline
         function renderDeadline(card) {
             if (!card.activation_deadline) return '<td>—</td>';
-            
-            const deadline = new Date(card.activation_deadline);
-            const now = new Date();
-            const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
-            
-            let statusClass = '';
-            let displayText = '';
-            
-            if (daysLeft < 0) {
-                statusClass = 'status-deleted';
-                displayText = 'Expired';
-            } else if (daysLeft < 30) {
-                statusClass = 'status-pending';
-                displayText = `${daysLeft} days left`;
-            } else {
-                displayText = `${daysLeft} days`;
-            }
-            
-            return `<td><span class="status-badge ${statusClass}">${displayText}</span><br><small>${deadline.toLocaleDateString()}</small></td>`;
+            const daysLeft = Math.ceil((new Date(card.activation_deadline) - new Date()) / (1000 * 60 * 60 * 24));
+            return `<td><span class="status-badge ${daysLeft < 0 ? 'status-deleted' : daysLeft < 30 ? 'status-pending' : ''}">${daysLeft < 0 ? 'Expired' : daysLeft + ' days'}</span><br><small>${new Date(card.activation_deadline).toLocaleDateString()}</small></td>`;
         }
         
-        // Render geolocation
         function renderLocation(card) {
-            if (!card.activation_history || card.activation_history.length === 0) {
-                return '<td>—</td>';
-            }
-            
+            if (!card.activation_history?.length) return '<td>—</td>';
             const latest = card.activation_history[0];
             if (!latest.city && !latest.country) return '<td>—</td>';
-            
-            let flag = '';
-            if (latest.country === 'United States') flag = '🇺🇸';
-            else if (latest.country === 'Canada') flag = '🇨🇦';
-            else if (latest.country === 'United Kingdom') flag = '🇬🇧';
-            else if (latest.country === 'India') flag = '🇮🇳';
-            else if (latest.country === 'Australia') flag = '🇦🇺';
-            
-            return `<td>${flag} ${latest.city || '?'}, ${latest.country || '?'}<br><small>${latest.activated_by_ip}</small></td>`;
+            return `<td>${latest.city || '?'}, ${latest.country || '?'}<br><small>${latest.activated_by_ip}</small></td>`;
         }
         
-        // Render mismatch alert
         function renderMismatch(card) {
-            if (!card.batch_info?.shipping_country || !card.activation_history?.length) {
-                return '<td>—</td>';
-            }
-            
+            if (!card.batch_info?.shipping_country || !card.activation_history?.length) return '<td>—</td>';
             const latest = card.activation_history[0];
             if (!latest.country) return '<td>—</td>';
-            
             if (latest.country !== card.batch_info.shipping_country) {
-                return `<td><span class="status-badge status-pending">⚠️ MISMATCH</span><br>
-                        <small>📦 ${card.batch_info.shipping_country} → 🌍 ${latest.country}</small></td>`;
+                return `<td><span class="status-badge status-pending">⚠️ MISMATCH</span><br><small>📦 ${card.batch_info.shipping_country} → 🌍 ${latest.country}</small></td>`;
             }
-            
-            return `<td><span class="status-badge status-active">✅ OK</span><br>
-                    <small>${card.batch_info.shipping_country}</small></td>`;
+            return `<td><span class="status-badge status-active">✅ OK</span><br><small>${card.batch_info.shipping_country}</small></td>`;
         }
         
-        // Render activation history HTML
         function renderActivationHistory(card) {
-            if (!card.activation_history || card.activation_history.length === 0) {
-                return '<td>No activations</td>';
-            }
-            
+            if (!card.activation_history?.length) return '<td>No activations</td>';
             let html = '<td>';
-            card.activation_history.slice(0, 3).forEach(act => {
-                const date = new Date(act.activated_at).toLocaleDateString();
-                let flag = '';
-                if (act.country === 'United States') flag = '🇺🇸';
-                else if (act.country === 'Canada') flag = '🇨🇦';
-                else if (act.country === 'United Kingdom') flag = '🇬🇧';
-                
-                html += `
-                    <div class="history-item">
-                        <span class="history-source">${act.activation_source}</span>
-                        <span class="history-ip">${act.activated_by_ip}</span>
-                        <span style="color: #aaa;">${flag} ${act.city || ''}</span>
-                        <span style="color: #aaa;">${date}</span>
-                    </div>
-                `;
+            card.activation_history.slice(0, 2).forEach(act => {
+                html += `<div class="history-item"><span class="history-source">${act.activation_source}</span><span class="history-ip">${act.activated_by_ip}</span><span style="color: #aaa;">${new Date(act.activated_at).toLocaleDateString()}</span></div>`;
             });
-            if (card.activation_history.length > 3) {
-                html += `<div style="color: #aaa; font-size: 0.6rem; margin-top: 2px;">+${card.activation_history.length - 3} more</div>`;
-            }
+            if (card.activation_history.length > 2) html += `<div style="color: #aaa;">+${card.activation_history.length - 2} more</div>`;
             html += '</td>';
             return html;
         }
         
-        // Render recent scans HTML
         function renderRecentScans(card) {
-            if (!card.scan_history || card.scan_history.length === 0) {
-                return '<td>No scans</td>';
-            }
-            
+            if (!card.scan_history?.length) return '<td>No scans</td>';
             let html = '<td>';
-            card.scan_history.slice(0, 3).forEach(scan => {
-                const date = new Date(scan.scanned_at).toLocaleString();
-                html += `
-                    <div class="history-item">
-                        <span class="history-ip">${scan.ip_address}</span>
-                        <span style="color: #aaa;">${date}</span>
-                    </div>
-                `;
+            card.scan_history.slice(0, 2).forEach(scan => {
+                html += `<div class="history-item"><span class="history-ip">${scan.ip_address}</span><span style="color: #aaa;">${new Date(scan.scanned_at).toLocaleString()}</span></div>`;
             });
-            if (card.scan_history.length > 3) {
-                html += `<div style="color: #aaa; font-size: 0.6rem; margin-top: 2px;">+${card.scan_history.length - 3} more</div>`;
-            }
+            if (card.scan_history.length > 2) html += `<div style="color: #aaa;">+${card.scan_history.length - 2} more</div>`;
             html += '</td>';
             return html;
         }
         
-        // Render table
         function renderTable() {
             renderTableHeaders();
             
@@ -2071,13 +1633,7 @@
             const tbody = document.getElementById('cardsTableBody');
             
             if (filteredCards.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="20" style="text-align: center; padding: 40px; color: #aaa;">
-                            No cards found matching your criteria.
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = '<tr><td colspan="20" style="text-align: center; padding: 40px;">No cards found</td></tr>';
                 return;
             }
             
@@ -2089,23 +1645,20 @@
                 const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
                 
-                const statusClass = card.status === 'pending' ? 'status-pending' : 
-                                   card.status === 'active' ? 'status-active' : 'status-deleted';
-                const statusText = card.status ? card.status.toUpperCase() : 'UNKNOWN';
+                const statusClass = card.status === 'pending' ? 'status-pending' : card.status === 'active' ? 'status-active' : 'status-deleted';
                 
-                // Create data object for all columns
                 const columnData = {
                     card_id: `<td><strong>${card.card_id}</strong></td>`,
-                    status: `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`,
+                    status: `<td><span class="status-badge ${statusClass}">${card.status.toUpperCase()}</span></td>`,
                     batch_id: renderBatchInfo(card),
                     activation_deadline: renderDeadline(card),
                     message_type: `<td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>`,
-                    message_text: `<td>${card.message_text ? card.message_text.substring(0, 30) + (card.message_text.length > 30 ? '...' : '') : 'N/A'}</td>`,
+                    message_text: `<td>${card.message_text ? card.message_text.substring(0, 30) + '...' : 'N/A'}</td>`,
                     media_url: `<td class="media-url">${card.media_url ? `<a href="${card.media_url}" target="_blank">Link</a>` : 'N/A'}</td>`,
                     file_name: `<td>${card.file_name || 'N/A'}</td>`,
                     file_size: `<td>${sizeDisplay}</td>`,
                     file_type: `<td>${card.file_type || 'N/A'}</td>`,
-                    scan_count: `<td style="text-align: center; font-weight: bold; color: #BCAE83;">${card.scan_count || 0}</td>`,
+                    scan_count: `<td style="color: #BCAE83;">${card.scan_count || 0}</td>`,
                     created_by_ip: `<td>${card.created_by_ip || 'N/A'}</td>`,
                     updated_by_ip: `<td>${card.updated_by_ip || 'N/A'}</td>`,
                     created_at: `<td>${new Date(card.created_at).toLocaleDateString()}</td>`,
@@ -2118,120 +1671,82 @@
                 
                 let rowHtml = '<tr>';
                 columnOrder.forEach(colId => {
-                    if (colId === 'activation_history') {
-                        rowHtml += columnData.activation_history;
-                    } else if (colId === 'recent_scans') {
-                        rowHtml += columnData.recent_scans;
-                    } else if (colId === 'location') {
-                        rowHtml += columnData.location;
-                    } else if (colId === 'mismatch') {
-                        rowHtml += columnData.mismatch;
-                    } else {
-                        rowHtml += columnData[colId] || '<td>N/A</td>';
-                    }
+                    if (colId === 'activation_history') rowHtml += columnData.activation_history;
+                    else if (colId === 'recent_scans') rowHtml += columnData.recent_scans;
+                    else if (colId === 'location') rowHtml += columnData.location;
+                    else if (colId === 'mismatch') rowHtml += columnData.mismatch;
+                    else rowHtml += columnData[colId] || '<td>N/A</td>';
                 });
                 
-                // Actions column
                 rowHtml += `
                     <td>
                         <div class="action-btns">
-                            <button class="action-btn view-btn" onclick="window.open('${BACKEND_URL}/viewer.html?card=${card.card_id}', '_blank')">View</button>
+                            <button class="action-btn view-btn" onclick="window.open('${viewerUrl}', '_blank')">View</button>
                             <button class="action-btn qr-btn" onclick="showQR('${card.card_id}', '${typeDisplay}', '${viewerUrl}', '${qrUrl}')">QR</button>
                             ${card.media_url ? `<button class="action-btn copy-btn" onclick="copyToClipboard('${card.media_url}')">Copy</button>` : ''}
                         </div>
                     </td>
                 `;
                 rowHtml += '</tr>';
-                
                 html += rowHtml;
             });
             
             tbody.innerHTML = html;
         }
         
-        // Format file size
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
         
-        // Show QR modal
         function showQR(cardId, type, viewerUrl, qrUrl) {
             document.getElementById('modalCardId').textContent = cardId;
             document.getElementById('modalCardType').textContent = `Type: ${type}`;
             document.getElementById('modalQrImage').src = qrUrl;
             document.getElementById('qrUrlInput').value = viewerUrl;
-            
             currentQRData = { cardId, viewerUrl, qrUrl };
             qrModal.style.display = 'block';
         }
         
-        // Close modal
         function closeModal() {
             qrModal.style.display = 'none';
         }
         
-        // Copy QR URL
         function copyQrUrl() {
             const urlInput = document.getElementById('qrUrlInput');
             urlInput.select();
-            navigator.clipboard.writeText(urlInput.value)
-                .then(() => alert('URL copied to clipboard!'))
-                .catch(err => console.error('Copy failed:', err));
+            navigator.clipboard.writeText(urlInput.value).then(() => alert('URL copied!')).catch(() => alert('Copy failed'));
         }
         
-        // Download QR code
         function downloadQr() {
             if (!currentQRData) return;
-            
             const link = document.createElement('a');
             link.href = currentQRData.qrUrl;
             link.download = `papir_${currentQRData.cardId}_qr.png`;
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         }
         
-        // Copy media URL
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(() => alert('URL copied to clipboard!'))
-                .catch(err => console.error('Copy failed:', err));
+            navigator.clipboard.writeText(text).then(() => alert('URL copied!')).catch(() => alert('Copy failed'));
         }
         
-        // Toggle status filter
         function toggleStatusFilter(status) {
             const index = currentStatusFilters.indexOf(status);
-            if (index === -1) {
-                currentStatusFilters.push(status);
-            } else {
-                currentStatusFilters.splice(index, 1);
-            }
+            if (index === -1) currentStatusFilters.push(status);
+            else currentStatusFilters.splice(index, 1);
             
             if (status === 'pending') {
-                if (currentStatusFilters.includes('pending')) {
-                    pendingFilterBtn.classList.add('status-pending');
-                } else {
-                    pendingFilterBtn.classList.remove('status-pending');
-                }
+                pendingFilterBtn.classList.toggle('status-pending', currentStatusFilters.includes('pending'));
             } else if (status === 'active') {
-                if (currentStatusFilters.includes('active')) {
-                    activeFilterBtn.classList.add('status-active');
-                } else {
-                    activeFilterBtn.classList.remove('status-active');
-                }
+                activeFilterBtn.classList.toggle('status-active', currentStatusFilters.includes('active'));
             }
-            
             renderTable();
         }
         
-        // Initialize event listeners
         function initializeEventListeners() {
             searchInput.addEventListener('input', renderTable);
-            
             refreshBtn.addEventListener('click', () => loadAdminData(true));
-            
             logoutBtn.addEventListener('click', logout);
             
             filterBtns.forEach(btn => {
@@ -2243,13 +1758,8 @@
                 });
             });
             
-            pendingFilterBtn.addEventListener('click', function() {
-                toggleStatusFilter('pending');
-            });
-            
-            activeFilterBtn.addEventListener('click', function() {
-                toggleStatusFilter('active');
-            });
+            pendingFilterBtn.addEventListener('click', () => toggleStatusFilter('pending'));
+            activeFilterBtn.addEventListener('click', () => toggleStatusFilter('active'));
             
             rangeBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -2262,14 +1772,12 @@
                 });
             });
             
-            applyCustomBtn.addEventListener('click', function() {
+            applyCustomBtn.addEventListener('click', () => {
                 if (startDateInput.value && endDateInput.value) {
                     customStartDate = startDateInput.value;
                     customEndDate = endDateInput.value;
                     rangeBtns.forEach(b => b.classList.remove('active'));
                     loadScanLogs();
-                } else {
-                    alert('Please select both start and end dates');
                 }
             });
             
@@ -2277,53 +1785,32 @@
                 const end = new Date();
                 const start = new Date();
                 start.setDate(start.getDate() - 30);
-                
                 exportStartDate.value = start.toISOString().split('T')[0];
                 exportEndDate.value = end.toISOString().split('T')[0];
-                
                 populateColumnCheckboxes();
                 exportModal.style.display = 'block';
             });
             
-            exportCancelBtn.addEventListener('click', () => {
-                exportModal.style.display = 'none';
-            });
-            
+            exportCancelBtn.addEventListener('click', () => exportModal.style.display = 'none');
             exportGenerateBtn.addEventListener('click', exportToCSV);
             
             closeModalBtn.addEventListener('click', closeModal);
             copyQrUrlBtn.addEventListener('click', copyQrUrl);
             downloadQrBtn.addEventListener('click', downloadQr);
             
-            window.addEventListener('click', function(event) {
-                if (event.target === exportModal) {
-                    exportModal.style.display = 'none';
-                }
-                if (event.target === qrModal) {
-                    closeModal();
-                }
+            window.addEventListener('click', (event) => {
+                if (event.target === exportModal) exportModal.style.display = 'none';
+                if (event.target === qrModal) closeModal();
             });
         }
         
-        // Initial load
         initializeEventListeners();
-        
-        // Start loading with a small delay to ensure DOM is ready
-        setTimeout(() => {
-            loadAdminData();
-        }, 100);
-        
+        setTimeout(() => loadAdminData(), 100);
         setTimeout(setupDragAndDrop, 500);
     </script>
 
     <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
-        <p>
-            <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | 
-            <a href="maker.html" style="color: #BCAE83; margin: 0 10px;">Create Card</a> | 
-            <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | 
-            <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
-            <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
-        </p>
+        <p><a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> | <a href="maker.html" style="color: #BCAE83; margin: 0 10px;">Create Card</a> | <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> | <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> | <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a></p>
         <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. Admin Dashboard</p>
     </footer>
     
