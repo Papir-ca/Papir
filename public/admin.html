@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Papir Admin - Card Management</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -1010,31 +1011,59 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load admin data using the new admin endpoint
+        // Load admin data using the new admin endpoint with rate limiting fix
         async function loadAdminData() {
             showLoading(true);
             try {
                 // First load all cards basic info
                 const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
+                
+                // Handle rate limiting
+                if (cardsResponse.status === 429) {
+                    alert('Too many requests. Please wait a moment and try again.');
+                    showLoading(false);
+                    return;
+                }
+                
                 const cardsResult = await cardsResponse.json();
                 
                 if (cardsResult.success && cardsResult.cards) {
                     allCards = cardsResult.cards;
                     
-                    // Then load detailed data for each card
+                    // Then load detailed data for each card with delay to avoid rate limiting
                     allCardDetails = [];
-                    for (const card of allCards) {
-                        try {
-                            const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
-                            const detailResult = await detailResponse.json();
-                            if (detailResult.success) {
-                                allCardDetails.push(detailResult.card);
-                            } else {
-                                allCardDetails.push(card);
+                    
+                    // Process cards in batches with delay
+                    const batchSize = 5;
+                    for (let i = 0; i < allCards.length; i += batchSize) {
+                        const batch = allCards.slice(i, i + batchSize);
+                        
+                        // Process batch in parallel
+                        const batchPromises = batch.map(async (card) => {
+                            try {
+                                // Add small jitter to avoid simultaneous requests
+                                await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+                                const detailResponse = await fetch(`${BACKEND_URL}/api/admin/cards/${card.card_id}`);
+                                
+                                if (detailResponse.status === 429) {
+                                    console.warn(`Rate limited for ${card.card_id}, using basic data`);
+                                    return card;
+                                }
+                                
+                                const detailResult = await detailResponse.json();
+                                return detailResult.success ? detailResult.card : card;
+                            } catch (error) {
+                                console.error(`Error loading details for ${card.card_id}:`, error);
+                                return card;
                             }
-                        } catch (error) {
-                            console.error(`Error loading details for ${card.card_id}:`, error);
-                            allCardDetails.push(card);
+                        });
+                        
+                        const batchResults = await Promise.all(batchPromises);
+                        allCardDetails.push(...batchResults);
+                        
+                        // Delay between batches
+                        if (i + batchSize < allCards.length) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                         }
                     }
                     
@@ -1047,7 +1076,11 @@
                 }
             } catch (error) {
                 console.error('Admin load error:', error);
-                alert('Error loading cards: ' + error.message);
+                if (error.message.includes('Too many requests')) {
+                    alert('Rate limit exceeded. Please wait a moment and try again.');
+                } else {
+                    alert('Error loading cards: ' + error.message);
+                }
             }
             showLoading(false);
         }
@@ -1065,6 +1098,13 @@
                 }
                 
                 const response = await fetch(url);
+                
+                if (response.status === 429) {
+                    console.warn('Rate limited for scan logs');
+                    allScanLogs = [];
+                    return;
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
