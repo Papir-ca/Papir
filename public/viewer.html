@@ -609,7 +609,7 @@
         <span>Connected to Papir Backend</span>
     </div>
     
-    <!-- Double Confirmation Modal for Physical Cards (#8) -->
+    <!-- Double Confirmation Modal for Physical Cards -->
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
             <h3>
@@ -899,7 +899,10 @@
                     const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ card_id: pendingCardId })
+                        body: JSON.stringify({ 
+                            card_id: pendingCardId,
+                            source: 'viewer'  // 👈 ADDED source parameter
+                        })
                     });
                     
                     const result = await response.json();
@@ -939,7 +942,7 @@
                 
                 // Check if this is a physical card that needs activation
                 if (card.status === 'pending') {
-                    // Show confirmation modal instead of redirecting
+                    // Show confirmation modal instead of displaying content
                     pendingCardId = card.card_id;
                     elements.confirmationModal.classList.add('active');
                     hideAllExceptCard(); // Hide scanner while showing modal
