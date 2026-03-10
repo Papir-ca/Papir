@@ -1239,7 +1239,7 @@
                 }
             }
             
-            // Activate from maker page
+            // Activate from maker page - WITH SOURCE PARAMETER ADDED
             elements.activateBtn.addEventListener('click', async function() {
                 const cardId = elements.cardIdInput.value.trim();
                 
@@ -1256,7 +1256,10 @@
                     const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ card_id: cardId })
+                        body: JSON.stringify({ 
+                            card_id: cardId,
+                            source: 'maker'  // 👈 ADDED THIS LINE
+                        })
                     });
                     
                     const result = await response.json();
