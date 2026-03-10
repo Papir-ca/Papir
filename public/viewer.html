@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -88,7 +88,7 @@
             line-height: 1.6;
         }
         
-        /* Confirmation Modal for Card Viewing */
+        /* Confirmation Modal for Active Cards Only */
         .confirmation-modal {
             display: none;
             position: fixed;
@@ -630,7 +630,7 @@
         <span>Connected to Papir Backend</span>
     </div>
     
-    <!-- Confirmation Modal for Card Viewing -->
+    <!-- Confirmation Modal for Active Cards Only -->
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
             <h3>
@@ -641,13 +641,14 @@
             <p id="modalDescription">Please confirm the following before viewing this card:</p>
             
             <div class="confirmation-list" id="confirmationList">
-                <!-- Will be populated dynamically -->
+                <li><i class="fas fa-check-circle"></i> I acknowledge this card was created by another user</li>
+                <li><i class="fas fa-check-circle"></i> I understand the content may include media (images/video/audio)</li>
+                <li><i class="fas fa-check-circle"></i> My IP address will be recorded for analytics (retained 30 days)</li>
             </div>
             
-            <!-- Legal notice about permanent IP recording -->
             <div class="legal-notice" id="legalNotice">
-                <strong>🔒 Legal Proof of Consent</strong>
-                <p>Your IP address (<span id="legalIpDisplay">detecting...</span>) will be permanently recorded as proof of your acceptance under GDPR Article 7. This record is retained indefinitely and cannot be deleted.</p>
+                <strong>📊 Analytics Notice</strong>
+                <p>Your IP address (<span id="legalIpDisplay">detecting...</span>) will be recorded for analytics purposes and retained for 30 days.</p>
             </div>
             
             <div class="ip-display" id="modalClientIp">
@@ -655,10 +656,10 @@
             </div>
             
             <div class="confirmation-buttons">
-                <button class="btn-confirm" id="confirmActivationBtn">
-                    <i class="fas fa-check-circle"></i> <span id="confirmBtnText">Confirm & View</span>
+                <button class="btn-confirm" id="confirmViewingBtn">
+                    <i class="fas fa-check-circle"></i> Confirm & View
                 </button>
-                <button class="btn-cancel" id="cancelActivationBtn">
+                <button class="btn-cancel" id="cancelViewingBtn">
                     Cancel
                 </button>
             </div>
@@ -668,7 +669,7 @@
     <div class="container">
         <header id="pageHeader">
             <h1 class="logo">📱 Papir Viewer</h1>
-            <p class="tagline">Scan QR codes or enter Card IDs to view AR instantly</p>
+            <p class="tagline">Scan QR codes or enter Card IDs to view AR content</p>
         </header>
         
         <div class="scanner-container" id="scannerContainer">
@@ -753,8 +754,7 @@
             let isConnected = false;
             let html5QrCode = null;
             let isScannerActive = false;
-            let pendingCardId = null;
-            let pendingCardData = null;
+            let currentCardData = null;
             let clientIp = 'unknown';
             
             const elements = {
@@ -779,15 +779,14 @@
                 pageHeader: document.getElementById('pageHeader'),
                 // Confirmation modal elements
                 confirmationModal: document.getElementById('confirmationModal'),
-                confirmActivationBtn: document.getElementById('confirmActivationBtn'),
-                cancelActivationBtn: document.getElementById('cancelActivationBtn'),
+                confirmViewingBtn: document.getElementById('confirmViewingBtn'),
+                cancelViewingBtn: document.getElementById('cancelViewingBtn'),
                 modalClientIp: document.getElementById('modalClientIp'),
                 ipAddressValue: document.getElementById('ipAddressValue'),
                 legalIpDisplay: document.getElementById('legalIpDisplay'),
                 modalTitle: document.getElementById('modalTitle'),
                 modalDescription: document.getElementById('modalDescription'),
                 confirmationList: document.getElementById('confirmationList'),
-                confirmBtnText: document.getElementById('confirmBtnText'),
                 legalNotice: document.getElementById('legalNotice')
             };
             
@@ -883,8 +882,7 @@
                 elements.cardDisplay.classList.remove('active');
                 elements.emptyState.style.display = 'block';
                 elements.confirmationModal.classList.remove('active');
-                pendingCardId = null;
-                pendingCardData = null;
+                currentCardData = null;
                 
                 // Stop any playing media
                 const video = document.querySelector('.card-video');
@@ -909,87 +907,16 @@
                 elements.emptyState.style.display = 'none';
             }
             
-            // Show confirmation modal with appropriate text
-            function showConfirmationModal(cardData) {
-                pendingCardId = cardData.card_id;
-                pendingCardData = cardData;
+            // Handle viewing confirmation for active cards
+            function handleViewingConfirmation() {
+                if (!currentCardData) return;
                 
-                // Customize modal based on card status
-                if (cardData.status === 'pending') {
-                    // First time activation
-                    elements.modalTitle.textContent = 'Activate Card';
-                    elements.modalDescription.textContent = 'This card needs to be activated before viewing. Please confirm:';
-                    elements.confirmBtnText.textContent = 'Activate & View';
-                    elements.confirmationList.innerHTML = `
-                        <li><i class="fas fa-check-circle"></i> I am the intended recipient of this physical card</li>
-                        <li><i class="fas fa-check-circle"></i> I have read and agree to the <a href="terms.html" style="color: #06D6A0;">Terms of Service</a> and <a href="privacy.html" style="color: #06D6A0;">Privacy Policy</a></li>
-                        <li><i class="fas fa-check-circle"></i> I understand my IP address will be permanently recorded as legal proof</li>
-                    `;
-                    elements.legalNotice.style.display = 'block';
-                } else {
-                    // Already active - just confirm viewing
-                    elements.modalTitle.textContent = 'Confirm Viewing';
-                    elements.modalDescription.textContent = 'Please confirm before viewing this card:';
-                    elements.confirmBtnText.textContent = 'Confirm & View';
-                    elements.confirmationList.innerHTML = `
-                        <li><i class="fas fa-check-circle"></i> I acknowledge this card was created by another user</li>
-                        <li><i class="fas fa-check-circle"></i> I understand the content may include media (images/video/audio)</li>
-                        <li><i class="fas fa-check-circle"></i> My IP address will be recorded for analytics (retained 30 days)</li>
-                    `;
-                    elements.legalNotice.style.display = 'none'; // Only show permanent notice for activations
-                }
-                
-                elements.confirmationModal.classList.add('active');
-                hideAllExceptCard(); // Hide scanner while showing modal
-            }
-            
-            // Function to handle confirmation
-            async function handleConfirmation() {
-                if (!pendingCardId || !pendingCardData) return;
-                
-                try {
-                    elements.confirmActivationBtn.disabled = true;
-                    elements.confirmActivationBtn.innerHTML = '<span class="loading"></span> Processing...';
-                    
-                    if (pendingCardData.status === 'pending') {
-                        // Need to activate first
-                        const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                card_id: pendingCardId,
-                                source: 'viewer'
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            showNotification('Card activated successfully!', 'success');
-                            // Now show the content
-                            displayCardContent(pendingCardData);
-                        } else {
-                            showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
-                            resetView();
-                        }
-                    } else {
-                        // Already active - just show content and log view
-                        displayCardContent(pendingCardData);
-                    }
-                } catch (error) {
-                    console.error('Confirmation error:', error);
-                    showNotification('Processing failed - please try again', 'error');
-                    resetView();
-                } finally {
-                    elements.confirmActivationBtn.disabled = false;
-                    elements.confirmActivationBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span id="confirmBtnText">' + elements.confirmBtnText.textContent + '</span>';
-                }
+                elements.confirmationModal.classList.remove('active');
+                displayCardContent(currentCardData);
             }
             
             // Display the actual card content
             function displayCardContent(card) {
-                elements.confirmationModal.classList.remove('active');
-                
                 elements.displayCardId.textContent = card.card_id;
                 elements.displayCardType.textContent = card.message_type;
                 elements.displayCardDate.textContent = formatDate(card.created_at);
@@ -1055,11 +982,10 @@
             }
             
             // Confirmation modal buttons
-            elements.confirmActivationBtn.addEventListener('click', handleConfirmation);
-            elements.cancelActivationBtn.addEventListener('click', function() {
+            elements.confirmViewingBtn.addEventListener('click', handleViewingConfirmation);
+            elements.cancelViewingBtn.addEventListener('click', function() {
                 elements.confirmationModal.classList.remove('active');
-                pendingCardId = null;
-                pendingCardData = null;
+                currentCardData = null;
                 resetView();
                 showNotification('Viewing cancelled', 'info');
             });
@@ -1085,12 +1011,27 @@
                         const result = await response.json();
                         
                         if (result.success && result.card) {
-                            console.log('Card loaded successfully:', result.card);
+                            const card = result.card;
+                            console.log('Card loaded successfully:', card);
                             
-                            // Show confirmation modal first
-                            showConfirmationModal(result.card);
+                            // CHECK CARD STATUS
+                            if (card.status === 'pending') {
+                                // PENDING CARD - Redirect to maker page
+                                console.log('⏳ Pending card detected - redirecting to maker');
+                                showNotification('This card needs to be activated first. Redirecting...', 'info');
+                                
+                                // Redirect to maker.html with the card ID
+                                setTimeout(() => {
+                                    window.location.href = `/maker.html?card=${card.card_id}`;
+                                }, 1500);
+                                return;
+                            }
                             
-                            return { success: true, card: result.card };
+                            // ACTIVE CARD - Show confirmation modal
+                            currentCardData = card;
+                            elements.confirmationModal.classList.add('active');
+                            
+                            return { success: true, card: card };
                         } else {
                             throw new Error(result.error || 'Card not found');
                         }
