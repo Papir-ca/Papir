@@ -1284,18 +1284,21 @@
                         if (result.success && result.card) {
                             const card = result.card;
                             
-                            // Show deadline if card has one
-                            if (card.activation_deadline) {
+                            // Only show deadline for pending cards
+                            if (card.status === 'pending' && card.activation_deadline) {
                                 const deadline = new Date(card.activation_deadline);
                                 const now = new Date();
                                 const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
                                 
                                 elements.deadlineDisplay.style.display = 'block';
                                 if (daysLeft < 0) {
-                                    elements.deadlineText.textContent = `⚠️ This card expired on ${deadline.toLocaleDateString()}`;
+                                    elements.deadlineText.textContent = `⚠️ This card expired on ${deadline.toLocaleDateString()} and cannot be activated`;
                                 } else {
-                                    elements.deadlineText.textContent = `⏳ Card expires in ${daysLeft} days (${deadline.toLocaleDateString()})`;
-                                }
+                                    elements.deadlineText.textContent = `⏳ Activate within ${daysLeft} days (by ${deadline.toLocaleDateString()})`;
+                                 }
+                             } else {
+                                 // Hide deadline for active cards
+                                 elements.deadlineDisplay.style.display = 'none';  
                             }
                         }
                     }
