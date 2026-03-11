@@ -87,8 +87,6 @@ const limiter = rateLimit({
   max: 200, // 200 requests per 15 minutes
   message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
-
-// Apply the main limiter to all API routes
 app.use('/api/', limiter);
 
 // Higher limit for admin endpoints
@@ -111,6 +109,11 @@ app.get('/', (req, res) => {
 // 📱 App dashboard (your tools)
 app.get('/app', (req, res) => {
   res.sendFile(__dirname + '/public/dashboard.html');
+});
+
+// Batch management page for customers
+app.get('/batch-manager', (req, res) => {
+  res.sendFile(__dirname + '/public/batch-manager.html');
 });
 
 // Simple admin auth (add your password)
@@ -146,6 +149,7 @@ app.get('/api/health', (req, res) => {
       dashboard: `${baseUrl}/app`,
       maker: `${baseUrl}/maker.html`,
       viewer: `${baseUrl}/viewer.html`,
+      batchManager: `${baseUrl}/batch-manager`,
       saveCard: `POST ${baseUrl}/api/cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
@@ -156,6 +160,9 @@ app.get('/api/health', (req, res) => {
       geolocation: `GET ${baseUrl}/api/admin/geolocation/:card_id`,
       mismatchAlerts: `GET ${baseUrl}/api/admin/mismatch-alerts`,
       batches: `POST ${baseUrl}/api/admin/batches`,
+      getBatch: `GET ${baseUrl}/api/batches/:batch_id`,
+      addToBatch: `POST ${baseUrl}/api/batches/:batch_id/add`,
+      calculateBatchPrice: `POST ${baseUrl}/api/batches/calculate-price`,
       deleteBatch: `POST ${baseUrl}/api/admin/batches/:batch_id/delete`,
       expireCards: `POST ${baseUrl}/api/admin/expire-cards`
     },
@@ -345,6 +352,11 @@ app.post('/api/cards', async (req, res) => {
       
       if (error) throw error;
       result = data;
+      
+      // Update batch cards_created count
+      if (batch_id) {
+        await supabaseAdmin.rpc('increment_batch_cards', { batch_id_param: batch_id });
+      }
     }
     
     console.log(`✅ Card saved: ${card_id}`);
@@ -1061,10 +1073,14 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
   }
 });
 
+// ============================================
+// BATCH MANAGEMENT ENDPOINTS (NEW)
+// ============================================
+
 // 📊 Create a new batch
 app.post('/api/admin/batches', async (req, res) => {
   try {
-    const { batch_id, shipping_address, shipping_country, shipping_city } = req.body;
+    const { batch_id, shipping_address, shipping_country, shipping_city, total_cards, user_email } = req.body;
     
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
     
@@ -1075,6 +1091,11 @@ app.post('/api/admin/batches', async (req, res) => {
         shipping_address,
         shipping_country,
         shipping_city,
+        total_cards_purchased: total_cards,
+        cards_created: 0,
+        max_cards_allowed: total_cards,
+        content_locked: false,
+        user_email,
         created_at: new Date().toISOString(),
         created_by_ip: clientIp
       })
@@ -1087,6 +1108,185 @@ app.post('/api/admin/batches', async (req, res) => {
     
   } catch (error) {
     console.error('Error creating batch:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Get batch details (for customer view)
+app.get('/api/batches/:batch_id', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    
+    // Get batch info
+    const { data: batch, error: batchError } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .maybeSingle();
+    
+    if (batchError) throw batchError;
+    
+    if (!batch) {
+      return res.status(404).json({ success: false, error: 'Batch not found' });
+    }
+    
+    // Get all cards in this batch
+    const { data: cards, error: cardsError } = await supabaseAdmin
+      .from('cards')
+      .select('card_id, batch_order, status, message_type, created_at, scan_count')
+      .eq('batch_id', batch_id)
+      .order('batch_order', { ascending: true });
+    
+    if (cardsError) throw cardsError;
+    
+    // Get template content (first card's content)
+    const { data: template } = await supabaseAdmin
+      .from('cards')
+      .select('message_type, message_text, media_url, file_name, file_type')
+      .eq('batch_id', batch_id)
+      .eq('batch_order', 1)
+      .maybeSingle();
+    
+    res.json({
+      success: true,
+      batch,
+      cards: cards || [],
+      template: template || null,
+      can_add_more: batch.cards_created < batch.max_cards_allowed
+    });
+    
+  } catch (error) {
+    console.error('Error fetching batch:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Calculate price for additional cards
+app.post('/api/batches/calculate-price', async (req, res) => {
+  try {
+    const { batch_id, additional_quantity } = req.body;
+    const PRICE_PER_CARD = 19.99;
+    
+    const total = PRICE_PER_CARD * additional_quantity;
+    
+    res.json({
+      success: true,
+      price_per_card: PRICE_PER_CARD,
+      quantity: additional_quantity,
+      total: total,
+      formatted_total: `$${total.toFixed(2)}`
+    });
+    
+  } catch (error) {
+    console.error('Error calculating price:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Add more cards to an existing batch
+app.post('/api/batches/:batch_id/add', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { quantity, payment_intent_id } = req.body;
+    
+    // Get batch info
+    const { data: batch, error: batchError } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .single();
+    
+    if (batchError) throw batchError;
+    
+    // Check if we can add more
+    const newTotal = batch.cards_created + quantity;
+    if (newTotal > batch.max_cards_allowed) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Exceeds maximum allowed cards for this batch',
+        max_allowed: batch.max_cards_allowed,
+        current: batch.cards_created
+      });
+    }
+    
+    // Get template content from first card
+    const { data: templateCard, error: templateError } = await supabaseAdmin
+      .from('cards')
+      .select('message_type, message_text, media_url, file_name, file_type')
+      .eq('batch_id', batch_id)
+      .eq('batch_order', 1)
+      .single();
+    
+    if (templateError) throw templateError;
+    
+    // Create new cards
+    const nextOrder = batch.cards_created + 1;
+    const cards = [];
+    const deadline = new Date();
+    deadline.setFullYear(deadline.getFullYear() + 1);
+    
+    for (let i = 0; i < quantity; i++) {
+      const order = nextOrder + i;
+      const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+      
+      cards.push({
+        card_id: cardId,
+        batch_id: batch_id,
+        batch_order: order,
+        message_type: templateCard.message_type,
+        message_text: templateCard.message_text,
+        media_url: templateCard.media_url,
+        file_name: templateCard.file_name,
+        file_type: templateCard.file_type,
+        status: 'pending',
+        scan_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activation_deadline: deadline.toISOString()
+      });
+    }
+    
+    // Insert all cards
+    const { data: newCards, error: insertError } = await supabaseAdmin
+      .from('cards')
+      .insert(cards)
+      .select();
+    
+    if (insertError) throw insertError;
+    
+    // Update batch counters
+    const { error: updateError } = await supabaseAdmin
+      .from('batches')
+      .update({
+        cards_created: newTotal,
+        updated_at: new Date().toISOString(),
+        ...(payment_intent_id && { stripe_payment_intent: payment_intent_id })
+      })
+      .eq('batch_id', batch_id);
+    
+    if (updateError) throw updateError;
+    
+    // Generate QR code URLs for new cards
+    const qrCodes = newCards.map(card => ({
+      card_id: card.card_id,
+      batch_order: card.batch_order,
+      viewer_url: `${req.protocol}://${req.get('host')}/viewer.html?card=${card.card_id}`,
+      qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${req.protocol}://${req.get('host')}/viewer.html?card=${card.card_id}`)}&format=png&margin=10`
+    }));
+    
+    res.json({
+      success: true,
+      message: `Added ${quantity} new cards to batch ${batch_id}`,
+      cards: newCards,
+      qr_codes: qrCodes,
+      batch: {
+        ...batch,
+        cards_created: newTotal
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error adding to batch:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1214,6 +1414,7 @@ app.use((req, res) => {
       `${baseUrl}/app`,
       `${baseUrl}/maker.html`,
       `${baseUrl}/viewer.html`,
+      `${baseUrl}/batch-manager`,
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/cards/:id`,
@@ -1225,6 +1426,9 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/abandoned`,
       `${baseUrl}/api/admin/geolocation/:id`,
       `${baseUrl}/api/admin/mismatch-alerts`,
+      `${baseUrl}/api/batches/:id`,
+      `${baseUrl}/api/batches/:id/add`,
+      `${baseUrl}/api/batches/calculate-price`,
       `${baseUrl}/api/admin/batches`,
       `${baseUrl}/api/admin/batches/:id/delete`,
       `${baseUrl}/api/admin/expire-cards`,
@@ -1254,6 +1458,7 @@ app.listen(PORT, () => {
   console.log(`   Dashboard: https://papir.ca/app`);
   console.log(`   Maker: https://papir.ca/maker.html`);
   console.log(`   Viewer: https://papir.ca/viewer.html`);
+  console.log(`   Batch Manager: https://papir.ca/batch-manager`);
   
   console.log('\n🔗 API ENDPOINTS:');
   console.log(`   Health: https://papir.ca/api/health`);
@@ -1266,8 +1471,11 @@ app.listen(PORT, () => {
   console.log(`   Abandoned Cards: https://papir.ca/api/admin/abandoned`);
   console.log(`   Geolocation: https://papir.ca/api/admin/geolocation/:id`);
   console.log(`   Mismatch Alerts: https://papir.ca/api/admin/mismatch-alerts`);
-  console.log(`   Batches: https://papir.ca/api/admin/batches`);
-  console.log(`   Batch Delete: https://papir.ca/api/admin/batches/:id/delete`);
+  console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
+  console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
+  console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
+  console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
+  console.log(`   Delete Batch: https://papir.ca/api/admin/batches/:id/delete`);
   console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
   
   console.log('\n🎯 FEATURES:');
@@ -1282,6 +1490,7 @@ app.listen(PORT, () => {
   console.log('   ✅ File type validation on server');
   console.log('   ✅ Admin endpoint with activation history');
   console.log('   ✅ Batch management system');
+  console.log('   ✅ Batch expansion (add cards later)');
   console.log('   ✅ Activation deadlines');
   console.log('   ✅ IP geolocation tracking');
   console.log('   ✅ Duplicate scan detection');
