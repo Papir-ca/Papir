@@ -1378,13 +1378,19 @@
         
         // Load detailed data
         async function loadDetailedData() {
-            for (let i = 0; i < allCards.length; i++) {
+            const totalCards = allCards.length;
+            let loadedCount = 0;
+            
+            for (let i = 0; i < totalCards; i++) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
+                    
                     const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
                     
                     if (response.status === 429) {
-                        console.log('Rate limited, continuing...');
+                        console.log('Rate limited, waiting longer...');
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        i--; // Retry this card
                         continue;
                     }
                     
@@ -1394,13 +1400,21 @@
                         if (index >= 0) {
                             allCardDetails[index] = result.card;
                         }
-                        renderTable();
-                        await loadAllActivations();
+                        loadedCount++;
+                        
+                        // Update progress every 5 cards
+                        if (loadedCount % 5 === 0 || loadedCount === totalCards) {
+                            renderTable();
+                        }
                     }
                 } catch (error) {
                     console.log(`Skipping ${allCards[i].card_id}:`, error.message);
                 }
             }
+            
+            // After all cards are loaded, load activations once
+            await loadAllActivations();
+            renderTable(); // Final render with all data
         }
         
         // Load scan logs
