@@ -2029,8 +2029,10 @@
                 
                 // Check card status and load details after ID is set
                 setTimeout(() => {
-                    checkCardStatus();
-                    setTimeout(loadCardDetails, 200); // Load details after status check
+                    checkCardStatus().then(() => {
+                        // Load details after status check completes    
+                        setTimeout(loadCardDetails, 300);
+                    });      
                 }, 100);
                 
                 elements.saveBtn.addEventListener('click', async function() {
