@@ -1295,13 +1295,13 @@
                                     elements.deadlineText.textContent = `⚠️ This card expired on ${deadline.toLocaleDateString()} and cannot be activated`;
                                 } else {
                                     elements.deadlineText.textContent = `⏳ Activate within ${daysLeft} days (by ${deadline.toLocaleDateString()})`;
-                                 }
-                             } else {
-                                 // Hide deadline for active cards
+                                }
+                            } else {
+                                // Hide deadline for active cards
                                  elements.deadlineDisplay.style.display = 'none';  
                             }
-                        }
-                    }
+                        }    
+                    }        
                 } catch (error) {
                     console.error('Error loading card details:', error);
                 }
