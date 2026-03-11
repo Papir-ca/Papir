@@ -839,6 +839,32 @@
                     </div>
                 </div>
                 
+                <!-- Batch Management Section (for physical card batches) -->
+                <div class="form-group" id="batchSection" style="display: none;">
+                    <label for="batchId">Batch ID (Optional):</label>
+                    <input type="text" id="batchId" class="content-type-dropdown" placeholder="e.g., WEDDING-2024">
+                    <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
+                        Use the same Batch ID for multiple cards in a set (wedding, event, etc.)
+                    </div>
+                </div>
+
+                <!-- Batch Order (auto-filled if batch ID exists) -->
+                <div class="form-group" id="batchOrderSection" style="display: none;">
+                    <label for="batchOrder">Card Number in Batch:</label>
+                    <input type="number" id="batchOrder" class="content-type-dropdown" min="1" value="1" readonly>
+                    <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
+                        Auto-assigned based on existing cards in this batch
+                    </div>
+                </div>
+
+                <!-- Activation Deadline Display -->
+                <div class="form-group" id="deadlineDisplay" style="display: none;">
+                    <div style="background: rgba(243, 156, 18, 0.1); border-left: 3px solid #f39c12; padding: 10px; border-radius: 4px;">
+                        <i class="fas fa-hourglass-half" style="color: #f39c12; margin-right: 8px;"></i>
+                        <span id="deadlineText">Card expires 1 year from creation</span>
+                    </div>
+                </div>
+                
                 <!-- Simplified Activation Section -->
                 <div class="activation-section" id="activationSection">
                     <div class="activation-header">
@@ -1089,7 +1115,14 @@
                 videoProgressText: document.getElementById('videoProgressText'),
                 audioProgress: document.getElementById('audioProgress'),
                 audioProgressFill: document.getElementById('audioProgressFill'),
-                audioProgressText: document.getElementById('audioProgressText')
+                audioProgressText: document.getElementById('audioProgressText'),
+                // New batch elements
+                batchId: document.getElementById('batchId'),
+                batchOrder: document.getElementById('batchOrder'),
+                batchSection: document.getElementById('batchSection'),
+                batchOrderSection: document.getElementById('batchOrderSection'),
+                deadlineDisplay: document.getElementById('deadlineDisplay'),
+                deadlineText: document.getElementById('deadlineText')
             };
             
             function showNotification(message, type = 'success') {
@@ -1258,7 +1291,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             card_id: cardId,
-                            source: 'maker'  // 👈 ADDED THIS LINE
+                            source: 'maker'
                         })
                     });
                     
@@ -1721,6 +1754,14 @@
                         message_text: cardData.message_text,
                         status: 'pending'
                     };
+                    
+                    // Add batch fields if provided
+                    if (elements.batchId && elements.batchId.value) {
+                        cardDataToSend.batch_id = elements.batchId.value;
+                        if (elements.batchOrder && elements.batchOrder.value) {
+                            cardDataToSend.batch_order = parseInt(elements.batchOrder.value);
+                        }
+                    }
                     
                     let mediaUrl = null;
                     const contentType = cardData.message_type;
