@@ -81,13 +81,21 @@ app.use(cors({
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
-// ✅ FIXED: Simple rate limiting - one limiter for all API routes
+// 🛡️ Rate Limiting - Simple and working
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // 200 requests per 15 minutes
   message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
 app.use('/api/', limiter);
+
+// Higher limit for admin endpoints
+const adminLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 300, // 300 requests per minute
+  message: 'Admin rate limit reached, please slow down.'
+});
+app.use('/api/admin/', adminLimiter);
 
 // 📁 Serve static files FROM 'public' FOLDER
 app.use(express.static('public'));
@@ -144,7 +152,10 @@ app.get('/api/health', (req, res) => {
       adminCard: `GET ${baseUrl}/api/admin/cards/:id`,
       abandonedCards: `GET ${baseUrl}/api/admin/abandoned`,
       geolocation: `GET ${baseUrl}/api/admin/geolocation/:card_id`,
-      mismatchAlerts: `GET ${baseUrl}/api/admin/mismatch-alerts`
+      mismatchAlerts: `GET ${baseUrl}/api/admin/mismatch-alerts`,
+      batches: `POST ${baseUrl}/api/admin/batches`,
+      deleteBatch: `POST ${baseUrl}/api/admin/batches/:batch_id/delete`,
+      expireCards: `POST ${baseUrl}/api/admin/expire-cards`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -206,10 +217,10 @@ async function getGeolocationFromIp(ip) {
   }
 }
 
-// 🎨 Save a Magic Card
+// 🎨 Save a Magic Card - UPDATED with batch fields and activation deadline
 app.post('/api/cards', async (req, res) => {
   try {
-    const { card_id, message_type, message_text, media_url, file_name, file_size, file_type, batch_id, batch_order, design_template } = req.body;
+    const { card_id, message_type, message_text, media_url, file_name, file_size, file_type, batch_id, batch_order } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
@@ -265,7 +276,6 @@ app.post('/api/cards', async (req, res) => {
       // Add batch fields if provided
       if (batch_id) updateData.batch_id = batch_id;
       if (batch_order) updateData.batch_order = batch_order;
-      if (design_template) updateData.design_template = design_template;
       
       if (!cardCheck?.created_by_ip) {
         console.log(`📝 Setting created_by_ip for first time: ${clientIp}`);
@@ -310,7 +320,6 @@ app.post('/api/cards', async (req, res) => {
       // Add batch fields if provided
       if (batch_id) cardRecord.batch_id = batch_id;
       if (batch_order) cardRecord.batch_order = batch_order;
-      if (design_template) cardRecord.design_template = design_template;
       
       const { data, error } = await supabaseAdmin
         .from('cards')
@@ -690,7 +699,9 @@ app.post('/api/activate-card', async (req, res) => {
           location_data: locationData,
           city: locationData?.city,
           country: locationData?.country,
-          region: locationData?.region
+          region: locationData?.region,
+          latitude: locationData?.latitude,
+          longitude: locationData?.longitude
         });
       
       if (logError) {
@@ -741,7 +752,9 @@ app.post('/api/activate-card', async (req, res) => {
         location_data: locationData,
         city: locationData?.city,
         country: locationData?.country,
-        region: locationData?.region
+        region: locationData?.region,
+        latitude: locationData?.latitude,
+        longitude: locationData?.longitude
       });
     
     if (logError) {
@@ -961,7 +974,7 @@ app.get('/api/admin/geolocation/:card_id', async (req, res) => {
     
     const { data, error } = await supabaseAdmin
       .from('card_activations')
-      .select('activated_at, activated_by_ip, city, country, region, location_data, activation_source')
+      .select('activated_at, activated_by_ip, city, country, region, location_data, activation_source, latitude, longitude')
       .eq('card_id', card_id)
       .order('created_at', { ascending: false });
     
@@ -1035,7 +1048,7 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
 // 📊 Create a new batch
 app.post('/api/admin/batches', async (req, res) => {
   try {
-    const { batch_id, shipping_address, shipping_country } = req.body;
+    const { batch_id, shipping_address, shipping_country, shipping_city } = req.body;
     
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
     
@@ -1045,6 +1058,7 @@ app.post('/api/admin/batches', async (req, res) => {
         batch_id,
         shipping_address,
         shipping_country,
+        shipping_city,
         created_at: new Date().toISOString(),
         created_by_ip: clientIp
       })
@@ -1089,6 +1103,35 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
     
   } catch (error) {
     console.error('Error deleting batch:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Expire old pending cards
+app.post('/api/admin/expire-cards', async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+    
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({
+        status: 'expired',
+        updated_at: now
+      })
+      .eq('status', 'pending')
+      .lt('activation_deadline', now)
+      .select();
+    
+    if (error) throw error;
+    
+    res.json({ 
+      success: true, 
+      message: `Expired ${data?.length || 0} cards`,
+      count: data?.length || 0
+    });
+    
+  } catch (error) {
+    console.error('Error expiring cards:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1167,6 +1210,8 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/geolocation/:id`,
       `${baseUrl}/api/admin/mismatch-alerts`,
       `${baseUrl}/api/admin/batches`,
+      `${baseUrl}/api/admin/batches/:id/delete`,
+      `${baseUrl}/api/admin/expire-cards`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -1206,6 +1251,8 @@ app.listen(PORT, () => {
   console.log(`   Geolocation: https://papir.ca/api/admin/geolocation/:id`);
   console.log(`   Mismatch Alerts: https://papir.ca/api/admin/mismatch-alerts`);
   console.log(`   Batches: https://papir.ca/api/admin/batches`);
+  console.log(`   Batch Delete: https://papir.ca/api/admin/batches/:id/delete`);
+  console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -1225,6 +1272,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Abandoned card tracking');
   console.log('   ✅ Geographic mismatch alerts');
   console.log('   ✅ Batch deletion handling');
+  console.log('   ✅ Card expiration (1 year)');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
