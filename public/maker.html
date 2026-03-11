@@ -1337,7 +1337,7 @@
                         elements.activationSection.style.display = 'none';
                         elements.saveBtn.disabled = false;
                         isCardActivated = true;
-                        loadCardDetails(); // 👈 ADD THIS LINE
+                        loadCardDetails(); // Refresh to hide deadline after activation
                     } else {
                         showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
                         this.disabled = false;
@@ -2029,11 +2029,13 @@
                 
                 // Check card status and load details after ID is set
                 setTimeout(() => {
-                    checkCardStatus().then(() => {
-                        // Load details after status check completes    
-                        setTimeout(loadCardDetails, 300);
-                    });      
+                    checkCardStatus();
+                    // Load details after a short delay to ensure status check completes
+                    setTimeout(loadCardDetails, 500);
                 }, 100);
+                
+                // Also try loading details immediately
+                setTimeout(loadCardDetails, 200);
                 
                 elements.saveBtn.addEventListener('click', async function() {
                     const cardData = generatePreview();
@@ -2045,6 +2047,7 @@
                 elements.cardIdInput.addEventListener('input', function() {
                     generatePreview();
                     checkCardStatus();
+                    loadCardDetails();
                 });
                 
                 elements.messageInput.addEventListener('input', generatePreview);
