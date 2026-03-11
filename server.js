@@ -87,6 +87,8 @@ const limiter = rateLimit({
   max: 200, // 200 requests per 15 minutes
   message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
+
+// Apply the main limiter to all API routes
 app.use('/api/', limiter);
 
 // Higher limit for admin endpoints
@@ -276,6 +278,20 @@ app.post('/api/cards', async (req, res) => {
       // Add batch fields if provided
       if (batch_id) updateData.batch_id = batch_id;
       if (batch_order) updateData.batch_order = batch_order;
+      
+      // If card is pending and has no deadline, set one
+      const { data: currentCard } = await supabaseAdmin
+        .from('cards')
+        .select('status, activation_deadline')
+        .eq('card_id', card_id)
+        .single();
+      
+      if (currentCard && currentCard.status === 'pending' && !currentCard.activation_deadline) {
+        const deadline = new Date();
+        deadline.setFullYear(deadline.getFullYear() + 1);
+        updateData.activation_deadline = deadline.toISOString();
+        console.log(`📅 Setting missing deadline for pending card ${card_id}`);
+      }
       
       if (!cardCheck?.created_by_ip) {
         console.log(`📝 Setting created_by_ip for first time: ${clientIp}`);
