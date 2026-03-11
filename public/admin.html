@@ -844,22 +844,26 @@
             </div>
         </div>
         
-        <!-- Abandoned Cards and Mismatch Alerts Grid -->
-        <div class="grid-2col">
-            <!-- Abandoned Cards Section -->
-            <div class="info-box">
-                <h4><i class="fas fa-clock"></i> Abandoned Cards (Pending > 30 days)</h4>
-                <div id="abandonedCardsList" style="max-height: 200px; overflow-y: auto;">
-                    <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
-                </div>
+        <!-- Abandoned Cards Section -->
+        <div class="analytics-section" style="margin-top: 20px;">
+            <div class="analytics-title">
+                <i class="fas fa-clock"></i> Abandoned Cards (Pending > 30 days)
             </div>
-            
-            <!-- Geographic Mismatch Alerts -->
-            <div class="info-box">
-                <h4><i class="fas fa-globe-americas"></i> Geographic Mismatch Alerts</h4>
-                <div id="mismatchAlertsList" style="max-height: 200px; overflow-y: auto;">
-                    <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
-                </div>
+            <div id="abandonedCardsList" style="max-height: 200px; overflow-y: auto;">
+                <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
+            </div>
+            <button id="expireCardsBtn" class="filter-btn" style="margin-top: 10px; background: #e74c3c; color: white;">
+                <i class="fas fa-hourglass-end"></i> Expire Old Cards
+            </button>
+        </div>
+        
+        <!-- Geographic Mismatch Alerts -->
+        <div class="analytics-section">
+            <div class="analytics-title">
+                <i class="fas fa-globe-americas"></i> Geographic Mismatch Alerts
+            </div>
+            <div id="mismatchAlertsList" style="max-height: 200px; overflow-y: auto;">
+                <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
             </div>
         </div>
         
@@ -953,6 +957,7 @@
                         <th draggable="true" data-column="status">Status</th>
                         <th draggable="true" data-column="batch_id">Batch ID</th>
                         <th draggable="true" data-column="activation_deadline">Deadline</th>
+                        <th draggable="true" data-column="batch_order">Order</th>
                         <th draggable="true" data-column="message_type">Message Type</th>
                         <th draggable="true" data-column="message_text">Message Text</th>
                         <th draggable="true" data-column="media_url">Media URL</th>
@@ -973,7 +978,7 @@
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="20" class="loading">
+                        <td colspan="21" class="loading">
                             <div class="spinner"></div>
                             <div>Loading cards...</div>
                         </td>
@@ -1039,6 +1044,7 @@
             { id: 'status', name: 'Status' },
             { id: 'batch_id', name: 'Batch ID' },
             { id: 'activation_deadline', name: 'Deadline' },
+            { id: 'batch_order', name: 'Order' },
             { id: 'message_type', name: 'Message Type' },
             { id: 'message_text', name: 'Message Text' },
             { id: 'media_url', name: 'Media URL' },
@@ -1062,7 +1068,7 @@
         
         // Current column order
         let columnOrder = [
-            'card_id', 'status', 'batch_id', 'activation_deadline', 'message_type', 
+            'card_id', 'status', 'batch_id', 'activation_deadline', 'batch_order', 'message_type', 
             'message_text', 'media_url', 'file_name', 'file_size', 'file_type', 
             'scan_count', 'created_by_ip', 'updated_by_ip', 'created_at', 'updated_at',
             'location', 'mismatch', 'activation_history', 'recent_scans'
@@ -1096,6 +1102,7 @@
         const scanLogsTypeOption = document.getElementById('scanLogsTypeOption');
         const exportTypeRadios = document.querySelectorAll('input[name="exportType"]');
         const statusMessage = document.getElementById('statusMessage');
+        const expireCardsBtn = document.getElementById('expireCardsBtn');
         
         let draggedColumn = null;
         
@@ -1324,6 +1331,59 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
+        // Load abandoned cards
+        async function loadAbandonedCards() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const container = document.getElementById('abandonedCardsList');
+                    if (result.abandoned.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    result.abandoned.slice(0, 10).forEach(card => {
+                        const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
+                        html += `
+                            <div class="abandoned-item">
+                                <span><strong>${card.card_id}</strong></span>
+                                <span style="color: #f39c12;">${daysOld} days old</span>
+                                <span style="color: #aaa;">${card.message_type}</span>
+                            </div>
+                        `;
+                    });
+                    if (result.abandoned.length > 10) {
+                        html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${result.abandoned.length - 10} more</div>`;
+                    }
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading abandoned cards:', error);
+            }
+        }
+        
+        // Expire old cards
+        if (expireCardsBtn) {
+            expireCardsBtn.addEventListener('click', async function() {
+                if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/admin/expire-cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    alert(`Expired ${result.count} cards`);
+                    loadAdminData();
+                } catch (error) {
+                    alert('Error expiring cards');
+                }
+            });
+        }
+        
         // Load admin data
         async function loadAdminData(forceRefresh = false) {
             if (isLoading) return;
@@ -1340,7 +1400,7 @@
                     clearTimeout(timeoutId);
                     showStatus('Rate limited. Please wait 15 seconds and refresh.', 'error');
                     document.getElementById('cardsTableBody').innerHTML = `
-                        <tr><td colspan="20" style="text-align: center; padding: 40px; color: #f39c12;">
+                        <tr><td colspan="21" style="text-align: center; padding: 40px; color: #f39c12;">
                             ⚠️ Rate limited. Please wait and <button onclick="location.reload()" style="background: #BCAE83; color: black; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Refresh</button>
                         </td></tr>
                     `;
@@ -1448,29 +1508,6 @@
                 console.error('Error loading scan logs:', error);
                 allScanLogs = [];
             }
-        }
-        
-        // Load abandoned cards
-        async function loadAbandonedCards() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
-                if (response.status === 429) return;
-                const result = await response.json();
-                if (result.success) {
-                    const container = document.getElementById('abandonedCardsList');
-                    if (result.abandoned.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    result.abandoned.slice(0, 10).forEach(card => {
-                        const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
-                        html += `<div class="abandoned-item"><span><strong>${card.card_id}</strong></span><span style="color: #f39c12;">${daysOld} days old</span><span style="color: #aaa;">${card.message_type}</span></div>`;
-                    });
-                    container.innerHTML = html;
-                }
-            } catch (error) {}
         }
         
         // Load mismatch alerts
@@ -1674,15 +1711,43 @@
             return filtered;
         }
         
+        // Render batch info
         function renderBatchInfo(card) {
             if (!card.batch_id) return '<td>—</td>';
-            return `<td><div><strong>${card.batch_id}</strong></div>${card.batch_info?.shipping_country ? `<div><small>📦 ${card.batch_info.shipping_country}</small></div>` : ''}</td>`;
+            let html = '<td>';
+            html += `<div><strong>${card.batch_id}</strong></div>`;
+            if (card.batch_order) {
+                html += `<div><small>#${card.batch_order}</small></div>`;
+            }
+            if (card.batch_info?.shipping_country) {
+                html += `<div><small>📦 ${card.batch_info.shipping_country}</small></div>`;
+            }
+            html += '</td>';
+            return html;
         }
         
+        // Render activation deadline
         function renderDeadline(card) {
             if (!card.activation_deadline) return '<td>—</td>';
-            const daysLeft = Math.ceil((new Date(card.activation_deadline) - new Date()) / (1000 * 60 * 60 * 24));
-            return `<td><span class="status-badge ${daysLeft < 0 ? 'status-deleted' : daysLeft < 30 ? 'status-pending' : ''}">${daysLeft < 0 ? 'Expired' : daysLeft + ' days'}</span><br><small>${new Date(card.activation_deadline).toLocaleDateString()}</small></td>`;
+            
+            const deadline = new Date(card.activation_deadline);
+            const now = new Date();
+            const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+            
+            let statusClass = '';
+            let displayText = '';
+            
+            if (daysLeft < 0) {
+                statusClass = 'status-deleted';
+                displayText = 'Expired';
+            } else if (daysLeft < 30) {
+                statusClass = 'status-pending';
+                displayText = `${daysLeft} days left`;
+            } else {
+                displayText = `${daysLeft} days`;
+            }
+            
+            return `<td><span class="status-badge ${statusClass}">${displayText}</span><br><small>${deadline.toLocaleDateString()}</small></td>`;
         }
         
         function renderLocation(card) {
@@ -1731,7 +1796,7 @@
             const tbody = document.getElementById('cardsTableBody');
             
             if (filteredCards.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="20" style="text-align: center; padding: 40px;">No cards found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="21" style="text-align: center; padding: 40px;">No cards found</td></tr>';
                 return;
             }
             
@@ -1750,6 +1815,7 @@
                     status: `<td><span class="status-badge ${statusClass}">${card.status.toUpperCase()}</span></td>`,
                     batch_id: renderBatchInfo(card),
                     activation_deadline: renderDeadline(card),
+                    batch_order: `<td>${card.batch_order || '—'}</td>`,
                     message_type: `<td><span class="type-badge ${typeClass}">${typeDisplay}</span></td>`,
                     message_text: `<td>${card.message_text ? card.message_text.substring(0, 30) + '...' : 'N/A'}</td>`,
                     media_url: `<td class="media-url">${card.media_url ? `<a href="${card.media_url}" target="_blank">Link</a>` : 'N/A'}</td>`,
