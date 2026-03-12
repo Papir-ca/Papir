@@ -888,6 +888,29 @@
                     </div>
                 </div>
 
+                <!-- Batch Modification Section (appears after activation) -->
+                <div class="form-group" id="batchModifySection" style="display: none;">
+                    <div style="background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-edit"></i> Modify Batch</h4>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="modifiedBatchSize">Update Number of Cards:</label>
+                            <input type="number" id="modifiedBatchSize" class="content-type-dropdown" min="1" max="100" value="1" style="background: rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
+                                Current: <span id="currentCardCount">0</span> cards | New total will be: <span id="newTotalCount">0</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button class="btn-warning" id="updateBatchBtn" style="background: #3498db;">
+                                <i class="fas fa-sync-alt"></i> Update Batch
+                            </button>
+                        </div>
+                        
+                        <div id="batchModifyPreview" style="max-height: 150px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 5px; margin-top: 15px; display: none;"></div>
+                    </div>
+                </div>
+
                 <!-- Batch Order (auto-filled if batch ID exists) -->
                 <div class="form-group" id="batchOrderSection" style="display: none;">
                     <label for="batchOrder">Card Number in Batch:</label>
@@ -1044,33 +1067,6 @@
             
             <div style="text-align: center; padding: 30px;">
                 <div id="qrCodeContainer" style="margin: 0 auto; max-width: 300px;"></div>
-                
-                <div style="margin-top: 20px;">
-                    <div style="background: rgba(6, 214, 160, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #06D6A0;">
-                        <h4 style="color: #06D6A0; margin-bottom: 10px;">Share Your Card:</h4>
-                        <div class="share-url-container">
-                            <input type="text" id="shareableUrl" class="share-url-input" readonly>
-                            <button class="copy-btn" onclick="copyShareUrl()">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                        </div>
-                        <p style="font-size: 0.9rem; color: #a0aec0;">
-                            <i class="fas fa-mobile-alt"></i> Works on any smartphone - no app needed!
-                        </p>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button class="phone-test-btn" onclick="testOnPhone()">
-                            <i class="fas fa-mobile-alt"></i> Test on Phone
-                        </button>
-                        <button class="btn btn-secondary" onclick="hideQRCode()" style="min-width: 150px;">
-                            <i class="fas fa-times"></i> Close
-                        </button>
-                        <button class="btn btn-success" onclick="printQRCode()" style="min-width: 150px;">
-                            <i class="fas fa-print"></i> Print QR Code
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -1118,7 +1114,8 @@
                 batchId: null,
                 activatedCards: [], // Cards already activated
                 pendingCount: 0, // Cards pending activation
-                totalCards: 0
+                totalCards: 0,
+                originalSize: 0
             };
             
             let currentMedia = {
@@ -1175,6 +1172,13 @@
                 batchSize: document.getElementById('batchSize'),
                 existingCardsPreview: document.getElementById('existingCardsPreview'),
                 batchCardsPreview: document.getElementById('batchCardsPreview'),
+                // Batch modify elements
+                batchModifySection: document.getElementById('batchModifySection'),
+                modifiedBatchSize: document.getElementById('modifiedBatchSize'),
+                currentCardCount: document.getElementById('currentCardCount'),
+                newTotalCount: document.getElementById('newTotalCount'),
+                batchModifyPreview: document.getElementById('batchModifyPreview'),
+                updateBatchBtn: document.getElementById('updateBatchBtn'),
                 batchOrder: document.getElementById('batchOrder'),
                 batchOrderSection: document.getElementById('batchOrderSection'),
                 deadlineDisplay: document.getElementById('deadlineDisplay'),
@@ -1190,6 +1194,7 @@
                     elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.1)';
                     elements.batchModeLabel.style.borderColor = 'transparent';
                     elements.batchSection.style.display = 'none';
+                    elements.batchModifySection.style.display = 'none';
                     elements.cardIdInput.parentElement.parentElement.style.display = 'block';
                     elements.activateBtn.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
                 } else {
@@ -1206,6 +1211,179 @@
             
             elements.singleModeRadio.addEventListener('change', toggleMode);
             elements.batchModeRadio.addEventListener('change', toggleMode);
+            
+            // Show batch modify section after activation
+            function showBatchModifySection() {
+                if (currentMode === 'batch' && window.currentBatchCards) {
+                    const currentCount = window.currentBatchCards.length;
+                    elements.batchModifySection.style.display = 'block';
+                    elements.currentCardCount.textContent = currentCount;
+                    elements.modifiedBatchSize.value = currentCount;
+                    elements.newTotalCount.textContent = currentCount;
+                    currentBatchData.originalSize = currentCount;
+                }
+            }
+            
+            // Handle batch size changes
+            elements.modifiedBatchSize.addEventListener('input', function() {
+                const newSize = parseInt(this.value) || 1;
+                const currentSize = window.currentBatchCards ? window.currentBatchCards.length : 0;
+                elements.newTotalCount.textContent = newSize;
+                
+                const diff = newSize - currentSize;
+                const previewDiv = elements.batchModifyPreview;
+                
+                if (diff > 0) {
+                    // Adding cards
+                    previewDiv.style.display = 'block';
+                    let previewHtml = `<div style="color: #2ecc71; margin-bottom: 10px;">➕ Adding ${diff} new cards:</div>`;
+                    
+                    const nextOrder = currentSize + 1;
+                    for (let i = 0; i < diff; i++) {
+                        const order = nextOrder + i;
+                        previewHtml += `<div style="font-size: 0.8rem; padding: 3px 0;">Card #${order} (new)</div>`;
+                    }
+                    previewDiv.innerHTML = previewHtml;
+                } else if (diff < 0) {
+                    // Removing cards
+                    previewDiv.style.display = 'block';
+                    let previewHtml = `<div style="color: #e74c3c; margin-bottom: 10px;">➖ Removing ${Math.abs(diff)} cards:</div>`;
+                    
+                    for (let i = currentSize - 1; i >= newSize; i--) {
+                        previewHtml += `<div style="font-size: 0.8rem; padding: 3px 0;">Card #${i + 1} will be removed</div>`;
+                    }
+                    previewDiv.innerHTML = previewHtml;
+                } else {
+                    previewDiv.style.display = 'none';
+                }
+            });
+            
+            // Update batch button handler
+            elements.updateBatchBtn.addEventListener('click', async function() {
+                if (!window.currentBatchCards || window.currentBatchCards.length === 0) {
+                    showNotification('No active batch found', 'error');
+                    return;
+                }
+                
+                const newSize = parseInt(elements.modifiedBatchSize.value);
+                const currentSize = window.currentBatchCards.length;
+                const diff = newSize - currentSize;
+                const batchId = window.currentBatchCards[0].batch_id;
+                
+                if (diff === 0) {
+                    showNotification('No change in card count', 'info');
+                    return;
+                }
+                
+                if (diff > 0) {
+                    // ADDING CARDS - Need to accept terms again
+                    if (!elements.activationCheckbox.checked) {
+                        showNotification('Please accept the terms to add more cards', 'error');
+                        return;
+                    }
+                    
+                    this.disabled = true;
+                    this.innerHTML = '<span class="loading"></span> Adding cards...';
+                    
+                    // Generate new cards
+                    const nextOrder = currentSize + 1;
+                    const newCards = [];
+                    
+                    for (let i = 0; i < diff; i++) {
+                        const order = nextOrder + i;
+                        const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                        newCards.push({
+                            card_id: newCardId,
+                            batch_id: batchId,
+                            batch_order: order,
+                            status: 'pending'
+                        });
+                    }
+                    
+                    // Activate each new card
+                    let successCount = 0;
+                    for (let i = 0; i < newCards.length; i++) {
+                        const card = newCards[i];
+                        
+                        try {
+                            const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    card_id: card.card_id,
+                                    source: 'maker'
+                                })
+                            });
+                            
+                            const result = await response.json();
+                            if (result.success) {
+                                card.status = 'active';
+                                window.currentBatchCards.push(card);
+                                successCount++;
+                            }
+                        } catch (error) {
+                            console.error(`Failed to activate ${card.card_id}:`, error);
+                        }
+                        
+                        this.innerHTML = `<span class="loading"></span> Added ${i + 1}/${newCards.length}...`;
+                    }
+                    
+                    showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
+                    
+                } else if (diff < 0) {
+                    // REMOVING CARDS - Soft delete the last ones
+                    if (!confirm(`Are you sure you want to remove ${Math.abs(diff)} cards from this batch? This cannot be undone.`)) {
+                        return;
+                    }
+                    
+                    this.disabled = true;
+                    this.innerHTML = '<span class="loading"></span> Removing cards...';
+                    
+                    const cardsToRemove = window.currentBatchCards.slice(newSize);
+                    
+                    for (let i = 0; i < cardsToRemove.length; i++) {
+                        const card = cardsToRemove[i];
+                        
+                        try {
+                            await fetch(`${BACKEND_URL}/api/cards/${card.card_id}`, {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                        } catch (error) {
+                            console.error(`Failed to delete ${card.card_id}:`, error);
+                        }
+                        
+                        this.innerHTML = `<span class="loading"></span> Removed ${i + 1}/${cardsToRemove.length}...`;
+                    }
+                    
+                    // Update current batch cards
+                    window.currentBatchCards = window.currentBatchCards.slice(0, newSize);
+                    showNotification(`✅ Removed ${cardsToRemove.length} cards from batch`, 'success');
+                }
+                
+                // Refresh display
+                elements.currentCardCount.textContent = window.currentBatchCards.length;
+                elements.modifiedBatchSize.value = window.currentBatchCards.length;
+                elements.newTotalCount.textContent = window.currentBatchCards.length;
+                elements.batchModifyPreview.style.display = 'none';
+                
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> Update Batch';
+                
+                // Refresh QR code display
+                if (window.currentBatchCards.length > 0) {
+                    const viewerUrl = `${BACKEND_URL}/viewer.html?card=${window.currentBatchCards[0].card_id}`;
+                    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+                    
+                    const batchSummary = {
+                        card_id: `Batch: ${batchId}`,
+                        message_type: document.getElementById('contentType').value,
+                        message_text: `${window.currentBatchCards.length} cards in batch`
+                    };
+                    
+                    showQRCode(qrCodeUrl, viewerUrl, batchSummary);
+                }
+            });
             
             function showNotification(message, type = 'success') {
                 elements.notification.textContent = message;
@@ -1500,7 +1678,8 @@
                             batchId: batchId,
                             activatedCards: existingCards,
                             pendingCount: newCards.length,
-                            totalCards: existingCards.length + newCards.length
+                            totalCards: existingCards.length + newCards.length,
+                            originalSize: existingCards.length
                         };
                         
                         // Show preview of new cards
@@ -1562,6 +1741,9 @@
                                 completePreview += `<div style="font-size: 0.8rem; padding: 3px 0; border-bottom: 1px solid #333;">✅ ${card.card_id} (Card #${card.batch_order})</div>`;
                             });
                             elements.batchCardsPreview.innerHTML = completePreview;
+                            
+                            // Show batch modify section
+                            showBatchModifySection();
                         } else {
                             showNotification('❌ Failed to activate new cards', 'error');
                         }
@@ -2096,7 +2278,7 @@
                     // Add batch manager link
                     batchHtml += `
                         <div style="margin-top: 20px; text-align: center;">
-                            <a href="/batch-manager?batch=${window.currentBatchCards[0].batch_id}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
+                            <a href="/batch-manager?batch=${encodeURIComponent(window.currentBatchCards[0].batch_id)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
                                 <i class="fas fa-layer-group"></i> Manage This Batch
                             </a>
                         </div>
@@ -2124,8 +2306,12 @@
                 document.body.removeChild(link);
             };
             
-            window.hideQRCode = function() {
-                elements.qrCodeSection.style.display = 'none';
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('URL copied to clipboard!', 'success');
+                }).catch(() => {
+                    showNotification('Failed to copy', 'error');
+                });
             };
             
             window.copyShareUrl = function() {
@@ -2142,12 +2328,8 @@
                 }
             };
             
-            window.copyToClipboard = function(text) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showNotification('URL copied!', 'success');
-                }).catch(() => {
-                    showNotification('Copy failed', 'error');
-                });
+            window.hideQRCode = function() {
+                elements.qrCodeSection.style.display = 'none';
             };
             
             window.testOnPhone = function() {
