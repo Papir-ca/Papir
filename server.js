@@ -1112,10 +1112,14 @@ app.post('/api/admin/batches', async (req, res) => {
   }
 });
 
-// 📊 Get batch details (for customer view)
+// 📊 Get batch details (for customer view) - FIXED
 app.get('/api/batches/:batch_id', async (req, res) => {
   try {
     const { batch_id } = req.params;
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
     
     // Get batch info
     const { data: batch, error: batchError } = await supabaseAdmin
