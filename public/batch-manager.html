@@ -1,667 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batch Manager | Papir</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 20px 0 40px 0;
-            position: relative;
-        }
-        
-        .logo {
-            font-size: 42px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .batch-header {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
-        
-        .batch-title {
-            font-size: 2rem;
-            color: #06D6A0;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid #06D6A0;
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            color: #06D6A0;
-            font-weight: bold;
-        }
-        
-        .stat-label {
-            color: #a0aec0;
-            margin-top: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .add-more-section {
-            background: rgba(243, 156, 18, 0.1);
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border-left: 4px solid #f39c12;
-        }
-        
-        .add-more-title {
-            color: #f39c12;
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        
-        .quantity-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px 20px;
-            color: white;
-            font-size: 1rem;
-            width: 120px;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(to right, #06D6A0, #118AB2);
-            color: white;
-            text-decoration: none;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3);
-        }
-        
-        .btn-warning {
-            background: #f39c12;
-            color: black;
-        }
-        
-        .btn-warning:hover {
-            background: #e67e22;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .price-display {
-            background: #2a2a2a;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid #06D6A0;
-        }
-        
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-        
-        .price-total {
-            font-size: 1.5rem;
-            color: #06D6A0;
-            font-weight: bold;
-            border-top: 1px solid #444;
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-        
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .card-item {
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #444;
-            transition: transform 0.3s;
-        }
-        
-        .card-item:hover {
-            transform: translateY(-5px);
-            border-color: #06D6A0;
-        }
-        
-        .card-order {
-            font-size: 1rem;
-            color: #06D6A0;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .card-id {
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #a0aec0;
-            margin-bottom: 15px;
-            word-break: break-all;
-            background: #1a1a1a;
-            padding: 8px;
-            border-radius: 4px;
-        }
-        
-        .qr-small {
-            width: 150px;
-            height: 150px;
-            margin: 10px auto;
-            display: block;
-            border: 2px solid white;
-            border-radius: 5px;
-        }
-        
-        .card-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        
-        .action-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .action-btn.copy-btn {
-            background: #06D6A0;
-            color: black;
-        }
-        
-        .action-btn.download-btn {
-            background: #f39c12;
-            color: black;
-        }
-        
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: inline-block;
-        }
-        
-        .status-active {
-            background: #2ecc71;
-            color: black;
-        }
-        
-        .status-pending {
-            background: #f39c12;
-            color: black;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-        }
-        
-        .spinner {
-            border: 4px solid #333;
-            border-top: 4px solid #06D6A0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            opacity: 0;
-            transform: translateX(100px);
-            transition: all 0.5s;
-        }
-        
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            background: linear-gradient(to right, #00b09b, #96c93d);
-        }
-        
-        .notification.error {
-            background: linear-gradient(to right, #FF6B6B, #FF8E53);
-        }
-        
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .input-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .quantity-input {
-                width: 100%;
-            }
-            
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <a href="maker.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Creator
-    </a>
+<script>
+    const BACKEND_URL = 'https://papir.ca';
     
-    <div class="container">
-        <header>
-            <h1 class="logo">📦 Papir Batch Manager</h1>
-            <p class="tagline">Manage your card batches, add more cards, and download QR codes</p>
-        </header>
+    // Get batch ID from URL and decode it
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedBatchId = urlParams.get('batch');
+    const batchId = encodedBatchId ? decodeURIComponent(encodedBatchId) : null;
+    
+    console.log('Loading batch:', batchId);
+    
+    let currentBatch = null;
+    let currentCards = [];
+    
+    const elements = {
+        batchInfo: document.getElementById('batchInfo'),
+        loadingSpinner: document.getElementById('loadingSpinner'),
+        errorMessage: document.getElementById('errorMessage'),
+        errorText: document.getElementById('errorText'),
+        batchIdDisplay: document.getElementById('batchIdDisplay'),
+        cardsCreated: document.getElementById('cardsCreated'),
+        maxAllowed: document.getElementById('maxAllowed'),
+        remainingSlots: document.getElementById('remainingSlots'),
+        cardsContainer: document.getElementById('cardsContainer'),
+        addMoreSection: document.getElementById('addMoreSection'),
+        additionalQuantity: document.getElementById('additionalQuantity'),
+        calculatePriceBtn: document.getElementById('calculatePriceBtn'),
+        priceDisplay: document.getElementById('priceDisplay'),
+        pricePerCard: document.getElementById('pricePerCard'),
+        priceQuantity: document.getElementById('priceQuantity'),
+        totalPrice: document.getElementById('totalPrice'),
+        checkoutBtn: document.getElementById('checkoutBtn'),
+        notification: document.getElementById('notification')
+    };
+    
+    function showNotification(message, type = 'success') {
+        elements.notification.textContent = message;
+        elements.notification.className = `notification ${type}`;
+        elements.notification.classList.add('show');
+        setTimeout(() => {
+            elements.notification.classList.remove('show');
+        }, 3000);
+    }
+    
+    function downloadQRCode(qrUrl, filename) {
+        const link = document.createElement('a');
+        link.href = qrUrl;
+        link.download = `papir_${filename}_qr.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('URL copied to clipboard!', 'success');
+        }).catch(() => {
+            showNotification('Failed to copy', 'error');
+        });
+    }
+    
+    async function loadBatch() {
+        if (!batchId) {
+            showError('No batch ID provided');
+            return;
+        }
         
-        <div id="batchInfo" style="display: none;">
-            <div class="batch-header">
-                <div class="batch-title">
-                    <i class="fas fa-layer-group"></i>
-                    <span id="batchIdDisplay"></span>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="cardsCreated">0</div>
-                        <div class="stat-label">Cards Created</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="maxAllowed">0</div>
-                        <div class="stat-label">Maximum Allowed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="remainingSlots">0</div>
-                        <div class="stat-label">Remaining Slots</div>
-                    </div>
-                </div>
-            </div>
+        try {
+            console.log('Fetching batch:', `${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
+            const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
             
-            <div class="add-more-section" id="addMoreSection">
-                <div class="add-more-title">
-                    <i class="fas fa-plus-circle"></i>
-                    Need More Cards?
-                </div>
-                <p style="color: #a0aec0; margin-bottom: 20px;">
-                    Add additional cards to this batch. You'll need to accept terms again for the new cards.
-                </p>
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                currentBatch = result.batch;
+                currentCards = result.cards;
                 
-                <div class="input-group">
-                    <input type="number" id="additionalQuantity" class="quantity-input" min="1" max="100" value="5">
-                    <span style="color: white;">cards</span>
-                    <button class="btn btn-warning" id="calculatePriceBtn">
-                        <i class="fas fa-calculator"></i> Calculate Price
-                    </button>
-                </div>
-                
-                <div id="priceDisplay" style="display: none;">
-                    <div class="price-display">
-                        <div class="price-row">
-                            <span>Price per card:</span>
-                            <span id="pricePerCard">$19.99</span>
-                        </div>
-                        <div class="price-row">
-                            <span>Quantity:</span>
-                            <span id="priceQuantity">5</span>
-                        </div>
-                        <div class="price-total" id="totalPrice">$99.95</div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                        <button class="btn btn-primary" id="checkoutBtn">
-                            <i class="fas fa-lock"></i> Pay & Add Cards
+                displayBatch();
+            } else {
+                throw new Error(result.error || 'Failed to load batch');
+            }
+        } catch (error) {
+            console.error('Error loading batch:', error);
+            showError(error.message);
+        }
+    }
+    
+    function displayBatch() {
+        elements.loadingSpinner.style.display = 'none';
+        elements.batchInfo.style.display = 'block';
+        
+        elements.batchIdDisplay.textContent = currentBatch.batch_id;
+        elements.cardsCreated.textContent = currentBatch.cards_created;
+        elements.maxAllowed.textContent = currentBatch.max_cards_allowed;
+        
+        const remaining = currentBatch.max_cards_allowed - currentBatch.cards_created;
+        elements.remainingSlots.textContent = remaining;
+        
+        if (remaining <= 0) {
+            elements.addMoreSection.style.display = 'none';
+        }
+        
+        // Display cards
+        let cardsHtml = '';
+        currentCards.forEach(card => {
+            const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(viewerUrl)}&format=png&margin=5`;
+            
+            const statusClass = card.status === 'active' ? 'status-active' : 'status-pending';
+            
+            cardsHtml += `
+                <div class="card-item">
+                    <div class="card-order">Card #${card.batch_order}</div>
+                    <div class="card-id">${card.card_id}</div>
+                    <span class="status-badge ${statusClass}">${card.status}</span>
+                    <img src="${qrUrl}" alt="QR Code" class="qr-small">
+                    <div class="card-actions">
+                        <button class="action-btn copy-btn" onclick="copyToClipboard('${viewerUrl}')">
+                            <i class="fas fa-copy"></i> URL
+                        </button>
+                        <button class="action-btn download-btn" onclick="downloadQRCode('${qrUrl}', '${card.card_id}')">
+                            <i class="fas fa-download"></i> QR
                         </button>
                     </div>
                 </div>
-            </div>
-            
-            <div class="batch-header">
-                <h3 style="color: #06D6A0; margin-bottom: 20px;">
-                    <i class="fas fa-qrcode"></i> Your Cards
-                </h3>
-                <div id="cardsContainer" class="cards-grid">
-                    <!-- Cards will be loaded here -->
-                </div>
-            </div>
-        </div>
-        
-        <div id="loadingSpinner" class="loading">
-            <div class="spinner"></div>
-            <div>Loading batch information...</div>
-        </div>
-        
-        <div id="errorMessage" style="display: none; text-align: center; padding: 40px; color: #e74c3c;">
-            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-            <h3>Error Loading Batch</h3>
-            <p id="errorText"></p>
-            <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 20px;">
-                <i class="fas fa-sync-alt"></i> Try Again
-            </button>
-        </div>
-    </div>
-    
-    <div class="notification" id="notification"></div>
-    
-    <script>
-        const BACKEND_URL = 'https://papir.ca';
-        
-        // Get batch ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const batchId = urlParams.get('batch');
-        
-        let currentBatch = null;
-        let currentCards = [];
-        
-        const elements = {
-            batchInfo: document.getElementById('batchInfo'),
-            loadingSpinner: document.getElementById('loadingSpinner'),
-            errorMessage: document.getElementById('errorMessage'),
-            errorText: document.getElementById('errorText'),
-            batchIdDisplay: document.getElementById('batchIdDisplay'),
-            cardsCreated: document.getElementById('cardsCreated'),
-            maxAllowed: document.getElementById('maxAllowed'),
-            remainingSlots: document.getElementById('remainingSlots'),
-            cardsContainer: document.getElementById('cardsContainer'),
-            addMoreSection: document.getElementById('addMoreSection'),
-            additionalQuantity: document.getElementById('additionalQuantity'),
-            calculatePriceBtn: document.getElementById('calculatePriceBtn'),
-            priceDisplay: document.getElementById('priceDisplay'),
-            pricePerCard: document.getElementById('pricePerCard'),
-            priceQuantity: document.getElementById('priceQuantity'),
-            totalPrice: document.getElementById('totalPrice'),
-            checkoutBtn: document.getElementById('checkoutBtn'),
-            notification: document.getElementById('notification')
-        };
-        
-        function showNotification(message, type = 'success') {
-            elements.notification.textContent = message;
-            elements.notification.className = `notification ${type}`;
-            elements.notification.classList.add('show');
-            setTimeout(() => {
-                elements.notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        function downloadQRCode(qrUrl, filename) {
-            const link = document.createElement('a');
-            link.href = qrUrl;
-            link.download = `papir_${filename}_qr.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('URL copied to clipboard!', 'success');
-            }).catch(() => {
-                showNotification('Failed to copy', 'error');
-            });
-        }
-        
-        async function loadBatch() {
-            if (!batchId) {
-                showError('No batch ID provided');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentBatch = result.batch;
-                    currentCards = result.cards;
-                    
-                    displayBatch();
-                } else {
-                    throw new Error(result.error || 'Failed to load batch');
-                }
-            } catch (error) {
-                console.error('Error loading batch:', error);
-                showError(error.message);
-            }
-        }
-        
-        function displayBatch() {
-            elements.loadingSpinner.style.display = 'none';
-            elements.batchInfo.style.display = 'block';
-            
-            elements.batchIdDisplay.textContent = currentBatch.batch_id;
-            elements.cardsCreated.textContent = currentBatch.cards_created;
-            elements.maxAllowed.textContent = currentBatch.max_cards_allowed;
-            
-            const remaining = currentBatch.max_cards_allowed - currentBatch.cards_created;
-            elements.remainingSlots.textContent = remaining;
-            
-            if (remaining <= 0) {
-                elements.addMoreSection.style.display = 'none';
-            }
-            
-            // Display cards
-            let cardsHtml = '';
-            currentCards.forEach(card => {
-                const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(viewerUrl)}&format=png&margin=5`;
-                
-                const statusClass = card.status === 'active' ? 'status-active' : 'status-pending';
-                
-                cardsHtml += `
-                    <div class="card-item">
-                        <div class="card-order">Card #${card.batch_order}</div>
-                        <div class="card-id">${card.card_id}</div>
-                        <span class="status-badge ${statusClass}">${card.status}</span>
-                        <img src="${qrUrl}" alt="QR Code" class="qr-small">
-                        <div class="card-actions">
-                            <button class="action-btn copy-btn" onclick="copyToClipboard('${viewerUrl}')">
-                                <i class="fas fa-copy"></i> URL
-                            </button>
-                            <button class="action-btn download-btn" onclick="downloadQRCode('${qrUrl}', '${card.card_id}')">
-                                <i class="fas fa-download"></i> QR
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            elements.cardsContainer.innerHTML = cardsHtml;
-        }
-        
-        function showError(message) {
-            elements.loadingSpinner.style.display = 'none';
-            elements.errorMessage.style.display = 'block';
-            elements.errorText.textContent = message;
-        }
-        
-        // Calculate price
-        elements.calculatePriceBtn.addEventListener('click', async function() {
-            const quantity = parseInt(elements.additionalQuantity.value);
-            
-            if (quantity < 1 || quantity > 100) {
-                showNotification('Please enter a quantity between 1 and 100', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/batches/calculate-price`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        batch_id: batchId,
-                        additional_quantity: quantity
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    elements.pricePerCard.textContent = `$${result.price_per_card.toFixed(2)}`;
-                    elements.priceQuantity.textContent = result.quantity;
-                    elements.totalPrice.textContent = result.formatted_total;
-                    elements.priceDisplay.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Price calculation error:', error);
-                showNotification('Error calculating price', 'error');
-            }
+            `;
         });
         
-        // Handle adding more cards
-        elements.checkoutBtn.addEventListener('click', async function() {
-            const quantity = parseInt(elements.additionalQuantity.value);
-            
-            showNotification('Redirecting to maker page to add cards...', 'info');
-            
-            // Redirect to maker page with batch info
-            setTimeout(() => {
-                window.location.href = `/maker.html?batch=${batchId}&add=${quantity}`;
-            }, 1500);
-        });
+        elements.cardsContainer.innerHTML = cardsHtml;
+    }
+    
+    function showError(message) {
+        elements.loadingSpinner.style.display = 'none';
+        elements.errorMessage.style.display = 'block';
+        elements.errorText.textContent = message;
+    }
+    
+    // Calculate price
+    elements.calculatePriceBtn.addEventListener('click', async function() {
+        const quantity = parseInt(elements.additionalQuantity.value);
         
-        // Initialize
-        if (!batchId) {
-            showError('No batch ID provided. Please use the link from your batch creation.');
-        } else {
-            loadBatch();
+        if (quantity < 1 || quantity > 100) {
+            showNotification('Please enter a quantity between 1 and 100', 'error');
+            return;
         }
-    </script>
-</body>
-</html>
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/batches/calculate-price`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    batch_id: batchId,
+                    additional_quantity: quantity
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                elements.pricePerCard.textContent = `$${result.price_per_card.toFixed(2)}`;
+                elements.priceQuantity.textContent = result.quantity;
+                elements.totalPrice.textContent = result.formatted_total;
+                elements.priceDisplay.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Price calculation error:', error);
+            showNotification('Error calculating price', 'error');
+        }
+    });
+    
+    // Handle adding more cards
+    elements.checkoutBtn.addEventListener('click', async function() {
+        const quantity = parseInt(elements.additionalQuantity.value);
+        
+        showNotification('Redirecting to maker page to add cards...', 'info');
+        
+        // Redirect to maker page with batch info
+        setTimeout(() => {
+            window.location.href = `/maker.html?batch=${encodeURIComponent(batchId)}&add=${quantity}`;
+        }, 1500);
+    });
+    
+    // Initialize
+    if (!batchId) {
+        showError('No batch ID provided. Please use the link from your batch creation.');
+    } else {
+        loadBatch();
+    }
+</script>
