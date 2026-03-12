@@ -17,63 +17,32 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: white;
+            padding: 20px;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
         }
         
-        header {
-            text-align: center;
-            padding: 20px 0 40px 0;
-            position: relative;
-        }
-        
-        .logo {
-            font-size: 42px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+        h1 {
+            color: #BCAE83;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
         }
         
         .batch-header {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
         
         .batch-title {
-            font-size: 2rem;
-            color: #06D6A0;
+            color: #f39c12;
+            font-size: 1.8rem;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -84,70 +53,96 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .stat-card {
-            background: #2a2a2a;
+            background: #333;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             text-align: center;
-            border-left: 4px solid #06D6A0;
+            border-left: 4px solid #f39c12;
         }
         
         .stat-value {
             font-size: 2rem;
-            color: #06D6A0;
             font-weight: bold;
+            color: #f39c12;
+            margin-bottom: 5px;
         }
         
         .stat-label {
-            color: #a0aec0;
-            margin-top: 5px;
+            color: #aaa;
             font-size: 0.9rem;
+        }
+        
+        .cards-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #06D6A0;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
         }
         
         .card-item {
             background: #2a2a2a;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 20px;
             border: 1px solid #444;
             transition: transform 0.3s;
         }
         
         .card-item:hover {
-            transform: translateY(-5px);
-            border-color: #06D6A0;
+            transform: translateY(-3px);
+            border-color: #f39c12;
         }
         
         .card-order {
-            font-size: 1rem;
-            color: #06D6A0;
-            margin-bottom: 10px;
-            font-weight: bold;
+            color: #f39c12;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
         
         .card-id {
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #a0aec0;
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
             word-break: break-all;
-            background: #1a1a1a;
-            padding: 8px;
-            border-radius: 4px;
         }
         
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-active { background: #2ecc71; color: black; }
+        .status-pending { background: #f39c12; color: black; }
+        
         .qr-small {
-            width: 150px;
-            height: 150px;
+            width: 100px;
+            height: 100px;
             margin: 10px auto;
             display: block;
             border: 2px solid white;
@@ -158,62 +153,93 @@
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin-top: 15px;
+            margin-top: 10px;
         }
         
         .action-btn {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
         }
         
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .action-btn.copy-btn {
+        .copy-btn {
             background: #06D6A0;
             color: black;
         }
         
-        .action-btn.download-btn {
+        .download-btn {
             background: #f39c12;
             color: black;
         }
         
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+        .action-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .add-more-section {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .add-more-title {
+            color: #3498db;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        
+        .price-input {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .quantity-input {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            width: 150px;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
             font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
         }
         
-        .status-active {
-            background: #2ecc71;
-            color: black;
-        }
-        
-        .status-pending {
-            background: #f39c12;
-            color: black;
+        .price-display {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
         }
         
         .loading {
             text-align: center;
             padding: 40px;
-            color: #aaa;
         }
         
         .spinner {
-            border: 4px solid #333;
-            border-top: 4px solid #06D6A0;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #f39c12;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -226,6 +252,16 @@
             100% { transform: rotate(360deg); }
         }
         
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 4px solid #ff6b6b;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #ff6b6b;
+            display: none;
+        }
+        
         .notification {
             position: fixed;
             top: 20px;
@@ -234,7 +270,7 @@
             border-radius: 10px;
             color: white;
             font-weight: 600;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             z-index: 1000;
             opacity: 0;
             transform: translateX(100px);
@@ -254,118 +290,137 @@
             background: linear-gradient(to right, #FF6B6B, #FF8E53);
         }
         
-        .add-more-btn {
-            background: #f39c12;
-            color: black;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-        
-        .add-more-btn:hover {
-            background: #e67e22;
-            transform: translateY(-2px);
-        }
-        
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
             
-            .cards-grid {
-                grid-template-columns: 1fr;
+            .price-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .quantity-input {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <a href="maker.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Creator
-    </a>
-    
     <div class="container">
-        <header>
-            <h1 class="logo">📦 Papir Batch Manager</h1>
-            <p class="tagline">View and manage all cards in your batch</p>
-        </header>
+        <h1><i class="fas fa-layer-group"></i> Batch Manager</h1>
+        
+        <div id="loadingSpinner" class="loading">
+            <div class="spinner"></div>
+            <p>Loading batch information...</p>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="errorText"></p>
+            <button onclick="location.reload()" style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 5px; margin-top: 10px; cursor: pointer;">
+                <i class="fas fa-sync-alt"></i> Try Again
+            </button>
+        </div>
         
         <div id="batchInfo" style="display: none;">
+            <!-- Batch Header -->
             <div class="batch-header">
                 <div class="batch-title">
-                    <i class="fas fa-layer-group"></i>
-                    <span id="batchIdDisplay"></span>
+                    <i class="fas fa-tag"></i>
+                    Batch: <span id="batchIdDisplay"></span>
                 </div>
                 
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="cardsCreated">0</div>
-                        <div class="stat-label">Cards in Batch</div>
+                        <div class="stat-label">Cards Created</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="activeCount">0</div>
-                        <div class="stat-label">Active Cards</div>
+                        <div class="stat-value" id="maxAllowed">0</div>
+                        <div class="stat-label">Maximum Allowed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="totalScans">0</div>
-                        <div class="stat-label">Total Scans</div>
+                        <div class="stat-value" id="remainingSlots">0</div>
+                        <div class="stat-label">Remaining Slots</div>
                     </div>
                 </div>
             </div>
             
-            <div id="cardsContainer" class="cards-grid">
-                <!-- Cards will be loaded here -->
+            <!-- Cards Section -->
+            <div class="cards-section">
+                <div class="section-title">
+                    <i class="fas fa-id-card"></i>
+                    Cards in this Batch
+                </div>
+                
+                <div id="cardsContainer" class="cards-grid">
+                    <!-- Cards will be populated here -->
+                </div>
             </div>
             
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="/maker.html?batch=${encodeURIComponent(batchId)}" class="add-more-btn">
-                    <i class="fas fa-plus-circle"></i> Add More Cards to This Batch
-                </a>
+            <!-- Add More Cards Section -->
+            <div id="addMoreSection" class="add-more-section">
+                <div class="add-more-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Add More Cards to this Batch
+                </div>
+                
+                <div class="price-input">
+                    <input type="number" id="additionalQuantity" class="quantity-input" min="1" max="100" value="1" placeholder="Quantity">
+                    <button class="btn-primary" id="calculatePriceBtn">
+                        <i class="fas fa-calculator"></i> Calculate Price
+                    </button>
+                </div>
+                
+                <div id="priceDisplay" class="price-display">
+                    <p style="margin-bottom: 10px;">Price per card: <strong id="pricePerCard">$0.00</strong></p>
+                    <p style="margin-bottom: 15px;">Quantity: <strong id="priceQuantity">0</strong></p>
+                    <p style="font-size: 1.2rem; color: #2ecc71;">Total: <strong id="totalPrice">$0.00</strong></p>
+                    <button class="btn-primary" id="checkoutBtn" style="width: 100%; margin-top: 15px;">
+                        <i class="fas fa-shopping-cart"></i> Proceed to Checkout
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <div id="loadingSpinner" class="loading">
-            <div class="spinner"></div>
-            <div>Loading batch information...</div>
-        </div>
-        
-        <div id="errorMessage" style="display: none; text-align: center; padding: 40px; color: #e74c3c;">
-            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-            <h3>Error Loading Batch</h3>
-            <p id="errorText"></p>
-            <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 20px; background: #444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                <i class="fas fa-sync-alt"></i> Try Again
-            </button>
         </div>
     </div>
     
     <div class="notification" id="notification"></div>
-    
+
     <script>
-        const BACKEND_URL = 'https://papir.ca';
+        const BACKEND_URL = window.location.origin; // This will be https://papir.ca
         
-        // Get batch ID from URL and decode it
+        // FIXED: Properly decode the batch ID from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const encodedBatchId = urlParams.get('batch');
-        const batchId = encodedBatchId ? decodeURIComponent(encodedBatchId) : null;
+        const rawBatchId = urlParams.get('batch');
+        
+        // DECODE the batch ID properly - this handles spaces and special characters
+        const batchId = rawBatchId ? decodeURIComponent(rawBatchId) : null;
+        
+        console.log('Raw batch from URL:', rawBatchId);
+        console.log('Decoded batch ID:', batchId);
         
         let currentBatch = null;
         let currentCards = [];
         
         const elements = {
-            batchInfo: document.getElementById('batchInfo'),
             loadingSpinner: document.getElementById('loadingSpinner'),
             errorMessage: document.getElementById('errorMessage'),
             errorText: document.getElementById('errorText'),
+            batchInfo: document.getElementById('batchInfo'),
             batchIdDisplay: document.getElementById('batchIdDisplay'),
             cardsCreated: document.getElementById('cardsCreated'),
-            activeCount: document.getElementById('activeCount'),
-            totalScans: document.getElementById('totalScans'),
+            maxAllowed: document.getElementById('maxAllowed'),
+            remainingSlots: document.getElementById('remainingSlots'),
             cardsContainer: document.getElementById('cardsContainer'),
+            addMoreSection: document.getElementById('addMoreSection'),
+            additionalQuantity: document.getElementById('additionalQuantity'),
+            calculatePriceBtn: document.getElementById('calculatePriceBtn'),
+            priceDisplay: document.getElementById('priceDisplay'),
+            pricePerCard: document.getElementById('pricePerCard'),
+            priceQuantity: document.getElementById('priceQuantity'),
+            totalPrice: document.getElementById('totalPrice'),
+            checkoutBtn: document.getElementById('checkoutBtn'),
             notification: document.getElementById('notification')
         };
         
@@ -397,12 +452,18 @@
         
         async function loadBatch() {
             if (!batchId) {
-                showError('No batch ID provided');
+                showError('No batch ID provided. Please use the link from your batch creation.');
                 return;
             }
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
+                // FIXED: Properly encode the batch ID for the URL
+                const encodedBatchId = encodeURIComponent(batchId);
+                const url = `${BACKEND_URL}/api/batches/${encodedBatchId}`;
+                
+                console.log('Fetching batch from:', url);
+                
+                const response = await fetch(url);
                 
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status}`);
@@ -412,7 +473,7 @@
                 
                 if (result.success) {
                     currentBatch = result.batch;
-                    currentCards = result.cards;
+                    currentCards = result.cards || [];
                     
                     displayBatch();
                 } else {
@@ -429,15 +490,22 @@
             elements.batchInfo.style.display = 'block';
             
             elements.batchIdDisplay.textContent = currentBatch.batch_id;
-            elements.cardsCreated.textContent = currentCards.length;
+            elements.cardsCreated.textContent = currentBatch.cards_created || 0;
+            elements.maxAllowed.textContent = currentBatch.max_cards_allowed || 0;
             
-            const activeCards = currentCards.filter(c => c.status === 'active').length;
-            elements.activeCount.textContent = activeCards;
+            const remaining = (currentBatch.max_cards_allowed || 0) - (currentBatch.cards_created || 0);
+            elements.remainingSlots.textContent = remaining;
             
-            const totalScans = currentCards.reduce((sum, card) => sum + (card.scan_count || 0), 0);
-            elements.totalScans.textContent = totalScans;
+            if (remaining <= 0) {
+                elements.addMoreSection.style.display = 'none';
+            }
             
             // Display cards
+            if (currentCards.length === 0) {
+                elements.cardsContainer.innerHTML = '<div style="text-align: center; color: #aaa; padding: 40px;">No cards found in this batch</div>';
+                return;
+            }
+            
             let cardsHtml = '';
             currentCards.forEach(card => {
                 const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
@@ -448,9 +516,9 @@
                 cardsHtml += `
                     <div class="card-item">
                         <div class="card-order">Card #${card.batch_order}</div>
-                        <span class="status-badge ${statusClass}">${card.status}</span>
                         <div class="card-id">${card.card_id}</div>
-                        <img src="${qrUrl}" alt="QR Code" class="qr-small">
+                        <span class="status-badge ${statusClass}">${card.status}</span>
+                        <img src="${qrUrl}" alt="QR Code" class="qr-small" onerror="this.src='https://via.placeholder.com/100?text=QR+Error'">
                         <div class="card-actions">
                             <button class="action-btn copy-btn" onclick="copyToClipboard('${viewerUrl}')">
                                 <i class="fas fa-copy"></i> URL
@@ -471,6 +539,52 @@
             elements.errorMessage.style.display = 'block';
             elements.errorText.textContent = message;
         }
+        
+        // Calculate price
+        elements.calculatePriceBtn.addEventListener('click', async function() {
+            const quantity = parseInt(elements.additionalQuantity.value);
+            
+            if (quantity < 1 || quantity > 100) {
+                showNotification('Please enter a quantity between 1 and 100', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/batches/calculate-price`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        batch_id: batchId,
+                        additional_quantity: quantity
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    elements.pricePerCard.textContent = `$${result.price_per_card.toFixed(2)}`;
+                    elements.priceQuantity.textContent = result.quantity;
+                    elements.totalPrice.textContent = result.formatted_total;
+                    elements.priceDisplay.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Price calculation error:', error);
+                showNotification('Error calculating price', 'error');
+            }
+        });
+        
+        // Handle adding more cards
+        elements.checkoutBtn.addEventListener('click', async function() {
+            const quantity = parseInt(elements.additionalQuantity.value);
+            
+            showNotification('Redirecting to maker page to add cards...', 'info');
+            
+            // FIXED: Properly encode the batch ID in the redirect URL
+            setTimeout(() => {
+                const encodedBatch = encodeURIComponent(batchId);
+                window.location.href = `/maker.html?batch=${encodedBatch}&add=${quantity}`;
+            }, 1500);
+        });
         
         // Initialize
         if (!batchId) {
