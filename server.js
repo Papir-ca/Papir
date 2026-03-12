@@ -195,6 +195,47 @@ try {
   console.error('❌ Supabase connection error:', error.message);
 }
 
+// ============================================
+// HELPER FUNCTION: Get clean client IP (FIXED)
+// ============================================
+function getClientIp(req) {
+  // Get the forwarded IPs
+  const forwarded = req.headers['x-forwarded-for'];
+  const remoteAddress = req.socket.remoteAddress;
+  const ip = req.ip;
+  
+  console.log('IP Debug:', {
+    forwarded,
+    remoteAddress,
+    ip
+  });
+  
+  // First try x-forwarded-for and take the FIRST IP only
+  if (forwarded) {
+    // Split by comma and take the first IP, then trim whitespace
+    const firstIp = forwarded.split(',')[0].trim();
+    console.log('Using first forwarded IP:', firstIp);
+    return firstIp;
+  }
+  
+  // Fallback to remoteAddress
+  if (remoteAddress && remoteAddress !== '::1' && remoteAddress !== '::ffff:127.0.0.1') {
+    // Remove IPv6 prefix if present
+    const cleanIp = remoteAddress.replace('::ffff:', '');
+    console.log('Using remoteAddress:', cleanIp);
+    return cleanIp;
+  }
+  
+  // Last resort fallback
+  if (ip && ip !== '::1' && ip !== '::ffff:127.0.0.1') {
+    const cleanIp = ip.replace('::ffff:', '');
+    console.log('Using req.ip:', cleanIp);
+    return cleanIp;
+  }
+  
+  return 'unknown';
+}
+
 // Helper function to get geolocation from IP
 async function getGeolocationFromIp(ip) {
   try {
@@ -233,8 +274,10 @@ app.post('/api/cards', async (req, res) => {
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
     
-    // Get client IP address
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
+    
+    console.log(`📝 Client IP: ${clientIp}`);
     
     // Validation
     if (!card_id || !message_type) {
@@ -613,8 +656,8 @@ app.delete('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    // Get client IP for update
-    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
     
     const { error } = await supabaseAdmin
       .from('cards')
@@ -653,11 +696,8 @@ app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id, source } = req.body;
     
-    // Fix IP handling
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
-    if (clientIp.includes(',')) {
-        clientIp = clientIp.split(',')[0].trim();
-    }
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
     
     console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp} with source: ${source || 'not provided'}`);
     
@@ -804,8 +844,8 @@ app.post('/api/increment-scan', async (req, res) => {
   try {
     const { card_id } = req.body;
     
-    // Get client IP
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
     
     console.log(`📊 Processing scan for: ${card_id} from IP: ${clientIp}`);
     
@@ -816,12 +856,12 @@ app.post('/api/increment-scan', async (req, res) => {
       });
     }
     
-    // 1. Log the individual scan
+    // 1. Log the individual scan with clean IP
     const { error: logError } = await supabaseAdmin
       .from('scan_logs')
       .insert({
         card_id: card_id,
-        ip_address: clientIp,
+        ip_address: clientIp, // Now using clean single IP
         user_agent: req.headers['user-agent'] || 'unknown',
         scanned_at: new Date().toISOString()
       });
@@ -1082,7 +1122,8 @@ app.post('/api/admin/batches', async (req, res) => {
   try {
     const { batch_id, shipping_address, shipping_country, shipping_city, total_cards, user_email } = req.body;
     
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
     
     const { data, error } = await supabaseAdmin
       .from('batches')
@@ -1295,7 +1336,8 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Confirmation required' });
     }
     
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'unknown';
+    // Get clean client IP address (FIXED)
+    const clientIp = getClientIp(req);
     
     // Mark all cards in batch as deleted
     const { error } = await supabaseAdmin
@@ -1475,7 +1517,7 @@ app.listen(PORT, () => {
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking');
-  console.log('   ✅ IP address tracking');
+  console.log('   ✅ IP address tracking (single IP only)'); // Updated
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
   console.log('   ✅ Individual scan logging');
