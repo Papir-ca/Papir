@@ -1112,7 +1112,7 @@ app.post('/api/admin/batches', async (req, res) => {
   }
 });
 
-// 📊 Get batch details (for customer view) - FIXED
+// 📊 Get batch details (for customer view)
 app.get('/api/batches/:batch_id', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -1143,20 +1143,10 @@ app.get('/api/batches/:batch_id', async (req, res) => {
     
     if (cardsError) throw cardsError;
     
-    // Get template content (first card's content)
-    const { data: template } = await supabaseAdmin
-      .from('cards')
-      .select('message_type, message_text, media_url, file_name, file_type')
-      .eq('batch_id', batch_id)
-      .eq('batch_order', 1)
-      .maybeSingle();
-    
     res.json({
       success: true,
       batch,
-      cards: cards || [],
-      template: template || null,
-      can_add_more: batch.cards_created < batch.max_cards_allowed
+      cards: cards || []
     });
     
   } catch (error) {
