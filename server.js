@@ -97,6 +97,14 @@ const adminLimiter = rateLimit({
 });
 app.use('/api/admin/', adminLimiter);
 
+// Higher limit for batch endpoints - ADDED THIS
+const batchLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+  message: 'Too many batch requests, please slow down.'
+});
+app.use('/api/batches/', batchLimiter);
+
 // 📁 Serve static files FROM 'public' FOLDER
 app.use(express.static('public'));
 
@@ -1421,7 +1429,7 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
 });
 
 // ============================================
-// BATCH MANAGEMENT ENDPOINTS (Keep your existing ones)
+// BATCH MANAGEMENT ENDPOINTS
 // ============================================
 
 // 📊 Create a new batch
@@ -1464,6 +1472,8 @@ app.post('/api/admin/batches', async (req, res) => {
 app.get('/api/batches/:batch_id', async (req, res) => {
   try {
     const { batch_id } = req.params;
+    
+    console.log(`🔍 Fetching batch: ${batch_id}`);
     
     if (!supabaseAdmin) {
       return res.status(503).json({ success: false, error: 'Database unavailable' });
@@ -1836,7 +1846,7 @@ app.listen(PORT, () => {
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking');
-  console.log('   ✅ IP address tracking (single IP only)'); // Updated
+  console.log('   ✅ IP address tracking (single IP only)');
   console.log('   ✅ QR code generation');
   console.log('   ✅ Scan count tracking');
   console.log('   ✅ Individual scan logging');
@@ -1857,6 +1867,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Activity timeline');
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
+  console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
