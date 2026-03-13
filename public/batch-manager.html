@@ -615,9 +615,17 @@
                 elements.recentBatches.style.display = 'block';
                 let html = '';
                 recentBatches.forEach(id => {
-                    html += `<span class="recent-badge" onclick="loadBatchById('${id}')">${id}</span>`;
+                    html += `<span class="recent-badge" data-batch="${id}">${id}</span>`;
                 });
                 elements.recentList.innerHTML = html;
+                
+                // Add click listeners to recent badges
+                document.querySelectorAll('.recent-badge').forEach(badge => {
+                    badge.addEventListener('click', function() {
+                        const batchId = this.dataset.batch;
+                        loadBatchById(batchId);
+                    });
+                });
             } else {
                 elements.recentBatches.style.display = 'none';
             }
@@ -694,14 +702,14 @@
             if (currentCards.length === 0) {
                 cardsHtml = '<div class="no-cards">No cards in this batch yet. Click "Add More Cards" to create some.</div>';
             } else {
-                currentCards.forEach(card => {
+                currentCards.forEach((card, index) => {
                     const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(viewerUrl)}&format=png&margin=5`;
                     
                     const statusClass = card.status === 'active' ? 'status-active' : 'status-pending';
                     
                     cardsHtml += `
-                        <div class="card-item">
+                        <div class="card-item" data-card-id="${card.card_id}" data-viewer-url="${viewerUrl}" data-qr-url="${qrUrl}">
                             <div class="card-order">Card #${card.batch_order}</div>
                             <span class="status-badge ${statusClass}">${card.status}</span>
                             <div class="card-id">${card.card_id}</div>
@@ -711,13 +719,13 @@
                             </div>
                             
                             <div class="card-actions">
-                                <button class="action-btn view-btn" onclick="window.open('${viewerUrl}', '_blank')">
+                                <button class="action-btn view-btn" data-action="view" data-index="${index}">
                                     <i class="fas fa-eye"></i> View Card
                                 </button>
-                                <button class="action-btn copy-btn" onclick="copyToClipboard('${viewerUrl}')">
+                                <button class="action-btn copy-btn" data-action="copy" data-index="${index}">
                                     <i class="fas fa-copy"></i> Copy URL
                                 </button>
-                                <button class="action-btn download-btn" onclick="downloadQRCode('${qrUrl}', '${card.card_id}')">
+                                <button class="action-btn download-btn" data-action="download" data-index="${index}">
                                     <i class="fas fa-download"></i> Download QR
                                 </button>
                             </div>
@@ -727,6 +735,26 @@
             }
             
             elements.cardsContainer.innerHTML = cardsHtml;
+            
+            // Add event listeners to all action buttons
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const action = this.dataset.action;
+                    const cardItem = this.closest('.card-item');
+                    const cardId = cardItem.dataset.cardId;
+                    const viewerUrl = cardItem.dataset.viewerUrl;
+                    const qrUrl = cardItem.dataset.qrUrl;
+                    
+                    if (action === 'view') {
+                        window.open(viewerUrl, '_blank');
+                    } else if (action === 'copy') {
+                        copyToClipboard(viewerUrl);
+                    } else if (action === 'download') {
+                        downloadQRCode(qrUrl, cardId);
+                    }
+                });
+            });
         }
         
         function showError(message) {
@@ -769,11 +797,6 @@
             elements.batchSearchInput.value = urlBatchId;
             loadBatch(urlBatchId);
         }
-        
-        // Make functions global for onclick handlers
-        window.copyToClipboard = copyToClipboard;
-        window.downloadQRCode = downloadQRCode;
-        window.loadBatchById = loadBatchById;
         
     </script>
 </body>
