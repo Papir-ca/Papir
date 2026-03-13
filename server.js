@@ -287,7 +287,7 @@ app.post('/api/cards', async (req, res) => {
     const { card_id, message_type, message_text, media_url, file_name, file_size, file_type, batch_id, batch_order } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
-
+    
     console.log('🔍 FULL REQUEST BODY:', JSON.stringify(req.body, null, 2));
     console.log('🔍 BATCH_ID RECEIVED:', batch_id);
     console.log('🔍 BATCH_ID TYPE:', typeof batch_id);
@@ -376,6 +376,30 @@ app.post('/api/cards', async (req, res) => {
       
       if (error) throw error;
       result = data;
+      
+      // ========== ADDED FOR UPDATES TOO ==========
+      if (batch_id) {
+        // Check if batch record exists
+        const { data: existingBatch } = await supabaseAdmin
+          .from('batches')
+          .select('batch_id')
+          .eq('batch_id', batch_id)
+          .maybeSingle();
+        
+        // If batch doesn't exist, create it
+        if (!existingBatch) {
+          console.log(`📦 Auto-creating batch record for: ${batch_id} (from update)`);
+          await supabaseAdmin
+            .from('batches')
+            .insert({
+              batch_id: batch_id,
+              cards_created: 1,
+              created_at: new Date().toISOString(),
+              created_by_ip: clientIp
+            });
+        }
+      }
+      // ==============================================
     
     } else {
       // INSERT new card
@@ -1907,7 +1931,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Auto-create batch records');
+  console.log('   ✅ Auto-create batch records (inserts AND updates)');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
