@@ -239,7 +239,6 @@
         }
         
         .qr-container {
-            position: relative;
             margin: 15px 0;
             text-align: center;
         }
@@ -247,42 +246,10 @@
         .qr-small {
             width: 150px;
             height: 150px;
-            margin: 0 auto;
+            margin: 0 auto 10px;
             display: block;
             border: 2px solid white;
             border-radius: 5px;
-        }
-        
-        .qr-actions {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        
-        .qr-action-btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        
-        .qr-action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .qr-action-btn.copy {
-            background: #06D6A0;
-            color: black;
-        }
-        
-        .qr-action-btn.download {
-            background: #f39c12;
-            color: black;
         }
         
         .card-actions {
@@ -301,6 +268,9 @@
             transition: all 0.3s;
             background: rgba(255, 255, 255, 0.1);
             color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .action-btn:hover {
@@ -474,6 +444,10 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .card-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -488,7 +462,7 @@
             <p class="tagline" id="batchTagline">Search, view, and manage all your card batches</p>
         </header>
         
-        <!-- Search Section - NEW -->
+        <!-- Search Section -->
         <div class="search-section">
             <div class="search-title">
                 <i class="fas fa-search"></i> Find a Batch
@@ -676,28 +650,6 @@
                 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        // Check if cards exist with this batch_id but no batch record
-                        const cardsResponse = await fetch(`${BACKEND_URL}/api/cards?batch_id=${encodeURIComponent(batchId)}`);
-                        if (cardsResponse.ok) {
-                            const cardsResult = await cardsResponse.json();
-                            if (cardsResult.cards && cardsResult.cards.length > 0) {
-                                // Create batch record automatically
-                                console.log('Cards found but no batch record - creating one');
-                                await createBatchRecord(batchId);
-                                // Retry loading
-                                const retryResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
-                                if (retryResponse.ok) {
-                                    const result = await retryResponse.json();
-                                    if (result.success) {
-                                        currentBatch = result.batch;
-                                        currentCards = result.cards;
-                                        saveRecentBatch(batchId);
-                                        displayBatch();
-                                        return;
-                                    }
-                                }
-                            }
-                        }
                         throw new Error('Batch not found. Please check the batch ID.');
                     }
                     throw new Error(`Server returned ${response.status}`);
@@ -716,24 +668,6 @@
             } catch (error) {
                 console.error('Error loading batch:', error);
                 showError(error.message);
-            }
-        }
-        
-        async function createBatchRecord(batchId) {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/admin/batches`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        batch_id: batchId,
-                        total_cards: 0
-                    })
-                });
-                if (response.ok) {
-                    console.log('Batch record created automatically');
-                }
-            } catch (error) {
-                console.error('Failed to create batch record:', error);
             }
         }
         
@@ -774,25 +708,17 @@
                             
                             <div class="qr-container">
                                 <img src="${qrUrl}" alt="QR Code" class="qr-small">
-                                <div class="qr-actions">
-                                    <button class="qr-action-btn copy" onclick="copyToClipboard('${viewerUrl}')">
-                                        <i class="fas fa-copy"></i> URL
-                                    </button>
-                                    <button class="qr-action-btn download" onclick="downloadQRCode('${qrUrl}', '${card.card_id}')">
-                                        <i class="fas fa-download"></i> QR
-                                    </button>
-                                </div>
                             </div>
                             
                             <div class="card-actions">
                                 <button class="action-btn view-btn" onclick="window.open('${viewerUrl}', '_blank')">
-                                    <i class="fas fa-eye"></i> View
+                                    <i class="fas fa-eye"></i> View Card
                                 </button>
                                 <button class="action-btn copy-btn" onclick="copyToClipboard('${viewerUrl}')">
                                     <i class="fas fa-copy"></i> Copy URL
                                 </button>
                                 <button class="action-btn download-btn" onclick="downloadQRCode('${qrUrl}', '${card.card_id}')">
-                                    <i class="fas fa-download"></i> QR
+                                    <i class="fas fa-download"></i> Download QR
                                 </button>
                             </div>
                         </div>
