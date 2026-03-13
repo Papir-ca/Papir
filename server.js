@@ -159,6 +159,7 @@ app.get('/api/health', (req, res) => {
       abandonedCards: `GET ${baseUrl}/api/admin/abandoned`,
       geolocation: `GET ${baseUrl}/api/admin/geolocation/:card_id`,
       mismatchAlerts: `GET ${baseUrl}/api/admin/mismatch-alerts`,
+      allLocations: `GET ${baseUrl}/api/admin/all-locations`,
       batches: `POST ${baseUrl}/api/admin/batches`,
       getBatch: `GET ${baseUrl}/api/batches/:batch_id`,
       addToBatch: `POST ${baseUrl}/api/batches/:batch_id/add`,
@@ -1056,6 +1057,84 @@ app.get('/api/admin/geolocation/:card_id', async (req, res) => {
   }
 });
 
+// 📊 Get all locations for heatmap (FAST - single query)
+app.get('/api/admin/all-locations', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 90; // Default to last 90 days
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Calculate cutoff date
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    // Single query to get all activation locations
+    const { data, error } = await supabaseAdmin
+      .from('card_activations')
+      .select('card_id, city, country, region, latitude, longitude, activated_at, activation_source')
+      .not('city', 'is', null)
+      .gte('activated_at', cutoffDate.toISOString())
+      .order('activated_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Calculate city counts for top locations
+    const cityCounts = {};
+    const countryCounts = {};
+    const locations = [];
+    
+    data.forEach(act => {
+      // Count cities
+      if (act.city && act.country) {
+        const key = `${act.city}, ${act.country}`;
+        cityCounts[key] = (cityCounts[key] || 0) + 1;
+      }
+      
+      // Count countries
+      if (act.country) {
+        countryCounts[act.country] = (countryCounts[act.country] || 0) + 1;
+      }
+      
+      // Store location for map (limit to 200 for performance)
+      if (act.latitude && act.longitude && locations.length < 200) {
+        locations.push({
+          lat: act.latitude,
+          lng: act.longitude,
+          city: act.city,
+          country: act.country,
+          count: 1
+        });
+      }
+    });
+    
+    // Get top 10 cities
+    const topLocations = Object.entries(cityCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([city, count]) => ({ city, count }));
+    
+    // Get total activations with location
+    const totalLocated = data.length;
+    
+    res.json({
+      success: true,
+      stats: {
+        totalLocated,
+        totalCities: Object.keys(cityCounts).length,
+        totalCountries: Object.keys(countryCounts).length
+      },
+      topLocations,
+      locations // For map if you add one later
+    });
+    
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // 📊 Get geographic mismatch alerts
 app.get('/api/admin/mismatch-alerts', async (req, res) => {
   try {
@@ -1462,6 +1541,7 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/abandoned`,
       `${baseUrl}/api/admin/geolocation/:id`,
       `${baseUrl}/api/admin/mismatch-alerts`,
+      `${baseUrl}/api/admin/all-locations`,
       `${baseUrl}/api/batches/:id`,
       `${baseUrl}/api/batches/:id/add`,
       `${baseUrl}/api/batches/calculate-price`,
@@ -1507,6 +1587,7 @@ app.listen(PORT, () => {
   console.log(`   Abandoned Cards: https://papir.ca/api/admin/abandoned`);
   console.log(`   Geolocation: https://papir.ca/api/admin/geolocation/:id`);
   console.log(`   Mismatch Alerts: https://papir.ca/api/admin/mismatch-alerts`);
+  console.log(`   All Locations: https://papir.ca/api/admin/all-locations`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
