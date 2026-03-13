@@ -287,6 +287,11 @@ app.post('/api/cards', async (req, res) => {
     const { card_id, message_type, message_text, media_url, file_name, file_size, file_type, batch_id, batch_order } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
+
+    console.log('🔍 FULL REQUEST BODY:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 BATCH_ID RECEIVED:', batch_id);
+    console.log('🔍 BATCH_ID TYPE:', typeof batch_id);
+    console.log('🔍 BATCH_ID LENGTH:', batch_id?.length);
     
     // Get clean client IP address (FIXED)
     const clientIp = getClientIp(req);
