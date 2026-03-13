@@ -97,7 +97,7 @@ const adminLimiter = rateLimit({
 });
 app.use('/api/admin/', adminLimiter);
 
-// Higher limit for batch endpoints - ADDED THIS
+// Higher limit for batch endpoints
 const batchLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100, // 100 requests per minute
@@ -410,10 +410,32 @@ app.post('/api/cards', async (req, res) => {
       if (error) throw error;
       result = data;
       
-      // Update batch cards_created count
+      // ========== AUTO-CREATE BATCH RECORD ==========
       if (batch_id) {
-        await supabaseAdmin.rpc('increment_batch_cards', { batch_id_param: batch_id });
+        // Check if batch record exists
+        const { data: existingBatch } = await supabaseAdmin
+          .from('batches')
+          .select('batch_id')
+          .eq('batch_id', batch_id)
+          .maybeSingle();
+        
+        // If batch doesn't exist, create it
+        if (!existingBatch) {
+          console.log(`📦 Auto-creating batch record for: ${batch_id}`);
+          await supabaseAdmin
+            .from('batches')
+            .insert({
+              batch_id: batch_id,
+              cards_created: 1, // Start at 1 since we just created a card
+              created_at: new Date().toISOString(),
+              created_by_ip: clientIp
+            });
+        } else {
+          // Update existing batch count
+          await supabaseAdmin.rpc('increment_batch_cards', { batch_id_param: batch_id });
+        }
       }
+      // ==============================================
     }
     
     console.log(`✅ Card saved: ${card_id}`);
@@ -1868,6 +1890,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
+  console.log('   ✅ Auto-create batch records');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
