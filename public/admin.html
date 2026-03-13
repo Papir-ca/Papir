@@ -1119,99 +1119,85 @@
             }
         }
         
-        // Update location stats
-        function updateLocationStats() {
-            const cities = new Set();
-            const countries = new Set();
-            let locatedCount = 0;
-            const cityCounts = {};
-            
-            allActivations.forEach(act => {
-                if (act.city) {
-                    cities.add(`${act.city}, ${act.country}`);
-                    const key = `${act.city}, ${act.country}`;
-                    cityCounts[key] = (cityCounts[key] || 0) + 1;
+        // FAST: Load all locations with a single API call
+        async function loadAllLocations() {
+            try {
+                console.log('📍 Loading location data...');
+                
+                const response = await fetch(`${BACKEND_URL}/api/admin/all-locations?days=90`);
+                
+                if (response.status === 429) {
+                    console.log('Rate limited, will retry...');
+                    setTimeout(loadAllLocations, 5000);
+                    return;
                 }
-                if (act.country) countries.add(act.country);
-                if (act.latitude) locatedCount++;
-            });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayLocationStats(result.stats, result.topLocations);
+                }
+            } catch (error) {
+                console.error('Error loading locations:', error);
+            }
+        }
+        
+        // Display location stats from aggregated data
+        function displayLocationStats(stats, topLocations) {
+            // Update stats cards
+            document.getElementById('totalLocations').textContent = stats.totalCities || 0;
+            document.getElementById('totalCountries').textContent = stats.totalCountries || 0;
+            document.getElementById('totalLocated').textContent = stats.totalLocated || 0;
             
-            document.getElementById('totalLocations').textContent = cities.size || 0;
-            document.getElementById('totalCountries').textContent = countries.size || 0;
-            document.getElementById('totalLocated').textContent = locatedCount || 0;
-            
-            // Show summary text
+            // Update summary text
             const summary = document.getElementById('locationSummary');
-            if (cities.size === 0) {
+            if (stats.totalLocated === 0) {
                 summary.innerHTML = 'No location data available yet. This will populate as cards are activated.';
             } else {
-                const topCity = Object.entries(cityCounts).sort((a,b) => b[1] - a[1])[0];
                 summary.innerHTML = `
-                    <p>📍 Activations span <strong>${countries.size}</strong> countries and <strong>${cities.size}</strong> cities.</p>
-                    <p>🌍 Most active: <strong>${topCity ? topCity[0] : 'N/A'}</strong> (${topCity ? topCity[1] : 0} activations)</p>
+                    <p>📍 Activations span <strong>${stats.totalCountries}</strong> countries and <strong>${stats.totalCities}</strong> cities.</p>
+                    <p>🌍 Total located activations: <strong>${stats.totalLocated}</strong></p>
                 `;
             }
             
             // Update top locations list
-            const sortedCities = Object.entries(cityCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-            
             const topLocationsList = document.getElementById('topLocationsList');
-            if (sortedCities.length === 0) {
+            if (topLocations.length === 0) {
                 topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet. Cards need to be activated first.</div>';
-            } else {
-                let html = '';
-                sortedCities.forEach(([city, count]) => {
-                    let flag = '';
-                    if (city.includes('United States')) flag = '🇺🇸';
-                    else if (city.includes('Canada')) flag = '🇨🇦';
-                    else if (city.includes('United Kingdom')) flag = '🇬🇧';
-                    else if (city.includes('India')) flag = '🇮🇳';
-                    
-                    html += `
-                        <div class="location-item">
-                            <span class="location-name">
-                                <span class="flag-icon">${flag}</span>
-                                ${city}
-                            </span>
-                            <span class="location-count">${count}</span>
-                        </div>
-                    `;
-                });
-                topLocationsList.innerHTML = html;
+                return;
             }
+            
+            let html = '';
+            topLocations.forEach((item, index) => {
+                let flag = '';
+                if (item.city.includes('United States')) flag = '🇺🇸';
+                else if (item.city.includes('Canada')) flag = '🇨🇦';
+                else if (item.city.includes('United Kingdom')) flag = '🇬🇧';
+                else if (item.city.includes('India')) flag = '🇮🇳';
+                
+                html += `
+                    <div class="location-item">
+                        <span class="location-name">
+                            <span class="flag-icon">${flag}</span>
+                            ${item.city}
+                        </span>
+                        <span class="location-count">${item.count}</span>
+                    </div>
+                `;
+            });
+            topLocationsList.innerHTML = html;
         }
         
-        // Load all activations
+        // Remove old location functions - keeping for backward compatibility
+        function updateLocationStats() {
+            // This function is no longer used, kept to avoid errors
+            console.log('Using fast location loader instead');
+        }
+        
+        // Load all activations (kept for backward compatibility)
         async function loadAllActivations() {
-            try {
-                const activations = [];
-                const seenIds = new Set();
-                
-                for (const card of allCardDetails) {
-                    if (card.activation_history && Array.isArray(card.activation_history)) {
-                        card.activation_history.forEach(act => {
-                            const id = `${card.card_id}-${act.activated_at}`;
-                            if (!seenIds.has(id) && act.location_data) {
-                                seenIds.add(id);
-                                activations.push({
-                                    ...act,
-                                    latitude: act.location_data?.latitude,
-                                    longitude: act.location_data?.longitude,
-                                    city: act.city || act.location_data?.city,
-                                    country: act.country || act.location_data?.country
-                                });
-                            }
-                        });
-                    }
-                }
-                
-                allActivations = activations;
-                updateLocationStats();
-            } catch (error) {
-                console.error('Error loading activations:', error);
-            }
+            // This function is no longer used, kept to avoid errors
+            console.log('Using fast location loader instead');
         }
         
         // Populate column checkboxes
@@ -1424,6 +1410,9 @@
                     loadAbandonedCards().catch(() => {});
                     loadMismatchAlerts().catch(() => {});
                     
+                    // Load locations with single API call (FAST)
+                    loadAllLocations().catch(e => console.log('Location load failed:', e));
+                    
                     // Load details in background
                     loadDetailedData().catch(() => {});
                 }
@@ -1472,8 +1461,7 @@
                 }
             }
             
-            // After all cards are loaded, load activations once
-            await loadAllActivations();
+            // After all cards are loaded, load activations once (keeping for backward compatibility)
             renderTable(); // Final render with all data
         }
         
