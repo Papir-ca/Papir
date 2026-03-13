@@ -430,9 +430,21 @@ app.post('/api/cards', async (req, res) => {
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
+          console.log(`✅ Batch record created for: ${batch_id}`);
         } else {
           // Update existing batch count
-          await supabaseAdmin.rpc('increment_batch_cards', { batch_id_param: batch_id });
+          const { data: batch } = await supabaseAdmin
+            .from('batches')
+            .select('cards_created')
+            .eq('batch_id', batch_id)
+            .single();
+          
+          const newCount = (batch?.cards_created || 0) + 1;
+          await supabaseAdmin
+            .from('batches')
+            .update({ cards_created: newCount })
+            .eq('batch_id', batch_id);
+          console.log(`📊 Updated batch count for ${batch_id}: ${newCount}`);
         }
       }
       // ==============================================
