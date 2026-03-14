@@ -394,6 +394,7 @@ app.post('/api/cards', async (req, res) => {
             .insert({
               batch_id: batch_id,
               cards_created: 1,
+              total_cards_purchased: 1,
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
@@ -456,6 +457,7 @@ app.post('/api/cards', async (req, res) => {
             .insert({
               batch_id: batch_id,
               cards_created: 1, // Start at 1 since we just created a card
+              total_cards_purchased: 1,
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
