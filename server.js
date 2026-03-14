@@ -933,6 +933,47 @@ app.post('/api/activate-card', async (req, res) => {
       // Continue anyway - card is still activated
     }
     
+    // ========== UPDATE BATCH COUNTS ON ACTIVATION ==========
+    if (card.batch_id) {
+      console.log(`📦 Updating batch counts for ${card.batch_id} from activation`);
+      
+      // Check if batch record exists
+      const { data: existingBatch } = await supabaseAdmin
+        .from('batches')
+        .select('cards_created, total_cards_purchased')
+        .eq('batch_id', card.batch_id)
+        .maybeSingle();
+      
+      if (!existingBatch) {
+        // Create batch record if it doesn't exist
+        console.log(`📦 Auto-creating batch record for: ${card.batch_id} (from activation)`);
+        await supabaseAdmin
+          .from('batches')
+          .insert({
+            batch_id: card.batch_id,
+            cards_created: 1,
+            total_cards_purchased: 1,
+            created_at: new Date().toISOString(),
+            created_by_ip: clientIp
+          });
+        console.log(`✅ Batch record created for: ${card.batch_id}`);
+      } else {
+        // Update existing batch counts
+        const newCount = (existingBatch.cards_created || 0) + 1;
+        const newTotal = (existingBatch.total_cards_purchased || 0) + 1;
+        
+        await supabaseAdmin
+          .from('batches')
+          .update({ 
+            cards_created: newCount,
+            total_cards_purchased: newTotal 
+          })
+          .eq('batch_id', card.batch_id);
+        console.log(`📊 Updated batch counts for ${card.batch_id}: cards=${newCount}, total=${newTotal}`);
+      }
+    }
+    // =======================================================
+    
     console.log(`✅ Card ${card_id} activated successfully (logged to activations table with source: ${source || 'viewer'})`);
     res.json({ success: true });
     
@@ -1959,6 +2000,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Auto-create batch records (inserts AND updates)');
   console.log('   ✅ Total cards purchased tracking');
+  console.log('   ✅ Batch counters on activation');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
