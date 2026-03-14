@@ -398,6 +398,25 @@ app.post('/api/cards', async (req, res) => {
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
+        } else {
+          // Update existing batch count and total purchased
+          const { data: batch } = await supabaseAdmin
+            .from('batches')
+            .select('cards_created, total_cards_purchased')
+            .eq('batch_id', batch_id)
+            .single();
+          
+          const newCount = (batch?.cards_created || 0) + 1;
+          const newTotal = (batch?.total_cards_purchased || 0) + 1;
+          
+          await supabaseAdmin
+            .from('batches')
+            .update({ 
+              cards_created: newCount,
+              total_cards_purchased: newTotal 
+            })
+            .eq('batch_id', batch_id);
+          console.log(`📊 Updated batch counts for ${batch_id}: cards=${newCount}, total=${newTotal}`);
         }
       }
       // ==============================================
@@ -456,26 +475,31 @@ app.post('/api/cards', async (req, res) => {
             .from('batches')
             .insert({
               batch_id: batch_id,
-              cards_created: 1, // Start at 1 since we just created a card
+              cards_created: 1,
               total_cards_purchased: 1,
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
           console.log(`✅ Batch record created for: ${batch_id}`);
         } else {
-          // Update existing batch count
+          // Update existing batch count and total purchased
           const { data: batch } = await supabaseAdmin
             .from('batches')
-            .select('cards_created')
+            .select('cards_created, total_cards_purchased')
             .eq('batch_id', batch_id)
             .single();
           
           const newCount = (batch?.cards_created || 0) + 1;
+          const newTotal = (batch?.total_cards_purchased || 0) + 1;
+          
           await supabaseAdmin
             .from('batches')
-            .update({ cards_created: newCount })
+            .update({ 
+              cards_created: newCount,
+              total_cards_purchased: newTotal 
+            })
             .eq('batch_id', batch_id);
-          console.log(`📊 Updated batch count for ${batch_id}: ${newCount}`);
+          console.log(`📊 Updated batch counts for ${batch_id}: cards=${newCount}, total=${newTotal}`);
         }
       }
       // ==============================================
@@ -1934,6 +1958,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Auto-create batch records (inserts AND updates)');
+  console.log('   ✅ Total cards purchased tracking');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
