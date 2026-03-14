@@ -377,7 +377,7 @@ app.post('/api/cards', async (req, res) => {
       if (error) throw error;
       result = data;
       
-      // ========== ADDED FOR UPDATES TOO ==========
+      // ========== BATCH EVENT TRACKING - USING SEPARATE TABLE ==========
       if (batch_id) {
         // Check if batch record exists
         const { data: existingBatch } = await supabaseAdmin
@@ -386,40 +386,63 @@ app.post('/api/cards', async (req, res) => {
           .eq('batch_id', batch_id)
           .maybeSingle();
         
-        // If batch doesn't exist, create it
+        // If batch doesn't exist, create it first
         if (!existingBatch) {
           console.log(`📦 Auto-creating batch record for: ${batch_id} (from update)`);
           await supabaseAdmin
             .from('batches')
             .insert({
               batch_id: batch_id,
-              cards_created: 1,
-              total_cards_purchased: 1,
+              cards_created: 0,
+              total_cards_purchased: 0,
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
-        } else {
-          // Update existing batch count and total purchased
-          const { data: batch } = await supabaseAdmin
-            .from('batches')
-            .select('cards_created, total_cards_purchased')
-            .eq('batch_id', batch_id)
-            .single();
-          
-          const newCount = (batch?.cards_created || 0) + 1;
-          const newTotal = (batch?.total_cards_purchased || 0) + 1;
-          
-          await supabaseAdmin
-            .from('batches')
-            .update({ 
-              cards_created: newCount,
-              total_cards_purchased: newTotal 
-            })
-            .eq('batch_id', batch_id);
-          console.log(`📊 Updated batch counts for ${batch_id}: cards=${newCount}, total=${newTotal}`);
         }
+        
+        // Create purchase event (this card was paid for)
+        const purchaseEvent = {
+          batch_id: batch_id,
+          event_type: 'additional_purchase',
+          quantity: 1,
+          card_id: card_id,
+          timestamp: new Date().toISOString(),
+          ip_address: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          metadata: {
+            source: 'card_update',
+            batch_order: batch_order,
+            message_type: message_type
+          }
+        };
+        
+        await supabaseAdmin
+          .from('batch_events')
+          .insert(purchaseEvent);
+        
+        // Create creation event (this card was created)
+        const creationEvent = {
+          batch_id: batch_id,
+          event_type: 'card_creation',
+          quantity: 1,
+          card_id: card_id,
+          timestamp: new Date().toISOString(),
+          ip_address: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          metadata: {
+            source: 'card_update',
+            batch_order: batch_order,
+            message_type: message_type
+          }
+        };
+        
+        await supabaseAdmin
+          .from('batch_events')
+          .insert(creationEvent);
+        
+        console.log(`📊 Batch events recorded for ${batch_id}: purchase + creation`);
       }
-      // ==============================================
+      // =======================================================
     
     } else {
       // INSERT new card
@@ -459,7 +482,7 @@ app.post('/api/cards', async (req, res) => {
       if (error) throw error;
       result = data;
       
-      // ========== AUTO-CREATE BATCH RECORD ==========
+      // ========== BATCH EVENT TRACKING - USING SEPARATE TABLE ==========
       if (batch_id) {
         // Check if batch record exists
         const { data: existingBatch } = await supabaseAdmin
@@ -468,41 +491,67 @@ app.post('/api/cards', async (req, res) => {
           .eq('batch_id', batch_id)
           .maybeSingle();
         
-        // If batch doesn't exist, create it
+        // Determine if this is the first card in the batch
+        const isFirstCard = !existingBatch;
+        
+        // If batch doesn't exist, create it first
         if (!existingBatch) {
           console.log(`📦 Auto-creating batch record for: ${batch_id}`);
           await supabaseAdmin
             .from('batches')
             .insert({
               batch_id: batch_id,
-              cards_created: 1,
-              total_cards_purchased: 1,
+              cards_created: 0,
+              total_cards_purchased: 0,
               created_at: new Date().toISOString(),
               created_by_ip: clientIp
             });
-          console.log(`✅ Batch record created for: ${batch_id}`);
-        } else {
-          // Update existing batch count and total purchased
-          const { data: batch } = await supabaseAdmin
-            .from('batches')
-            .select('cards_created, total_cards_purchased')
-            .eq('batch_id', batch_id)
-            .single();
-          
-          const newCount = (batch?.cards_created || 0) + 1;
-          const newTotal = (batch?.total_cards_purchased || 0) + 1;
-          
-          await supabaseAdmin
-            .from('batches')
-            .update({ 
-              cards_created: newCount,
-              total_cards_purchased: newTotal 
-            })
-            .eq('batch_id', batch_id);
-          console.log(`📊 Updated batch counts for ${batch_id}: cards=${newCount}, total=${newTotal}`);
         }
+        
+        // Create purchase event (this card was paid for)
+        const purchaseEvent = {
+          batch_id: batch_id,
+          event_type: isFirstCard ? 'initial_purchase' : 'additional_purchase',
+          quantity: 1,
+          card_id: card_id,
+          timestamp: new Date().toISOString(),
+          ip_address: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          metadata: {
+            source: 'card_creation',
+            batch_order: batch_order,
+            message_type: message_type,
+            is_first_card: isFirstCard
+          }
+        };
+        
+        await supabaseAdmin
+          .from('batch_events')
+          .insert(purchaseEvent);
+        
+        // Create creation event (this card was created)
+        const creationEvent = {
+          batch_id: batch_id,
+          event_type: 'card_creation',
+          quantity: 1,
+          card_id: card_id,
+          timestamp: new Date().toISOString(),
+          ip_address: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          metadata: {
+            source: 'card_creation',
+            batch_order: batch_order,
+            message_type: message_type
+          }
+        };
+        
+        await supabaseAdmin
+          .from('batch_events')
+          .insert(creationEvent);
+        
+        console.log(`📊 Batch events recorded for ${batch_id}: ${isFirstCard ? 'initial' : 'additional'} purchase + creation`);
       }
-      // ==============================================
+      // =======================================================
     }
     
     console.log(`✅ Card saved: ${card_id}`);
@@ -933,14 +982,14 @@ app.post('/api/activate-card', async (req, res) => {
       // Continue anyway - card is still activated
     }
     
-    // ========== UPDATE BATCH COUNTS ON ACTIVATION ==========
+    // ========== BATCH ACTIVATION EVENT ==========
     if (card.batch_id) {
-      console.log(`📦 Updating batch counts for ${card.batch_id} from activation`);
+      console.log(`📦 Recording activation event for ${card.batch_id} card ${card_id}`);
       
       // Check if batch record exists
       const { data: existingBatch } = await supabaseAdmin
         .from('batches')
-        .select('cards_created, total_cards_purchased')
+        .select('batch_id')
         .eq('batch_id', card.batch_id)
         .maybeSingle();
       
@@ -951,26 +1000,34 @@ app.post('/api/activate-card', async (req, res) => {
           .from('batches')
           .insert({
             batch_id: card.batch_id,
-            cards_created: 1,
-            total_cards_purchased: 1,
+            cards_created: 0,
+            total_cards_purchased: 0,
             created_at: new Date().toISOString(),
             created_by_ip: clientIp
           });
-        console.log(`✅ Batch record created for: ${card.batch_id}`);
-      } else {
-        // Update existing batch counts
-        const newCount = (existingBatch.cards_created || 0) + 1;
-        const newTotal = (existingBatch.total_cards_purchased || 0) + 1;
-        
-        await supabaseAdmin
-          .from('batches')
-          .update({ 
-            cards_created: newCount,
-            total_cards_purchased: newTotal 
-          })
-          .eq('batch_id', card.batch_id);
-        console.log(`📊 Updated batch counts for ${card.batch_id}: cards=${newCount}, total=${newTotal}`);
       }
+      
+      // Create activation event (status change only - doesn't affect counts)
+      const activationEvent = {
+        batch_id: card.batch_id,
+        event_type: 'card_activation',
+        quantity: 1,
+        card_id: card_id,
+        timestamp: new Date().toISOString(),
+        ip_address: clientIp,
+        user_agent: req.headers['user-agent'] || 'unknown',
+        metadata: {
+          source: source || 'viewer',
+          previous_status: 'pending',
+          new_status: 'active'
+        }
+      };
+      
+      await supabaseAdmin
+        .from('batch_events')
+        .insert(activationEvent);
+      
+      console.log(`📊 Activation event recorded for ${card.batch_id} card ${card_id}`);
     }
     // =======================================================
     
@@ -1577,7 +1634,7 @@ app.post('/api/admin/batches', async (req, res) => {
         shipping_address,
         shipping_country,
         shipping_city,
-        total_cards_purchased: total_cards,
+        total_cards_purchased: 0,
         cards_created: 0,
         max_cards_allowed: total_cards,
         content_locked: false,
@@ -1631,10 +1688,20 @@ app.get('/api/batches/:batch_id', async (req, res) => {
     
     if (cardsError) throw cardsError;
     
+    // Get batch events for history
+    const { data: events, error: eventsError } = await supabaseAdmin
+      .from('batch_events')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .order('timestamp', { ascending: true });
+    
+    if (eventsError) throw eventsError;
+    
     res.json({
       success: true,
       batch,
-      cards: cards || []
+      cards: cards || [],
+      events: events || []
     });
     
   } catch (error) {
@@ -2001,6 +2068,8 @@ app.listen(PORT, () => {
   console.log('   ✅ Auto-create batch records (inserts AND updates)');
   console.log('   ✅ Total cards purchased tracking');
   console.log('   ✅ Batch counters on activation');
+  console.log('   ✅ Batch events table for complete history');
+  console.log('   ✅ Automatic batch totals via database triggers');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
