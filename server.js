@@ -486,15 +486,18 @@ app.post('/api/cards', async (req, res) => {
         // EXISTING BATCH - Update counts
         let countChange = 0;
         
-        // Check if this card is being added to the batch (not just updated)
-        const wasInThisBatch = (oldBatchId === batch_id);
-        
-        if (!wasInThisBatch) {
-          // Card is being added to this batch (either new card or moved from another batch)
+        // NEW CARD - Always increment
+        if (isNewCard) {
           countChange = 1;
           console.log(`➕ Card added to batch`);
-        } else {
-          // Card was already in this batch - no count change
+        }
+        // Card moved from another batch  
+        else if (oldBatchId && oldBatchId !== batch_id) {
+          countChange = 1;
+          console.log(`↪️ Card moved from another batch`);
+        }
+        // Card updated in same batch
+        else {
           console.log(`🔄 Card updated in same batch - no count change`);
         }
         
