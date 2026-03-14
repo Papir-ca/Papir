@@ -418,7 +418,7 @@ app.post('/api/cards', async (req, res) => {
       result = data;
     }
     
-    // ========== BATCH TRACKING - HANDLES ADD/REMOVE/MODIFY ==========
+    // ========== FIXED BATCH TRACKING - ONE EVENT PER CARD ==========
     
     // Case 1: Card was removed from a batch (had batch_id before, now doesn't)
     if (oldBatchId && !batch_id) {
@@ -464,7 +464,7 @@ app.post('/api/cards', async (req, res) => {
       }
     }
     
-    // Case 2: Card was added to a batch (has batch_id now, didn't before OR changed batches)
+    // Case 2: Card is in a batch (has batch_id)
     if (batch_id) {
       console.log(`📦 Processing batch: ${batch_id}`);
       
@@ -487,7 +487,8 @@ app.post('/api/cards', async (req, res) => {
             cards_created: 1,
             total_cards_purchased: 1,
             created_at: new Date().toISOString(),
-            created_by_ip: clientIp
+            created_by_ip: clientIp,
+            updated_at: new Date().toISOString()
           });
         
         if (batchError) {
@@ -520,28 +521,23 @@ app.post('/api/cards', async (req, res) => {
         }
         
       } else {
-        // EXISTING BATCH - Update counts
+        // EXISTING BATCH - Update counts based on whether this card was already in this batch
         let countChange = 0;
         let eventType = '';
         let eventAction = '';
         
-        // Determine if this is an add or update
-        if (!oldBatchId) {
-          // Card didn't have a batch before - ADD
+        // Check if this card was already in this batch
+        const wasInThisBatch = (oldBatchId === batch_id);
+        
+        if (!wasInThisBatch) {
+          // Card is being added to this batch (either new card or moved from another batch)
           countChange = 1;
           eventType = 'card_added';
           eventAction = 'card_added_to_batch';
-          console.log(`➕ Card added to existing batch`);
-        } else if (oldBatchId === batch_id) {
-          // Same batch - no count change
-          countChange = 0;
-          console.log(`🔄 Card updated in same batch - no count change`);
+          console.log(`➕ Card added to batch`);
         } else {
-          // Card moved from one batch to another
-          countChange = 1; // Add to new batch
-          eventType = 'card_moved_to_batch';
-          eventAction = 'card_moved_to_batch';
-          console.log(`↪️ Card moved from ${oldBatchId} to ${batch_id}`);
+          // Card was already in this batch - no count change
+          console.log(`🔄 Card updated in same batch - no count change`);
         }
         
         if (countChange > 0) {
@@ -564,17 +560,17 @@ app.post('/api/cards', async (req, res) => {
             console.log(`📊 Updated batch ${batch_id}: cards_created=${newCardsCreated}, total_purchased=${newTotalPurchased}`);
           }
           
-          // Log the event
+          // ALWAYS log a card_added event for each card added to the batch
           const { error: eventError } = await supabaseAdmin
             .from('batch_events')
             .insert({
               batch_id: batch_id,
-              event_type: eventType || 'card_added',
-              quantity: countChange,
+              event_type: 'card_added',
+              quantity: 1,
               timestamp: new Date().toISOString(),
               ip_address: clientIp,
               metadata: {
-                action: eventAction || 'card_added_to_batch',
+                action: 'card_added_to_batch',
                 card_id: card_id,
                 batch_order: batch_order,
                 previous_batch: oldBatchId,
@@ -585,7 +581,7 @@ app.post('/api/cards', async (req, res) => {
           if (eventError) {
             console.error('❌ Error creating batch event:', eventError);
           } else {
-            console.log(`📝 Logged batch event: ${eventType || 'card_added'}`);
+            console.log(`📝 Logged batch event: card_added for card ${card_id}`);
           }
         }
       }
@@ -893,6 +889,54 @@ app.delete('/api/cards/:card_id', async (req, res) => {
     
     // Get clean client IP address (FIXED)
     const clientIp = getClientIp(req);
+    
+    // First get the card to check if it has a batch_id
+    const { data: card } = await supabaseAdmin
+      .from('cards')
+      .select('batch_id, batch_order')
+      .eq('card_id', card_id)
+      .maybeSingle();
+    
+    if (card && card.batch_id) {
+      // Decrement the batch counts
+      const { data: batch } = await supabaseAdmin
+        .from('batches')
+        .select('*')
+        .eq('batch_id', card.batch_id)
+        .maybeSingle();
+      
+      if (batch) {
+        const newCardsCreated = Math.max(0, (batch.cards_created || 0) - 1);
+        const newTotalPurchased = Math.max(0, (batch.total_cards_purchased || 0) - 1);
+        
+        await supabaseAdmin
+          .from('batches')
+          .update({ 
+            cards_created: newCardsCreated,
+            total_cards_purchased: newTotalPurchased,
+            updated_at: new Date().toISOString()
+          })
+          .eq('batch_id', card.batch_id);
+        
+        // Log removal event
+        await supabaseAdmin
+          .from('batch_events')
+          .insert({
+            batch_id: card.batch_id,
+            event_type: 'card_removed',
+            quantity: 1,
+            timestamp: new Date().toISOString(),
+            ip_address: clientIp,
+            metadata: {
+              action: 'card_deleted',
+              card_id: card_id,
+              batch_order: card.batch_order
+            }
+          });
+        
+        console.log(`📊 Decremented batch ${card.batch_id} counts due to card deletion`);
+      }
+    }
     
     const { error } = await supabaseAdmin
       .from('cards')
@@ -1674,7 +1718,8 @@ app.post('/api/admin/batches', async (req, res) => {
         content_locked: false,
         user_email,
         created_at: new Date().toISOString(),
-        created_by_ip: clientIp
+        created_by_ip: clientIp,
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();
@@ -2118,7 +2163,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Auto-create batch records');
-  console.log('   ✅ Batch events tracking (initial_purchase, card_added, card_removed, card_moved)');
+  console.log('   ✅ Batch events tracking (ONE event per card added) - FIXED');
   console.log('   ✅ Batch totals always accurate (cards_created & total_cards_purchased)');
   console.log('   ✅ 24/7 Railway hosting');
   
