@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - FIXED to only generate and activate NEW cards
+            // Update batch button handler - FIXED to properly handle terms for new cards
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1259,13 +1259,14 @@
                     return;
                 }
                 
+                // Terms check - required for adding cards
+                if (diff > 0 && !elements.activationCheckbox.checked) {
+                    showNotification('Please accept the terms to add more cards', 'error');
+                    return;
+                }
+                
                 if (diff > 0) {
-                    // ADDING CARDS - Need to accept terms again
-                    if (!elements.activationCheckbox.checked) {
-                        showNotification('Please accept the terms to add more cards', 'error');
-                        return;
-                    }
-                    
+                    // ADDING CARDS
                     this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Adding cards...';
                     
@@ -1284,7 +1285,7 @@
                         });
                     }
                     
-                    // Activate each NEW card
+                    // Activate each NEW card (terms already accepted via checkbox)
                     let successCount = 0;
                     for (let i = 0; i < newCards.length; i++) {
                         const card = newCards[i];
@@ -1295,7 +1296,8 @@
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ 
                                     card_id: card.card_id,
-                                    source: 'maker'
+                                    source: 'maker',
+                                    terms_accepted: true // Pass terms acceptance
                                 })
                             });
                             
@@ -1308,7 +1310,7 @@
                             console.error(`Failed to activate ${card.card_id}:`, error);
                         }
                         
-                        this.innerHTML = `<span class="loading"></span> Added ${i + 1}/${newCards.length}...`;
+                        this.innerHTML = `<span class="loading"></span> Activated ${i + 1}/${newCards.length}...`;
                     }
                     
                     if (successCount > 0) {
