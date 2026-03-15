@@ -1339,6 +1339,14 @@
                         const result = await response.json();
                         
                         if (result.success) {
+                            // REFRESH THE BATCH CARDS FROM THE SERVER
+                            const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
+                            const refreshResult = await refreshResponse.json();
+                            if (refreshResult.success) {
+                                window.currentBatchCards = refreshResult.cards;
+                                console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
+                            }
+                            
                             showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
                             // Update the display with new total
                             elements.currentCardCount.textContent = newSize;
