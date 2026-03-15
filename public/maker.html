@@ -1973,9 +1973,6 @@
                         // Switch to modify mode
                         switchToBatchModifyMode(batchId, batchCards.length);
                         
-                        // Clear batch cards after successful save
-                        window.currentBatchCards = null;
-                        
                     } else {
                         showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
                     }
