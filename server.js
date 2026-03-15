@@ -583,10 +583,17 @@ app.post('/api/batch-cards', async (req, res) => {
     
     console.log(`📦 Saving batch: ${batch_id} with ${cards.length} cards`);
     
-    if (!batch_id || !cards || !Array.isArray(cards) || cards.length === 0) {
+    if (!batch_id) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields: batch_id and cards array' 
+        error: 'Missing batch_id' 
+      });
+    }
+    
+    if (!cards || !Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing cards array' 
       });
     }
     
@@ -601,25 +608,37 @@ app.post('/api/batch-cards', async (req, res) => {
     const deadline = new Date();
     deadline.setFullYear(deadline.getFullYear() + 1);
     
-    // Prepare all cards for insertion
-    const cardsToInsert = cards.map(card => ({
-      card_id: card.card_id,
-      message_type: card.message_type,
-      message_text: card.message_text || null,
-      media_url: card.media_url || null,
-      file_name: card.file_name || null,
-      file_size: card.file_size || null,
-      file_type: card.file_type || null,
-      batch_id: card.batch_id,
-      batch_order: card.batch_order,
-      status: 'active',
-      scan_count: 0,
-      created_by_ip: clientIp,
-      updated_by_ip: clientIp,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      activation_deadline: deadline.toISOString()
-    }));
+    // Prepare all cards for insertion with all required fields
+    const cardsToInsert = cards.map(card => {
+      // Validate each card has required fields
+      if (!card.card_id) {
+        throw new Error('Card missing card_id');
+      }
+      if (!card.message_type) {
+        throw new Error(`Card ${card.card_id} missing message_type`);
+      }
+      
+      return {
+        card_id: card.card_id,
+        message_type: card.message_type,
+        message_text: card.message_text || null,
+        media_url: card.media_url || null,
+        file_name: card.file_name || null,
+        file_size: card.file_size || null,
+        file_type: card.file_type || null,
+        batch_id: card.batch_id || batch_id,
+        batch_order: card.batch_order || 1,
+        status: 'active',
+        scan_count: 0,
+        created_by_ip: clientIp,
+        updated_by_ip: clientIp,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activation_deadline: deadline.toISOString()
+      };
+    });
+    
+    console.log(`📦 Inserting ${cardsToInsert.length} cards into database`);
     
     // Insert all cards at once
     const { data, error } = await supabaseAdmin
@@ -629,7 +648,10 @@ app.post('/api/batch-cards', async (req, res) => {
     
     if (error) {
       console.error('❌ Error inserting batch cards:', error);
-      throw error;
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database insert failed: ' + error.message 
+      });
     }
     
     // Check if batch record exists
@@ -644,7 +666,7 @@ app.post('/api/batch-cards', async (req, res) => {
       const newCardsCreated = (existingBatch.cards_created || 0) + cards.length;
       const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cards.length;
       
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from('batches')
         .update({ 
           cards_created: newCardsCreated,
@@ -653,10 +675,14 @@ app.post('/api/batch-cards', async (req, res) => {
         })
         .eq('batch_id', batch_id);
       
-      console.log(`📊 Updated batch ${batch_id}: cards_created=${newCardsCreated}, total_purchased=${newTotalPurchased}`);
+      if (updateError) {
+        console.error('❌ Error updating batch:', updateError);
+      } else {
+        console.log(`📊 Updated batch ${batch_id}: cards_created=${newCardsCreated}, total_purchased=${newTotalPurchased}`);
+      }
     } else {
       // Create new batch
-      await supabaseAdmin
+      const { error: insertError } = await supabaseAdmin
         .from('batches')
         .insert({
           batch_id: batch_id,
@@ -667,7 +693,11 @@ app.post('/api/batch-cards', async (req, res) => {
           updated_at: new Date().toISOString()
         });
       
-      console.log(`✅ New batch created with ${cards.length} cards`);
+      if (insertError) {
+        console.error('❌ Error creating batch:', insertError);
+      } else {
+        console.log(`✅ New batch created with ${cards.length} cards`);
+      }
     }
     
     res.json({ 
@@ -677,10 +707,10 @@ app.post('/api/batch-cards', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Error saving batch:', error);
+    console.error('❌ Error in batch-cards endpoint:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message || 'Internal server error'
     });
   }
 });
