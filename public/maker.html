@@ -1339,11 +1339,15 @@
                         const result = await response.json();
                         
                         if (result.success) {
-                            // REFRESH THE BATCH CARDS FROM THE SERVER
+                            // REFRESH THE BATCH CARDS FROM THE SERVER AND ADD BATCH_ID
                             const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
                             const refreshResult = await refreshResponse.json();
                             if (refreshResult.success) {
-                                window.currentBatchCards = refreshResult.cards;
+                                // Add batch_id to each card
+                                window.currentBatchCards = refreshResult.cards.map(card => ({
+                                    ...card,
+                                    batch_id: batchId
+                                }));
                                 console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
                             }
                             
@@ -1894,7 +1898,7 @@
                         card_id: card.card_id,
                         message_type: cardData.message_type,
                         message_text: cardData.message_text || '',
-                        batch_id: card.batch_id,
+                        batch_id: card.batch_id || batchId,
                         batch_order: card.batch_order,
                         media_url: mediaUrl,
                         file_name: fileName,
