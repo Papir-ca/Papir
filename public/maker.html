@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - FIXED to work after save
+            // Update batch button handler - FIXED to only generate and activate NEW cards
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1269,7 +1269,7 @@
                     this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Adding cards...';
                     
-                    // Generate new cards
+                    // Generate ONLY the new cards
                     const nextOrder = currentSize + 1;
                     const newCards = [];
                     
@@ -1284,7 +1284,7 @@
                         });
                     }
                     
-                    // Activate each new card
+                    // Activate each NEW card
                     let successCount = 0;
                     for (let i = 0; i < newCards.length; i++) {
                         const card = newCards[i];
@@ -1312,7 +1312,7 @@
                     }
                     
                     if (successCount > 0) {
-                        // Prepare cards for batch addition
+                        // Prepare ONLY the new cards for batch addition
                         const cardData = generatePreview();
                         const cardsToAdd = newCards.map(card => ({
                             card_id: card.card_id,
@@ -1327,7 +1327,7 @@
                             status: 'active'
                         }));
                         
-                        // Send to server to add to batch and update batch_events
+                        // Send ONLY the new cards to server
                         const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}/add-cards`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1340,6 +1340,9 @@
                             showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
                             // Update the display with new total
                             elements.currentCardCount.textContent = newSize;
+                            
+                            // Show updated QR codes after adding cards
+                            await showUpdatedBatchQR(batchId);
                         } else {
                             showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
                         }
@@ -1382,6 +1385,9 @@
                         showNotification(`✅ Removed ${cardsToRemove.length} cards from batch`, 'success');
                         // Update the display with new total
                         elements.currentCardCount.textContent = newSize;
+                        
+                        // Show updated QR codes after removing cards
+                        await showUpdatedBatchQR(batchId);
                     }
                 }
                 
@@ -1392,6 +1398,70 @@
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> Update Batch (Requires Terms)';
             });
+            
+            // Helper function to show updated batch QR codes
+            async function showUpdatedBatchQR(batchId) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.cards) {
+                        let batchHtml = `
+                            <div class="qr-success">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>Batch Updated!</h3>
+                                <p>Batch ID: <strong>${batchId}</strong></p>
+                                <p>Total Cards: <strong>${result.cards.length}</strong></p>
+                            </div>
+                            <div style="max-height: 400px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                        `;
+                        
+                        result.cards.forEach(card => {
+                            const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
+                            const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
+                            
+                            batchHtml += `
+                                <div style="border-bottom: 1px solid #444; padding: 15px; margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <div>
+                                            <strong style="color: #06D6A0;">Card #${card.batch_order}</strong>
+                                            <div style="font-size: 0.8rem; color: #a0aec0;">${card.card_id}</div>
+                                        </div>
+                                        <div>
+                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px;">
+                                                <i class="fas fa-copy"></i> URL
+                                            </button>
+                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')">
+                                                <i class="fas fa-download"></i> QR
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 2px solid white; border-radius: 5px;">
+                                </div>
+                            `;
+                        });
+                        
+                        batchHtml += `</div>`;
+                        
+                        batchHtml += `
+                            <div style="margin-top: 20px; text-align: center;">
+                                <a href="/batch-manager?batch=${encodeURIComponent(batchId)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
+                                    <i class="fas fa-layer-group"></i> Manage This Batch
+                                </a>
+                            </div>
+                        `;
+                        
+                        elements.qrCodeContainer.innerHTML = batchHtml;
+                        elements.qrCodeSection.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error('Error showing updated QR codes:', error);
+                }
+            }
             
             function showNotification(message, type = 'success') {
                 elements.notification.textContent = message;
