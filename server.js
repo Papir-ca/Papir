@@ -1177,15 +1177,15 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - WITH SOURCE PARAMETER SUPPORT AND GEOLOCATION
+// 🎟️ Activate Card - UPDATED to handle terms_accepted parameter
 app.post('/api/activate-card', async (req, res) => {
   try {
-    const { card_id, source } = req.body;
+    const { card_id, source, terms_accepted } = req.body;
     
     // Get clean client IP address
     const clientIp = getClientIp(req);
     
-    console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp} with source: ${source || 'not provided'}`);
+    console.log(`🎟️ Activating card: ${card_id} from IP: ${clientIp} with source: ${source || 'not provided'}, terms_accepted: ${terms_accepted}`);
     
     if (!supabaseAdmin) {
       console.error('❌ supabaseAdmin not initialized');
@@ -1245,8 +1245,8 @@ app.post('/api/activate-card', async (req, res) => {
           card_id: card_id,
           activated_at: new Date().toISOString(),
           activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          terms_accepted_ip: clientIp,
+          terms_accepted_at: terms_accepted ? new Date().toISOString() : null,
+          terms_accepted_ip: terms_accepted ? clientIp : null,
           user_agent: req.headers['user-agent'] || 'unknown',
           activation_source: source || 'viewer',
           location_data: locationData,
@@ -1297,8 +1297,8 @@ app.post('/api/activate-card', async (req, res) => {
         card_id: card_id,
         activated_at: new Date().toISOString(),
         activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp,
+        terms_accepted_at: terms_accepted ? new Date().toISOString() : null,
+        terms_accepted_ip: terms_accepted ? clientIp : null,
         user_agent: req.headers['user-agent'] || 'unknown',
         activation_source: source || 'viewer',
         location_data: locationData,
@@ -2282,10 +2282,10 @@ app.listen(PORT, () => {
   console.log('\n🔗 API ENDPOINTS:');
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
-  console.log(`   Batch Cards: https://papir.ca/api/batch-cards (FIXED - Updates cards)`);
-  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards (FIXED - Checks for duplicates)`);
+  console.log(`   Batch Cards: https://papir.ca/api/batch-cards`);
+  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
-  console.log(`   Activate: https://papir.ca/api/activate-card`);
+  console.log(`   Activate: https://papir.ca/api/activate-card (UPDATED - supports terms_accepted)`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
   console.log(`   Scan Logs: https://papir.ca/api/scan-logs`);
   console.log(`   Admin Card: https://papir.ca/api/admin/cards/:id`);
@@ -2330,9 +2330,10 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch cards endpoint - saves multiple cards in ONE API call (FIXED)');
-  console.log('   ✅ Add cards to existing batch - NEW endpoint (FIXED - checks for duplicates)');
+  console.log('   ✅ Batch cards endpoint - saves multiple cards in ONE API call');
+  console.log('   ✅ Add cards to existing batch - endpoint for adding more cards');
   console.log('   ✅ Batch events tracking - logs all additions to batch_events table');
+  console.log('   ✅ Terms acceptance tracking - records when terms were accepted');
   console.log('   ✅ Batch totals always accurate (cards_created & total_cards_purchased)');
   console.log('   ✅ 24/7 Railway hosting');
   
