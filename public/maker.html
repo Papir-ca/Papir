@@ -1769,18 +1769,18 @@
                         }
                     }
                     
-                    // Prepare all cards for batch insert
+                    // Prepare all cards for batch insert with ALL required fields
                     const cardsToSave = batchCards.map(card => ({
                         card_id: card.card_id,
                         message_type: cardData.message_type,
-                        message_text: cardData.message_text,
+                        message_text: cardData.message_text || '',
                         batch_id: card.batch_id,
                         batch_order: card.batch_order,
                         media_url: mediaUrl,
                         file_name: fileName,
                         file_size: fileSize,
                         file_type: fileType,
-                        status: 'active' // Already activated
+                        status: 'active'
                     }));
                     
                     // Send ALL cards in ONE API call
@@ -1789,8 +1789,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             batch_id: batchId,
-                            cards: cardsToSave,
-                            count: cardsToSave.length
+                            cards: cardsToSave
                         })
                     });
                     
