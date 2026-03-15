@@ -160,6 +160,7 @@ app.get('/api/health', (req, res) => {
       batchManager: `${baseUrl}/batch-manager`,
       saveCard: `POST ${baseUrl}/api/cards`,
       batchCards: `POST ${baseUrl}/api/batch-cards`,
+      addBatchCards: `POST ${baseUrl}/api/batches/:batch_id/add-cards`,
       getCard: `GET ${baseUrl}/api/cards/:id`,
       uploadMedia: `POST ${baseUrl}/api/upload-media`,
       incrementScan: `POST ${baseUrl}/api/increment-scan`,
@@ -703,6 +704,148 @@ app.post('/api/batch-cards', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error in batch-cards endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Internal server error'
+    });
+  }
+});
+// =======================================================
+
+// ========== NEW: Add more cards to an existing batch ==========
+app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { cards } = req.body;
+    
+    console.log(`📦 Adding ${cards.length} cards to batch: ${batch_id}`);
+    
+    if (!batch_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing batch_id' 
+      });
+    }
+    
+    if (!cards || !Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing cards array' 
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    const clientIp = getClientIp(req);
+    const deadline = new Date();
+    deadline.setFullYear(deadline.getFullYear() + 1);
+    
+    // Check if batch exists
+    const { data: existingBatch } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .maybeSingle();
+    
+    if (!existingBatch) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Batch not found' 
+      });
+    }
+    
+    // Get the highest batch order currently in the batch
+    const { data: existingCards } = await supabaseAdmin
+      .from('cards')
+      .select('batch_order')
+      .eq('batch_id', batch_id)
+      .order('batch_order', { ascending: false })
+      .limit(1);
+    
+    const nextOrder = (existingCards && existingCards.length > 0) ? existingCards[0].batch_order + 1 : 1;
+    
+    // Prepare new cards for insertion
+    const cardsToInsert = cards.map((card, index) => ({
+      card_id: card.card_id,
+      message_type: card.message_type,
+      message_text: card.message_text || null,
+      media_url: card.media_url || null,
+      file_name: card.file_name || null,
+      file_size: card.file_size || null,
+      file_type: card.file_type || null,
+      batch_id: batch_id,
+      batch_order: nextOrder + index,
+      status: 'active',
+      scan_count: 0,
+      created_by_ip: clientIp,
+      updated_by_ip: clientIp,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      activation_deadline: deadline.toISOString()
+    }));
+    
+    // Insert all new cards
+    const { data: newCards, error: insertError } = await supabaseAdmin
+      .from('cards')
+      .insert(cardsToInsert)
+      .select();
+    
+    if (insertError) {
+      console.error('❌ Error inserting new cards:', insertError);
+      throw insertError;
+    }
+    
+    // Update batch counts
+    const newCardsCreated = (existingBatch.cards_created || 0) + cards.length;
+    const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cards.length;
+    
+    await supabaseAdmin
+      .from('batches')
+      .update({ 
+        cards_created: newCardsCreated,
+        total_cards_purchased: newTotalPurchased,
+        updated_at: new Date().toISOString()
+      })
+      .eq('batch_id', batch_id);
+    
+    // Log to batch_events
+    await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: batch_id,
+        event_type: 'additional_purchase',
+        quantity: cards.length,
+        timestamp: new Date().toISOString(),
+        ip_address: clientIp,
+        metadata: {
+          action: 'cards_added_to_batch',
+          cards_added: cards.length,
+          previous_total: existingBatch.cards_created,
+          new_total: newCardsCreated
+        }
+      });
+    
+    console.log(`✅ Added ${cards.length} cards to batch ${batch_id}`);
+    console.log(`📊 Updated batch counts: ${existingBatch.cards_created} -> ${newCardsCreated}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Added ${cards.length} cards to batch ${batch_id}`,
+      cards: newCards,
+      batch: {
+        ...existingBatch,
+        cards_created: newCardsCreated,
+        total_cards_purchased: newTotalPurchased
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error adding cards to batch:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message || 'Internal server error'
@@ -1754,6 +1897,7 @@ app.get('/api/batches/:batch_id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Batch not found' });
     }
     
+    // Get all cards in this batch
     const { data: cards, error: cardsError } = await supabaseAdmin
       .from('cards')
       .select('card_id, batch_order, status, message_type, created_at, scan_count')
@@ -1762,10 +1906,20 @@ app.get('/api/batches/:batch_id', async (req, res) => {
     
     if (cardsError) throw cardsError;
     
+    // Get batch events for history
+    const { data: events, error: eventsError } = await supabaseAdmin
+      .from('batch_events')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .order('timestamp', { ascending: true });
+    
+    if (eventsError) throw eventsError;
+    
     res.json({
       success: true,
       batch,
-      cards: cards || []
+      cards: cards || [],
+      events: events || []
     });
     
   } catch (error) {
@@ -1792,6 +1946,132 @@ app.post('/api/batches/calculate-price', async (req, res) => {
     
   } catch (error) {
     console.error('Error calculating price:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Add more cards to an existing batch (original endpoint)
+app.post('/api/batches/:batch_id/add', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { quantity, payment_intent_id } = req.body;
+    
+    // Get batch info
+    const { data: batch, error: batchError } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .single();
+    
+    if (batchError) throw batchError;
+    
+    // Check if we can add more
+    const newTotal = batch.cards_created + quantity;
+    if (newTotal > batch.max_cards_allowed) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Exceeds maximum allowed cards for this batch',
+        max_allowed: batch.max_cards_allowed,
+        current: batch.cards_created
+      });
+    }
+    
+    // Get template content from first card
+    const { data: templateCard, error: templateError } = await supabaseAdmin
+      .from('cards')
+      .select('message_type, message_text, media_url, file_name, file_type')
+      .eq('batch_id', batch_id)
+      .eq('batch_order', 1)
+      .single();
+    
+    if (templateError) throw templateError;
+    
+    // Create new cards
+    const nextOrder = batch.cards_created + 1;
+    const cards = [];
+    const deadline = new Date();
+    deadline.setFullYear(deadline.getFullYear() + 1);
+    
+    for (let i = 0; i < quantity; i++) {
+      const order = nextOrder + i;
+      const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+      
+      cards.push({
+        card_id: cardId,
+        batch_id: batch_id,
+        batch_order: order,
+        message_type: templateCard.message_type,
+        message_text: templateCard.message_text,
+        media_url: templateCard.media_url,
+        file_name: templateCard.file_name,
+        file_type: templateCard.file_type,
+        status: 'pending',
+        scan_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activation_deadline: deadline.toISOString()
+      });
+    }
+    
+    // Insert all cards
+    const { data: newCards, error: insertError } = await supabaseAdmin
+      .from('cards')
+      .insert(cards)
+      .select();
+    
+    if (insertError) throw insertError;
+    
+    // Update batch counters
+    const { error: updateError } = await supabaseAdmin
+      .from('batches')
+      .update({
+        cards_created: newTotal,
+        updated_at: new Date().toISOString(),
+        ...(payment_intent_id && { stripe_payment_intent: payment_intent_id })
+      })
+      .eq('batch_id', batch_id);
+    
+    if (updateError) throw updateError;
+    
+    // Log the additional purchase in batch_events
+    await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: batch_id,
+        event_type: 'additional_purchase',
+        quantity: quantity,
+        timestamp: new Date().toISOString(),
+        ip_address: getClientIp(req),
+        metadata: {
+          action: 'batch_expanded',
+          payment_intent_id: payment_intent_id,
+          cards_added: quantity,
+          previous_total: batch.cards_created,
+          new_total: newTotal
+        }
+      });
+    
+    // Generate QR code URLs for new cards
+    const qrCodes = newCards.map(card => ({
+      card_id: card.card_id,
+      batch_order: card.batch_order,
+      viewer_url: `${req.protocol}://${req.get('host')}/viewer.html?card=${card.card_id}`,
+      qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${req.protocol}://${req.get('host')}/viewer.html?card=${card.card_id}`)}&format=png&margin=10`
+    }));
+    
+    res.json({
+      success: true,
+      message: `Added ${quantity} new cards to batch ${batch_id}`,
+      cards: newCards,
+      qr_codes: qrCodes,
+      batch: {
+        ...batch,
+        cards_created: newTotal
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error adding to batch:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1922,6 +2202,7 @@ app.use((req, res) => {
       `${baseUrl}/api/health`,
       `${baseUrl}/api/cards`,
       `${baseUrl}/api/batch-cards`,
+      `${baseUrl}/api/batches/:batch_id/add-cards`,
       `${baseUrl}/api/cards/:id`,
       `${baseUrl}/api/upload-media`,
       `${baseUrl}/api/activate-card`,
@@ -1975,6 +2256,7 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Batch Cards: https://papir.ca/api/batch-cards (FIXED - Updates cards)`);
+  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards (NEW - Add more cards to batch)`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
   console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
@@ -1990,6 +2272,8 @@ app.listen(PORT, () => {
   console.log(`   Bulk Delete: https://papir.ca/api/admin/bulk-delete`);
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
+  console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
+  console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
   console.log(`   Delete Batch: https://papir.ca/api/admin/batches/:id/delete`);
   console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
@@ -2020,6 +2304,8 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Batch cards endpoint - saves multiple cards in ONE API call (FIXED)');
+  console.log('   ✅ Add cards to existing batch - new endpoint for adding more cards');
+  console.log('   ✅ Batch events tracking - logs all additions to batch_events table');
   console.log('   ✅ Batch totals always accurate (cards_created & total_cards_purchased)');
   console.log('   ✅ 24/7 Railway hosting');
   
