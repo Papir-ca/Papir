@@ -1542,6 +1542,181 @@ app.post('/api/batches/calculate-price', async (req, res) => {
   }
 });
 
+// ========== FIXED: Add more cards to an existing batch ==========
+app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { cards } = req.body;
+    
+    console.log(`📦 Adding ${cards.length} cards to batch: ${batch_id}`);
+    
+    if (!batch_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing batch_id' 
+      });
+    }
+    
+    if (!cards || !Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing cards array' 
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    const clientIp = getClientIp(req);
+    const deadline = new Date();
+    deadline.setFullYear(deadline.getFullYear() + 1);
+    
+    // Check if batch exists
+    const { data: existingBatch } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .maybeSingle();
+    
+    if (!existingBatch) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Batch not found' 
+      });
+    }
+    
+    // Get the highest batch order currently in the batch
+    const { data: existingCards } = await supabaseAdmin
+      .from('cards')
+      .select('batch_order')
+      .eq('batch_id', batch_id)
+      .order('batch_order', { ascending: false })
+      .limit(1);
+    
+    const nextOrder = (existingCards && existingCards.length > 0) ? existingCards[0].batch_order + 1 : (existingBatch.cards_created || 0) + 1;
+    
+    // Prepare new cards for insertion - check if they already exist first
+    const cardsToInsert = [];
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const order = nextOrder + i;
+      
+      // Check if card already exists
+      const { data: existingCard } = await supabaseAdmin
+        .from('cards')
+        .select('card_id')
+        .eq('card_id', card.card_id)
+        .maybeSingle();
+      
+      if (existingCard) {
+        console.log(`⚠️ Card ${card.card_id} already exists, skipping`);
+        continue;
+      }
+      
+      cardsToInsert.push({
+        card_id: card.card_id,
+        message_type: card.message_type,
+        message_text: card.message_text || null,
+        media_url: card.media_url || null,
+        file_name: card.file_name || null,
+        file_size: card.file_size || null,
+        file_type: card.file_type || null,
+        batch_id: batch_id,
+        batch_order: order,
+        status: 'active',
+        scan_count: 0,
+        created_by_ip: clientIp,
+        updated_by_ip: clientIp,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activation_deadline: deadline.toISOString()
+      });
+    }
+    
+    if (cardsToInsert.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: 'No new cards to add (all already exist)',
+        cards: [],
+        batch: existingBatch
+      });
+    }
+    
+    // Insert only the new cards
+    const { data: newCards, error: insertError } = await supabaseAdmin
+      .from('cards')
+      .insert(cardsToInsert)
+      .select();
+    
+    if (insertError) {
+      console.error('❌ Error inserting new cards:', insertError);
+      throw insertError;
+    }
+    
+    // UPDATE BATCH COUNTS
+    const newCardsCreated = (existingBatch.cards_created || 0) + cardsToInsert.length;
+    const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToInsert.length;
+    
+    await supabaseAdmin
+      .from('batches')
+      .update({ 
+        cards_created: newCardsCreated,
+        total_cards_purchased: newTotalPurchased,
+        updated_at: new Date().toISOString()
+      })
+      .eq('batch_id', batch_id);
+    
+    // ========== ADDED: LOG TO BATCH_EVENTS ==========
+    const { error: eventError } = await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: batch_id,
+        event_type: 'additional_purchase',
+        quantity: cardsToInsert.length,
+        timestamp: new Date().toISOString(),
+        ip_address: clientIp,
+        metadata: {
+          action: 'cards_added_to_batch',
+          cards_added: cardsToInsert.length,
+          previous_total: existingBatch.cards_created,
+          new_total: newCardsCreated
+        }
+      });
+    
+    if (eventError) {
+      console.error('❌ Error logging to batch_events:', eventError);
+    } else {
+      console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events`);
+    }
+    // =================================================
+    
+    console.log(`✅ Added ${cardsToInsert.length} new cards to batch ${batch_id}`);
+    console.log(`📊 Updated batch counts: ${existingBatch.cards_created} -> ${newCardsCreated}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Added ${cardsToInsert.length} cards to batch ${batch_id}`,
+      cards: newCards,
+      batch: {
+        ...existingBatch,
+        cards_created: newCardsCreated,
+        total_cards_purchased: newTotalPurchased
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error adding cards to batch:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Internal server error'
+    });
+  }
+});
+
 // 📊 Add more cards to an existing batch
 app.post('/api/batches/:batch_id/add', async (req, res) => {
   try {
@@ -1811,6 +1986,7 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/bulk-delete`,
       `${baseUrl}/api/admin/bulk-activate`,
       `${baseUrl}/api/batches/:id`,
+      `${baseUrl}/api/batches/:id/add-cards`,
       `${baseUrl}/api/batches/:id/add`,
       `${baseUrl}/api/batches/calculate-price`,
       `${baseUrl}/api/admin/batches`,
@@ -1862,6 +2038,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Delete: https://papir.ca/api/admin/bulk-delete`);
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (NOW LOGS TO BATCH_EVENTS)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -1893,7 +2070,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch events tracking (purchases only, not per card)');
+  console.log('   ✅ Batch events tracking - NOW WORKING (records every addition)');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
