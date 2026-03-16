@@ -1384,39 +1384,46 @@
             }
         }
         
-        // FAST: Load all locations with a single API call
+        // FAST: Load all locations with a single API call - FIXED VERSION
         async function loadAllLocations() {
             try {
                 console.log('📍 Loading location data...');
                 
                 const response = await fetch(`${BACKEND_URL}/api/admin/all-locations?days=90`);
                 
-                if (response.status === 429) {
-                    console.log('Rate limited, will retry...');
-                    setTimeout(loadAllLocations, 5000);
-                    return;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const result = await response.json();
+                console.log('📍 Location data received:', result);
                 
                 if (result.success) {
                     displayLocationStats(result.stats, result.topLocations);
+                } else {
+                    console.error('Location API returned error:', result.error);
+                    document.getElementById('topLocationsList').innerHTML = 
+                        '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading locations</div>';
                 }
             } catch (error) {
                 console.error('Error loading locations:', error);
+                document.getElementById('topLocationsList').innerHTML = 
+                    '<div style="text-align: center; color: #e74c3c; padding: 20px;">Failed to load locations</div>';
             }
         }
         
-        // Display location stats from aggregated data
+        // Display location stats from aggregated data - FIXED VERSION
         function displayLocationStats(stats, topLocations) {
+            console.log('📍 Displaying stats:', stats, 'Top locations:', topLocations);
+            
             // Update stats cards
-            document.getElementById('totalLocations').textContent = stats.totalCities || 0;
-            document.getElementById('totalCountries').textContent = stats.totalCountries || 0;
-            document.getElementById('totalLocated').textContent = stats.totalLocated || 0;
+            document.getElementById('totalLocations').textContent = stats?.totalCities || 0;
+            document.getElementById('totalCountries').textContent = stats?.totalCountries || 0;
+            document.getElementById('totalLocated').textContent = stats?.totalLocated || 0;
             
             // Update summary text
             const summary = document.getElementById('locationSummary');
-            if (stats.totalLocated === 0) {
+            if (!stats || stats.totalLocated === 0) {
                 summary.innerHTML = 'No location data available yet. This will populate as cards are activated.';
             } else {
                 summary.innerHTML = `
@@ -1427,18 +1434,25 @@
             
             // Update top locations list
             const topLocationsList = document.getElementById('topLocationsList');
-            if (topLocations.length === 0) {
+            if (!topLocations || topLocations.length === 0) {
                 topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet. Cards need to be activated first.</div>';
                 return;
             }
             
             let html = '';
             topLocations.forEach((item, index) => {
-                let flag = '';
-                if (item.city.includes('United States')) flag = '🇺🇸';
+                // Simple flag emoji based on country (you can expand this)
+                let flag = '🌍';
+                if (item.city.includes('United States') || item.city.includes('USA')) flag = '🇺🇸';
                 else if (item.city.includes('Canada')) flag = '🇨🇦';
-                else if (item.city.includes('United Kingdom')) flag = '🇬🇧';
+                else if (item.city.includes('United Kingdom') || item.city.includes('UK')) flag = '🇬🇧';
                 else if (item.city.includes('India')) flag = '🇮🇳';
+                else if (item.city.includes('Australia')) flag = '🇦🇺';
+                else if (item.city.includes('Germany')) flag = '🇩🇪';
+                else if (item.city.includes('France')) flag = '🇫🇷';
+                else if (item.city.includes('Japan')) flag = '🇯🇵';
+                else if (item.city.includes('Brazil')) flag = '🇧🇷';
+                else if (item.city.includes('Mexico')) flag = '🇲🇽';
                 
                 html += `
                     <div class="location-item">
@@ -1768,7 +1782,7 @@
                     loadAbandonedCards().catch(() => {});
                     loadMismatchAlerts().catch(() => {});
                     
-                    // Load locations with single API call (FAST)
+                    // Load locations with single API call (FAST) - FIXED VERSION
                     loadAllLocations().catch(e => console.log('Location load failed:', e));
                     
                     // Load new features
