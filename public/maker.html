@@ -1857,7 +1857,7 @@
                 }
             });
             
-            // ========== Save function for batch mode - ONE API CALL FOR ALL CARDS ==========
+            // ========== Save function for batch mode - FIXED ==========
             async function saveBatchCards() {
                 if (!window.currentBatchCards || window.currentBatchCards.length === 0) {
                     showNotification('Please activate cards first', 'error');
@@ -1912,14 +1912,11 @@
                         status: 'active'
                     }));
                     
-                    // Send ALL cards in ONE API call
-                    const response = await fetch(`${BACKEND_URL}/api/batch-cards`, {
+                    // FIXED: Use correct endpoint /api/batches/${batchId}/add-cards
+                    const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}/add-cards`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            batch_id: batchId,
-                            cards: cardsToSave
-                        })
+                        body: JSON.stringify({ cards: cardsToSave })
                     });
                     
                     const result = await response.json();
@@ -1927,10 +1924,6 @@
                     if (result.success) {
                         showNotification(`✅ Successfully saved ${result.cards?.length || cardsToSave.length} cards!`, 'success');
                         clearUnsavedChanges();
-                        
-                        // =============================================
-                        // QR CODES ONLY SHOW HERE - AFTER SUCCESSFUL SAVE
-                        // =============================================
                         
                         // Build batch QR display
                         let batchHtml = `
@@ -1989,9 +1982,6 @@
                         
                         // Switch to modify mode
                         switchToBatchModifyMode(batchId, batchCards.length);
-                        
-                        // DO NOT clear batch cards after successful save - this keeps them for next time
-                        // window.currentBatchCards = null; // <- This line is REMOVED
                         
                     } else {
                         showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
@@ -2649,6 +2639,7 @@
                 return false;
             }
             
+            // FIXED: Sequential loading to avoid race conditions
             async function initApp() {
                 console.log('Initializing Papir Card Maker...');
                 
@@ -2672,38 +2663,35 @@
                 setupAudioUpload();
                 
                 updateMediaUploadVisibility();
-                
                 generatePreview();
                 
-                // First, check if this is a URL parameter card (existing card)
+                // FIXED: Sequential loading to avoid race conditions
                 if (urlCardId) {
-                    // This is an existing card from URL - load details immediately
+                    // Existing card - load details first (this also checks status)
                     console.log('🔗 Loading details for existing card:', urlCardId);
-                    setTimeout(loadCardDetails, 300);
+                    await loadCardDetails();
                 } else {
-                    // This is a new card - wait for status check
-                    setTimeout(() => {
-                        checkCardStatus();
-                        setTimeout(loadCardDetails, 500);
+                    // New card - just check status (will show as needing activation)
+                    setTimeout(async () => {
+                        await checkCardStatus();
+                        await loadCardDetails();
                     }, 100);
                 }
                 
-                // Also load details when card ID changes
-                elements.cardIdInput.addEventListener('input', function() {
+                // Also load details when card ID changes (for manual entry if enabled)
+                elements.cardIdInput.addEventListener('change', async function() {
                     generatePreview();
-                    checkCardStatus();
-                    loadCardDetails();
+                    await checkCardStatus();
+                    await loadCardDetails();
                 });
                 
                 elements.saveBtn.addEventListener('click', async function() {
                     if (currentMode === 'single') {
-                        // SINGLE CARD MODE - Original flow unchanged
                         const cardData = generatePreview();
                         if (cardData) {
                             await saveCardToBackend(cardData);
                         }
                     } else {
-                        // BATCH MODE - Save all activated cards in one API call
                         await saveBatchCards();
                     }
                 });
