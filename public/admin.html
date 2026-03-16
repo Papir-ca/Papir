@@ -1453,19 +1453,7 @@
             topLocationsList.innerHTML = html;
         }
         
-        // Remove old location functions - keeping for backward compatibility
-        function updateLocationStats() {
-            // This function is no longer used, kept to avoid errors
-            console.log('Using fast location loader instead');
-        }
-        
-        // Load all activations (kept for backward compatibility)
-        async function loadAllActivations() {
-            // This function is no longer used, kept to avoid errors
-            console.log('Using fast location loader instead');
-        }
-        
-        // Load performance stats (NEW)
+        // Load performance stats
         async function loadPerformanceStats() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/performance`);
@@ -1482,7 +1470,7 @@
             }
         }
         
-        // Load activity timeline (NEW)
+        // Load activity timeline
         async function loadActivityTimeline() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/activity`);
@@ -1531,7 +1519,7 @@
             return `${days}d ago`;
         }
         
-        // Quick export function (NEW)
+        // Quick export function
         async function quickExport() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/export-all?format=csv`);
@@ -1542,14 +1530,14 @@
                     a.href = url;
                     a.download = `papir-export-${new Date().toISOString().split('T')[0]}.csv`;
                     a.click();
-                    showNotification('Export started', 'success');
+                    showStatus('Export started', 'success');
                 }
             } catch (error) {
-                showNotification('Export failed', 'error');
+                showStatus('Export failed', 'error');
             }
         }
         
-        // Bulk action handlers (NEW)
+        // Bulk action handlers
         function updateSelection() {
             const checkboxes = document.querySelectorAll('.card-selector');
             selectedCards.clear();
@@ -1787,7 +1775,7 @@
                     loadPerformanceStats().catch(() => {});
                     loadActivityTimeline().catch(() => {});
                     
-                    // Load details in background
+                    // Load details in background using FAST new endpoint
                     loadDetailedData().catch(() => {});
                 }
             } catch (error) {
@@ -1799,23 +1787,39 @@
             }
         }
         
-        // OPTIMIZED: Load detailed data without 1.5s delay
+        // SUPER FAST - Loads ALL card details in ONE request
         async function loadDetailedData() {
+            try {
+                console.log('🚀 Loading ALL card details in one request...');
+                
+                const response = await fetch(`${BACKEND_URL}/api/admin/cards-all-details`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    allCardDetails = result.cards;
+                    console.log(`✅ Loaded ${allCardDetails.length} cards with complete details`);
+                    renderTable(); // Update table once with all data
+                }
+            } catch (error) {
+                console.error('Error loading detailed data:', error);
+                // Fallback to individual loads if the new endpoint fails
+                loadDetailedDataFallback();
+            }
+        }
+
+        // Keep this as a fallback just in case
+        async function loadDetailedDataFallback() {
             const totalCards = allCards.length;
             let loadedCount = 0;
-
-            // Show table immediately with basic data
-            renderTable();
             
-            // Load details in background WITHOUT delays
             for (let i = 0; i < totalCards; i++) {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
-                
+                    
                     if (response.status === 429) {
                         console.log('Rate limited, waiting 3 seconds...');
                         await new Promise(resolve => setTimeout(resolve, 3000));
-                        i--; // Retry this card
+                        i--;
                         continue;
                     }
                     
@@ -1827,7 +1831,6 @@
                         }
                         loadedCount++;
                         
-                        // Update UI every 10 cards
                         if (loadedCount % 10 === 0 || loadedCount === totalCards) {
                             renderTable();
                         }
@@ -1990,8 +1993,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, grid: { color: '#444' }, ticks: { color: '#aaa' } } }
+                    plugins: { 
+                        legend: { display: false } 
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#444' }, 
+                            ticks: { color: '#aaa' } 
+                        } 
+                    }
                 }
             });
         }
@@ -2327,21 +2338,47 @@
             bulkDeleteBtn.addEventListener('click', async () => {
                 if (selectedCards.size === 0) return;
                 if (!confirm(`Delete ${selectedCards.size} cards?`)) return;
-                // Bulk delete implementation
-                showNotification('Bulk delete - backend needed', 'info');
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/admin/bulk-delete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ card_ids: Array.from(selectedCards) })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showStatus(`Deleted ${result.count} cards`, 'success');
+                        loadAdminData();
+                    }
+                } catch (error) {
+                    showStatus('Bulk delete failed', 'error');
+                }
             });
             
             bulkActivateBtn.addEventListener('click', async () => {
                 if (selectedCards.size === 0) return;
                 if (!confirm(`Activate ${selectedCards.size} cards?`)) return;
-                // Bulk activate implementation
-                showNotification('Bulk activate - backend needed', 'info');
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/admin/bulk-activate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ card_ids: Array.from(selectedCards) })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showStatus(`Activated ${result.count} cards`, 'success');
+                        loadAdminData();
+                    }
+                } catch (error) {
+                    showStatus('Bulk activate failed', 'error');
+                }
             });
             
             bulkExportBtn.addEventListener('click', async () => {
                 if (selectedCards.size === 0) return;
                 // Bulk export implementation
-                showNotification('Bulk export - backend needed', 'info');
+                showStatus('Bulk export - coming soon', 'info');
             });
             
             filterBtns.forEach(btn => {
