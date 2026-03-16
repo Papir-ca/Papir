@@ -1184,7 +1184,7 @@ app.delete('/api/cards/:card_id', async (req, res) => {
 // 🎟️ Activate Card - WITH SOURCE PARAMETER SUPPORT AND GEOLOCATION
 app.post('/api/activate-card', async (req, res) => {
   try {
-    const { card_id, source, terms_accepted } = req.body;
+    const { card_id, source, terms_accepted, message_type, batch_id } = req.body;
     
     // Get clean client IP address
     const clientIp = getClientIp(req);
@@ -1213,26 +1213,26 @@ app.post('/api/activate-card', async (req, res) => {
     
     if (!card) {
       // Card doesn't exist - create and activate it
-      console.log(`📝 Card ${card_id} not found - creating new card with type: ${req.body.message_type || 'pending'}`);
+      console.log(`📝 Card ${card_id} not found - creating new card with type: ${message_type || 'pending'}`);
       
       const deadline = new Date();
       deadline.setFullYear(deadline.getFullYear() + 1);
       
       // Get the message_type and batch_id from the request
-      const messageType = req.body.message_type || 'pending';
-      const batchId = req.body.batch_id || null;
+      const msgType = message_type || 'pending';
+      const bId = batch_id || null;
       
       const { error: insertError } = await supabaseAdmin
         .from('cards')
         .insert({
           card_id: card_id,
-          message_type: messageType,
+          message_type: msgType,
           message_text: null,
           media_url: null,
           file_name: null,
           file_size: null,
           file_type: null,
-          batch_id: batchId,
+          batch_id: bId,
           status: 'active',
           scan_count: 0,
           created_by_ip: clientIp,
@@ -1493,7 +1493,7 @@ app.get('/api/admin/cards/:card_id', async (req, res) => {
   }
 });
 
-// 📊 Get abandoned cards
+// 📊 Get abandoned cards (created but never activated)
 app.get('/api/admin/abandoned', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 30;
@@ -1539,18 +1539,20 @@ app.get('/api/admin/geolocation/:card_id', async (req, res) => {
   }
 });
 
-// 📊 Get all locations for heatmap
+// 📊 Get all locations for heatmap (FAST - single query)
 app.get('/api/admin/all-locations', async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 90;
+    const days = parseInt(req.query.days) || 90; // Default to last 90 days
     
     if (!supabaseAdmin) {
       return res.status(503).json({ success: false, error: 'Database unavailable' });
     }
     
+    // Calculate cutoff date
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     
+    // Single query to get all activation locations
     const { data, error } = await supabaseAdmin
       .from('card_activations')
       .select('card_id, city, country, region, latitude, longitude, activated_at, activation_source')
@@ -1560,20 +1562,24 @@ app.get('/api/admin/all-locations', async (req, res) => {
     
     if (error) throw error;
     
+    // Calculate city counts for top locations
     const cityCounts = {};
     const countryCounts = {};
     const locations = [];
     
     data.forEach(act => {
+      // Count cities
       if (act.city && act.country) {
         const key = `${act.city}, ${act.country}`;
         cityCounts[key] = (cityCounts[key] || 0) + 1;
       }
       
+      // Count countries
       if (act.country) {
         countryCounts[act.country] = (countryCounts[act.country] || 0) + 1;
       }
       
+      // Store location for map (limit to 200 for performance)
       if (act.latitude && act.longitude && locations.length < 200) {
         locations.push({
           lat: act.latitude,
@@ -1585,11 +1591,13 @@ app.get('/api/admin/all-locations', async (req, res) => {
       }
     });
     
+    // Get top 10 cities
     const topLocations = Object.entries(cityCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([city, count]) => ({ city, count }));
     
+    // Get total activations with location
     const totalLocated = data.length;
     
     res.json({
@@ -1600,7 +1608,7 @@ app.get('/api/admin/all-locations', async (req, res) => {
         totalCountries: Object.keys(countryCounts).length
       },
       topLocations,
-      locations
+      locations // For map if you add one later
     });
     
   } catch (error) {
@@ -1612,6 +1620,7 @@ app.get('/api/admin/all-locations', async (req, res) => {
 // 📊 Get geographic mismatch alerts
 app.get('/api/admin/mismatch-alerts', async (req, res) => {
   try {
+    // Get all cards with batch info and activations
     const { data: cards, error: cardError } = await supabaseAdmin
       .from('cards')
       .select('card_id, batch_id, status')
@@ -1623,6 +1632,7 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
     const alerts = [];
     
     for (const card of cards) {
+      // Get batch shipping info
       const { data: batch } = await supabaseAdmin
         .from('batches')
         .select('shipping_country')
@@ -1631,6 +1641,7 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
       
       if (!batch?.shipping_country) continue;
       
+      // Get activation locations for this card
       const { data: activations } = await supabaseAdmin
         .from('card_activations')
         .select('country, activated_at')
@@ -1642,6 +1653,7 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
       
       const activationCountry = activations[0].country;
       
+      // Check for mismatch
       if (activationCountry && activationCountry !== batch.shipping_country) {
         alerts.push({
           card_id: card.card_id,
@@ -1663,22 +1675,27 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
 });
 
 // ============================================
-// ADMIN FEATURES
+// NEW ADMIN FEATURES - ADDED HERE
 // ============================================
 
 // 📊 Get performance stats
 app.get('/api/admin/performance', async (req, res) => {
   try {
+    // Get total cards count
     const { count: totalCards } = await supabaseAdmin
       .from('cards')
       .select('*', { count: 'exact', head: true });
     
+    // Get active cards count
     const { count: activeCards } = await supabaseAdmin
       .from('cards')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'active');
     
-    const dbSize = '2.4 MB';
+    // Get database size estimate (simulated)
+    const dbSize = '2.4 MB'; // This would come from a real query in production
+    
+    // Get rate limit usage (simulated)
     const rateLimitUsage = `${Math.floor(Math.random() * 50 + 10)}/200`;
     
     res.json({
@@ -1698,12 +1715,14 @@ app.get('/api/admin/performance', async (req, res) => {
 // 📊 Get recent activity timeline
 app.get('/api/admin/activity', async (req, res) => {
   try {
+    // Get recent activations
     const { data: activations } = await supabaseAdmin
       .from('card_activations')
       .select('card_id, activated_at, activation_source')
       .order('activated_at', { ascending: false })
       .limit(10);
     
+    // Get recent scans
     const { data: scans } = await supabaseAdmin
       .from('scan_logs')
       .select('card_id, scanned_at')
@@ -1712,6 +1731,7 @@ app.get('/api/admin/activity', async (req, res) => {
     
     const activities = [];
     
+    // Format activations
     activations?.forEach(act => {
       activities.push({
         type: 'activation',
@@ -1721,6 +1741,7 @@ app.get('/api/admin/activity', async (req, res) => {
       });
     });
     
+    // Format scans
     scans?.forEach(scan => {
       activities.push({
         type: 'scan',
@@ -1730,11 +1751,12 @@ app.get('/api/admin/activity', async (req, res) => {
       });
     });
     
+    // Sort by time descending
     activities.sort((a, b) => new Date(b.time) - new Date(a.time));
     
     res.json({
       success: true,
-      activities: activities.slice(0, 15)
+      activities: activities.slice(0, 15) // Return top 15
     });
     
   } catch (error) {
@@ -1748,6 +1770,7 @@ app.get('/api/admin/export-all', async (req, res) => {
   try {
     const format = req.query.format || 'csv';
     
+    // Get all cards
     const { data: cards } = await supabaseAdmin
       .from('cards')
       .select('*')
@@ -1758,15 +1781,18 @@ app.get('/api/admin/export-all', async (req, res) => {
     }
     
     if (format === 'csv') {
+      // Create CSV header
       const headers = ['card_id', 'status', 'batch_id', 'batch_order', 'message_type', 
         'message_text', 'media_url', 'file_name', 'file_size', 'file_type', 
         'scan_count', 'created_by_ip', 'created_at', 'updated_at', 'activation_deadline'];
       
       let csv = headers.join(',') + '\n';
       
+      // Add rows
       cards.forEach(card => {
         const row = headers.map(h => {
           let value = card[h] || '';
+          // Escape commas
           if (value.toString().includes(',')) {
             return `"${value}"`;
           }
@@ -1844,6 +1870,7 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
     
     if (error) throw error;
     
+    // Also create activation records for each card
     const activations = data.map(card => ({
       card_id: card.card_id,
       activated_at: new Date().toISOString(),
@@ -1910,7 +1937,7 @@ app.post('/api/admin/batches', async (req, res) => {
   }
 });
 
-// 📊 Get batch details
+// 📊 Get batch details (for customer view)
 app.get('/api/batches/:batch_id', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -1921,6 +1948,7 @@ app.get('/api/batches/:batch_id', async (req, res) => {
       return res.status(503).json({ success: false, error: 'Database unavailable' });
     }
     
+    // Get batch info
     const { data: batch, error: batchError } = await supabaseAdmin
       .from('batches')
       .select('*')
@@ -1967,7 +1995,7 @@ app.get('/api/batches/:batch_id', async (req, res) => {
 // 📊 Calculate price for additional cards
 app.post('/api/batches/calculate-price', async (req, res) => {
   try {
-    const { additional_quantity } = req.body;
+    const { batch_id, additional_quantity } = req.body;
     const PRICE_PER_CARD = 19.99;
     
     const total = PRICE_PER_CARD * additional_quantity;
@@ -1986,7 +2014,7 @@ app.post('/api/batches/calculate-price', async (req, res) => {
   }
 });
 
-// 📊 Add more cards to an existing batch (original endpoint)
+// 📊 Add more cards to an existing batch
 app.post('/api/batches/:batch_id/add', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -2112,7 +2140,7 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
   }
 });
 
-// 📊 Delete batch
+// 📊 Delete batch (soft delete cards)
 app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -2122,8 +2150,10 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Confirmation required' });
     }
     
+    // Get clean client IP address (FIXED)
     const clientIp = getClientIp(req);
     
+    // Mark all cards in batch as deleted
     const { error } = await supabaseAdmin
       .from('cards')
       .update({
@@ -2343,6 +2373,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Add cards to existing batch - endpoint for adding more cards');
   console.log('   ✅ Batch events tracking - NOW WORKING (records every addition)');
   console.log('   ✅ Batch counts update - NOW WORKING (cards_created and total_cards_purchased increase)');
+  console.log('   ✅ All Locations endpoint - fully functional for admin page');
   console.log('   ✅ Terms acceptance tracking - records when terms were accepted');
   console.log('   ✅ 24/7 Railway hosting');
   
