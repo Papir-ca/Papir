@@ -48,7 +48,8 @@ app.use(helmet({
         "wss://*.supabase.co",
         "https://api.qrserver.com",
         "https://ipapi.co",
-        "https://api.ipify.org"
+        "https://api.ipify.org",
+        "https://cdn.jsdelivr.net"
       ],
       fontSrc: [
         "'self'",
@@ -179,7 +180,8 @@ app.get('/api/health', (req, res) => {
       activity: `GET ${baseUrl}/api/admin/activity`,
       exportAll: `GET ${baseUrl}/api/admin/export-all`,
       bulkDelete: `POST ${baseUrl}/api/admin/bulk-delete`,
-      bulkActivate: `POST ${baseUrl}/api/admin/bulk-activate`
+      bulkActivate: `POST ${baseUrl}/api/admin/bulk-activate`,
+      cardsAllDetails: `GET ${baseUrl}/api/admin/cards-all-details`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -1507,6 +1509,108 @@ app.post('/api/admin/expire-cards', async (req, res) => {
 });
 
 // ============================================
+// NEW: Get all cards with complete details in ONE request
+// ============================================
+app.get('/api/admin/cards-all-details', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    console.log('📊 Fetching ALL cards with complete details in one request');
+    
+    // Get all cards
+    const { data: cards, error: cardsError } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (cardsError) throw cardsError;
+    
+    // Get all card IDs
+    const cardIds = cards.map(c => c.card_id);
+    
+    // Get ALL activations for these cards in one query
+    const { data: activations, error: actError } = await supabaseAdmin
+      .from('card_activations')
+      .select('*')
+      .in('card_id', cardIds)
+      .order('created_at', { ascending: false });
+    
+    if (actError) throw actError;
+    
+    // Get ALL scan logs for these cards in one query (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: scans, error: scanError } = await supabaseAdmin
+      .from('scan_logs')
+      .select('*')
+      .in('card_id', cardIds)
+      .gte('scanned_at', thirtyDaysAgo.toISOString())
+      .order('scanned_at', { ascending: false });
+    
+    if (scanError) throw scanError;
+    
+    // Get ALL batch info in one query
+    const batchIds = cards.filter(c => c.batch_id).map(c => c.batch_id);
+    let batches = [];
+    if (batchIds.length > 0) {
+      const { data: batchData } = await supabaseAdmin
+        .from('batches')
+        .select('*')
+        .in('batch_id', batchIds);
+      batches = batchData || [];
+    }
+    
+    // Group activations by card_id
+    const activationsByCard = {};
+    activations.forEach(act => {
+      if (!activationsByCard[act.card_id]) {
+        activationsByCard[act.card_id] = [];
+      }
+      activationsByCard[act.card_id].push(act);
+    });
+    
+    // Group scans by card_id
+    const scansByCard = {};
+    scans.forEach(scan => {
+      if (!scansByCard[scan.card_id]) {
+        scansByCard[scan.card_id] = [];
+      }
+      scansByCard[scan.card_id].push(scan);
+    });
+    
+    // Group batches by batch_id
+    const batchesById = {};
+    batches.forEach(batch => {
+      batchesById[batch.batch_id] = batch;
+    });
+    
+    // Build complete card objects
+    const completeCards = cards.map(card => ({
+      ...card,
+      activation_history: activationsByCard[card.card_id] || [],
+      scan_history: scansByCard[card.card_id] || [],
+      recent_scans: scansByCard[card.card_id]?.length || 0,
+      batch_info: card.batch_id ? batchesById[card.batch_id] : null
+    }));
+    
+    console.log(`✅ Returning ${completeCards.length} cards with complete details`);
+    
+    res.json({
+      success: true,
+      cards: completeCards,
+      count: completeCards.length
+    });
+    
+  } catch (error) {
+    console.error('Error fetching all card details:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
 // BATCH MANAGEMENT ENDPOINTS
 // ============================================
 
@@ -1914,6 +2018,7 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/bulk-delete`,
       `${baseUrl}/api/admin/bulk-activate`,
       `${baseUrl}/api/admin/expire-cards`,
+      `${baseUrl}/api/admin/cards-all-details`,
       `${baseUrl}/api/batches/:id`,
       `${baseUrl}/api/batches/:id/add`,
       `${baseUrl}/api/batches/:id/add-cards`,
@@ -1966,6 +2071,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Delete: https://papir.ca/api/admin/bulk-delete`);
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
+  console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards`);
@@ -1998,6 +2104,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ Bulk expire cards');
+  console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Auto-create batch records');
   console.log('   ✅ Batch card creation endpoint');
