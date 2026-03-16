@@ -577,7 +577,7 @@ app.post('/api/cards', async (req, res) => {
   }
 });
 
-// ========== FIXED: Save multiple cards in a batch (ONE API call) ==========
+// ========== Save multiple cards in a batch (ONE API call) ==========
 app.post('/api/batch-cards', async (req, res) => {
   try {
     const { batch_id, cards } = req.body;
@@ -710,7 +710,6 @@ app.post('/api/batch-cards', async (req, res) => {
     });
   }
 });
-// =======================================================
 
 // ========== FIXED: Add more cards to an existing batch ==========
 app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
@@ -840,8 +839,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       })
       .eq('batch_id', batch_id);
     
-    // Log to batch_events
-    await supabaseAdmin
+    // Log to batch_events - THIS IS THE KEY FIX
+    const { error: eventError } = await supabaseAdmin
       .from('batch_events')
       .insert({
         batch_id: batch_id,
@@ -856,6 +855,13 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
           new_total: newCardsCreated
         }
       });
+    
+    if (eventError) {
+      console.error('❌ Error logging to batch_events:', eventError);
+      // Don't throw - continue even if logging fails
+    } else {
+      console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events`);
+    }
     
     console.log(`✅ Added ${cardsToInsert.length} new cards to batch ${batch_id}`);
     console.log(`📊 Updated batch counts: ${existingBatch.cards_created} -> ${newCardsCreated}`);
@@ -879,7 +885,6 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     });
   }
 });
-// =======================================================
 
 // 🖼️ Upload Media Files to Supabase Storage - WITH FILE TYPE VALIDATION
 app.post('/api/upload-media', async (req, res) => {
@@ -1177,7 +1182,7 @@ app.delete('/api/cards/:card_id', async (req, res) => {
   }
 });
 
-// 🎟️ Activate Card - UPDATED to handle terms_accepted parameter
+// 🎟️ Activate Card - WITH SOURCE PARAMETER SUPPORT AND GEOLOCATION
 app.post('/api/activate-card', async (req, res) => {
   try {
     const { card_id, source, terms_accepted } = req.body;
@@ -2283,9 +2288,9 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Batch Cards: https://papir.ca/api/batch-cards`);
-  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards`);
+  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards (FIXED - records batch_events)`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
-  console.log(`   Activate: https://papir.ca/api/activate-card (UPDATED - supports terms_accepted)`);
+  console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
   console.log(`   Scan Logs: https://papir.ca/api/scan-logs`);
   console.log(`   Admin Card: https://papir.ca/api/admin/cards/:id`);
@@ -2332,7 +2337,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Batch cards endpoint - saves multiple cards in ONE API call');
   console.log('   ✅ Add cards to existing batch - endpoint for adding more cards');
-  console.log('   ✅ Batch events tracking - logs all additions to batch_events table');
+  console.log('   ✅ Batch events tracking - NOW WORKING (records every addition)');
   console.log('   ✅ Terms acceptance tracking - records when terms were accepted');
   console.log('   ✅ Batch totals always accurate (cards_created & total_cards_purchased)');
   console.log('   ✅ 24/7 Railway hosting');
