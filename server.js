@@ -1214,10 +1214,14 @@ app.post('/api/activate-card', async (req, res) => {
     
     if (!card) {
       // Card doesn't exist - create and activate it
-      console.log(`📝 Card ${card_id} not found - creating new card`);
+      console.log(`📝 Card ${card_id} not found - creating new card with type: ${req.body.message_type || 'pending'}`);
       
       const deadline = new Date();
       deadline.setFullYear(deadline.getFullYear() + 1);
+
+      // Get the message_type and batch_id from the request
+      const messageType = req.body.message_type || 'pending';
+      const batchId = req.body.batch_id || null;
       
       const { error: insertError } = await supabaseAdmin
         .from('cards')
@@ -1229,6 +1233,7 @@ app.post('/api/activate-card', async (req, res) => {
           file_name: null,
           file_size: null,
           file_type: null,
+          batch_id: batchId,
           status: 'active',
           scan_count: 0,
           created_by_ip: clientIp,
