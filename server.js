@@ -826,7 +826,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       throw insertError;
     }
     
-    // Update batch counts
+    // UPDATE BATCH COUNTS - Add the new cards to the total
     const newCardsCreated = (existingBatch.cards_created || 0) + cardsToInsert.length;
     const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToInsert.length;
     
@@ -839,7 +839,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       })
       .eq('batch_id', batch_id);
     
-    // Log to batch_events - THIS IS THE KEY FIX
+    // LOG TO BATCH_EVENTS - Record the addition
     const { error: eventError } = await supabaseAdmin
       .from('batch_events')
       .insert({
@@ -858,7 +858,6 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     
     if (eventError) {
       console.error('❌ Error logging to batch_events:', eventError);
-      // Don't throw - continue even if logging fails
     } else {
       console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events`);
     }
@@ -1218,7 +1217,7 @@ app.post('/api/activate-card', async (req, res) => {
       
       const deadline = new Date();
       deadline.setFullYear(deadline.getFullYear() + 1);
-
+      
       // Get the message_type and batch_id from the request
       const messageType = req.body.message_type || 'pending';
       const batchId = req.body.batch_id || null;
@@ -1227,7 +1226,7 @@ app.post('/api/activate-card', async (req, res) => {
         .from('cards')
         .insert({
           card_id: card_id,
-          message_type: 'pending',
+          message_type: messageType,
           message_text: null,
           media_url: null,
           file_name: null,
@@ -2293,7 +2292,7 @@ app.listen(PORT, () => {
   console.log(`   Health: https://papir.ca/api/health`);
   console.log(`   Cards: https://papir.ca/api/cards`);
   console.log(`   Batch Cards: https://papir.ca/api/batch-cards`);
-  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards (FIXED - records batch_events)`);
+  console.log(`   Add Batch Cards: https://papir.ca/api/batches/:batch_id/add-cards (FIXED - records batch_events and updates counts)`);
   console.log(`   Upload: https://papir.ca/api/upload-media`);
   console.log(`   Activate: https://papir.ca/api/activate-card`);
   console.log(`   Increment Scan: https://papir.ca/api/increment-scan`);
@@ -2343,8 +2342,8 @@ app.listen(PORT, () => {
   console.log('   ✅ Batch cards endpoint - saves multiple cards in ONE API call');
   console.log('   ✅ Add cards to existing batch - endpoint for adding more cards');
   console.log('   ✅ Batch events tracking - NOW WORKING (records every addition)');
+  console.log('   ✅ Batch counts update - NOW WORKING (cards_created and total_cards_purchased increase)');
   console.log('   ✅ Terms acceptance tracking - records when terms were accepted');
-  console.log('   ✅ Batch totals always accurate (cards_created & total_cards_purchased)');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
