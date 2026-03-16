@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - WORKING VERSION (steps 1 and 2 work)
+            // Update batch button handler - FIXED to pass content type and batch ID
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1270,6 +1270,9 @@
                     this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Adding cards...';
                     
+                    // Get the current content type from the batch
+                    const cardData = generatePreview();
+                    
                     // Generate ONLY the new cards
                     const nextOrder = currentSize + 1;
                     const newCards = [];
@@ -1281,11 +1284,12 @@
                             card_id: newCardId,
                             batch_id: batchId,
                             batch_order: order,
-                            status: 'pending'
+                            status: 'pending',
+                            message_type: cardData.message_type  // Store the message type
                         });
                     }
                     
-                    // Activate each NEW card (terms already accepted via checkbox)
+                    // Activate each NEW card with the batch's content type
                     let successCount = 0;
                     for (let i = 0; i < newCards.length; i++) {
                         const card = newCards[i];
@@ -1297,7 +1301,9 @@
                                 body: JSON.stringify({ 
                                     card_id: card.card_id,
                                     source: 'maker',
-                                    terms_accepted: true // Pass terms acceptance
+                                    terms_accepted: true,
+                                    message_type: cardData.message_type,  // Pass the content type
+                                    batch_id: batchId                      // Pass the batch ID
                                 })
                             });
                             
@@ -1315,7 +1321,6 @@
                     
                     if (successCount > 0) {
                         // Prepare ONLY the new cards for batch addition
-                        const cardData = generatePreview();
                         const cardsToAdd = newCards.map(card => ({
                             card_id: card.card_id,
                             message_type: cardData.message_type,
@@ -1339,17 +1344,16 @@
                         const result = await response.json();
                         
                         if (result.success) {
-                            // FIX FOR ISSUE #3: Update batch_events by refreshing from server
-                            // This ensures the batch_events table records the addition
+                            // REFRESH THE BATCH CARDS FROM THE SERVER
                             const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
                             const refreshResult = await refreshResponse.json();
                             if (refreshResult.success) {
-                                // Update the batch cards in memory with the server data
+                                // Add batch_id to each card
                                 window.currentBatchCards = refreshResult.cards.map(card => ({
                                     ...card,
                                     batch_id: batchId
                                 }));
-                                console.log('✅ Refreshed batch cards for events:', window.currentBatchCards.length);
+                                console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
                             }
                             
                             showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
