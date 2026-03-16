@@ -734,6 +734,83 @@
             box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
         }
         
+        /* Batch Management Styles */
+        .batch-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .batch-input-group {
+            flex: 1;
+        }
+        
+        .batch-size-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95rem;
+        }
+        
+        .batch-size-input:focus {
+            border-color: #06D6A0;
+            outline: none;
+        }
+        
+        .batch-preview-section {
+            background: rgba(6, 214, 160, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 3px solid #06D6A0;
+        }
+        
+        .batch-cards-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-batch {
+            background: linear-gradient(to right, #06D6A0, #118AB2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-batch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(6, 214, 160, 0.3);
+        }
+        
+        .btn-batch-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-batch-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
         @media (max-width: 768px) {
             .card-creator {
                 flex-direction: column;
@@ -792,6 +869,11 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .batch-row {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
         
         .loading {
@@ -840,11 +922,37 @@
                 </div>
                 
                 <!-- Batch Management Section (for physical card batches) -->
-                <div class="form-group" id="batchSection" style="display: none;">
+                <div class="form-group">
                     <label for="batchId">Batch ID (Optional):</label>
-                    <input type="text" id="batchId" class="content-type-dropdown" placeholder="e.g., WEDDING-2024">
+                    <div class="batch-row">
+                        <div class="batch-input-group">
+                            <input type="text" id="batchId" class="content-type-dropdown" placeholder="e.g., WEDDING-2024">
+                        </div>
+                        <div class="batch-input-group">
+                            <input type="number" id="batchSize" class="batch-size-input" min="1" max="100" value="10" placeholder="Number of cards">
+                        </div>
+                    </div>
                     <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 5px;">
-                        Use the same Batch ID for multiple cards in a set (wedding, event, etc.)
+                        Create multiple cards at once with the same Batch ID
+                    </div>
+                </div>
+
+                <!-- Batch Preview Section -->
+                <div class="batch-preview-section" id="batchPreviewSection" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="color: #06D6A0; font-weight: 600;">
+                            <i class="fas fa-layer-group"></i> Batch Preview
+                        </span>
+                        <span id="batchCount" style="color: #a0aec0; font-size: 0.85rem;">0 cards</span>
+                    </div>
+                    <div id="batchCardsList" class="batch-cards-list"></div>
+                    <div class="batch-actions">
+                        <button class="btn-batch" id="regenerateBatchBtn">
+                            <i class="fas fa-sync-alt"></i> Regenerate IDs
+                        </button>
+                        <button class="btn-batch btn-batch-secondary" id="saveBatchBtn">
+                            <i class="fas fa-save"></i> Save Batch
+                        </button>
                     </div>
                 </div>
 
@@ -1118,12 +1226,186 @@
                 audioProgressText: document.getElementById('audioProgressText'),
                 // New batch elements
                 batchId: document.getElementById('batchId'),
+                batchSize: document.getElementById('batchSize'),
+                batchPreviewSection: document.getElementById('batchPreviewSection'),
+                batchCardsList: document.getElementById('batchCardsList'),
+                regenerateBatchBtn: document.getElementById('regenerateBatchBtn'),
+                saveBatchBtn: document.getElementById('saveBatchBtn'),
                 batchOrder: document.getElementById('batchOrder'),
-                batchSection: document.getElementById('batchSection'),
                 batchOrderSection: document.getElementById('batchOrderSection'),
                 deadlineDisplay: document.getElementById('deadlineDisplay'),
                 deadlineText: document.getElementById('deadlineText')
             };
+            
+            // Generate batch preview
+            function generateBatchPreview() {
+                const batchId = elements.batchId.value.trim();
+                const batchSize = parseInt(elements.batchSize.value) || 1;
+                
+                if (!batchId) {
+                    elements.batchPreviewSection.style.display = 'none';
+                    return null;
+                }
+                
+                const cards = [];
+                for (let i = 1; i <= batchSize; i++) {
+                    const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    cards.push({
+                        card_id: cardId,
+                        batch_id: batchId,
+                        batch_order: i,
+                        status: 'pending'
+                    });
+                }
+                
+                // Display preview
+                let html = '';
+                cards.forEach(card => {
+                    html += `<div style="display: flex; justify-content: space-between; padding: 8px; background: #333; margin-bottom: 5px; border-radius: 4px; border-left: 3px solid #06D6A0;">
+                        <span><strong>${card.card_id}</strong></span>
+                        <span style="color: #06D6A0;">Card #${card.batch_order}</span>
+                    </div>`;
+                });
+                
+                elements.batchCardsList.innerHTML = html;
+                elements.batchPreviewSection.style.display = 'block';
+                document.getElementById('batchCount').textContent = `${cards.length} cards`;
+                
+                return cards;
+            }
+            
+            // Save entire batch
+            async function saveBatchToBackend(cardData, batchCards) {
+                if (!isCardActivated) {
+                    showNotification('Please activate the card first', 'error');
+                    return;
+                }
+                
+                try {
+                    showNotification(`Creating ${batchCards.length} cards...`, 'info');
+                    
+                    const results = [];
+                    let mediaUrl = null;
+                    let fileName = null;
+                    let fileSize = null;
+                    let fileType = null;
+                    
+                    // Upload media once if present
+                    const contentType = cardData.message_type;
+                    if (contentType !== 'text' && currentMedia[contentType]) {
+                        showNotification(`Uploading ${contentType}...`, 'info');
+                        
+                        const uploadResult = await uploadWithProgress(
+                            currentMedia[contentType].url,
+                            currentMedia[contentType].name,
+                            currentMedia[contentType].type,
+                            batchCards[0].card_id, // Use first card ID for upload
+                            getProgressElements(contentType)
+                        );
+                        
+                        if (uploadResult.success) {
+                            mediaUrl = uploadResult.url;
+                            fileName = uploadResult.file_name;
+                            fileSize = uploadResult.file_size;
+                            fileType = uploadResult.file_type;
+                            showNotification(`${contentType} uploaded successfully!`, 'success');
+                        }
+                    }
+                    
+                    // Create all cards
+                    for (let i = 0; i < batchCards.length; i++) {
+                        const card = batchCards[i];
+                        const cardDataToSend = {
+                            card_id: card.card_id,
+                            message_type: cardData.message_type,
+                            message_text: cardData.message_text,
+                            batch_id: card.batch_id,
+                            batch_order: card.batch_order,
+                            media_url: mediaUrl,
+                            file_name: fileName,
+                            file_size: fileSize,
+                            file_type: fileType,
+                            status: 'pending'
+                        };
+                        
+                        const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(cardDataToSend)
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            results.push(result.card);
+                        }
+                        
+                        // Update progress every 5 cards
+                        if ((i + 1) % 5 === 0 || i === batchCards.length - 1) {
+                            showNotification(`Created ${i + 1}/${batchCards.length} cards...`, 'info');
+                        }
+                    }
+                    
+                    showNotification(`✅ Successfully created ${results.length} cards!`, 'success');
+                    clearUnsavedChanges();
+                    
+                    // Show first card's QR code as example
+                    if (results.length > 0) {
+                        const viewerUrl = `${BACKEND_URL}/viewer.html?card=${results[0].card_id}`;
+                        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+                        
+                        // Create a batch summary card data
+                        const batchSummary = {
+                            card_id: `Batch: ${batchCards[0].batch_id}`,
+                            message_type: cardData.message_type,
+                            message_text: `${batchCards.length} cards created`
+                        };
+                        
+                        showQRCode(qrCodeUrl, viewerUrl, batchSummary);
+                        
+                        // Add link to batch manager
+                        setTimeout(() => {
+                            const batchLink = document.createElement('div');
+                            batchLink.style.marginTop = '20px';
+                            batchLink.style.textAlign = 'center';
+                            batchLink.innerHTML = `
+                                <a href="/batch-manager?batch=${batchCards[0].batch_id}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px;">
+                                    <i class="fas fa-layer-group"></i> Manage This Batch
+                                </a>
+                            `;
+                            elements.qrCodeContainer.appendChild(batchLink);
+                        }, 500);
+                    }
+                    
+                    return results;
+                    
+                } catch (error) {
+                    console.error('Batch save error:', error);
+                    showNotification('Error creating batch: ' + error.message, 'error');
+                }
+            }
+            
+            // Helper to get progress elements
+            function getProgressElements(contentType) {
+                if (contentType === 'image') {
+                    return {
+                        container: elements.imageProgress,
+                        fill: elements.imageProgressFill,
+                        text: elements.imageProgressText
+                    };
+                } else if (contentType === 'video') {
+                    return {
+                        container: elements.videoProgress,
+                        fill: elements.videoProgressFill,
+                        text: elements.videoProgressText
+                    };
+                } else if (contentType === 'audio') {
+                    return {
+                        container: elements.audioProgress,
+                        fill: elements.audioProgressFill,
+                        text: elements.audioProgressText
+                    };
+                }
+            }
             
             function showNotification(message, type = 'success') {
                 elements.notification.textContent = message;
@@ -1272,6 +1554,54 @@
                 }
             }
             
+            // NEW: Load card details including deadline
+            async function loadCardDetails() {
+                const cardId = elements.cardIdInput.value.trim();
+                console.log('📝 Loading details for card:', cardId);
+                if (!cardId) return;
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
+                    console.log('📊 Response status:', response.status);
+                    
+                    // If card doesn't exist (404), just hide the deadline display
+                    if (response.status === 404) {
+                        console.log('⏳ Card not found - hiding deadline');
+                        elements.deadlineDisplay.style.display = 'none';
+                        return;
+                    }
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.card) {
+                            const card = result.card;
+                            console.log('📋 Card data:', card);
+                            
+                            // Only show deadline for pending cards
+                            if (card.status === 'pending' && card.activation_deadline) {
+                                const deadline = new Date(card.activation_deadline);
+                                const now = new Date();
+                                const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+                                
+                                elements.deadlineDisplay.style.display = 'block';
+                                if (daysLeft < 0) {
+                                    elements.deadlineText.textContent = `⚠️ This card expired on ${deadline.toLocaleDateString()} and cannot be activated`;
+                                } else {
+                                    elements.deadlineText.textContent = `⏳ Activate within ${daysLeft} days (by ${deadline.toLocaleDateString()})`;
+                                }
+                            } else {
+                                // Hide deadline for active cards
+                                console.log('⏳ Card active or no deadline - hiding');
+                                elements.deadlineDisplay.style.display = 'none';  
+                            }
+                        }    
+                    }        
+                } catch (error) {
+                    console.error('Error loading card details:', error);
+                    elements.deadlineDisplay.style.display = 'none';
+                }
+            }
+            
             // Activate from maker page - WITH SOURCE PARAMETER ADDED
             elements.activateBtn.addEventListener('click', async function() {
                 const cardId = elements.cardIdInput.value.trim();
@@ -1302,6 +1632,7 @@
                         elements.activationSection.style.display = 'none';
                         elements.saveBtn.disabled = false;
                         isCardActivated = true;
+                        loadCardDetails(); // Refresh to hide deadline after activation
                     } else {
                         showNotification('Activation failed: ' + (result.error || 'Unknown error'), 'error');
                         this.disabled = false;
@@ -1991,19 +2322,47 @@
                 
                 generatePreview();
                 
-                // Check card status after ID is set
-                setTimeout(checkCardStatus, 100);
+                // First, check if this is a URL parameter card (existing card)
+                if (urlCardId) {
+                    // This is an existing card from URL - load details immediately
+                    console.log('🔗 Loading details for existing card:', urlCardId);
+                    setTimeout(loadCardDetails, 300);
+                } else {
+                    // This is a new card - wait for status check
+                    setTimeout(() => {
+                        checkCardStatus();
+                        setTimeout(loadCardDetails, 500);
+                    }, 100);
+                }
+                
+                // Add event listeners for batch features
+                elements.batchId.addEventListener('input', generateBatchPreview);
+                elements.batchSize.addEventListener('input', generateBatchPreview);
+                
+                elements.regenerateBatchBtn.addEventListener('click', generateBatchPreview);
+                
+                elements.saveBatchBtn.addEventListener('click', async function() {
+                    const cardData = generatePreview();
+                    if (!cardData) return;
+                    
+                    const batchCards = generateBatchPreview();
+                    if (batchCards) {
+                        await saveBatchToBackend(cardData, batchCards);
+                    }
+                });
+                
+                // Also load details when card ID changes
+                elements.cardIdInput.addEventListener('input', function() {
+                    generatePreview();
+                    checkCardStatus();
+                    loadCardDetails();
+                });
                 
                 elements.saveBtn.addEventListener('click', async function() {
                     const cardData = generatePreview();
                     if (cardData) {
                         await saveCardToBackend(cardData);
                     }
-                });
-                
-                elements.cardIdInput.addEventListener('input', function() {
-                    generatePreview();
-                    checkCardStatus();
                 });
                 
                 elements.messageInput.addEventListener('input', generatePreview);
