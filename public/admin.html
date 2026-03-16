@@ -1799,15 +1799,15 @@
             }
         }
         
-        // Load detailed data
+        // OPTIMIZED: Load detailed data without 1.5s delay
         async function loadDetailedData() {
             const totalCards = allCards.length;
             let loadedCount = 0;
 
-             // Show table immediately with basic data
-             renderTable();
+            // Show table immediately with basic data
+            renderTable();
             
-             // Load details in background WITHOUT delays
+            // Load details in background WITHOUT delays
             for (let i = 0; i < totalCards; i++) {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
@@ -1836,9 +1836,6 @@
                     console.log(`Skipping ${allCards[i].card_id}:`, error.message);
                 }
             }
-            
-            // After all cards are loaded, load activations once (keeping for backward compatibility)
-            renderTable(); // Final render with all data
         }
         
         // Load scan logs
