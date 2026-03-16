@@ -171,6 +171,7 @@ app.get('/api/health', (req, res) => {
       batches: `POST ${baseUrl}/api/admin/batches`,
       getBatch: `GET ${baseUrl}/api/batches/:batch_id`,
       addToBatch: `POST ${baseUrl}/api/batches/:batch_id/add`,
+      addCardsToBatch: `POST ${baseUrl}/api/batches/:batch_id/add-cards`,
       calculateBatchPrice: `POST ${baseUrl}/api/batches/calculate-price`,
       deleteBatch: `POST ${baseUrl}/api/admin/batches/:batch_id/delete`,
       expireCards: `POST ${baseUrl}/api/admin/expire-cards`,
@@ -1367,7 +1368,9 @@ app.get('/api/admin/export-all', async (req, res) => {
   }
 });
 
-// 📊 Bulk delete cards
+// ============================================
+// ADDED: Bulk delete cards (for admin)
+// ============================================
 app.post('/api/admin/bulk-delete', async (req, res) => {
   try {
     const { card_ids } = req.body;
@@ -1376,6 +1379,8 @@ app.post('/api/admin/bulk-delete', async (req, res) => {
     if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
       return res.status(400).json({ success: false, error: 'No card IDs provided' });
     }
+    
+    console.log(`🗑️ Bulk deleting ${card_ids.length} cards`);
     
     const { data, error } = await supabaseAdmin
       .from('cards')
@@ -1387,7 +1392,10 @@ app.post('/api/admin/bulk-delete', async (req, res) => {
       .in('card_id', card_ids)
       .select();
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Bulk delete error:', error);
+      throw error;
+    }
     
     res.json({ 
       success: true, 
@@ -1401,7 +1409,9 @@ app.post('/api/admin/bulk-delete', async (req, res) => {
   }
 });
 
-// 📊 Bulk activate cards
+// ============================================
+// ADDED: Bulk activate cards (for admin)
+// ============================================
 app.post('/api/admin/bulk-activate', async (req, res) => {
   try {
     const { card_ids } = req.body;
@@ -1410,6 +1420,8 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
     if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
       return res.status(400).json({ success: false, error: 'No card IDs provided' });
     }
+    
+    console.log(`✅ Bulk activating ${card_ids.length} cards`);
     
     const { data, error } = await supabaseAdmin
       .from('cards')
@@ -1421,7 +1433,10 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
       .in('card_id', card_ids)
       .select();
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Bulk activate error:', error);
+      throw error;
+    }
     
     // Also create activation records for each card
     const activations = data.map(card => ({
@@ -1434,9 +1449,14 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
       activation_source: 'admin'
     }));
     
-    await supabaseAdmin
+    const { error: actError } = await supabaseAdmin
       .from('card_activations')
       .insert(activations);
+    
+    if (actError) {
+      console.error('❌ Failed to log bulk activations:', actError);
+      // Continue anyway - cards are still activated
+    }
     
     res.json({ 
       success: true, 
@@ -1446,6 +1466,42 @@ app.post('/api/admin/bulk-activate', async (req, res) => {
     
   } catch (error) {
     console.error('Error bulk activating cards:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// ADDED: Expire old pending cards (for admin)
+// ============================================
+app.post('/api/admin/expire-cards', async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+    
+    console.log(`⏰ Expiring pending cards past deadline`);
+    
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({
+        status: 'expired',
+        updated_at: now
+      })
+      .eq('status', 'pending')
+      .lt('activation_deadline', now)
+      .select();
+    
+    if (error) {
+      console.error('❌ Expire cards error:', error);
+      throw error;
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Expired ${data?.length || 0} cards`,
+      count: data?.length || 0
+    });
+    
+  } catch (error) {
+    console.error('Error expiring cards:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1532,6 +1588,85 @@ app.get('/api/batches/:batch_id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching batch:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// NEW ENDPOINT ADDED FOR BATCH CARD CREATION
+// ============================================
+// 📊 Add multiple cards to a batch in one request
+app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { cards } = req.body;
+    
+    console.log(`📦 Adding ${cards?.length || 0} cards to batch: ${batch_id}`);
+    
+    if (!cards || !Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid cards data - expected non-empty array' 
+      });
+    }
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ 
+        success: false,
+        error: 'Database service temporarily unavailable'
+      });
+    }
+    
+    // Insert all cards
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .insert(cards)
+      .select();
+    
+    if (error) {
+      console.error('❌ Batch card insert error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to insert cards',
+        details: error.message
+      });
+    }
+    
+    // Update batch card count
+    const { data: batch } = await supabaseAdmin
+      .from('batches')
+      .select('cards_created')
+      .eq('batch_id', batch_id)
+      .single();
+    
+    const newCount = (batch?.cards_created || 0) + cards.length;
+    
+    const { error: updateError } = await supabaseAdmin
+      .from('batches')
+      .update({ 
+        cards_created: newCount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('batch_id', batch_id);
+    
+    if (updateError) {
+      console.error('❌ Batch count update error:', updateError);
+      // Don't fail the request, just log it
+    }
+    
+    console.log(`✅ Successfully added ${data?.length || 0} cards to batch ${batch_id}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Added ${data?.length || 0} cards to batch`,
+      cards: data 
+    });
+    
+  } catch (error) {
+    console.error('💥 Error adding cards to batch:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
@@ -1698,35 +1833,6 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
   }
 });
 
-// 📊 Expire old pending cards
-app.post('/api/admin/expire-cards', async (req, res) => {
-  try {
-    const now = new Date().toISOString();
-    
-    const { data, error } = await supabaseAdmin
-      .from('cards')
-      .update({
-        status: 'expired',
-        updated_at: now
-      })
-      .eq('status', 'pending')
-      .lt('activation_deadline', now)
-      .select();
-    
-    if (error) throw error;
-    
-    res.json({ 
-      success: true, 
-      message: `Expired ${data?.length || 0} cards`,
-      count: data?.length || 0
-    });
-    
-  } catch (error) {
-    console.error('Error expiring cards:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -1807,12 +1913,13 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/export-all`,
       `${baseUrl}/api/admin/bulk-delete`,
       `${baseUrl}/api/admin/bulk-activate`,
+      `${baseUrl}/api/admin/expire-cards`,
       `${baseUrl}/api/batches/:id`,
       `${baseUrl}/api/batches/:id/add`,
+      `${baseUrl}/api/batches/:id/add-cards`,
       `${baseUrl}/api/batches/calculate-price`,
       `${baseUrl}/api/admin/batches`,
       `${baseUrl}/api/admin/batches/:id/delete`,
-      `${baseUrl}/api/admin/expire-cards`,
       `${baseUrl}/api/test-supabase`
     ]
   });
@@ -1858,12 +1965,13 @@ app.listen(PORT, () => {
   console.log(`   Export All: https://papir.ca/api/admin/export-all`);
   console.log(`   Bulk Delete: https://papir.ca/api/admin/bulk-delete`);
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
+  console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
   console.log(`   Delete Batch: https://papir.ca/api/admin/batches/:id/delete`);
-  console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -1889,8 +1997,10 @@ app.listen(PORT, () => {
   console.log('   ✅ Activity timeline');
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
+  console.log('   ✅ Bulk expire cards');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Auto-create batch records');
+  console.log('   ✅ Batch card creation endpoint');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
