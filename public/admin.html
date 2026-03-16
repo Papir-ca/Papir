@@ -1803,15 +1803,17 @@
         async function loadDetailedData() {
             const totalCards = allCards.length;
             let loadedCount = 0;
+
+             // Show table immediately with basic data
+             renderTable();
             
+             // Load details in background WITHOUT delays
             for (let i = 0; i < totalCards; i++) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
-                    
                     const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
-                    
+                
                     if (response.status === 429) {
-                        console.log('Rate limited, waiting longer...');
+                        console.log('Rate limited, waiting 3 seconds...');
                         await new Promise(resolve => setTimeout(resolve, 3000));
                         i--; // Retry this card
                         continue;
@@ -1825,8 +1827,8 @@
                         }
                         loadedCount++;
                         
-                        // Update progress every 5 cards
-                        if (loadedCount % 5 === 0 || loadedCount === totalCards) {
+                        // Update UI every 10 cards
+                        if (loadedCount % 10 === 0 || loadedCount === totalCards) {
                             renderTable();
                         }
                     }
