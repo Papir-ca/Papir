@@ -1335,7 +1335,7 @@
                         }));
                         
                         // Send ONLY the new cards to server
-                        const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}/add-cards`, {
+                        const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ cards: cardsToAdd })
@@ -1379,7 +1379,7 @@
                     this.innerHTML = '<span class="loading"></span> Removing cards...';
                     
                     // Get the current cards in the batch to know which ones to remove
-                    const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
+                    const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                     const result = await response.json();
                     
                     if (result.success && result.cards) {
@@ -1421,7 +1421,7 @@
             // Helper function to show updated batch QR codes
             async function showUpdatedBatchQR(batchId) {
                 try {
-                    const response = await fetch(`${BACKEND_URL}/api/batches/${batchId}`);
+                    const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                     const result = await response.json();
                     
                     if (result.success && result.cards) {
