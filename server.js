@@ -178,7 +178,8 @@ app.get('/api/health', (req, res) => {
       activity: `GET ${baseUrl}/api/admin/activity`,
       exportAll: `GET ${baseUrl}/api/admin/export-all`,
       bulkDelete: `POST ${baseUrl}/api/admin/bulk-delete`,
-      bulkActivate: `POST ${baseUrl}/api/admin/bulk-activate`
+      bulkActivate: `POST ${baseUrl}/api/admin/bulk-activate`,
+      cardsAllDetails: `GET ${baseUrl}/api/admin/cards-all-details`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -1202,7 +1203,7 @@ app.get('/api/admin/mismatch-alerts', async (req, res) => {
 });
 
 // ============================================
-// NEW ADMIN FEATURES - ADDED FOR ADMIN PAGE
+// ADMIN FEATURES - Performance, Activity, Cards All Details
 // ============================================
 
 // 📊 Get performance stats
@@ -1292,9 +1293,239 @@ app.get('/api/admin/activity', async (req, res) => {
   }
 });
 
+// 📊 Export all data as CSV
+app.get('/api/admin/export-all', async (req, res) => {
+  try {
+    const format = req.query.format || 'csv';
+    
+    // Get all cards
+    const { data: cards } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!cards) {
+      return res.status(404).json({ success: false, error: 'No data found' });
+    }
+    
+    if (format === 'csv') {
+      // Create CSV header
+      const headers = ['card_id', 'status', 'batch_id', 'batch_order', 'message_type', 
+        'message_text', 'media_url', 'file_name', 'file_size', 'file_type', 
+        'scan_count', 'created_by_ip', 'created_at', 'updated_at', 'activation_deadline'];
+      
+      let csv = headers.join(',') + '\n';
+      
+      // Add rows
+      cards.forEach(card => {
+        const row = headers.map(h => {
+          let value = card[h] || '';
+          // Escape commas
+          if (value.toString().includes(',')) {
+            return `"${value}"`;
+          }
+          return value;
+        }).join(',');
+        csv += row + '\n';
+      });
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=papir-export-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csv);
+    } else {
+      res.json({ success: true, data: cards });
+    }
+    
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Bulk delete cards
+app.post('/api/admin/bulk-delete', async (req, res) => {
+  try {
+    const { card_ids } = req.body;
+    const clientIp = getClientIp(req);
+    
+    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'No card IDs provided' });
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({
+        status: 'deleted',
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      })
+      .in('card_id', card_ids)
+      .select();
+    
+    if (error) throw error;
+    
+    res.json({ 
+      success: true, 
+      message: `Deleted ${data?.length || 0} cards`,
+      count: data?.length || 0
+    });
+    
+  } catch (error) {
+    console.error('Error bulk deleting cards:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Bulk activate cards
+app.post('/api/admin/bulk-activate', async (req, res) => {
+  try {
+    const { card_ids } = req.body;
+    const clientIp = getClientIp(req);
+    
+    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'No card IDs provided' });
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({
+        status: 'active',
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      })
+      .in('card_id', card_ids)
+      .select();
+    
+    if (error) throw error;
+    
+    // Also create activation records for each card
+    const activations = data.map(card => ({
+      card_id: card.card_id,
+      activated_at: new Date().toISOString(),
+      activated_by_ip: clientIp,
+      terms_accepted_at: new Date().toISOString(),
+      terms_accepted_ip: clientIp,
+      user_agent: req.headers['user-agent'] || 'unknown',
+      activation_source: 'admin'
+    }));
+    
+    await supabaseAdmin
+      .from('card_activations')
+      .insert(activations);
+    
+    res.json({ 
+      success: true, 
+      message: `Activated ${data?.length || 0} cards`,
+      count: data?.length || 0
+    });
+    
+  } catch (error) {
+    console.error('Error bulk activating cards:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ============================================
-// END OF NEW ADMIN FEATURES
+// NEW: Get all cards with complete details in ONE request
 // ============================================
+app.get('/api/admin/cards-all-details', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    console.log('📊 Fetching ALL cards with complete details in one request');
+    
+    // Get all cards
+    const { data: cards, error: cardsError } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (cardsError) throw cardsError;
+    
+    // Get all card IDs
+    const cardIds = cards.map(c => c.card_id);
+    
+    // Get ALL activations for these cards in one query
+    const { data: activations, error: actError } = await supabaseAdmin
+      .from('card_activations')
+      .select('*')
+      .in('card_id', cardIds)
+      .order('created_at', { ascending: false });
+    
+    if (actError) throw actError;
+    
+    // Get ALL scan logs for these cards in one query (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: scans, error: scanError } = await supabaseAdmin
+      .from('scan_logs')
+      .select('*')
+      .in('card_id', cardIds)
+      .gte('scanned_at', thirtyDaysAgo.toISOString())
+      .order('scanned_at', { ascending: false });
+    
+    if (scanError) throw scanError;
+    
+    // Get ALL batch info in one query
+    const batchIds = cards.filter(c => c.batch_id).map(c => c.batch_id);
+    let batches = [];
+    if (batchIds.length > 0) {
+      const { data: batchData } = await supabaseAdmin
+        .from('batches')
+        .select('*')
+        .in('batch_id', batchIds);
+      batches = batchData || [];
+    }
+    
+    // Group activations by card_id
+    const activationsByCard = {};
+    activations.forEach(act => {
+      if (!activationsByCard[act.card_id]) {
+        activationsByCard[act.card_id] = [];
+      }
+      activationsByCard[act.card_id].push(act);
+    });
+    
+    // Group scans by card_id
+    const scansByCard = {};
+    scans.forEach(scan => {
+      if (!scansByCard[scan.card_id]) {
+        scansByCard[scan.card_id] = [];
+      }
+      scansByCard[scan.card_id].push(scan);
+    });
+    
+    // Group batches by batch_id
+    const batchesById = {};
+    batches.forEach(batch => {
+      batchesById[batch.batch_id] = batch;
+    });
+    
+    // Build complete card objects
+    const completeCards = cards.map(card => ({
+      ...card,
+      activation_history: activationsByCard[card.card_id] || [],
+      scan_history: scansByCard[card.card_id] || [],
+      recent_scans: scansByCard[card.card_id]?.length || 0,
+      batch_info: card.batch_id ? batchesById[card.batch_id] : null
+    }));
+    
+    console.log(`✅ Returning ${completeCards.length} cards with complete details`);
+    
+    res.json({
+      success: true,
+      cards: completeCards,
+      count: completeCards.length
+    });
+    
+  } catch (error) {
+    console.error('Error fetching all card details:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // ============================================
 // BATCH MANAGEMENT ENDPOINTS
@@ -1777,138 +2008,6 @@ app.post('/api/admin/expire-cards', async (req, res) => {
   }
 });
 
-// 📊 Export all data as CSV
-app.get('/api/admin/export-all', async (req, res) => {
-  try {
-    const format = req.query.format || 'csv';
-    
-    // Get all cards
-    const { data: cards } = await supabaseAdmin
-      .from('cards')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (!cards) {
-      return res.status(404).json({ success: false, error: 'No data found' });
-    }
-    
-    if (format === 'csv') {
-      // Create CSV header
-      const headers = ['card_id', 'status', 'batch_id', 'batch_order', 'message_type', 
-        'message_text', 'media_url', 'file_name', 'file_size', 'file_type', 
-        'scan_count', 'created_by_ip', 'created_at', 'updated_at', 'activation_deadline'];
-      
-      let csv = headers.join(',') + '\n';
-      
-      // Add rows
-      cards.forEach(card => {
-        const row = headers.map(h => {
-          let value = card[h] || '';
-          // Escape commas
-          if (value.toString().includes(',')) {
-            return `"${value}"`;
-          }
-          return value;
-        }).join(',');
-        csv += row + '\n';
-      });
-      
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=papir-export-${new Date().toISOString().split('T')[0]}.csv`);
-      res.send(csv);
-    } else {
-      res.json({ success: true, data: cards });
-    }
-    
-  } catch (error) {
-    console.error('Error exporting data:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// 📊 Bulk delete cards
-app.post('/api/admin/bulk-delete', async (req, res) => {
-  try {
-    const { card_ids } = req.body;
-    const clientIp = getClientIp(req);
-    
-    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
-      return res.status(400).json({ success: false, error: 'No card IDs provided' });
-    }
-    
-    const { data, error } = await supabaseAdmin
-      .from('cards')
-      .update({
-        status: 'deleted',
-        updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
-      })
-      .in('card_id', card_ids)
-      .select();
-    
-    if (error) throw error;
-    
-    res.json({ 
-      success: true, 
-      message: `Deleted ${data?.length || 0} cards`,
-      count: data?.length || 0
-    });
-    
-  } catch (error) {
-    console.error('Error bulk deleting cards:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// 📊 Bulk activate cards
-app.post('/api/admin/bulk-activate', async (req, res) => {
-  try {
-    const { card_ids } = req.body;
-    const clientIp = getClientIp(req);
-    
-    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
-      return res.status(400).json({ success: false, error: 'No card IDs provided' });
-    }
-    
-    const { data, error } = await supabaseAdmin
-      .from('cards')
-      .update({
-        status: 'active',
-        updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
-      })
-      .in('card_id', card_ids)
-      .select();
-    
-    if (error) throw error;
-    
-    // Also create activation records for each card
-    const activations = data.map(card => ({
-      card_id: card.card_id,
-      activated_at: new Date().toISOString(),
-      activated_by_ip: clientIp,
-      terms_accepted_at: new Date().toISOString(),
-      terms_accepted_ip: clientIp,
-      user_agent: req.headers['user-agent'] || 'unknown',
-      activation_source: 'admin'
-    }));
-    
-    await supabaseAdmin
-      .from('card_activations')
-      .insert(activations);
-    
-    res.json({ 
-      success: true, 
-      message: `Activated ${data?.length || 0} cards`,
-      count: data?.length || 0
-    });
-    
-  } catch (error) {
-    console.error('Error bulk activating cards:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -1989,6 +2088,7 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/export-all`,
       `${baseUrl}/api/admin/bulk-delete`,
       `${baseUrl}/api/admin/bulk-activate`,
+      `${baseUrl}/api/admin/cards-all-details`,
       `${baseUrl}/api/batches/:id`,
       `${baseUrl}/api/batches/:id/add-cards`,
       `${baseUrl}/api/batches/:id/add`,
@@ -2041,8 +2141,9 @@ app.listen(PORT, () => {
   console.log(`   Export All: https://papir.ca/api/admin/export-all`);
   console.log(`   Bulk Delete: https://papir.ca/api/admin/bulk-delete`);
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
+  console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (NOW LOGS TO BATCH_EVENTS)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2069,12 +2170,13 @@ app.listen(PORT, () => {
   console.log('   ✅ Geographic mismatch alerts');
   console.log('   ✅ Batch deletion handling');
   console.log('   ✅ Card expiration (1 year)');
-  console.log('   ✅ Performance dashboard - NOW FIXED');
-  console.log('   ✅ Activity timeline - NOW FIXED');
+  console.log('   ✅ Performance dashboard');
+  console.log('   ✅ Activity timeline');
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
+  console.log('   ✅ ONE REQUEST card details loading - FIXED');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch events tracking - NOW WORKING (records every addition)');
+  console.log('   ✅ Batch events tracking');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
