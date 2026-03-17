@@ -253,7 +253,7 @@ function getClientIp(req) {
 }
 
 // ============================================
-// UPDATED HELPER FUNCTION: Get geolocation from IP with fallback
+// UPDATED HELPER FUNCTION: Get geolocation from IP with fallback and full region names
 // ============================================
 async function getGeolocationFromIp(ip) {
   try {
@@ -292,7 +292,7 @@ async function getGeolocationFromIp(ip) {
       console.log('📍 ipapi.co failed:', ipapiError.message);
     }
     
-    // Fallback to ip-api.com (more reliable, no key needed)
+    // Fallback to ip-api.com
     console.log('📍 Trying fallback ip-api.com for IP:', ip);
     const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,org`, {
       timeout: 3000
@@ -1721,18 +1721,39 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const deadline = new Date();
     deadline.setFullYear(deadline.getFullYear() + 1);
     
-    // Check if batch exists
-    const { data: existingBatch } = await supabaseAdmin
+    // Check if batch exists - and CREATE IT IF IT DOESN'T
+    let { data: existingBatch } = await supabaseAdmin
       .from('batches')
       .select('*')
       .eq('batch_id', batch_id)
       .maybeSingle();
     
+    // If batch doesn't exist, CREATE IT
     if (!existingBatch) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Batch not found' 
-      });
+      console.log(`📦 Auto-creating batch: ${batch_id}`);
+      
+      const { data: newBatch, error: createError } = await supabaseAdmin
+        .from('batches')
+        .insert({
+          batch_id: batch_id,
+          cards_created: 0,
+          created_at: new Date().toISOString(),
+          created_by_ip: clientIp,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('❌ Failed to create batch:', createError);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to create batch' 
+        });
+      }
+      
+      existingBatch = newBatch;
+      console.log(`✅ Batch created: ${batch_id}`);
     }
     
     // Get the highest batch order currently in the batch
@@ -2220,6 +2241,7 @@ app.listen(PORT, () => {
   console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Batch events tracking');
+  console.log('   ✅ Auto-create batches when adding cards - FIXED');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
