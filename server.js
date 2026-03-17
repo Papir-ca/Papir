@@ -48,6 +48,7 @@ app.use(helmet({
         "wss://*.supabase.co",
         "https://api.qrserver.com",
         "https://ipapi.co",
+        "http://ip-api.com",
         "https://api.ipify.org"
       ],
       fontSrc: [
@@ -251,33 +252,75 @@ function getClientIp(req) {
   return 'unknown';
 }
 
-// Helper function to get geolocation from IP
+// ============================================
+// UPDATED HELPER FUNCTION: Get geolocation from IP with fallback
+// ============================================
 async function getGeolocationFromIp(ip) {
   try {
     // Skip private IPs
     if (ip === 'unknown' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip === '127.0.0.1') {
+      console.log('📍 Skipping geolocation for private IP:', ip);
       return null;
     }
     
-    const response = await fetch(`https://ipapi.co/${ip}/json/`);
-    const data = await response.json();
+    console.log('📍 Fetching geolocation for IP:', ip);
     
-    if (data.error) {
-      return null;
+    // Try ipapi.co first (HTTPS required)
+    try {
+      const response = await fetch(`https://ipapi.co/${ip}/json/`, {
+        timeout: 3000 // 3 second timeout
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📍 ipapi.co response:', data);
+        
+        if (!data.error) {
+          return {
+            ip: ip,
+            city: data.city,
+            region: data.region,
+            country: data.country_name,
+            country_code: data.country_code,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            org: data.org
+          };
+        }
+      }
+    } catch (ipapiError) {
+      console.log('📍 ipapi.co failed:', ipapiError.message);
     }
     
-    return {
-      ip: ip,
-      city: data.city,
-      region: data.region,
-      country: data.country_name,
-      country_code: data.country_code,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      org: data.org
-    };
+    // Fallback to ip-api.com (more reliable, no key needed)
+    console.log('📍 Trying fallback ip-api.com for IP:', ip);
+    const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,city,lat,lon,org`, {
+      timeout: 3000
+    });
+    
+    if (fallbackResponse.ok) {
+      const fallbackData = await fallbackResponse.json();
+      console.log('📍 ip-api.com response:', fallbackData);
+      
+      if (fallbackData.status === 'success') {
+        return {
+          ip: ip,
+          city: fallbackData.city,
+          region: fallbackData.region,
+          country: fallbackData.country,
+          country_code: fallbackData.countryCode,
+          latitude: fallbackData.lat,
+          longitude: fallbackData.lon,
+          org: fallbackData.org
+        };
+      }
+    }
+    
+    console.log('📍 All geolocation services failed for IP:', ip);
+    return null;
+    
   } catch (error) {
-    console.error('Geolocation error:', error.message);
+    console.error('📍 Geolocation error:', error.message);
     return null;
   }
 }
@@ -2164,7 +2207,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Batch management system');
   console.log('   ✅ Batch expansion (add cards later)');
   console.log('   ✅ Activation deadlines');
-  console.log('   ✅ IP geolocation tracking');
+  console.log('   ✅ IP geolocation tracking - FIXED with fallback');
   console.log('   ✅ Duplicate scan detection');
   console.log('   ✅ Abandoned card tracking');
   console.log('   ✅ Geographic mismatch alerts');
@@ -2174,7 +2217,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Activity timeline');
   console.log('   ✅ Bulk export');
   console.log('   ✅ Bulk actions (delete/activate)');
-  console.log('   ✅ ONE REQUEST card details loading - FIXED');
+  console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Batch events tracking');
   console.log('   ✅ 24/7 Railway hosting');
