@@ -294,7 +294,7 @@ async function getGeolocationFromIp(ip) {
     
     // Fallback to ip-api.com (more reliable, no key needed)
     console.log('📍 Trying fallback ip-api.com for IP:', ip);
-    const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,city,lat,lon,org`, {
+    const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,org`, {
       timeout: 3000
     });
     
@@ -306,7 +306,7 @@ async function getGeolocationFromIp(ip) {
         return {
           ip: ip,
           city: fallbackData.city,
-          region: fallbackData.region,
+          region: fallbackData.regionName || fallbackData.region,
           country: fallbackData.country,
           country_code: fallbackData.countryCode,
           latitude: fallbackData.lat,
