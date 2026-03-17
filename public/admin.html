@@ -12,7 +12,6 @@
         .container { max-width: 1800px; margin: 0 auto; }
         h1 { color: #BCAE83; margin-bottom: 30px; font-size: 2.5rem; }
         
-        /* Analytics Dashboard */
         .analytics-section {
             background: #2a2a2a;
             border-radius: 15px;
@@ -151,7 +150,6 @@
             font-weight: bold;
         }
         
-        /* Date Range Selector - Tight Layout */
         .date-range-container {
             display: flex;
             gap: 5px;
@@ -212,7 +210,6 @@
             white-space: nowrap;
         }
         
-        /* Controls Row with Export on Far Right */
         .controls-row {
             display: flex;
             align-items: center;
@@ -298,7 +295,6 @@
             background: #8e44ad;
         }
         
-        /* Export Modal */
         .export-modal {
             display: none;
             position: fixed;
@@ -458,7 +454,6 @@
             margin-left: 10px;
         }
         
-        /* Search Bar */
         .search-bar { 
             background: #2a2a2a; 
             padding: 20px; 
@@ -490,14 +485,12 @@
             border-color: #BCAE83; 
         }
         
-        /* Stats */
         .stats { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-bottom: 30px; }
         .stat-card { background: #2a2a2a; padding: 12px; border-radius: 8px; text-align: center; transition: transform 0.3s; }
         .stat-card:hover { transform: translateY(-3px); background: #333; }
         .stat-value { font-size: 1.5rem; color: #BCAE83; font-weight: bold; }
         .stat-label { color: #aaa; margin-top: 3px; font-size: 0.8rem; }
         
-        /* Performance Stats */
         .performance-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -524,7 +517,6 @@
             margin-top: 5px;
         }
         
-        /* Activity Timeline */
         .timeline {
             max-height: 200px;
             overflow-y: auto;
@@ -571,7 +563,6 @@
             color: #aaa;
         }
         
-        /* Bulk Actions */
         .bulk-actions {
             background: #2a2a2a;
             padding: 15px;
@@ -597,7 +588,6 @@
             margin-right: 5px;
         }
         
-        /* New Sections */
         .grid-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -646,7 +636,6 @@
             margin-bottom: 5px;
         }
         
-        /* Location Stats */
         .location-stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -735,7 +724,6 @@
             margin-right: 5px;
         }
         
-        /* Cards Table - With Visible Horizontal Scroll */
         .cards-table-container {
             background: #2a2a2a;
             border-radius: 10px;
@@ -785,7 +773,6 @@
         td { padding: 8px; border-bottom: 1px solid #444; font-size: 0.8rem; white-space: nowrap; }
         tr:hover { background: #333; }
         
-        /* Action Buttons */
         .action-btns { display: flex; gap: 2px; flex-wrap: wrap; }
         .action-btn { padding: 3px 6px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.7rem; transition: all 0.3s; }
         .view-btn { background: #BCAE83; color: black; }
@@ -793,26 +780,22 @@
         .copy-btn { background: #555; color: white; }
         .action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
         
-        /* Status Badges */
         .status-badge { padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; display: inline-block; }
         .status-pending { background: #f39c12; color: black; }
         .status-active { background: #2ecc71; color: black; }
         .status-deleted { background: #e74c3c; color: white; }
         .status-warning { background: #f39c12; color: black; }
         
-        /* Type badges */
         .type-badge { padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
         .type-text { background: #3498db; }
         .type-image { background: #2ecc71; }
         .type-video { background: #e74c3c; }
         .type-audio { background: #9b59b6; }
         
-        /* Media URL */
         .media-url { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #06D6A0; font-size: 0.75rem; }
         .media-url a { color: #06D6A0; text-decoration: none; }
         .media-url a:hover { text-decoration: underline; }
         
-        /* Activation History Dropdown */
         .history-dropdown {
             background: #333;
             border-radius: 5px;
@@ -862,13 +845,11 @@
             color: white;
         }
         
-        /* QR Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
         .modal-content { background: #2a2a2a; padding: 30px; border-radius: 15px; max-width: 500px; margin: 100px auto; text-align: center; }
         .modal-qr { width: 250px; height: 250px; margin: 20px auto; border: 10px solid white; border-radius: 10px; }
         .close-modal { background: #ff416c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px; }
         
-        /* Card Preview Modal */
         .preview-modal {
             display: none;
             position: fixed;
@@ -903,7 +884,6 @@
             justify-content: center;
         }
         
-        /* Loading */
         .loading { text-align: center; padding: 40px; color: #aaa; }
         .spinner { border: 4px solid #333; border-top: 4px solid #BCAE83; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -914,16 +894,13 @@
         <h1>📊 Papir Admin Dashboard</h1>
         <button id="logoutBtn" style="float: right; background: #ff416c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: -15px; font-size: 14px; font-weight: bold;">Logout</button>
         
-        <!-- Status Message -->
         <div id="statusMessage" class="status-message" style="display: none;"></div>
         
-        <!-- Analytics Dashboard Section -->
         <div class="analytics-section">
             <div class="analytics-title">
                 <i class="fas fa-chart-line"></i> Card Analytics & Insights
             </div>
             
-            <!-- Date Range Selector - Tight Layout -->
             <div class="date-range-container">
                 <div class="range-group">
                     <button class="range-btn active" data-range="7">7D</button>
@@ -986,7 +963,6 @@
             </div>
         </div>
         
-        <!-- Performance Dashboard (NEW) -->
         <div class="analytics-section">
             <div class="analytics-title">
                 <i class="fas fa-tachometer-alt"></i> System Performance
@@ -1011,7 +987,6 @@
             </div>
         </div>
         
-        <!-- Activity Timeline (NEW) -->
         <div class="analytics-section">
             <div class="analytics-title">
                 <i class="fas fa-history"></i> Recent Activity
@@ -1021,14 +996,12 @@
             </div>
         </div>
         
-        <!-- Simplified Location Stats (No Map) -->
         <div class="analytics-section">
             <div class="analytics-title">
                 <i class="fas fa-globe-americas"></i> Activation Locations
             </div>
             
             <div class="grid-2col">
-                <!-- Location Stats -->
                 <div class="info-box">
                     <h4><i class="fas fa-chart-pie"></i> Location Summary</h4>
                     <div class="location-stats-grid">
@@ -1051,7 +1024,6 @@
                     </div>
                 </div>
                 
-                <!-- Top Locations List -->
                 <div class="info-box">
                     <h4><i class="fas fa-list"></i> Top Locations</h4>
                     <div id="topLocationsList" class="top-locations-list">
@@ -1061,7 +1033,6 @@
             </div>
         </div>
         
-        <!-- Abandoned Cards Section -->
         <div class="analytics-section" style="margin-top: 20px;">
             <div class="analytics-title">
                 <i class="fas fa-clock"></i> Abandoned Cards (Pending > 30 days)
@@ -1074,7 +1045,6 @@
             </button>
         </div>
         
-        <!-- Geographic Mismatch Alerts -->
         <div class="analytics-section">
             <div class="analytics-title">
                 <i class="fas fa-globe-americas"></i> Geographic Mismatch Alerts
@@ -1084,7 +1054,6 @@
             </div>
         </div>
         
-        <!-- Export Modal -->
         <div class="export-modal" id="exportModal">
             <div class="export-modal-content">
                 <h3>📄 Generate CSV Report</h3>
@@ -1108,7 +1077,6 @@
                         <button class="clear-all-btn" id="clearAllColumns">Clear All</button>
                     </h4>
                     <div class="column-checkbox-grid" id="columnCheckboxGrid">
-                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
                 
@@ -1128,7 +1096,6 @@
             </div>
         </div>
         
-        <!-- Card Preview Modal (NEW) -->
         <div class="preview-modal" id="previewModal">
             <div class="preview-modal-content">
                 <div class="preview-header">
@@ -1141,13 +1108,11 @@
             </div>
         </div>
         
-        <!-- Search Bar - UPDATED with Batch Search -->
         <div class="search-bar">
             <input type="text" class="search-input" id="searchInput" placeholder="Search by Card ID, file name, or type...">
             <input type="text" class="batch-search-input" id="batchSearch" placeholder="🔍 Search by Batch ID...">
         </div>
         
-        <!-- Bulk Actions Bar (NEW) -->
         <div class="bulk-actions" id="bulkActions">
             <input type="checkbox" id="selectAllCards" class="bulk-checkbox">
             <span>Select All</span>
@@ -1163,7 +1128,6 @@
             <span id="selectedCount" style="color: #aaa;">0 selected</span>
         </div>
         
-        <!-- Controls Row with Export on Far Right -->
         <div class="controls-row">
             <div class="filters-group">
                 <button class="filter-btn active" data-filter="all">All</button>
@@ -1186,7 +1150,6 @@
             </div>
         </div>
         
-        <!-- Stats -->
         <div class="stats">
             <div class="stat-card"><div class="stat-value" id="totalCards">0</div><div class="stat-label">Total</div></div>
             <div class="stat-card"><div class="stat-value" id="pendingCards">0</div><div class="stat-label">Pending</div></div>
@@ -1198,7 +1161,6 @@
             <div class="stat-card"><div class="stat-value" id="totalScans">0</div><div class="stat-label">Scans</div></div>
         </div>
         
-        <!-- Cards Table - With Visible Horizontal Scroll -->
         <div class="cards-table-container">
             <table id="sortableTable">
                 <thead id="tableHeader">
@@ -1241,7 +1203,6 @@
         </div>
     </div>
     
-    <!-- QR Modal -->
     <div class="modal" id="qrModal">
         <div class="modal-content">
             <h2 id="modalCardId">CARD123</h2>
@@ -1261,12 +1222,10 @@
     <script>
         const BACKEND_URL = 'https://papir.ca';
 
-        // AUTHENTICATION CHECK
         if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'admin-login.html';
         }
 
-        // LOGOUT FUNCTION
         function logout() {
             sessionStorage.removeItem('adminLoggedIn');
             window.location.href = 'admin-login.html';
@@ -1286,13 +1245,11 @@
         let currentExportType = 'cardData';
         let selectedCards = new Set();
         
-        // Cache for card details
         const cardDetailsCache = {};
-        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        const CACHE_TTL = 5 * 60 * 1000;
         let lastLoadTime = 0;
         let isLoading = false;
         
-        // All possible columns for display and export
         const allColumns = [
             { id: 'card_id', name: 'Card ID' },
             { id: 'status', name: 'Status' },
@@ -1312,7 +1269,6 @@
             { id: 'updated_at', name: 'Updated' }
         ];
         
-        // Scan log columns (for the second export type)
         const scanLogColumns = [
             { id: 'card_id', name: 'Card ID' },
             { id: 'scanned_at', name: 'Scan Time' },
@@ -1320,7 +1276,6 @@
             { id: 'user_agent', name: 'User Agent' }
         ];
         
-        // Current column order
         let columnOrder = [
             'card_id', 'status', 'batch_id', 'activation_deadline', 'batch_order', 'message_type', 
             'message_text', 'media_url', 'file_name', 'file_size', 'file_type', 
@@ -1328,7 +1283,6 @@
             'location', 'mismatch', 'activation_history', 'recent_scans'
         ];
         
-        // DOM Elements
         const searchInput = document.getElementById('searchInput');
         const batchSearch = document.getElementById('batchSearch');
         const refreshBtn = document.getElementById('refreshBtn');
@@ -1371,7 +1325,6 @@
         
         let draggedColumn = null;
         
-        // Show status message
         function showStatus(message, type = 'info', timeout = 5000) {
             statusMessage.textContent = message;
             statusMessage.className = `status-message ${type}`;
@@ -1384,7 +1337,6 @@
             }
         }
         
-        // FAST: Load all locations with a single API call - FIXED VERSION
         async function loadAllLocations() {
             try {
                 console.log('📍 Loading location data...');
@@ -1412,16 +1364,13 @@
             }
         }
         
-        // Display location stats from aggregated data - FIXED VERSION
         function displayLocationStats(stats, topLocations) {
             console.log('📍 Displaying stats:', stats, 'Top locations:', topLocations);
             
-            // Update stats cards
             document.getElementById('totalLocations').textContent = stats?.totalCities || 0;
             document.getElementById('totalCountries').textContent = stats?.totalCountries || 0;
             document.getElementById('totalLocated').textContent = stats?.totalLocated || 0;
             
-            // Update summary text
             const summary = document.getElementById('locationSummary');
             if (!stats || stats.totalLocated === 0) {
                 summary.innerHTML = 'No location data available yet. This will populate as cards are activated.';
@@ -1432,7 +1381,6 @@
                 `;
             }
             
-            // Update top locations list
             const topLocationsList = document.getElementById('topLocationsList');
             if (!topLocations || topLocations.length === 0) {
                 topLocationsList.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No location data yet. Cards need to be activated first.</div>';
@@ -1441,7 +1389,6 @@
             
             let html = '';
             topLocations.forEach((item, index) => {
-                // Simple flag emoji based on country (you can expand this)
                 let flag = '🌍';
                 if (item.city.includes('United States') || item.city.includes('USA')) flag = '🇺🇸';
                 else if (item.city.includes('Canada')) flag = '🇨🇦';
@@ -1467,7 +1414,6 @@
             topLocationsList.innerHTML = html;
         }
         
-        // Load performance stats
         async function loadPerformanceStats() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/performance`);
@@ -1484,7 +1430,6 @@
             }
         }
         
-        // Load activity timeline
         async function loadActivityTimeline() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/activity`);
@@ -1533,7 +1478,6 @@
             return `${days}d ago`;
         }
         
-        // Quick export function
         async function quickExport() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/export-all?format=csv`);
@@ -1551,7 +1495,6 @@
             }
         }
         
-        // Bulk action handlers
         function updateSelection() {
             const checkboxes = document.querySelectorAll('.card-selector');
             selectedCards.clear();
@@ -1562,7 +1505,6 @@
             bulkActions.classList.toggle('active', selectedCards.size > 0);
         }
         
-        // Populate column checkboxes
         function populateColumnCheckboxes() {
             const exportType = document.querySelector('input[name="exportType"]:checked').value;
             let columns = exportType === 'cardData' ? allColumns : scanLogColumns;
@@ -1600,7 +1542,6 @@
             document.querySelectorAll('.export-column').forEach(cb => cb.checked = false);
         });
         
-        // Setup drag and drop
         function setupDragAndDrop() {
             const headers = document.querySelectorAll('#headerRow th[draggable="true"]');
             headers.forEach(th => {
@@ -1678,7 +1619,6 @@
             headerHtml += `<th style="cursor: default; background: #364B4A;">Actions</th>`;
             headerRow.innerHTML = headerHtml;
             
-            // Reattach select all listener
             document.getElementById('tableSelectAll').addEventListener('change', function(e) {
                 document.querySelectorAll('.card-selector').forEach(cb => {
                     cb.checked = e.target.checked;
@@ -1689,7 +1629,6 @@
             setTimeout(setupDragAndDrop, 0);
         }
         
-        // Load abandoned cards
         async function loadAbandonedCards() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
@@ -1723,7 +1662,6 @@
             }
         }
         
-        // Expire old cards
         if (expireCardsBtn) {
             expireCardsBtn.addEventListener('click', async function() {
                 if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
@@ -1742,7 +1680,6 @@
             });
         }
         
-        // Load admin data
         async function loadAdminData(forceRefresh = false) {
             if (isLoading) return;
             isLoading = true;
@@ -1775,21 +1712,12 @@
                     updateStats(allCards);
                     renderTable();
                     
-                    // Load scan logs
                     loadScanLogs().catch(() => {});
-                    
-                    // Load abandoned and mismatch
                     loadAbandonedCards().catch(() => {});
                     loadMismatchAlerts().catch(() => {});
-                    
-                    // Load locations with single API call (FAST) - FIXED VERSION
                     loadAllLocations().catch(e => console.log('Location load failed:', e));
-                    
-                    // Load new features
                     loadPerformanceStats().catch(() => {});
                     loadActivityTimeline().catch(() => {});
-                    
-                    // Load details in background using FAST new endpoint
                     loadDetailedData().catch(() => {});
                 }
             } catch (error) {
@@ -1801,7 +1729,6 @@
             }
         }
         
-        // SUPER FAST - Loads ALL card details in ONE request
         async function loadDetailedData() {
             try {
                 console.log('🚀 Loading ALL card details in one request...');
@@ -1812,50 +1739,13 @@
                 if (result.success) {
                     allCardDetails = result.cards;
                     console.log(`✅ Loaded ${allCardDetails.length} cards with complete details`);
-                    renderTable(); // Update table once with all data
+                    renderTable();
                 }
             } catch (error) {
                 console.error('Error loading detailed data:', error);
-                // Fallback to individual loads if the new endpoint fails
-                loadDetailedDataFallback();
             }
         }
 
-        // Keep this as a fallback just in case
-        async function loadDetailedDataFallback() {
-            const totalCards = allCards.length;
-            let loadedCount = 0;
-            
-            for (let i = 0; i < totalCards; i++) {
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/admin/cards/${allCards[i].card_id}`);
-                    
-                    if (response.status === 429) {
-                        console.log('Rate limited, waiting 3 seconds...');
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        i--;
-                        continue;
-                    }
-                    
-                    const result = await response.json();
-                    if (result.success) {
-                        const index = allCardDetails.findIndex(c => c.card_id === allCards[i].card_id);
-                        if (index >= 0) {
-                            allCardDetails[index] = result.card;
-                        }
-                        loadedCount++;
-                        
-                        if (loadedCount % 10 === 0 || loadedCount === totalCards) {
-                            renderTable();
-                        }
-                    }
-                } catch (error) {
-                    console.log(`Skipping ${allCards[i].card_id}:`, error.message);
-                }
-            }
-        }
-        
-        // Load scan logs
         async function loadScanLogs() {
             try {
                 let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
@@ -1888,7 +1778,6 @@
             }
         }
         
-        // Load mismatch alerts
         async function loadMismatchAlerts() {
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
@@ -2105,7 +1994,6 @@
             return filtered;
         }
         
-        // Render batch info
         function renderBatchInfo(card) {
             if (!card.batch_id) return '<td>—</td>';
             let html = '<td>';
@@ -2120,7 +2008,6 @@
             return html;
         }
         
-        // Render activation deadline
         function renderDeadline(card) {
             if (!card.activation_deadline) return '<td>—</td>';
             
@@ -2338,10 +2225,8 @@
             refreshBtn.addEventListener('click', () => loadAdminData(true));
             logoutBtn.addEventListener('click', logout);
             
-            // Quick export
             quickExportBtn.addEventListener('click', quickExport);
             
-            // Bulk actions
             selectAllCards.addEventListener('change', function(e) {
                 document.querySelectorAll('.card-selector').forEach(cb => {
                     cb.checked = e.target.checked;
@@ -2391,7 +2276,6 @@
             
             bulkExportBtn.addEventListener('click', async () => {
                 if (selectedCards.size === 0) return;
-                // Bulk export implementation
                 showStatus('Bulk export - coming soon', 'info');
             });
             
@@ -2451,7 +2335,6 @@
             });
         }
         
-        // Real-time updates (every 30 seconds)
         setInterval(() => {
             if (!isLoading) {
                 loadScanLogs().catch(() => {});
@@ -2463,7 +2346,6 @@
         setTimeout(() => loadAdminData(), 100);
         setTimeout(setupDragAndDrop, 500);
         
-        // Make functions global for onclick handlers
         window.updateSelection = updateSelection;
         window.showPreviewModal = showPreviewModal;
         window.closePreviewModal = closePreviewModal;
