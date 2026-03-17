@@ -49,6 +49,7 @@ app.use(helmet({
         "https://api.qrserver.com",
         "https://ipapi.co",
         "https://api.ipify.org"
+        "https://cdn.jsdelivr.net"
       ],
       fontSrc: [
         "'self'",
