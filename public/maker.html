@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - FIXED to pass content type and batch ID
+            // Update batch button handler - FIXED to save cards after activation
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1320,7 +1320,7 @@
                     }
                     
                     if (successCount > 0) {
-                        // Prepare ONLY the new cards for batch addition
+                        // Prepare the new cards for batch addition
                         const cardsToAdd = newCards.map(card => ({
                             card_id: card.card_id,
                             message_type: cardData.message_type,
@@ -1334,36 +1334,54 @@
                             status: 'active'
                         }));
                         
-                        // Send ONLY the new cards to server
-                        const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cards: cardsToAdd })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            // REFRESH THE BATCH CARDS FROM THE SERVER
-                            const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
-                            const refreshResult = await refreshResponse.json();
-                            if (refreshResult.success) {
-                                // Add batch_id to each card
-                                window.currentBatchCards = refreshResult.cards.map(card => ({
-                                    ...card,
-                                    batch_id: batchId
-                                }));
-                                console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
+                        // ========== FIXED: Save each card individually first ==========
+                        const savedCards = [];
+                        for (const card of cardsToAdd) {
+                            const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(card)
+                            });
+                            const cardResult = await cardResponse.json();
+                            if (cardResult.success) {
+                                savedCards.push(cardResult.card);
                             }
+                        }
+                        
+                        // Then update the batch
+                        if (savedCards.length > 0) {
+                            const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ cards: savedCards })
+                            });
                             
-                            showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
-                            // Update the display with new total
-                            elements.currentCardCount.textContent = newSize;
+                            const result = await response.json();
                             
-                            // Show updated QR codes after adding cards
-                            await showUpdatedBatchQR(batchId);
+                            if (result.success) {
+                                // REFRESH THE BATCH CARDS FROM THE SERVER
+                                const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
+                                const refreshResult = await refreshResponse.json();
+                                if (refreshResult.success) {
+                                    // Add batch_id to each card
+                                    window.currentBatchCards = refreshResult.cards.map(card => ({
+                                        ...card,
+                                        batch_id: batchId
+                                    }));
+                                    console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
+                                }
+                                
+                                showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
+                                // Update the display with new total
+                                elements.currentCardCount.textContent = newSize;
+                                
+                                // Show updated QR codes after adding cards
+                                await showUpdatedBatchQR(batchId);
+                            } else {
+                                showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
+                            }
                         } else {
-                            showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
+                            showNotification('❌ Failed to save cards to database', 'error');
                         }
                     } else {
                         showNotification('❌ Failed to activate new cards', 'error');
@@ -1929,13 +1947,6 @@
                     
                     // STEP 2: Update batch count in batches table
                     if (savedCards.length > 0) {
-                        // Prepare batch update data
-                        const batchUpdateData = {
-                            cards_created: savedCards.length,
-                            total_cards_purchased: savedCards.length,
-                            cards: savedCards
-                        };
-                        
                         // Update batch via the add-cards endpoint
                         const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                             method: 'POST',
