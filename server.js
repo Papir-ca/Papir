@@ -1688,13 +1688,14 @@ app.post('/api/batches/calculate-price', async (req, res) => {
   }
 });
 
-// ========== FIXED: Add more cards to an existing batch ==========
+// ========== FIXED: Add more cards to an existing batch with error logging ==========
 app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
   try {
     const { batch_id } = req.params;
     const { cards } = req.body;
     
-    console.log(`📦 Adding ${cards.length} cards to batch: ${batch_id}`);
+    console.log(`📦 Adding ${cards?.length || 0} cards to batch: ${batch_id}`);
+    console.log('📦 Cards data:', JSON.stringify(cards, null, 2));
     
     if (!batch_id) {
       return res.status(400).json({ 
@@ -1722,11 +1723,19 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     deadline.setFullYear(deadline.getFullYear() + 1);
     
     // Check if batch exists - and CREATE IT IF IT DOESN'T
-    let { data: existingBatch } = await supabaseAdmin
+    let { data: existingBatch, error: fetchError } = await supabaseAdmin
       .from('batches')
       .select('*')
       .eq('batch_id', batch_id)
       .maybeSingle();
+    
+    if (fetchError) {
+      console.error('❌ Error fetching batch:', fetchError);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error fetching batch' 
+      });
+    }
     
     // If batch doesn't exist, CREATE IT
     if (!existingBatch) {
@@ -1757,15 +1766,22 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       console.log(`✅ Batch created: ${batch_id}`);
     }
     
+    console.log('✅ Existing batch:', existingBatch);
+    
     // Get the highest batch order currently in the batch
-    const { data: existingCards } = await supabaseAdmin
+    const { data: existingCards, error: orderError } = await supabaseAdmin
       .from('cards')
       .select('batch_order')
       .eq('batch_id', batch_id)
       .order('batch_order', { ascending: false })
       .limit(1);
     
+    if (orderError) {
+      console.error('❌ Error fetching existing cards:', orderError);
+    }
+    
     const nextOrder = (existingCards && existingCards.length > 0) ? existingCards[0].batch_order + 1 : (existingBatch.cards_created || 0) + 1;
+    console.log('📊 Next batch order:', nextOrder);
     
     // Prepare new cards for insertion - check if they already exist first
     const cardsToInsert = [];
@@ -1805,6 +1821,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       });
     }
     
+    console.log(`📦 Cards to insert: ${cardsToInsert.length}`);
+    
     if (cardsToInsert.length === 0) {
       return res.json({ 
         success: true, 
@@ -1825,25 +1843,33 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       throw insertError;
     }
     
-    // UPDATE BATCH COUNTS - FIXED: Add the new cards to both counts
+    console.log(`✅ Inserted ${newCards?.length || 0} new cards`);
+    
+    // UPDATE BATCH COUNTS - Add the new cards to both counts
     const newCardsCreated = (existingBatch.cards_created || 0) + cardsToInsert.length;
     const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToInsert.length;
     
-    const { error: updateError } = await supabaseAdmin
+    console.log(`📊 Updating batch counts: cards_created ${existingBatch.cards_created} -> ${newCardsCreated}, total_purchased ${existingBatch.total_cards_purchased} -> ${newTotalPurchased}`);
+    
+    const { error: updateError, data: updateData } = await supabaseAdmin
       .from('batches')
       .update({ 
         cards_created: newCardsCreated,
         total_cards_purchased: newTotalPurchased,
         updated_at: new Date().toISOString()
       })
-      .eq('batch_id', batch_id);
+      .eq('batch_id', batch_id)
+      .select();
     
     if (updateError) {
       console.error('❌ Error updating batch counts:', updateError);
+    } else {
+      console.log('✅ Batch counts updated successfully:', updateData);
     }
     
-    // ========== FIXED: LOG TO BATCH_EVENTS with correct event_type ==========
-    const { error: eventError } = await supabaseAdmin
+    // ========== LOG TO BATCH_EVENTS ==========
+    console.log('📝 Attempting to log to batch_events...');
+    const { error: eventError, data: eventData } = await supabaseAdmin
       .from('batch_events')
       .insert({
         batch_id: batch_id,
@@ -1857,12 +1883,13 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
           previous_total: existingBatch.cards_created,
           new_total: newCardsCreated
         }
-      });
+      })
+      .select();
     
     if (eventError) {
       console.error('❌ Error logging to batch_events:', eventError);
     } else {
-      console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events`);
+      console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events:`, eventData);
     }
     // =================================================
     
@@ -2225,7 +2252,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (NOW LOGS TO BATCH_EVENTS)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (WITH ERROR LOGGING)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2258,9 +2285,9 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch events tracking - NOW FIXED');
+  console.log('   ✅ Batch events tracking - WITH ERROR LOGGING');
   console.log('   ✅ Auto-create batches when adding cards');
-  console.log('   ✅ Batch counts update correctly - NOW FIXED');
+  console.log('   ✅ Batch counts update correctly');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
