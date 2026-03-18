@@ -1847,7 +1847,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .from('batch_events')
       .insert({
         batch_id: batch_id,
-        event_type: 'cards_added',
+        event_type: 'card_added',
         quantity: cardsToInsert.length,
         timestamp: new Date().toISOString(),
         ip_address: clientIp,
