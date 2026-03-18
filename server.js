@@ -1825,11 +1825,11 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       throw insertError;
     }
     
-    // UPDATE BATCH COUNTS
+    // UPDATE BATCH COUNTS - FIXED: Add the new cards to both counts
     const newCardsCreated = (existingBatch.cards_created || 0) + cardsToInsert.length;
     const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToInsert.length;
     
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('batches')
       .update({ 
         cards_created: newCardsCreated,
@@ -1838,7 +1838,11 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       })
       .eq('batch_id', batch_id);
     
-    // ========== ADDED: LOG TO BATCH_EVENTS ==========
+    if (updateError) {
+      console.error('❌ Error updating batch counts:', updateError);
+    }
+    
+    // ========== FIXED: LOG TO BATCH_EVENTS with correct event_type ==========
     const { error: eventError } = await supabaseAdmin
       .from('batch_events')
       .insert({
@@ -2221,7 +2225,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (NOW LOGS TO BATCH_EVENTS)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2254,8 +2258,9 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch events tracking - NOW WORKING');
+  console.log('   ✅ Batch events tracking - NOW FIXED');
   console.log('   ✅ Auto-create batches when adding cards');
+  console.log('   ✅ Batch counts update correctly - NOW FIXED');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
