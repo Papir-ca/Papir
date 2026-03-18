@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - FIXED to save cards after activation
+            // Update batch button handler - FIXED to only add new cards
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1320,8 +1320,11 @@
                     }
                     
                     if (successCount > 0) {
+                        // Filter to get only the newly activated cards
+                        const newlyActivatedCards = newCards.filter(card => card.status === 'active');
+                        
                         // Prepare the new cards for batch addition
-                        const cardsToAdd = newCards.map(card => ({
+                        const cardsToAdd = newlyActivatedCards.map(card => ({
                             card_id: card.card_id,
                             message_type: cardData.message_type,
                             message_text: cardData.message_text || '',
@@ -1334,7 +1337,7 @@
                             status: 'active'
                         }));
                         
-                        // ========== FIXED: Save each card individually first ==========
+                        // ========== FIXED: Save each new card individually first ==========
                         const savedCards = [];
                         for (const card of cardsToAdd) {
                             const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
@@ -1348,7 +1351,7 @@
                             }
                         }
                         
-                        // Then update the batch
+                        // Then update the batch with ONLY the new cards
                         if (savedCards.length > 0) {
                             const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                                 method: 'POST',
