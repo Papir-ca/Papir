@@ -1737,6 +1737,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         .insert({
           batch_id: batch_id,
           cards_created: 0,
+          total_cards_purchased: 0,
           created_at: new Date().toISOString(),
           created_by_ip: clientIp,
           updated_at: new Date().toISOString()
@@ -1842,7 +1843,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .from('batch_events')
       .insert({
         batch_id: batch_id,
-        event_type: 'additional_purchase',
+        event_type: 'cards_added',
         quantity: cardsToInsert.length,
         timestamp: new Date().toISOString(),
         ip_address: clientIp,
@@ -2034,6 +2035,19 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
       .eq('batch_id', batch_id);
     
     if (error) throw error;
+    
+    // Log deletion in batch_events
+    await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: batch_id,
+        event_type: 'batch_deleted',
+        timestamp: new Date().toISOString(),
+        ip_address: clientIp,
+        metadata: {
+          action: 'batch_deleted'
+        }
+      });
     
     res.json({ success: true, message: `Batch ${batch_id} deleted` });
     
@@ -2240,8 +2254,8 @@ app.listen(PORT, () => {
   console.log('   ✅ Bulk actions (delete/activate)');
   console.log('   ✅ ONE REQUEST card details loading');
   console.log('   ✅ Dedicated batch rate limiting');
-  console.log('   ✅ Batch events tracking');
-  console.log('   ✅ Auto-create batches when adding cards - FIXED');
+  console.log('   ✅ Batch events tracking - NOW WORKING');
+  console.log('   ✅ Auto-create batches when adding cards');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
