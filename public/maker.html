@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // Update batch button handler - FIXED to only add new cards
+            // ========== FIXED Update batch button handler ==========
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1265,12 +1265,12 @@
                     return;
                 }
                 
+                this.disabled = true;
+                
                 if (diff > 0) {
                     // ADDING CARDS
-                    this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Adding cards...';
                     
-                    // Get the current content type from the batch
                     const cardData = generatePreview();
                     
                     // Generate ONLY the new cards
@@ -1285,12 +1285,14 @@
                             batch_id: batchId,
                             batch_order: order,
                             status: 'pending',
-                            message_type: cardData.message_type  // Store the message type
+                            message_type: cardData.message_type
                         });
                     }
                     
-                    // Activate each NEW card with the batch's content type
+                    // Activate each NEW card
                     let successCount = 0;
+                    const activatedCards = [];
+                    
                     for (let i = 0; i < newCards.length; i++) {
                         const card = newCards[i];
                         
@@ -1302,14 +1304,15 @@
                                     card_id: card.card_id,
                                     source: 'maker',
                                     terms_accepted: true,
-                                    message_type: cardData.message_type,  // Pass the content type
-                                    batch_id: batchId                      // Pass the batch ID
+                                    message_type: cardData.message_type,
+                                    batch_id: batchId
                                 })
                             });
                             
                             const result = await response.json();
                             if (result.success) {
                                 card.status = 'active';
+                                activatedCards.push(card);
                                 successCount++;
                             }
                         } catch (error) {
@@ -1320,91 +1323,91 @@
                     }
                     
                     if (successCount > 0) {
-                        // Filter to get only the newly activated cards
-                        const newlyActivatedCards = newCards.filter(card => card.status === 'active');
+                        // Upload media once if needed
+                        let mediaUrl = null;
+                        let fileName = null;
+                        let fileSize = null;
+                        let fileType = null;
                         
-                        // Prepare the new cards for batch addition
-                        const cardsToAdd = newlyActivatedCards.map(card => ({
-                            card_id: card.card_id,
-                            message_type: cardData.message_type,
-                            message_text: cardData.message_text || '',
-                            batch_id: batchId,
-                            batch_order: card.batch_order,
-                            media_url: currentMedia[cardData.message_type]?.url || null,
-                            file_name: currentMedia[cardData.message_type]?.name || null,
-                            file_size: currentMedia[cardData.message_type]?.size || null,
-                            file_type: currentMedia[cardData.message_type]?.type || null,
-                            status: 'active'
-                        }));
-                        
-                        // ========== FIXED: Save each new card individually first ==========
-                        const savedCards = [];
-                        for (const card of cardsToAdd) {
-                            const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(card)
-                            });
-                            const cardResult = await cardResponse.json();
-                            if (cardResult.success) {
-                                savedCards.push(cardResult.card);
+                        const contentType = cardData.message_type;
+                        if (contentType !== 'text' && currentMedia[contentType]) {
+                            showNotification(`Uploading ${contentType}...`, 'info');
+                            
+                            const uploadResult = await uploadWithProgress(
+                                currentMedia[contentType].url,
+                                currentMedia[contentType].name,
+                                currentMedia[contentType].type,
+                                activatedCards[0].card_id,
+                                getProgressElements(contentType)
+                            );
+                            
+                            if (uploadResult.success) {
+                                mediaUrl = uploadResult.url;
+                                fileName = uploadResult.file_name;
+                                fileSize = uploadResult.file_size;
+                                fileType = uploadResult.file_type;
                             }
                         }
                         
-                        // Then update the batch with ONLY the new cards
-                        if (savedCards.length > 0) {
-                            const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ cards: savedCards })
-                            });
+                        // Prepare cards for batch association
+                        const cardsToAssociate = activatedCards.map(card => ({
+                            card_id: card.card_id,
+                            message_type: cardData.message_type,
+                            message_text: cardData.message_text || '',
+                            media_url: mediaUrl,
+                            file_name: fileName,
+                            file_size: fileSize,
+                            file_type: fileType,
+                            batch_id: batchId,
+                            batch_order: card.batch_order,
+                            status: 'active'
+                        }));
+                        
+                        // Send to batch endpoint (which will save cards AND update counts)
+                        const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cards: cardsToAssociate })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
+                            elements.currentCardCount.textContent = result.details.count_after;
                             
-                            const result = await response.json();
-                            
-                            if (result.success) {
-                                // REFRESH THE BATCH CARDS FROM THE SERVER
-                                const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
-                                const refreshResult = await refreshResponse.json();
-                                if (refreshResult.success) {
-                                    // Add batch_id to each card
-                                    window.currentBatchCards = refreshResult.cards.map(card => ({
-                                        ...card,
-                                        batch_id: batchId
-                                    }));
-                                    console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
-                                }
-                                
-                                showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
-                                // Update the display with new total
-                                elements.currentCardCount.textContent = newSize;
-                                
-                                // Show updated QR codes after adding cards
-                                await showUpdatedBatchQR(batchId);
-                            } else {
-                                showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
+                            // Refresh batch data
+                            const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
+                            const refreshResult = await refreshResponse.json();
+                            if (refreshResult.success) {
+                                window.currentBatchCards = refreshResult.cards.map(card => ({
+                                    ...card,
+                                    batch_id: batchId
+                                }));
                             }
+                            
+                            await showUpdatedBatchQR(batchId);
                         } else {
-                            showNotification('❌ Failed to save cards to database', 'error');
+                            showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
                         }
                     } else {
                         showNotification('❌ Failed to activate new cards', 'error');
                     }
                     
                 } else if (diff < 0) {
-                    // REMOVING CARDS - Soft delete the last ones
+                    // REMOVING CARDS
                     if (!confirm(`Are you sure you want to remove ${Math.abs(diff)} cards from this batch? This cannot be undone.`)) {
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-sync-alt"></i> Update Batch (Requires Terms)';
                         return;
                     }
                     
-                    this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Removing cards...';
                     
-                    // Get the current cards in the batch to know which ones to remove
                     const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                     const result = await response.json();
                     
                     if (result.success && result.cards) {
-                        // Get the last N cards to remove
                         const cardsToRemove = result.cards.slice(newSize);
                         
                         for (let i = 0; i < cardsToRemove.length; i++) {
@@ -1422,19 +1425,19 @@
                             this.innerHTML = `<span class="loading"></span> Removed ${i + 1}/${cardsToRemove.length}...`;
                         }
                         
-                        showNotification(`✅ Removed ${cardsToRemove.length} cards from batch`, 'success');
-                        // Update the display with new total
-                        elements.currentCardCount.textContent = newSize;
+                        // Refresh to get accurate count from server
+                        const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
+                        const refreshResult = await refreshResponse.json();
                         
-                        // Show updated QR codes after removing cards
-                        await showUpdatedBatchQR(batchId);
+                        if (refreshResult.success) {
+                            elements.currentCardCount.textContent = refreshResult.cards.length;
+                            showNotification(`✅ Removed ${cardsToRemove.length} cards from batch`, 'success');
+                            await showUpdatedBatchQR(batchId);
+                        }
                     }
                 }
                 
-                // Refresh display
                 elements.batchModifyPreview.style.display = 'none';
-                elements.modifiedBatchSize.value = newSize;
-                
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> Update Batch (Requires Terms)';
             });
@@ -1919,124 +1922,93 @@
                         }
                     }
                     
-                    // STEP 1: Save each card WITHOUT batch_id first
-                    const savedCards = [];
-                    for (const card of batchCards) {
-                        const cardDataToSend = {
-                            card_id: card.card_id,
-                            message_type: cardData.message_type,
-                            message_text: cardData.message_text || '',
-                            media_url: mediaUrl,
-                            file_name: fileName,
-                            file_size: fileSize,
-                            file_type: fileType,
-                            status: 'active'
-                            // NO batch_id or batch_order here!
-                        };
-                        
-                        // Save to /api/cards endpoint (creates/updates cards table)
-                        const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(cardDataToSend)
-                        });
-                        
-                        const cardResult = await cardResponse.json();
-                        if (cardResult.success) {
-                            savedCards.push({
-                                ...cardResult.card,
-                                batch_order: card.batch_order  // Keep order for batch association
-                            });
-                        }
-                    }
+                    // Prepare cards with full data for batch endpoint
+                    const cardsToSave = batchCards.map(card => ({
+                        card_id: card.card_id,
+                        message_type: cardData.message_type,
+                        message_text: cardData.message_text || '',
+                        media_url: mediaUrl,
+                        file_name: fileName,
+                        file_size: fileSize,
+                        file_type: fileType,
+                        batch_id: batchId,
+                        batch_order: card.batch_order,
+                        status: 'active'
+                    }));
                     
-                    // STEP 2: Now associate all cards with the batch
-                    if (savedCards.length > 0) {
-                        // Prepare ONLY the association data
-                        const cardsToAssociate = savedCards.map(card => ({
-                            card_id: card.card_id,
-                            batch_id: batchId,
-                            batch_order: card.batch_order
-                        }));         
-                        const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cards: cardsToAssociate })
+                    // Send to batch endpoint (saves cards AND updates counts in ONE operation)
+                    const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cards: cardsToSave })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification(`✅ Successfully saved ${result.details.cards_associated} cards!`, 'success');
+                        clearUnsavedChanges();
+                        
+                        // Build batch QR display
+                        let batchHtml = `
+                            <div class="qr-success">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>Batch Saved Successfully!</h3>
+                                <p>Batch ID: <strong>${batchId}</strong></p>
+                                <p>Total Cards: <strong>${result.details.count_after}</strong></p>
+                            </div>
+                            <div style="max-height: 400px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                        `;
+                        
+                        batchCards.forEach((card, index) => {
+                            const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
+                            const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
+                            
+                            batchHtml += `
+                                <div style="border-bottom: 1px solid #444; padding: 15px; margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <div>
+                                            <strong style="color: #06D6A0;">Card #${card.batch_order}</strong>
+                                            <div style="font-size: 0.8rem; color: #a0aec0;">${card.card_id}</div>
+                                        </div>
+                                        <div>
+                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px;">
+                                                <i class="fas fa-copy"></i> URL
+                                            </button>
+                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')">
+                                                <i class="fas fa-download"></i> QR
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 2px solid white; border-radius: 5px;">
+                                </div>
+                            `;
                         });
                         
-                        const result = await response.json();
+                        batchHtml += `</div>`;
                         
-                        if (result.success) {
-                            showNotification(`✅ Successfully saved ${savedCards.length} cards!`, 'success');
-                            clearUnsavedChanges();
-                            
-                            // =============================================
-                            // QR CODES ONLY SHOW HERE - AFTER SUCCESSFUL SAVE
-                            // =============================================
-                            
-                            // Build batch QR display
-                            let batchHtml = `
-                                <div class="qr-success">
-                                    <i class="fas fa-check-circle"></i>
-                                    <h3>Batch Saved Successfully!</h3>
-                                    <p>Batch ID: <strong>${batchId}</strong></p>
-                                    <p>Total Cards: <strong>${batchCards.length}</strong></p>
-                                </div>
-                                <div style="max-height: 400px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 10px;">
-                            `;
-                            
-                            batchCards.forEach((card, index) => {
-                                const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                                const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
-                                
-                                batchHtml += `
-                                    <div style="border-bottom: 1px solid #444; padding: 15px; margin-bottom: 10px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                            <div>
-                                                <strong style="color: #06D6A0;">Card #${card.batch_order}</strong>
-                                                <div style="font-size: 0.8rem; color: #a0aec0;">${card.card_id}</div>
-                                            </div>
-                                            <div>
-                                                <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px;">
-                                                    <i class="fas fa-copy"></i> URL
-                                                </button>
-                                                <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')">
-                                                    <i class="fas fa-download"></i> QR
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <img src="${cardQrUrl}" alt="QR Code" style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 2px solid white; border-radius: 5px;">
-                                    </div>
-                                `;
-                            });
-                            
-                            batchHtml += `</div>`;
-                            
-                            // Add batch manager link
-                            batchHtml += `
-                                <div style="margin-top: 20px; text-align: center;">
-                                    <a href="/batch-manager?batch=${encodeURIComponent(batchId)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
-                                        <i class="fas fa-layer-group"></i> Manage This Batch
-                                    </a>
-                                </div>
-                            `;
-                            
-                            // Show QR section
-                            elements.qrCodeContainer.innerHTML = batchHtml;
-                            elements.qrCodeSection.style.display = 'block';
-                            
-                            setTimeout(() => {
-                                elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
-                            }, 500);
-                            
-                            // Switch to modify mode
-                            switchToBatchModifyMode(batchId, batchCards.length);
-                            
-                        } else {
-                            showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
-                        }
+                        // Add batch manager link
+                        batchHtml += `
+                            <div style="margin-top: 20px; text-align: center;">
+                                <a href="/batch-manager?batch=${encodeURIComponent(batchId)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
+                                    <i class="fas fa-layer-group"></i> Manage This Batch
+                                </a>
+                            </div>
+                        `;
+                        
+                        // Show QR section
+                        elements.qrCodeContainer.innerHTML = batchHtml;
+                        elements.qrCodeSection.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
+                        }, 500);
+                        
+                        // Switch to modify mode with ACTUAL count from server
+                        switchToBatchModifyMode(batchId, result.details.count_after);
+                        
                     } else {
-                        showNotification('❌ Failed to save cards to database', 'error');
+                        showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
                     }
                     
                 } catch (error) {
