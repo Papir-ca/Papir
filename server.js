@@ -1788,8 +1788,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const nextOrder = maxOrder + 1;
     console.log('📊 Next batch order:', nextOrder);
     
-    // Prepare new cards for insertion - only skip if card exists AND is already in this batch
-    const cardsToInsert = [];
+    // UPDATE existing cards with batch information
+    const cardsToUpdate = [];
     let orderCounter = 0;
     
     for (let i = 0; i < cards.length; i++) {
@@ -1801,68 +1801,44 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         continue;
       }
       
-      // Check if card exists elsewhere (different batch) - we'll still add it to this batch
-      const { data: existingCardElsewhere } = await supabaseAdmin
-        .from('cards')
-        .select('card_id, batch_id')
-        .eq('card_id', card.card_id)
-        .maybeSingle();
-      
-      if (existingCardElsewhere && existingCardElsewhere.batch_id !== batch_id) {
-        console.log(`⚠️ Card ${card.card_id} exists in another batch (${existingCardElsewhere.batch_id}), but we'll add it to this batch anyway`);
-      }
-      
       const order = nextOrder + orderCounter;
       orderCounter++;
       
-      cardsToInsert.push({
-        card_id: card.card_id,
-        message_type: card.message_type,
-        message_text: card.message_text || null,
-        media_url: card.media_url || null,
-        file_name: card.file_name || null,
-        file_size: card.file_size || null,
-        file_type: card.file_type || null,
-        batch_id: batch_id,
-        batch_order: order,
-        status: 'active',
-        scan_count: 0,
-        created_by_ip: clientIp,
-        updated_by_ip: clientIp,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        activation_deadline: deadline.toISOString()
-      });
+      // UPDATE the existing card with batch info instead of inserting new one
+      const { error: updateError } = await supabaseAdmin
+        .from('cards')
+        .update({
+          batch_id: batch_id,
+          batch_order: order,
+          updated_by_ip: clientIp,
+          updated_at: new Date().toISOString()
+        })
+        .eq('card_id', card.card_id);
+      
+      if (updateError) {
+        console.error(`❌ Error updating card ${card.card_id}:`, updateError);
+      } else {
+        cardsToUpdate.push({
+          card_id: card.card_id,
+          batch_order: order
+        });
+      }
     }
     
-    console.log(`📦 Cards to insert: ${cardsToInsert.length}`);
+    console.log(`📦 Cards to update: ${cardsToUpdate.length}`);
     
-    if (cardsToInsert.length === 0) {
-      // Even if no new cards to insert, we should still return the existing batch
+    if (cardsToUpdate.length === 0) {
       return res.json({ 
         success: true, 
-        message: 'No new cards to add (all already exist in this batch)',
+        message: 'No cards to update',
         cards: [],
         batch: existingBatch
       });
     }
     
-    // Insert only the new cards
-    const { data: newCards, error: insertError } = await supabaseAdmin
-      .from('cards')
-      .insert(cardsToInsert)
-      .select();
-    
-    if (insertError) {
-      console.error('❌ Error inserting new cards:', insertError);
-      throw insertError;
-    }
-    
-    console.log(`✅ Inserted ${newCards?.length || 0} new cards`);
-    
-    // UPDATE BATCH COUNTS - Add the new cards to both counts
-    const newCardsCreated = (existingBatch.cards_created || 0) + cardsToInsert.length;
-    const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToInsert.length;
+    // UPDATE BATCH COUNTS
+    const newCardsCreated = (existingBatch.cards_created || 0) + cardsToUpdate.length;
+    const newTotalPurchased = (existingBatch.total_cards_purchased || 0) + cardsToUpdate.length;
     
     console.log(`📊 Updating batch counts: cards_created ${existingBatch.cards_created} -> ${newCardsCreated}, total_purchased ${existingBatch.total_cards_purchased} -> ${newTotalPurchased}`);
     
@@ -1889,12 +1865,12 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .insert({
         batch_id: batch_id,
         event_type: 'card_added',
-        quantity: cardsToInsert.length,
+        quantity: cardsToUpdate.length,
         timestamp: new Date().toISOString(),
         ip_address: clientIp,
         metadata: {
           action: 'cards_added_to_batch',
-          cards_added: cardsToInsert.length,
+          cards_added: cardsToUpdate.length,
           previous_total: existingBatch.cards_created,
           new_total: newCardsCreated
         }
@@ -1904,17 +1880,17 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     if (eventError) {
       console.error('❌ Error logging to batch_events:', eventError);
     } else {
-      console.log(`✅ Logged ${cardsToInsert.length} cards to batch_events:`, eventData);
+      console.log(`✅ Logged ${cardsToUpdate.length} cards to batch_events:`, eventData);
     }
     // =================================================
     
-    console.log(`✅ Added ${cardsToInsert.length} new cards to batch ${batch_id}`);
+    console.log(`✅ Added ${cardsToUpdate.length} new cards to batch ${batch_id}`);
     console.log(`📊 Updated batch counts: ${existingBatch.cards_created} -> ${newCardsCreated}`);
     
     res.json({ 
       success: true, 
-      message: `Added ${cardsToInsert.length} cards to batch ${batch_id}`,
-      cards: newCards,
+      message: `Added ${cardsToUpdate.length} cards to batch ${batch_id}`,
+      cards: cardsToUpdate,
       batch: {
         ...existingBatch,
         cards_created: newCardsCreated,
@@ -2304,6 +2280,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Auto-create batches when adding cards');
   console.log('   ✅ Batch counts update correctly - FIXED');
   console.log('   ✅ Duplicate card detection per batch - FIXED');
+  console.log('   ✅ UPDATE existing cards with batch info - FIXED');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
