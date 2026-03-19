@@ -1952,11 +1952,16 @@
                     
                     // STEP 2: Now associate all cards with the batch
                     if (savedCards.length > 0) {
-                        // Update batch via the add-cards endpoint
+                        // Prepare ONLY the association data
+                        const cardsToAssociate = savedCards.map(card => ({
+                            card_id: card.card_id,
+                            batch_id: batchId,
+                            batch_order: card.batch_order
+                        }));         
                         const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cards: savedCards })
+                            body: JSON.stringify({ cards: cardsToAssociate })
                         });
                         
                         const result = await response.json();
