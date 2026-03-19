@@ -1241,7 +1241,7 @@
                 }
             });
             
-            // ========== FIXED: Update batch button handler ==========
+            // Update batch button handler - FIXED to only add new cards
             elements.updateBatchBtn.addEventListener('click', async function() {
                 const batchId = elements.batchIdDisplay.textContent;
                 const newSize = parseInt(elements.modifiedBatchSize.value);
@@ -1273,23 +1273,23 @@
                     // Get the current content type from the batch
                     const cardData = generatePreview();
                     
-                    // Generate ONLY the new cards with fresh IDs
+                    // Generate ONLY the new cards
                     const nextOrder = currentSize + 1;
                     const newCards = [];
                     
                     for (let i = 0; i < diff; i++) {
                         const order = nextOrder + i;
-                        const newCardId = generateRandomCardId(); // Generate fresh ID
+                        const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                         newCards.push({
                             card_id: newCardId,
                             batch_id: batchId,
                             batch_order: order,
                             status: 'pending',
-                            message_type: cardData.message_type
+                            message_type: cardData.message_type  // Store the message type
                         });
                     }
                     
-                    // First, activate each NEW card
+                    // Activate each NEW card with the batch's content type
                     let successCount = 0;
                     for (let i = 0; i < newCards.length; i++) {
                         const card = newCards[i];
@@ -1302,8 +1302,8 @@
                                     card_id: card.card_id,
                                     source: 'maker',
                                     terms_accepted: true,
-                                    message_type: cardData.message_type,
-                                    batch_id: batchId
+                                    message_type: cardData.message_type,  // Pass the content type
+                                    batch_id: batchId                      // Pass the batch ID
                                 })
                             });
                             
@@ -1320,67 +1320,53 @@
                     }
                     
                     if (successCount > 0) {
-                        // Get only the successfully activated new cards
+                        // Filter to get only the newly activated cards
                         const newlyActivatedCards = newCards.filter(card => card.status === 'active');
                         
-                        // STEP 1: Save each new card WITHOUT batch_id first
+                        // Prepare the new cards for batch addition
+                        const cardsToAdd = newlyActivatedCards.map(card => ({
+                            card_id: card.card_id,
+                            message_type: cardData.message_type,
+                            message_text: cardData.message_text || '',
+                            batch_id: batchId,
+                            batch_order: card.batch_order,
+                            media_url: currentMedia[cardData.message_type]?.url || null,
+                            file_name: currentMedia[cardData.message_type]?.name || null,
+                            file_size: currentMedia[cardData.message_type]?.size || null,
+                            file_type: currentMedia[cardData.message_type]?.type || null,
+                            status: 'active'
+                        }));
+                        
+                        // ========== FIXED: Save each new card individually first ==========
                         const savedCards = [];
-                        for (const card of newlyActivatedCards) {
-                            const cardDataToSend = {
-                                card_id: card.card_id,
-                                message_type: cardData.message_type,
-                                message_text: cardData.message_text || '',
-                                media_url: currentMedia[cardData.message_type]?.url || null,
-                                file_name: currentMedia[cardData.message_type]?.name || null,
-                                file_size: currentMedia[cardData.message_type]?.size || null,
-                                file_type: currentMedia[cardData.message_type]?.type || null,
-                                status: 'active'
-                                // NO batch_id here - save cards without batch association first
-                            };
-                            
+                        for (const card of cardsToAdd) {
                             const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(cardDataToSend)
+                                body: JSON.stringify(card)
                             });
-                            
                             const cardResult = await cardResponse.json();
                             if (cardResult.success) {
-                                savedCards.push({
-                                    card_id: card.card_id,
-                                    batch_order: card.batch_order
-                                });
+                                savedCards.push(cardResult.card);
                             }
                         }
                         
-                        // STEP 2: Now associate the new cards with the batch
+                        // Then update the batch with ONLY the new cards
                         if (savedCards.length > 0) {
-                            const cardsToAssociate = savedCards.map(card => ({
-                                card_id: card.card_id,
-                                message_type: cardData.message_type,
-                                message_text: cardData.message_text || '',
-                                batch_id: batchId,
-                                batch_order: card.batch_order,
-                                media_url: mediaUrl,
-                                file_name: fileName,
-                                file_size: fileSize,
-                                file_type: fileType,
-                                status: 'active'
-                            }));
-                            
                             const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ cards: cardsToAssociate })
+                                body: JSON.stringify({ cards: savedCards })
                             });
                             
                             const result = await response.json();
                             
                             if (result.success) {
-                                // Refresh the batch cards from the server
+                                // REFRESH THE BATCH CARDS FROM THE SERVER
                                 const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                                 const refreshResult = await refreshResponse.json();
                                 if (refreshResult.success) {
+                                    // Add batch_id to each card
                                     window.currentBatchCards = refreshResult.cards.map(card => ({
                                         ...card,
                                         batch_id: batchId
@@ -1388,16 +1374,17 @@
                                     console.log('✅ Refreshed batch cards:', window.currentBatchCards.length);
                                 }
                                 
-                                showNotification(`✅ Added ${savedCards.length} new cards to batch!`, 'success');
+                                showNotification(`✅ Added ${successCount} new cards to batch!`, 'success');
+                                // Update the display with new total
                                 elements.currentCardCount.textContent = newSize;
                                 
-                                // Show updated QR codes
+                                // Show updated QR codes after adding cards
                                 await showUpdatedBatchQR(batchId);
                             } else {
                                 showNotification(`❌ Failed to add cards: ${result.error}`, 'error');
                             }
                         } else {
-                            showNotification('❌ Failed to save new cards', 'error');
+                            showNotification('❌ Failed to save cards to database', 'error');
                         }
                     } else {
                         showNotification('❌ Failed to activate new cards', 'error');
@@ -1412,7 +1399,7 @@
                     this.disabled = true;
                     this.innerHTML = '<span class="loading"></span> Removing cards...';
                     
-                    // Get the current cards in the batch
+                    // Get the current cards in the batch to know which ones to remove
                     const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                     const result = await response.json();
                     
@@ -1436,9 +1423,10 @@
                         }
                         
                         showNotification(`✅ Removed ${cardsToRemove.length} cards from batch`, 'success');
+                        // Update the display with new total
                         elements.currentCardCount.textContent = newSize;
                         
-                        // Show updated QR codes
+                        // Show updated QR codes after removing cards
                         await showUpdatedBatchQR(batchId);
                     }
                 }
@@ -1789,11 +1777,11 @@
                         
                         this.innerHTML = '<span class="loading"></span> Activating additional cards...';
                         
-                        // Generate ONLY the new cards with fresh IDs
+                        // Generate ONLY the new cards
                         const newCards = [];
                         for (let i = 0; i < requestedSize; i++) {
                             const order = nextOrder + i;
-                            const newCardId = generateRandomCardId();
+                            const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                             newCards.push({
                                 card_id: newCardId,
                                 batch_id: batchId,
@@ -1822,6 +1810,8 @@
                         
                         // Activate each NEW card
                         let successCount = 0;
+                        let failCount = 0;
+                        
                         for (let i = 0; i < newCards.length; i++) {
                             const card = newCards[i];
                             
@@ -1836,12 +1826,19 @@
                                 });
                                 
                                 const result = await response.json();
+                                
                                 if (result.success) {
                                     card.status = 'active';
                                     successCount++;
+                                } else {
+                                    card.status = 'failed';
+                                    failCount++;
+                                    console.error(`Failed to activate ${card.card_id}:`, result.error);
                                 }
                             } catch (error) {
                                 console.error(`Error activating ${card.card_id}:`, error);
+                                card.status = 'failed';
+                                failCount++;
                             }
                             
                             // Update progress
@@ -1863,7 +1860,7 @@
                             });
                             elements.batchCardsPreview.innerHTML = completePreview;
                             
-                            // Switch to modify mode
+                            // Switch to modify mode (but don't show QR codes yet)
                             switchToBatchModifyMode(batchId, window.currentBatchCards.length);
                         } else {
                             showNotification('❌ Failed to activate new cards', 'error');
@@ -1934,9 +1931,10 @@
                             file_size: fileSize,
                             file_type: fileType,
                             status: 'active'
-                            // NO batch_id here - save cards without batch association first
+                            // NO batch_id or batch_order here!
                         };
                         
+                        // Save to /api/cards endpoint (creates/updates cards table)
                         const cardResponse = await fetch(`${BACKEND_URL}/api/cards`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1946,22 +1944,15 @@
                         const cardResult = await cardResponse.json();
                         if (cardResult.success) {
                             savedCards.push({
-                                card_id: card.card_id,
-                                message_type: cardData.message_type,
-                                message_text: cardData.message_text || '',
-                                batch_order: card.batch_order,
-                                media_url: mediaUrl,
-                                file_name: fileName,
-                                file_size: fileSize,
-                                file_type: fileType,
-                                status: 'active'
+                                ...cardResult.card,
+                                batch_order: card.batch_order  // Keep order for batch association
                             });
                         }
                     }
                     
-                    // STEP 2: Now associate all cards with the batch in ONE operation
+                    // STEP 2: Now associate all cards with the batch
                     if (savedCards.length > 0) {
-                        // Send the COMPLETE card data to the batch endpoint
+                        // Update batch via the add-cards endpoint
                         const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}/add-cards`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1973,6 +1964,10 @@
                         if (result.success) {
                             showNotification(`✅ Successfully saved ${savedCards.length} cards!`, 'success');
                             clearUnsavedChanges();
+                            
+                            // =============================================
+                            // QR CODES ONLY SHOW HERE - AFTER SUCCESSFUL SAVE
+                            // =============================================
                             
                             // Build batch QR display
                             let batchHtml = `
@@ -2012,6 +2007,7 @@
                             
                             batchHtml += `</div>`;
                             
+                            // Add batch manager link
                             batchHtml += `
                                 <div style="margin-top: 20px; text-align: center;">
                                     <a href="/batch-manager?batch=${encodeURIComponent(batchId)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
@@ -2020,6 +2016,7 @@
                                 </div>
                             `;
                             
+                            // Show QR section
                             elements.qrCodeContainer.innerHTML = batchHtml;
                             elements.qrCodeSection.style.display = 'block';
                             
@@ -2027,6 +2024,7 @@
                                 elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
                             }, 500);
                             
+                            // Switch to modify mode
                             switchToBatchModifyMode(batchId, batchCards.length);
                             
                         } else {
