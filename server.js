@@ -696,7 +696,7 @@ app.get('/api/cards', async (req, res) => {
   }
 });
 
-// 🗑️ Delete Card
+// 🗑️ Delete Card - FIXED with batch event logging when part of batch
 app.delete('/api/cards/:card_id', async (req, res) => {
   try {
     const { card_id } = req.params;
@@ -710,9 +710,24 @@ app.delete('/api/cards/:card_id', async (req, res) => {
       });
     }
     
-    // Get clean client IP address (FIXED)
+    // Get clean client IP address
     const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
+    // Get card info before deletion to check if part of batch
+    const { data: cardInfo, error: infoError } = await supabaseAdmin
+      .from('cards')
+      .select('batch_id, card_id')
+      .eq('card_id', card_id)
+      .maybeSingle();
+    
+    if (infoError) {
+      console.error('❌ Error getting card info:', infoError);
+    }
+    
+    const batchId = cardInfo?.batch_id;
+    
+    // Soft delete the card
     const { error } = await supabaseAdmin
       .from('cards')
       .update({
@@ -731,9 +746,53 @@ app.delete('/api/cards/:card_id', async (req, res) => {
       });
     }
     
+    // If card was part of a batch, log removal and update batch counts
+    if (batchId) {
+      // Get new actual count for batch
+      const { data: remainingCards } = await supabaseAdmin
+        .from('cards')
+        .select('card_id')
+        .eq('batch_id', batchId)
+        .neq('status', 'deleted');
+      
+      const newCount = remainingCards?.length || 0;
+      
+      // Update batch counts
+      await supabaseAdmin
+        .from('batches')
+        .update({
+          cards_created: newCount,
+          total_cards_purchased: newCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('batch_id', batchId);
+      
+      // Log removal to batch_events
+      await supabaseAdmin
+        .from('batch_events')
+        .insert({
+          batch_id: batchId,
+          event_type: 'card_removed',
+          quantity: 1,
+          card_id: card_id,
+          timestamp: new Date().toISOString(),
+          ip_address: clientIp,
+          user_agent: userAgent,
+          metadata: {
+            action: 'card_removed_from_batch',
+            card_id: card_id,
+            new_batch_count: newCount
+          }
+        });
+      
+      console.log(`✅ Card ${card_id} removed from batch ${batchId}, new count: ${newCount}`);
+    }
+    
     res.json({ 
       success: true, 
-      message: `Card ${card_id} deleted successfully`
+      message: `Card ${card_id} deleted successfully`,
+      was_in_batch: !!batchId,
+      batch_id: batchId || null
     });
     
   } catch (error) {
@@ -1571,7 +1630,7 @@ app.get('/api/admin/cards-all-details', async (req, res) => {
 });
 
 // ============================================
-// BATCH MANAGEMENT ENDPOINTS - FIXED VERSION
+// BATCH MANAGEMENT ENDPOINTS
 // ============================================
 
 // 📊 Create a new batch
@@ -1688,7 +1747,7 @@ app.post('/api/batches/calculate-price', async (req, res) => {
   }
 });
 
-// ========== FIXED: Add cards to batch with accurate counting ==========
+// ========== FIXED: Add cards to batch with accurate counting and proper card data ==========
 app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -1719,6 +1778,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     }
     
     const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
     // STEP 1: Get or create batch
     let { data: batch, error: fetchError } = await supabaseAdmin
@@ -1777,17 +1837,17 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const countBefore = existingCards?.length || 0;
     console.log(`📊 Current cards in batch: ${countBefore}`);
     
-    // STEP 3: Process each card - update with batch info
+    // STEP 3: Process each card - UPDATE with full card data including message_type and message_text
     let cardsAssociated = 0;
     let cardsFailed = 0;
     const processedCards = [];
     
     for (const card of cards) {
       try {
-        // Check if card exists and get current batch assignment
+        // Check if card exists
         const { data: existingCard } = await supabaseAdmin
           .from('cards')
-          .select('batch_id')
+          .select('card_id, batch_id, message_type')
           .eq('card_id', card.card_id)
           .maybeSingle();
         
@@ -1797,20 +1857,26 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
           continue;
         }
         
-        // Only update if not already in this batch
-        if (existingCard.batch_id === batch_id) {
-          console.log(`ℹ️ Card ${card.card_id} already in this batch`);
-          cardsAssociated++; // Count as success since it's already there
+        // Only update if not already in this batch with same data
+        if (existingCard.batch_id === batch_id && existingCard.message_type !== 'pending') {
+          console.log(`ℹ️ Card ${card.card_id} already in this batch with data`);
+          cardsAssociated++;
           processedCards.push(card);
           continue;
         }
         
-        // Update card with batch info
+        // UPDATE card with batch info AND message data
         const { error: updateError } = await supabaseAdmin
           .from('cards')
           .update({
             batch_id: batch_id,
             batch_order: card.batch_order,
+            message_type: card.message_type || 'text',
+            message_text: card.message_text || null,
+            media_url: card.media_url || null,
+            file_name: card.file_name || null,
+            file_size: card.file_size || null,
+            file_type: card.file_type || null,
             updated_by_ip: clientIp,
             updated_at: new Date().toISOString()
           })
@@ -1824,7 +1890,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         
         cardsAssociated++;
         processedCards.push(card);
-        console.log(`✅ Associated ${card.card_id} with batch ${batch_id}`);
+        console.log(`✅ Updated ${card.card_id} with batch ${batch_id} and message data`);
         
       } catch (error) {
         console.error(`❌ Error processing ${card.card_id}:`, error);
@@ -1863,18 +1929,24 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       console.log(`✅ Updated batch counts to ${countAfter}`);
     }
     
-    // STEP 6: Log to batch_events with ACTUAL quantity
+    // STEP 6: Log to batch_events with ACTUAL quantity and card_id
     if (actualNewCards !== 0) {
+      // Build metadata with card_ids
+      const cardIdsList = processedCards.map(c => c.card_id);
+      
       const { error: eventError } = await supabaseAdmin
         .from('batch_events')
         .insert({
           batch_id: batch_id,
           event_type: actualNewCards > 0 ? 'card_added' : 'card_removed',
           quantity: Math.abs(actualNewCards),
+          card_id: cardIdsList.length > 0 ? cardIdsList[0] : null, // First card for reference
           timestamp: new Date().toISOString(),
           ip_address: clientIp,
+          user_agent: userAgent,
           metadata: {
             action: actualNewCards > 0 ? 'cards_added_to_batch' : 'cards_removed_from_batch',
+            card_ids: cardIdsList, // All card IDs
             cards_processed: processedCards.length,
             cards_successfully_associated: cardsAssociated,
             cards_failed: cardsFailed,
@@ -1924,6 +1996,8 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
   try {
     const { batch_id } = req.params;
     const { quantity, payment_intent_id } = req.body;
+    const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
     // Get batch info
     const { data: batch, error: batchError } = await supabaseAdmin
@@ -2011,18 +2085,23 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
     
     if (updateError) throw updateError;
     
-    // Log the additional purchase in batch_events with ACTUAL quantity
+    // Log the additional purchase in batch_events with ACTUAL quantity and card_id
+    const cardIdsList = newCards.map(c => c.card_id);
+    
     await supabaseAdmin
       .from('batch_events')
       .insert({
         batch_id: batch_id,
         event_type: 'additional_purchase',
         quantity: newCards.length,
+        card_id: cardIdsList.length > 0 ? cardIdsList[0] : null,
         timestamp: new Date().toISOString(),
-        ip_address: getClientIp(req),
+        ip_address: clientIp,
+        user_agent: userAgent,
         metadata: {
           action: 'batch_expanded',
           payment_intent_id: payment_intent_id,
+          card_ids: cardIdsList,
           cards_added: newCards.length,
           previous_total: batch.cards_created,
           new_total: actualCount
@@ -2055,7 +2134,7 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
   }
 });
 
-// 📊 Delete batch (soft delete cards)
+// 📊 Delete batch (soft delete cards) - FIXED with proper counting and event logging
 app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
   try {
     const { batch_id } = req.params;
@@ -2065,16 +2144,22 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Confirmation required' });
     }
     
-    // Get clean client IP address (FIXED)
+    // Get clean client IP address
     const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
-    // Get count before deletion for logging
-    const { data: cardsBefore } = await supabaseAdmin
+    // Get count and card IDs before deletion for logging
+    const { data: cardsBefore, error: countError } = await supabaseAdmin
       .from('cards')
       .select('card_id')
       .eq('batch_id', batch_id);
     
+    if (countError) {
+      console.error('❌ Error counting cards before deletion:', countError);
+    }
+    
     const countBefore = cardsBefore?.length || 0;
+    const cardIdsList = cardsBefore?.map(c => c.card_id) || [];
     
     // Mark all cards in batch as deleted
     const { error } = await supabaseAdmin
@@ -2088,17 +2173,20 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
     
     if (error) throw error;
     
-    // Log deletion in batch_events
+    // Log deletion in batch_events with card_id and user_agent
     await supabaseAdmin
       .from('batch_events')
       .insert({
         batch_id: batch_id,
         event_type: 'batch_deleted',
         quantity: countBefore,
+        card_id: cardIdsList.length > 0 ? cardIdsList[0] : null,
         timestamp: new Date().toISOString(),
         ip_address: clientIp,
+        user_agent: userAgent,
         metadata: {
           action: 'batch_deleted',
+          card_ids: cardIdsList,
           cards_deleted: countBefore
         }
       });
@@ -2113,7 +2201,14 @@ app.post('/api/admin/batches/:batch_id/delete', async (req, res) => {
       })
       .eq('batch_id', batch_id);
     
-    res.json({ success: true, message: `Batch ${batch_id} deleted (${countBefore} cards removed)` });
+    res.json({ 
+      success: true, 
+      message: `Batch ${batch_id} deleted (${countBefore} cards removed)`,
+      details: {
+        cards_deleted: countBefore,
+        card_ids: cardIdsList
+      }
+    });
     
   } catch (error) {
     console.error('Error deleting batch:', error);
@@ -2322,6 +2417,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Auto-create batches when adding cards');
   console.log('   ✅ ACCURATE batch counts from database reality');
   console.log('   ✅ REAL quantity logging to batch_events');
+  console.log('   ✅ Card DELETE updates batch counts and logs events');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
