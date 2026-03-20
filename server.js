@@ -1909,9 +1909,14 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     res.json({ 
       success: true, 
       message: `Added ${cardsAssociated} cards to batch`,
-      cards_added: cardsAssociated,
-      cards_skipped: cards.length - cardsAssociated,
-      total_in_batch: actualCount,
+      details: {
+        cards_associated: cardsAssociated,
+        cards_processed: cards.length,
+        cards_failed: cards.length - cardsAssociated,
+        count_before: countBefore,
+        count_after: actualCount,
+        actual_new_cards: actualChange
+      },    
       batch: {
         ...batch,
         cards_created: actualCount,
