@@ -1816,6 +1816,11 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         return res.status(500).json({ success: false, error: 'Failed to create batch' });
       }
       batch = newBatch;
+      
+      console.log('🆕 Batch insert result:', JSON.stringify(newBatch));
+      console.log('🆕 Batch ID:', newBatch?.batch_id);
+      console.log('🆕 Cards created from insert:', newBatch?.cards_created);
+      console.log('🆕 Cards length we tried to set:', cards.length);
     }
     
     const existingCardIds = new Set();
@@ -2375,6 +2380,7 @@ app.listen(PORT, () => {
   console.log('   ✅ ACCURATE batch counts from arithmetic calculation');
   console.log('   ✅ LOG ONLY ON ACTUAL CHANGE to batch_events');
   console.log('   ✅ ARITHMETIC COUNTING (avoids race conditions)');
+  console.log('   ✅ DEBUG LOGGING for batch creation');
   console.log('   ✅ Card DELETE updates batch counts and logs only on actual change');
   console.log('   ✅ 24/7 Railway hosting');
   
