@@ -1877,22 +1877,24 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       newCardIds.push(card.card_id);
     }
     
-    // Calculate ACTUAL count arithmetically (avoids race conditions)
-    const actualCount = countBefore + newCardIds.length;
-    console.log(`📊 Batch ${batch_id} count: ${actualCount} (was ${countBefore}, added ${newCardIds.length})`);
+    // Calculate count arithmetically to avoid replication lag issues
+    const actualCount = isNewBatch ? newCardIds.length : countBefore + newCardIds.length;
+    console.log(`📊 Batch ${batch_id} final count: ${actualCount} (newBatch: ${isNewBatch}, before: ${countBefore}, added: ${newCardIds.length})`);
     
-    // Update batch counts with ACTUAL database reality
-    const { error: batchUpdateError } = await supabaseAdmin
-      .from('batches')
-      .update({ 
-        cards_created: actualCount,
-        total_cards_purchased: actualCount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('batch_id', batch_id);
-    
-    if (batchUpdateError) {
-      console.error('❌ Error updating batch counts:', batchUpdateError);
+    // Update batch counts (skip for new batches since they were set correctly on insert)
+    if (!isNewBatch) {
+      const { error: batchUpdateError } = await supabaseAdmin
+        .from('batches')
+        .update({ 
+          cards_created: actualCount,
+          total_cards_purchased: actualCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('batch_id', batch_id);
+      
+      if (batchUpdateError) {
+        console.error('❌ Error updating batch counts:', batchUpdateError);
+      }
     }
     
     // ONLY log to batch_events if there was an ACTUAL change
@@ -2023,9 +2025,9 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
     
     if (insertError) throw insertError;
     
-    // Calculate ACTUAL count arithmetically (avoids race conditions)
+    // Calculate count arithmetically to avoid replication lag issues
     const actualCount = batch.cards_created + newCards.length;
-    console.log(`📊 Batch ${batch_id} count: ${actualCount} (was ${batch.cards_created}, added ${newCards.length})`);
+    console.log(`📊 Batch ${batch_id} final count: ${actualCount} (was ${batch.cards_created}, added ${newCards.length})`);
     
     // Update batch counters with ACTUAL database reality
     const { error: updateError } = await supabaseAdmin
