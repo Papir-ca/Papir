@@ -1802,8 +1802,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         .from('batches')
         .insert({
           batch_id: batch_id,
-          cards_created: cards.length,           // ← SET INITIAL COUNT HERE
-          total_cards_purchased: cards.length,  // ← SET INITIAL COUNT HERE
+          cards_created: cards.length,
+          total_cards_purchased: cards.length,
           created_at: new Date().toISOString(),
           created_by_ip: clientIp,
           updated_at: new Date().toISOString()
@@ -1877,7 +1877,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       newCardIds.push(card.card_id);
     }
     
-    // Get count AFTER
+    // Get ACTUAL count from database after all updates
     const { data: allBatchCards } = await supabaseAdmin
       .from('cards')
       .select('card_id')
@@ -1885,20 +1885,18 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     
     const actualCount = allBatchCards?.length || 0;
     
-    // Update batch counts (for existing batches)
-    if (!isNewBatch) {
-      const { error: batchUpdateError } = await supabaseAdmin
-        .from('batches')
-        .update({ 
-          cards_created: actualCount,
-          total_cards_purchased: actualCount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('batch_id', batch_id);
-      
-      if (batchUpdateError) {
-        console.error('❌ Error updating batch counts:', batchUpdateError);
-      }
+    // Update batch counts with ACTUAL database reality
+    const { error: batchUpdateError } = await supabaseAdmin
+      .from('batches')
+      .update({ 
+        cards_created: actualCount,
+        total_cards_purchased: actualCount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('batch_id', batch_id);
+    
+    if (batchUpdateError) {
+      console.error('❌ Error updating batch counts:', batchUpdateError);
     }
     
     // ONLY log to batch_events if there was an ACTUAL change
@@ -2029,15 +2027,15 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
     
     if (insertError) throw insertError;
     
-    // Get ACTUAL count after insert
-    const { data: actualCards } = await supabaseAdmin
+    // Get ACTUAL count from database after insert
+    const { data: allBatchCards } = await supabaseAdmin
       .from('cards')
-      .select('card_id', { count: 'exact' })
+      .select('card_id')
       .eq('batch_id', batch_id);
     
-    const actualCount = actualCards?.length || newTotal;
+    const actualCount = allBatchCards?.length || newTotal;
     
-    // Update batch counters with ACTUAL count
+    // Update batch counters with ACTUAL database reality
     const { error: updateError } = await supabaseAdmin
       .from('batches')
       .update({
@@ -2345,7 +2343,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (FIXED - INITIAL COUNTS ON CREATE)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (FIXED - ALWAYS QUERY DATABASE)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2382,7 +2380,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Auto-create batches when adding cards');
   console.log('   ✅ ACCURATE batch counts from database reality');
   console.log('   ✅ LOG ONLY ON ACTUAL CHANGE to batch_events');
-  console.log('   ✅ INITIAL BATCH COUNTS SET ON CREATE');
+  console.log('   ✅ ALWAYS QUERY DATABASE for accurate counts');
   console.log('   ✅ Card DELETE updates batch counts and logs only on actual change');
   console.log('   ✅ 24/7 Railway hosting');
   
