@@ -1783,13 +1783,27 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Database error' });
     }
     
-    if (!batch) {
+    // Get count BEFORE (0 if new batch)
+    let countBefore = 0;
+    if (batch) {
+      const { data: existingCardsInBatch } = await supabaseAdmin
+        .from('cards')
+        .select('card_id')
+        .eq('batch_id', batch_id);
+      countBefore = existingCardsInBatch?.length || 0;
+    }
+    
+    // Create batch if it doesn't exist - WITH INITIAL COUNTS
+    const isNewBatch = !batch;
+    if (isNewBatch) {
+      console.log(`📦 Creating NEW batch: ${batch_id} with ${cards.length} cards`);
+      
       const { data: newBatch, error: createError } = await supabaseAdmin
         .from('batches')
         .insert({
           batch_id: batch_id,
-          cards_created: 0,
-          total_cards_purchased: 0,
+          cards_created: cards.length,           // ← SET INITIAL COUNT HERE
+          total_cards_purchased: cards.length,  // ← SET INITIAL COUNT HERE
           created_at: new Date().toISOString(),
           created_by_ip: clientIp,
           updated_at: new Date().toISOString()
@@ -1798,31 +1812,40 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         .single();
       
       if (createError) {
+        console.error('❌ Failed to create batch:', createError);
         return res.status(500).json({ success: false, error: 'Failed to create batch' });
       }
       batch = newBatch;
     }
     
-    // Get count BEFORE
-    const { data: existingCardsInBatch } = await supabaseAdmin
-      .from('cards')
-      .select('card_id')
-      .eq('batch_id', batch_id);
-    
-    const countBefore = existingCardsInBatch?.length || 0;
-    const existingCardIds = new Set(existingCardsInBatch?.map(c => c.card_id) || []);
+    const existingCardIds = new Set();
+    if (!isNewBatch) {
+      const { data: existingCardsInBatch } = await supabaseAdmin
+        .from('cards')
+        .select('card_id')
+        .eq('batch_id', batch_id);
+      existingCardsInBatch?.forEach(c => existingCardIds.add(c.card_id));
+    }
     
     // Get highest batch order
-    const maxOrder = existingCardsInBatch?.reduce((max, card) => 
-      card.batch_order > max ? card.batch_order : max, 0) || 0;
+    let maxOrder = 0;
+    if (!isNewBatch) {
+      const { data: orderCheck } = await supabaseAdmin
+        .from('cards')
+        .select('batch_order')
+        .eq('batch_id', batch_id)
+        .order('batch_order', { ascending: false })
+        .limit(1);
+      maxOrder = orderCheck?.[0]?.batch_order || 0;
+    }
     
     let nextOrder = maxOrder + 1;
     let cardsAssociated = 0;
-    const newCardIds = []; // Only cards that are actually new to this batch
+    const newCardIds = [];
     
     // Process each card
     for (const card of cards) {
-      // Skip if already in this batch - NO LOGGING FOR THESE
+      // Skip if already in this batch
       if (existingCardIds.has(card.card_id)) {
         console.log(`ℹ️ Card ${card.card_id} already in batch, skipping`);
         continue;
@@ -1862,21 +1885,23 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     
     const actualCount = allBatchCards?.length || 0;
     
-    // Update batch counts
-    const { error: batchUpdateError } = await supabaseAdmin
-      .from('batches')
-      .update({ 
-        cards_created: actualCount,
-        total_cards_purchased: actualCount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('batch_id', batch_id);
-    
-    if (batchUpdateError) {
-      console.error('❌ Error updating batch counts:', batchUpdateError);
+    // Update batch counts (for existing batches)
+    if (!isNewBatch) {
+      const { error: batchUpdateError } = await supabaseAdmin
+        .from('batches')
+        .update({ 
+          cards_created: actualCount,
+          total_cards_purchased: actualCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('batch_id', batch_id);
+      
+      if (batchUpdateError) {
+        console.error('❌ Error updating batch counts:', batchUpdateError);
+      }
     }
     
-    // ONLY log to batch_events if there was an ACTUAL change (new cards added)
+    // ONLY log to batch_events if there was an ACTUAL change
     const actualChange = actualCount - countBefore;
     
     if (actualChange > 0 && newCardIds.length > 0) {
@@ -1915,8 +1940,9 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         cards_failed: cards.length - cardsAssociated,
         count_before: countBefore,
         count_after: actualCount,
-        actual_new_cards: actualChange
-      },    
+        actual_new_cards: actualChange,
+        is_new_batch: isNewBatch
+      },
       batch: {
         ...batch,
         cards_created: actualCount,
@@ -2319,7 +2345,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (LOG ONLY ON CHANGE)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (FIXED - INITIAL COUNTS ON CREATE)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2356,6 +2382,7 @@ app.listen(PORT, () => {
   console.log('   ✅ Auto-create batches when adding cards');
   console.log('   ✅ ACCURATE batch counts from database reality');
   console.log('   ✅ LOG ONLY ON ACTUAL CHANGE to batch_events');
+  console.log('   ✅ INITIAL BATCH COUNTS SET ON CREATE');
   console.log('   ✅ Card DELETE updates batch counts and logs only on actual change');
   console.log('   ✅ 24/7 Railway hosting');
   
