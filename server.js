@@ -1877,13 +1877,9 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       newCardIds.push(card.card_id);
     }
     
-    // Get ACTUAL count from database after all updates
-    const { data: allBatchCards } = await supabaseAdmin
-      .from('cards')
-      .select('card_id')
-      .eq('batch_id', batch_id);
-    
-    const actualCount = allBatchCards?.length || 0;
+    // Calculate ACTUAL count arithmetically (avoids race conditions)
+    const actualCount = countBefore + newCardIds.length;
+    console.log(`📊 Batch ${batch_id} count: ${actualCount} (was ${countBefore}, added ${newCardIds.length})`);
     
     // Update batch counts with ACTUAL database reality
     const { error: batchUpdateError } = await supabaseAdmin
@@ -2027,13 +2023,9 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
     
     if (insertError) throw insertError;
     
-    // Get ACTUAL count from database after insert
-    const { data: allBatchCards } = await supabaseAdmin
-      .from('cards')
-      .select('card_id')
-      .eq('batch_id', batch_id);
-    
-    const actualCount = allBatchCards?.length || newTotal;
+    // Calculate ACTUAL count arithmetically (avoids race conditions)
+    const actualCount = batch.cards_created + newCards.length;
+    console.log(`📊 Batch ${batch_id} count: ${actualCount} (was ${batch.cards_created}, added ${newCards.length})`);
     
     // Update batch counters with ACTUAL database reality
     const { error: updateError } = await supabaseAdmin
@@ -2343,7 +2335,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (FIXED - ALWAYS QUERY DATABASE)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (ARITHMETIC COUNTING)`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
@@ -2378,9 +2370,9 @@ app.listen(PORT, () => {
   console.log('   ✅ Dedicated batch rate limiting');
   console.log('   ✅ Batch events tracking - FIXED');
   console.log('   ✅ Auto-create batches when adding cards');
-  console.log('   ✅ ACCURATE batch counts from database reality');
+  console.log('   ✅ ACCURATE batch counts from arithmetic calculation');
   console.log('   ✅ LOG ONLY ON ACTUAL CHANGE to batch_events');
-  console.log('   ✅ ALWAYS QUERY DATABASE for accurate counts');
+  console.log('   ✅ ARITHMETIC COUNTING (avoids race conditions)');
   console.log('   ✅ Card DELETE updates batch counts and logs only on actual change');
   console.log('   ✅ 24/7 Railway hosting');
   
