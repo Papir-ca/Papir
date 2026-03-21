@@ -1902,10 +1902,10 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       }
     }
     
-    // ONLY log to batch_events if there was an ACTUAL change
+    // ONLY log to batch_events if ADDING to EXISTING batch (not on initial creation)
     const actualChange = actualCount - countBefore;
     
-    if (actualChange > 0 && newCardIds.length > 0) {
+    if (!isNewBatch && actualChange > 0 && newCardIds.length > 0) {
       console.log(`📝 Logging batch event: ${actualChange} cards added`);
       
       const { error: eventError } = await supabaseAdmin
