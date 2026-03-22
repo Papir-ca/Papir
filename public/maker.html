@@ -1447,37 +1447,37 @@
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Updated!</h3>
                                 <p>Batch ID: <strong>${batchId}</strong></p>
-                                <p>Total Cards: <strong>${result.cards.length}</strong></p>
+                                <p>Total Cards: <strong>${result.cards.filter(c => c.status !== 'deleted').length}</strong></p>
                             </div>
-                            <div style="max-height: 400px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div style="text-align: center; padding: 10px; background: #1a1a1a; border-radius: 10px;">
                         `;
                         
-                        result.cards.forEach(card => {
-                            const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                            const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
-                            
-                            batchHtml += `
-                                <div style="border-bottom: 1px solid #444; padding: 15px; margin-bottom: 10px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                        <div>
-                                            <strong style="color: #06D6A0;">Card #${card.batch_order}</strong>
-                                            <div style="font-size: 0.8rem; color: #a0aec0;">${card.card_id}</div>
+                        result.cards
+                            .filter(card => card.status !== 'deleted')
+                            .forEach((card, index) => {
+                                const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
+                                const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
+                                
+                                batchHtml += `
+                                    <div style="display: inline-block; width: 200px; margin: 10px; vertical-align: top; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525;">
+                                        <div style="text-align: center; margin-bottom: 10px;">
+                                            <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
+                                            <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
                                         </div>
-                                        <div>
-                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px;">
+                                        <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; display: block; margin: 0 auto; border: 2px solid white; border-radius: 5px;">
+                                        <div style="text-align: center; margin-top: 10px;">
+                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
                                                 <i class="fas fa-copy"></i> URL
                                             </button>
-                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')">
+                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')" style="font-size: 0.8rem; padding: 5px 10px;">
                                                 <i class="fas fa-download"></i> QR
                                             </button>
                                         </div>
                                     </div>
-                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 2px solid white; border-radius: 5px;">
-                                </div>
-                            `;
-                        });
+                                `;
+                            });
                         
-                        batchHtml += `</div>`;
+                        batchHtml += `<div style="clear: both;"></div></div>`;
                         
                         batchHtml += `
                             <div style="margin-top: 20px; text-align: center;">
@@ -1853,7 +1853,6 @@
                 try {
                     showNotification(`Saving ${window.currentBatchCards.length} cards...`, 'info');
                     
-                    // Safety: Refresh from server first to ensure we have accurate data
                     const batchIdForSync = window.currentBatchCards[0]?.batch_id;
                     if (batchIdForSync) {
                         try {
@@ -1930,7 +1929,6 @@
                         showNotification(`✅ Successfully saved ${result.details.cards_associated} cards!`, 'success');
                         clearUnsavedChanges();
                         
-                        // Refresh cards from server to sync frontend array
                         try {
                             const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchIdForSave)}`);
                             const refreshResult = await refreshResponse.json();
@@ -1952,7 +1950,7 @@
                                 <p>Batch ID: <strong>${batchIdForSave}</strong></p>
                                 <p>Total Cards: <strong>${result.details.count_after}</strong></p>
                             </div>
-                            <div style="max-height: 400px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div style="text-align: center; padding: 10px; background: #1a1a1a; border-radius: 10px;">
                         `;
                         
                         batchCards.forEach((card, index) => {
@@ -1960,27 +1958,25 @@
                             const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
                             
                             batchHtml += `
-                                <div style="border-bottom: 1px solid #444; padding: 15px; margin-bottom: 10px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                        <div>
-                                            <strong style="color: #06D6A0;">Card #${card.batch_order}</strong>
-                                            <div style="font-size: 0.8rem; color: #a0aec0;">${card.card_id}</div>
-                                        </div>
-                                        <div>
-                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px;">
-                                                <i class="fas fa-copy"></i> URL
-                                            </button>
-                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')">
-                                                <i class="fas fa-download"></i> QR
-                                            </button>
-                                        </div>
+                                <div style="display: inline-block; width: 200px; margin: 10px; vertical-align: top; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525;">
+                                    <div style="text-align: center; margin-bottom: 10px;">
+                                        <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
+                                        <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
                                     </div>
-                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 2px solid white; border-radius: 5px;">
+                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; display: block; margin: 0 auto; border: 2px solid white; border-radius: 5px;">
+                                    <div style="text-align: center; margin-top: 10px;">
+                                        <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
+                                            <i class="fas fa-copy"></i> URL
+                                        </button>
+                                        <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')" style="font-size: 0.8rem; padding: 5px 10px;">
+                                            <i class="fas fa-download"></i> QR
+                                        </button>
+                                    </div>
                                 </div>
                             `;
                         });
                         
-                        batchHtml += `</div>`;
+                        batchHtml += `<div style="clear: both;"></div></div>`;
                         
                         batchHtml += `
                             <div style="margin-top: 20px; text-align: center;">
