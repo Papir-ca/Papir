@@ -1783,13 +1783,14 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Database error' });
     }
     
-    // Get count BEFORE (0 if new batch)
+    // Get count BEFORE excluding deleted cards (0 if new batch)
     let countBefore = 0;
     if (batch) {
       const { data: existingCardsInBatch } = await supabaseAdmin
         .from('cards')
         .select('card_id')
-        .eq('batch_id', batch_id);
+        .eq('batch_id', batch_id)
+        .neq('status', 'deleted');
       countBefore = existingCardsInBatch?.length || 0;
     }
     
