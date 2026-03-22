@@ -253,7 +253,7 @@ function getClientIp(req) {
 }
 
 // ============================================
-// UPDATED HELPER FUNCTION: Get geolocation from IP with fallback and full region names
+// FIXED HELPER FUNCTION: Get geolocation from IP with proper timeout
 // ============================================
 async function getGeolocationFromIp(ip) {
   try {
@@ -265,11 +265,16 @@ async function getGeolocationFromIp(ip) {
     
     console.log('📍 Fetching geolocation for IP:', ip);
     
-    // Try ipapi.co first (HTTPS required)
+    // Try ipapi.co first (HTTPS required) - with proper timeout using AbortController
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch(`https://ipapi.co/${ip}/json/`, {
-        timeout: 3000 // 3 second timeout
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
@@ -294,26 +299,36 @@ async function getGeolocationFromIp(ip) {
     
     // Fallback to ip-api.com
     console.log('📍 Trying fallback ip-api.com for IP:', ip);
-    const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,org`, {
-      timeout: 3000
-    });
     
-    if (fallbackResponse.ok) {
-      const fallbackData = await fallbackResponse.json();
-      console.log('📍 ip-api.com response:', fallbackData);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
-      if (fallbackData.status === 'success') {
-        return {
-          ip: ip,
-          city: fallbackData.city,
-          region: fallbackData.regionName || fallbackData.region,
-          country: fallbackData.country,
-          country_code: fallbackData.countryCode,
-          latitude: fallbackData.lat,
-          longitude: fallbackData.lon,
-          org: fallbackData.org
-        };
+      const fallbackResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,org`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        console.log('📍 ip-api.com response:', fallbackData);
+        
+        if (fallbackData.status === 'success') {
+          return {
+            ip: ip,
+            city: fallbackData.city,
+            region: fallbackData.regionName || fallbackData.region,
+            country: fallbackData.country,
+            country_code: fallbackData.countryCode,
+            latitude: fallbackData.lat,
+            longitude: fallbackData.lon,
+            org: fallbackData.org
+          };
+        }
       }
+    } catch (fallbackError) {
+      console.log('📍 ip-api.com failed:', fallbackError.message);
     }
     
     console.log('📍 All geolocation services failed for IP:', ip);
