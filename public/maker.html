@@ -1449,35 +1449,33 @@
                                 <p>Batch ID: <strong>${batchId}</strong></p>
                                 <p>Total Cards: <strong>${result.cards.filter(c => c.status !== 'deleted').length}</strong></p>
                             </div>
-                            <div style="text-align: center; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 10px; background: #1a1a1a; border-radius: 10px;">
                         `;
                         
-                        result.cards
-                            .filter(card => card.status !== 'deleted')
-                            .forEach((card, index) => {
-                                const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                                const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
-                                
-                                batchHtml += `
-                                    <div style="display: inline-block; width: 200px; margin: 10px; vertical-align: top; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525;">
-                                        <div style="text-align: center; margin-bottom: 10px;">
-                                            <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
-                                            <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
-                                        </div>
-                                        <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; display: block; margin: 0 auto; border: 2px solid white; border-radius: 5px;">
-                                        <div style="text-align: center; margin-top: 10px;">
-                                            <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
-                                                <i class="fas fa-copy"></i> URL
-                                            </button>
-                                            <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')" style="font-size: 0.8rem; padding: 5px 10px;">
-                                                <i class="fas fa-download"></i> QR
-                                            </button>
-                                        </div>
+                        result.cards.filter(card => card.status !== 'deleted').forEach((card) => {
+                            const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
+                            const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
+                            
+                            batchHtml += `
+                                <div style="width: 220px; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525; text-align: center;">
+                                    <div style="margin-bottom: 10px;">
+                                        <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
+                                        <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
                                     </div>
-                                `;
-                            });
+                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; border: 2px solid white; border-radius: 5px; display: block; margin: 0 auto 10px;">
+                                    <div style="text-align: center;">
+                                        <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
+                                            <i class="fas fa-copy"></i> URL
+                                        </button>
+                                        <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')" style="font-size: 0.8rem; padding: 5px 10px;">
+                                            <i class="fas fa-download"></i> QR
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
                         
-                        batchHtml += `<div style="clear: both;"></div></div>`;
+                        batchHtml += `</div>`;
                         
                         batchHtml += `
                             <div style="margin-top: 20px; text-align: center;">
@@ -1948,23 +1946,23 @@
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Saved Successfully!</h3>
                                 <p>Batch ID: <strong>${batchIdForSave}</strong></p>
-                                <p>Total Cards: <strong>${result.details.count_after}</strong></p>
+                                <p>Total Cards: <strong>${batchCards.filter(c => c.status !== 'deleted').length}</strong></p>
                             </div>
-                            <div style="text-align: center; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 10px; background: #1a1a1a; border-radius: 10px;">
                         `;
                         
-                        batchCards.forEach((card, index) => {
+                        batchCards.filter(card => card.status !== 'deleted').forEach((card) => {
                             const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
                             const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
                             
                             batchHtml += `
-                                <div style="display: inline-block; width: 200px; margin: 10px; vertical-align: top; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525;">
-                                    <div style="text-align: center; margin-bottom: 10px;">
+                                <div style="width: 220px; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525; text-align: center;">
+                                    <div style="margin-bottom: 10px;">
                                         <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
                                         <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
                                     </div>
-                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; display: block; margin: 0 auto; border: 2px solid white; border-radius: 5px;">
-                                    <div style="text-align: center; margin-top: 10px;">
+                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; border: 2px solid white; border-radius: 5px; display: block; margin: 0 auto 10px;">
+                                    <div style="text-align: center;">
                                         <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
                                             <i class="fas fa-copy"></i> URL
                                         </button>
@@ -1976,7 +1974,7 @@
                             `;
                         });
                         
-                        batchHtml += `<div style="clear: both;"></div></div>`;
+                        batchHtml += `</div>`;
                         
                         batchHtml += `
                             <div style="margin-top: 20px; text-align: center;">
