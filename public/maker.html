@@ -1443,13 +1443,34 @@
                     
                     if (result.success && result.cards) {
                         let batchHtml = `
+                            <style>
+                                .qr-card-container { 
+                                    display: flex !important; 
+                                    flex-direction: row !important; 
+                                    flex-wrap: wrap !important; 
+                                    justify-content: center !important; 
+                                    gap: 20px !important; 
+                                    padding: 20px !important;
+                                    background: #1a1a1a !important;
+                                    border-radius: 10px !important;
+                                }
+                                .qr-card-item {
+                                    width: 220px !important;
+                                    border: 1px solid #444 !important;
+                                    padding: 15px !important;
+                                    border-radius: 8px !important;
+                                    background: #252525 !important;
+                                    text-align: center !important;
+                                    box-sizing: border-box !important;
+                                }
+                            </style>
                             <div class="qr-success">
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Updated!</h3>
                                 <p>Batch ID: <strong>${batchId}</strong></p>
                                 <p>Total Cards: <strong>${result.cards.filter(c => c.status !== 'deleted').length}</strong></p>
                             </div>
-                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div class="qr-card-container">
                         `;
                         
                         result.cards.filter(card => card.status !== 'deleted').forEach((card) => {
@@ -1457,7 +1478,7 @@
                             const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
                             
                             batchHtml += `
-                                <div style="width: 220px; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525; text-align: center;">
+                                <div class="qr-card-item">
                                     <div style="margin-bottom: 10px;">
                                         <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
                                         <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
@@ -1942,13 +1963,34 @@
                         }
                         
                         let batchHtml = `
+                            <style>
+                                .qr-card-container { 
+                                    display: flex !important; 
+                                    flex-direction: row !important; 
+                                    flex-wrap: wrap !important; 
+                                    justify-content: center !important; 
+                                    gap: 20px !important; 
+                                    padding: 20px !important;
+                                    background: #1a1a1a !important;
+                                    border-radius: 10px !important;
+                                }
+                                .qr-card-item {
+                                    width: 220px !important;
+                                    border: 1px solid #444 !important;
+                                    padding: 15px !important;
+                                    border-radius: 8px !important;
+                                    background: #252525 !important;
+                                    text-align: center !important;
+                                    box-sizing: border-box !important;
+                                }
+                            </style>
                             <div class="qr-success">
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Saved Successfully!</h3>
                                 <p>Batch ID: <strong>${batchIdForSave}</strong></p>
                                 <p>Total Cards: <strong>${batchCards.filter(c => c.status !== 'deleted').length}</strong></p>
                             </div>
-                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 10px; background: #1a1a1a; border-radius: 10px;">
+                            <div class="qr-card-container">
                         `;
                         
                         batchCards.filter(card => card.status !== 'deleted').forEach((card) => {
@@ -1956,7 +1998,7 @@
                             const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
                             
                             batchHtml += `
-                                <div style="width: 220px; border: 1px solid #444; padding: 15px; border-radius: 8px; background: #252525; text-align: center;">
+                                <div class="qr-card-item">
                                     <div style="margin-bottom: 10px;">
                                         <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
                                         <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
