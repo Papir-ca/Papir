@@ -719,6 +719,12 @@
             flex-wrap: wrap !important;
         }
         
+        /* Override the inline max-width to allow full width for QR container */
+        #qrCodeContainer {
+            max-width: none !important;
+            width: 100% !important;
+        }
+        
         .share-url-container {
             display: flex;
             gap: 10px;
@@ -2582,8 +2588,8 @@
                             <td colspan="5">
                                 <div class="loading" style="margin-right: 10px;"></div>
                                 Loading cards from database...
-                            <\/td>
-                        <\/tr>
+                            </td>
+                        </tr>
                     `;
                     
                     console.log('Loading cards from:', `${BACKEND_URL}/api/cards`);
@@ -2610,10 +2616,10 @@
                                 
                                 html += `
                                     <tr>
-                                        <td><strong>${card.card_id}</strong><\/td>
-                                        <td>${card.message_type}<\/td>
-                                        <td>${messagePreview}<\/td>
-                                        <td>${date}<\/td>
+                                        <td><strong>${card.card_id}</strong></td>
+                                        <td>${card.message_type}</td>
+                                        <td>${messagePreview}</td>
+                                        <td>${date}</td>
                                         <td>
                                             <div class="action-buttons">
                                                 <button class="action-btn view" onclick="window.open('${BACKEND_URL}/viewer.html?card=${card.card_id}', '_blank')">
@@ -2623,8 +2629,8 @@
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </div>
-                                        <\/td>
-                                    <\/tr>
+                                        </td>
+                                    </tr>
                                 `;
                             });
                             elements.cardsTableBody.innerHTML = html;
@@ -2635,8 +2641,8 @@
                                     <td colspan="5">
                                         <i class="fas fa-info-circle"></i> 
                                         No cards found in database. Create your first Papir card above!
-                                    <\/td>
-                                <\/tr>
+                                    </td>
+                                </tr>
                             `;
                             console.log('No cards found in response');
                         }
@@ -2647,8 +2653,8 @@
                                 <td colspan="5">
                                     <i class="fas fa-exclamation-triangle"></i> 
                                     Could not load cards: Server returned ${response.status} ${response.statusText}
-                                <\/td>
-                            <\/tr>
+                                </td>
+                            </tr>
                         `;
                     }
                     
@@ -2659,8 +2665,8 @@
                             <td colspan="5">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 Error loading cards: ${error.message}
-                            <\/td>
-                        <\/tr>
+                            </td>
+                        </tr>
                     `;
                 }
             }
