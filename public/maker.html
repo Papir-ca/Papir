@@ -685,7 +685,7 @@
             display: block;
         }
         
-        /* QR Code Container Styles - Force horizontal layout */
+        /* QR Code Container Styles - Force horizontal layout with scroll */
         .qr-card-container { 
             display: flex !important; 
             flex-direction: row !important; 
@@ -697,6 +697,8 @@
             background: #1a1a1a !important;
             border-radius: 10px !important;
             margin: 20px 0 !important;
+            max-height: 650px !important;    /* Show about 12 cards before scrolling */
+            overflow-y: auto !important;     /* Enable vertical scrollbar when needed */
         }
         
         .qr-card-item {
