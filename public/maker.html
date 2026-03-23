@@ -685,6 +685,40 @@
             display: block;
         }
         
+        /* QR Code Container Styles - Force horizontal layout */
+        .qr-card-container { 
+            display: flex !important; 
+            flex-direction: row !important; 
+            flex-wrap: wrap !important; 
+            justify-content: center !important; 
+            align-items: flex-start !important;
+            gap: 20px !important; 
+            padding: 20px !important;
+            background: #1a1a1a !important;
+            border-radius: 10px !important;
+            margin: 20px 0 !important;
+        }
+        
+        .qr-card-item {
+            width: 220px !important;
+            min-width: 200px !important;
+            border: 1px solid #444 !important;
+            padding: 15px !important;
+            border-radius: 8px !important;
+            background: #252525 !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+            display: inline-block !important;
+            vertical-align: top !important;
+        }
+        
+        /* Ensure the container inside the card list doesn't interfere */
+        #qrCodeContainer .qr-card-container {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+        }
+        
         .share-url-container {
             display: flex;
             gap: 10px;
@@ -796,6 +830,15 @@
             .batch-row {
                 flex-direction: column;
                 gap: 10px;
+            }
+            
+            .qr-card-item {
+                width: 180px !important;
+            }
+            
+            .qr-card-item img {
+                width: 120px !important;
+                height: 120px !important;
             }
         }
         
@@ -1443,27 +1486,6 @@
                     
                     if (result.success && result.cards) {
                         let batchHtml = `
-                            <style>
-                                .qr-card-container { 
-                                    display: flex !important; 
-                                    flex-direction: row !important; 
-                                    flex-wrap: wrap !important; 
-                                    justify-content: center !important; 
-                                    gap: 20px !important; 
-                                    padding: 20px !important;
-                                    background: #1a1a1a !important;
-                                    border-radius: 10px !important;
-                                }
-                                .qr-card-item {
-                                    width: 220px !important;
-                                    border: 1px solid #444 !important;
-                                    padding: 15px !important;
-                                    border-radius: 8px !important;
-                                    background: #252525 !important;
-                                    text-align: center !important;
-                                    box-sizing: border-box !important;
-                                }
-                            </style>
                             <div class="qr-success">
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Updated!</h3>
@@ -1963,27 +1985,6 @@
                         }
                         
                         let batchHtml = `
-                            <style>
-                                .qr-card-container { 
-                                    display: flex !important; 
-                                    flex-direction: row !important; 
-                                    flex-wrap: wrap !important; 
-                                    justify-content: center !important; 
-                                    gap: 20px !important; 
-                                    padding: 20px !important;
-                                    background: #1a1a1a !important;
-                                    border-radius: 10px !important;
-                                }
-                                .qr-card-item {
-                                    width: 220px !important;
-                                    border: 1px solid #444 !important;
-                                    padding: 15px !important;
-                                    border-radius: 8px !important;
-                                    background: #252525 !important;
-                                    text-align: center !important;
-                                    box-sizing: border-box !important;
-                                }
-                            </style>
                             <div class="qr-success">
                                 <i class="fas fa-check-circle"></i>
                                 <h3>Batch Saved Successfully!</h3>
