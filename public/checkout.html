@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Papir E-Cards</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            min-height: 100vh; 
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #06D6A0, #118AB2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { text-align: center; color: #a0aec0; margin-bottom: 30px; }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .price-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .price-option:hover, .price-option.selected {
+            border-color: #06D6A0;
+            background: rgba(6, 214, 160, 0.1);
+        }
+        .price-option .qty { font-size: 24px; font-weight: bold; color: #06D6A0; }
+        .price-option .price { font-size: 18px; margin-top: 5px; }
+        .price-option .per-card { font-size: 12px; color: #a0aec0; margin-top: 3px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #a0aec0; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+        }
+        input:focus { outline: none; border-color: #06D6A0; }
+        
+        #card-element {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        #card-errors { color: #FF6B6B; margin-top: 10px; font-size: 14px; }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #06D6A0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error-message {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .success-message h2 { color: #06D6A0; margin-bottom: 15px; }
+        .success-message a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #06D6A0;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="checkout-form">
+            <h1 class="logo">📧 Papir E-Cards</h1>
+            <p class="subtitle">Purchase digital cards to share instantly</p>
+            
+            <div class="error-message" id="config-error">
+                ⚠️ Payment system not configured. Please contact support.
+            </div>
+            
+            <div class="pricing-grid" id="pricing-section" style="display: none;">
+                <div class="price-option selected" data-qty="1" data-price="299">
+                    <div class="qty">1</div>
+                    <div class="price">$2.99</div>
+                    <div class="per-card">$2.99/card</div>
+                </div>
+                <div class="price-option" data-qty="5" data-price="1199">
+                    <div class="qty">5</div>
+                    <div class="price">$11.99</div>
+                    <div class="per-card">$2.40/card</div>
+                </div>
+                <div class="price-option" data-qty="10" data-price="1999">
+                    <div class="qty">10</div>
+                    <div class="price">$19.99</div>
+                    <div class="per-card">$2.00/card</div>
+                </div>
+                <div class="price-option" data-qty="25" data-price="4499">
+                    <div class="qty">25</div>
+                    <div class="price">$44.99</div>
+                    <div class="per-card">$1.80/card</div>
+                </div>
+            </div>
+            
+            <div class="form-group" id="email-section" style="display: none;">
+                <label>Email (for receipt)</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+            </div>
+            
+            <div class="form-group" id="card-section" style="display: none;">
+                <label>Card Information</label>
+                <div id="card-element"></div>
+                <div id="card-errors"></div>
+            </div>
+            
+            <button class="btn" id="submit-btn" style="display: none;">Pay $2.99</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing payment...</p>
+            </div>
+        </div>
+        
+        <div class="success-message" id="success-message">
+            <h2>✅ Payment Successful!</h2>
+            <p>Your E-Cards are ready. You can now create and send them.</p>
+            <p style="margin-top: 10px; color: #a0aec0;">Batch ID: <span id="batch-id"></span></p>
+            <a href="/maker.html">Create Your Cards</a>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = window.location.origin;
+        let stripe, elements, card;
+        let selectedQty = 1;
+        let selectedPrice = 299;
+        
+        // Initialize everything when page loads
+        async function initialize() {
+            try {
+                // Fetch publishable key from backend (SAFEST WAY)
+                const response = await fetch(`${BACKEND_URL}/api/stripe-key`);
+                const data = await response.json();
+                
+                if (!data.success || !data.publishableKey) {
+                    throw new Error('Stripe not configured');
+                }
+                
+                // Initialize Stripe with key from server
+                stripe = Stripe(data.publishableKey);
+                elements = stripe.elements();
+                card = elements.create('card', { 
+                    style: { 
+                        base: { 
+                            color: 'white', 
+                            fontSize: '16px',
+                            '::placeholder': { color: '#a0aec0' }
+                        } 
+                    } 
+                });
+                card.mount('#card-element');
+                
+                // Handle real-time validation
+                card.on('change', (event) => {
+                    const displayError = document.getElementById('card-errors');
+                    displayError.textContent = event.error ? event.error.message : '';
+                });
+                
+                // Show the form
+                document.getElementById('pricing-section').style.display = 'grid';
+                document.getElementById('email-section').style.display = 'block';
+                document.getElementById('card-section').style.display = 'block';
+                document.getElementById('submit-btn').style.display = 'block';
+                
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('config-error').style.display = 'block';
+            }
+        }
+        
+        function setupEventListeners() {
+            // Pricing selection
+            document.querySelectorAll('.price-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.price-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedQty = parseInt(this.dataset.qty);
+                    selectedPrice = parseInt(this.dataset.price);
+                    document.getElementById('submit-btn').textContent = `Pay $${(selectedPrice/100).toFixed(2)}`;
+                });
+            });
+            
+            // Submit payment
+            document.getElementById('submit-btn').addEventListener('click', handleSubmit);
+        }
+        
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            if (!email) {
+                document.getElementById('card-errors').textContent = 'Please enter your email';
+                return;
+            }
+            
+            const btn = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            
+            btn.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                // Create payment intent
+                const response = await fetch(`${BACKEND_URL}/api/create-payment-intent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quantity: selectedQty,
+                        email: email,
+                        batchId: `batch_${Date.now()}`
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) throw new Error(data.error);
+                
+                // Confirm payment with Stripe
+                const result = await stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: {
+                        card: card,
+                        billing_details: { email: email }
+                    }
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                
+                // Success!
+                document.getElementById('checkout-form').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+                document.getElementById('batch-id').textContent = result.paymentIntent.metadata.batch_id;
+                
+                // Store for maker.html
+                localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
+                localStorage.setItem('pendingCardQuantity', selectedQty);
+                
+            } catch (error) {
+                document.getElementById('card-errors').textContent = error.message;
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+        
+        // Start initialization
+        initialize();
+    </script>
+</body>
+</html>

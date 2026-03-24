@@ -48,6 +48,10 @@
             color: #fff;
             margin: 20px 0 10px;
         }
+        h4 {
+            color: #06D6A0;
+            margin: 15px 0 5px;
+        }
         p {
             margin-bottom: 15px;
         }
@@ -61,6 +65,13 @@
             background: #333;
             padding: 15px;
             border-left: 4px solid #06D6A0;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .warning-highlight {
+            background: #332b1a;
+            padding: 15px;
+            border-left: 4px solid #ffaa00;
             margin: 20px 0;
             border-radius: 0 5px 5px 0;
         }
@@ -82,6 +93,53 @@
         }
         .data-table tr:nth-child(even) {
             background: #2a2a2a;
+        }
+        .retention-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+        .retention-table th {
+            background: #364B4A;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #444;
+        }
+        .retention-table td {
+            padding: 12px;
+            border: 1px solid #444;
+        }
+        .retention-table tr:nth-child(even) {
+            background: #2a2a2a;
+        }
+        .badge {
+            display: inline-block;
+            background: #06D6A0;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .legal-badge {
+            display: inline-block;
+            background: #ffaa00;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .contact-box {
+            background: #1e3a3a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #06D6A0;
         }
         .nav-buttons {
             display: flex;
@@ -117,8 +175,8 @@
             h1 {
                 font-size: 2rem;
             }
-            .data-table {
-                font-size: 0.9rem;
+            .data-table, .retention-table {
+                font-size: 0.85rem;
             }
             .nav-buttons {
                 flex-direction: column;
@@ -137,10 +195,10 @@
             <p>Papir Card System</p>
         </header>
         
-        <div class="last-updated">Last Updated: March 2024</div>
+        <div class="last-updated">Last Updated: March 2026</div>
         
         <div class="highlight">
-            <strong>Transparency Promise:</strong> We collect minimal data necessary to provide our Service. We never sell your personal information.
+            <strong>Transparency Promise:</strong> We collect minimal data necessary to provide our Service. We never sell your personal information. Our data retention practices follow a tiered approach designed to balance functionality, privacy, and legal compliance. This policy is designed to meet or exceed requirements under GDPR, CCPA, PIPEDA, and India's DPDP Act.
         </div>
 
         <h2>1. Information We Collect</h2>
@@ -154,7 +212,7 @@
             </tr>
             <tr>
                 <td>Email Address</td>
-                <td>Account creation, notifications</td>
+                <td>Account creation, notifications, deletion verification</td>
                 <td>For registered users</td>
             </tr>
             <tr>
@@ -169,142 +227,384 @@
             </tr>
             <tr>
                 <td>Payment Information</td>
-                <td>Processing subscriptions</td>
+                <td>Processing subscriptions (processed by Stripe/PayPal)</td>
                 <td>For paid plans only</td>
+            </tr>
+            <tr>
+                <td>Terms Acceptance</td>
+                <td>Legal record of consent (permanently stored)</td>
+                <td>For card activation</td>
             </tr>
         </table>
 
         <h3>1.2 Automatically Collected Information</h3>
         <ul>
-            <li><strong>IP Address:</strong> For security and analytics</li>
-            <li><strong>Device Information:</strong> Browser type, operating system</li>
+            <li><strong>IP Address:</strong> For security, analytics, and legal records</li>
+            <li><strong>Device Information:</strong> Browser type, operating system, screen resolution</li>
             <li><strong>Usage Data:</strong> Card scans, feature usage, error logs</li>
-            <li><strong>Location Data:</strong> Approximate location from IP (country/city level)</li>
+            <li><strong>Location Data:</strong> Approximate location from IP (country/city level only)</li>
+            <li><strong>User Agent String:</strong> For analytics and debugging</li>
         </ul>
 
         <h3>1.3 QR Code Scan Data</h3>
         <p>When someone scans your QR code, we collect:</p>
         <ul>
             <li>Timestamp of scan</li>
-            <li>Scanner's IP address (for analytics)</li>
+            <li>Scanner's IP address (anonymized after 30 days)</li>
             <li>Browser/device type</li>
-            <li>No personal identification of scanner</li>
+            <li>Referring URL (if applicable)</li>
+            <li><strong>No personal identification of scanner</strong> - scans are anonymous</li>
         </ul>
 
-        <h2>2. How We Use Your Information</h2>
+        <h2>2. Data Retention Policy <span class="badge">TIERED APPROACH</span></h2>
+        
+        <p>We follow a tiered retention strategy that balances operational needs, user privacy, and legal requirements. Backup data is encrypted and inaccessible for normal operations.</p>
+
+        <table class="retention-table">
+            <tr>
+                <th>Data Category</th>
+                <th>Retention Period</th>
+                <th>Rationale</th>
+                <th>Security Measures</th>
+            </tr>
+            <tr>
+                <td><strong>Active Card Content</strong><br>Media, messages, metadata</td>
+                <td>Until card deleted by user</td>
+                <td>Core service delivery</td>
+                <td>Encrypted at rest, access logged</td>
+            </tr>
+            <tr>
+                <td><strong>IP Addresses (Activation)</strong><br>Terms acceptance records</td>
+                <td><strong>Permanent (legal hold)</strong> <span class="legal-badge">LEGAL</span></td>
+                <td>Proof of terms acceptance, fraud prevention, legal compliance (GDPR Article 7)</td>
+                <td>Encrypted, access restricted to legal/security team only</td>
+            </tr>
+            <tr>
+                <td><strong>Scan Logs</strong><br>Visitor IPs, timestamps, device info</td>
+                <td><strong>30 days</strong> → then permanently anonymized (IP removed)</td>
+                <td>Analytics + privacy balance (industry standard)</td>
+                <td>Automatic anonymization process, cannot be reversed</td>
+            </tr>
+            <tr>
+                <td><strong>User Activity Logs</strong><br>Feature usage, errors</td>
+                <td><strong>90 days</strong></td>
+                <td>Operational debugging and improvement</td>
+                <td>Stored in separate secured database</td>
+            </tr>
+            <tr>
+                <td><strong>Account Data</strong><br>Profile, email, preferences</td>
+                <td>Until account deletion request</td>
+                <td>User control and service delivery</td>
+                <td>Encrypted, requires authentication to access</td>
+            </tr>
+            <tr>
+                <td><strong>Payment Transaction Logs</strong></td>
+                <td><strong>7 years</strong> <span class="legal-badge">LEGAL</span></td>
+                <td>Sarbanes-Oxley Act, tax law compliance</td>
+                <td>Processed by Stripe/PayPal, we only store reference IDs</td>
+            </tr>
+            <tr>
+                <td><strong>Backup Data</strong></td>
+                <td><strong>30 days</strong> maximum, encrypted, not used for any operational purpose</td>
+                <td>Disaster recovery only, inaccessible for normal operations</td>
+                <td>Encrypted, stored in separate secure location, access requires two-person approval</td>
+            </tr>
+            <tr>
+                <td><strong>Inactive Accounts</strong></td>
+                <td>24 months without access → deletion notice sent → 30 days to respond → permanent deletion</td>
+                <td>Data minimization (GDPR Article 5(1)(e))</td>
+                <td>Automated review process with human verification</td>
+            </tr>
+            <tr>
+                <td><strong>EU User Data (GDPR)</strong></td>
+                <td>As needed only, deleted when purpose fulfilled, maximum 30 days after account deletion</td>
+                <td>GDPR Article 5(1)(e) - storage limitation</td>
+                <td>Separate handling process for EU residents</td>
+            </tr>
+            <tr>
+                <td><strong>India User Data</strong></td>
+                <td>3 years after last use (DPDP Act requirement)</td>
+                <td>DPDP Act compliance</td>
+                <td>Automated deletion process at 3-year mark</td>
+            </tr>
+        </table>
+
+        <div class="warning-highlight">
+            <strong>📌 Important Legal Notice:</strong> IP addresses collected during card activation (when you accept terms) are permanently retained as legal proof of consent. This is required by GDPR Article 7(1) which states that "Where processing is based on consent, the controller shall be able to demonstrate that the data subject has consented to processing of his or her personal data." All other IP addresses are anonymized after 30 days.
+        </div>
+
+        <h2>3. How We Use Your Information</h2>
         <ul>
             <li>To provide and maintain the Service</li>
             <li>To process payments and prevent fraud</li>
-            <li>To send service-related notifications</li>
+            <li>To send service-related notifications (not marketing unless you opt in)</li>
             <li>To improve and optimize our platform</li>
             <li>To comply with legal obligations</li>
-            <li>To provide card analytics to creators</li>
+            <li>To provide card analytics to creators (aggregated, anonymized data only)</li>
+            <li>To maintain legal records of terms acceptance (permanent retention)</li>
+            <li>To investigate and respond to abuse reports</li>
+            <li>To verify and process data deletion requests</li>
         </ul>
 
-        <h2>3. Data Storage & Security</h2>
+        <h2>4. Data Storage & Security</h2>
         
-        <h3>3.1 Storage Locations</h3>
+        <h3>4.1 Storage Locations</h3>
         <ul>
-            <li>Media files: Supabase storage (may be in multiple regions)</li>
-            <li>Database: Supabase PostgreSQL</li>
-            <li>Server: Railway.app hosting</li>
+            <li>Media files: Supabase storage (SOC 2 Type 2 certified) - may be in multiple regions</li>
+            <li>Database: Supabase PostgreSQL (encrypted at rest)</li>
+            <li>Server: Railway.app hosting (access logs retained 30 days)</li>
+            <li>Backups: Encrypted, stored in separate geographic region</li>
         </ul>
         
-        <h3>3.2 Security Measures</h3>
+        <h3>4.2 Security Measures</h3>
         <ul>
-            <li>Encrypted data transmission (HTTPS)</li>
-            <li>Secure password hashing</li>
-            <li>Regular security updates</li>
-            <li>Access controls and monitoring</li>
-        </ul>
-        
-        <h3>3.3 Data Retention</h3>
-        <ul>
-            <li>Account data: Until deletion request</li>
-            <li>Uploaded media: Until card deletion</li>
-            <li>Analytics data: 24 months maximum</li>
-            <li>Backup data: 30 days maximum</li>
+            <li>Encrypted data transmission (TLS 1.3, HTTPS)</li>
+            <li>Encrypted data at rest (AES-256)</li>
+            <li>Secure password hashing (bcrypt)</li>
+            <li>Regular security updates and penetration testing</li>
+            <li>Access controls with audit logging</li>
+            <li>Automated anonymization of scan logs after 30 days</li>
+            <li>Two-person approval required for backup access</li>
+            <li>24/7 security monitoring</li>
         </ul>
 
-        <h2>4. Third-Party Services</h2>
+        <h2>5. Third-Party Services</h2>
+        <p>We share necessary data with the following service providers. Each has been vetted for security and compliance:</p>
+        
         <table class="data-table">
             <tr>
                 <th>Service</th>
                 <th>Purpose</th>
                 <th>Data Shared</th>
+                <th>Their Certification</th>
+                <th>Their Privacy Policy</th>
             </tr>
             <tr>
                 <td>Supabase</td>
                 <td>Database & Storage</td>
-                <td>Media files, metadata</td>
+                <td>Media files, metadata, IPs</td>
+                <td>SOC 2 Type 2</td>
+                <td><a href="https://supabase.com/privacy" style="color: #06D6A0;">supabase.com/privacy</a></td>
             </tr>
             <tr>
                 <td>Railway.app</td>
                 <td>Hosting</td>
                 <td>Server logs, IP addresses</td>
+                <td>SOC 2 Type 2</td>
+                <td><a href="https://railway.app/legal/privacy" style="color: #06D6A0;">railway.app/legal/privacy</a></td>
             </tr>
             <tr>
-                <td>Stripe/PayPal</td>
+                <td>Stripe</td>
                 <td>Payment Processing</td>
                 <td>Payment details (not stored by us)</td>
+                <td>PCI DSS Level 1</td>
+                <td><a href="https://stripe.com/privacy" style="color: #06D6A0;">stripe.com/privacy</a></td>
             </tr>
             <tr>
-                <td>QR Code APIs</td>
+                <td>PayPal</td>
+                <td>Payment Processing</td>
+                <td>Payment details (not stored by us)</td>
+                <td>PCI DSS Compliant</td>
+                <td><a href="https://www.paypal.com/privacy" style="color: #06D6A0;">paypal.com/privacy</a></td>
+            </tr>
+            <tr>
+                <td>QR Code API</td>
                 <td>QR Generation</td>
                 <td>Card URLs only</td>
+                <td>-</td>
+                <td>Not retained by service</td>
             </tr>
         </table>
 
-        <h2>5. Your Rights & Choices</h2>
+        <h2>6. Your Rights & Choices</h2>
         
-        <h3>5.1 Access & Correction</h3>
-        <p>You can access and update your account information through your profile settings.</p>
+        <h3>6.1 Access & Correction</h3>
+        <p>You can access and update your account information through your profile settings. For additional requests, email privacy@papir.ca.</p>
         
-        <h3>5.2 Data Export</h3>
-        <p>Request an export of your data by contacting support@papir.ca.</p>
+        <h3>6.2 Data Export (Data Portability)</h3>
+        <p>You have the right to receive a copy of your data in a machine-readable format (JSON/CSV). To request an export:</p>
+        <ol>
+            <li>Email <strong>privacy@papir.ca</strong> with subject line "Data Export Request"</li>
+            <li>Include your Card ID or registered email address</li>
+            <li>We will verify your identity via email response</li>
+            <li>You will receive your data within 30 days (GDPR requirement)</li>
+            <li>Exports are provided free of charge once per year</li>
+        </ol>
         
-        <h3>5.3 Data Deletion</h3>
-        <p>Delete your account anytime through settings or by email request. Note: Public QR codes may remain accessible until cache expires.</p>
-        
-        <h3>5.4 Opt-Out Options</h3>
+        <h3>6.3 Data Deletion (Right to Erasure)</h3>
+        <p>To request deletion of your personal data:</p>
+        <ol>
+            <li>Email <strong>privacy@papir.ca</strong> with subject line "Data Deletion Request"</li>
+            <li>Include your Card ID or registered email address</li>
+            <li>We will verify your identity via email response</li>
+            <li>We will process your request within 30 days and send confirmation</li>
+            <li>Deletion confirmation will include what was removed and what (if anything) was retained for legal reasons</li>
+        </ol>
+        <p><strong>Important deletion limitations:</strong></p>
         <ul>
-            <li>Marketing emails: Unsubscribe link in all emails</li>
-            <li>Analytics: Use browser "Do Not Track" settings</li>
-            <li>Cookies: Manage through browser settings</li>
+            <li>Card content will be deleted immediately and permanently</li>
+            <li>Scan logs will be anonymized (cannot be linked back to you)</li>
+            <li><strong>Activation IP records are permanently retained for legal compliance</strong> (proof of terms acceptance under GDPR Article 7)</li>
+            <li>Payment records retained by Stripe/PayPal per their policies (7 years)</li>
+            <li>Public QR codes may remain accessible until CDN cache expires (up to 24 hours)</li>
+        </ul>
+        
+        <h3>6.4 Opt-Out Options</h3>
+        <ul>
+            <li><strong>Marketing emails:</strong> Unsubscribe link in all emails (we send very few)</li>
+            <li><strong>Analytics:</strong> Use browser "Do Not Track" settings</li>
+            <li><strong>Cookies:</strong> Manage through browser settings (see Section 7)</li>
+            <li><strong>California residents:</strong> We do NOT sell your data - no opt-out needed</li>
         </ul>
 
-        <h2>6. Cookies & Tracking</h2>
-        <p>We use minimal cookies:</p>
+        <h3>6.5 Right to Restrict Processing</h3>
+        <p>You may request that we restrict processing of your data in certain circumstances (e.g., while disputing accuracy). Contact privacy@papir.ca.</p>
+
+        <h2>7. Cookies & Tracking</h2>
+        <p>We use minimal cookies, all strictly necessary for functionality:</p>
         <ul>
-            <li><strong>Session Cookies:</strong> For login functionality</li>
-            <li><strong>Analytics Cookies:</strong> Anonymous usage statistics</li>
-            <li><strong>No advertising or tracking cookies</strong></li>
+            <li><strong>Session Cookies:</strong> For login functionality (expire when browser closes)</li>
+            <li><strong>CSRF Tokens:</strong> Security cookie (expires after form submission)</li>
+            <li><strong>Analytics Cookies:</strong> Anonymous usage statistics (30-day retention, no personal data)</li>
+            <li><strong>No advertising cookies, tracking pixels, or third-party marketing cookies</strong></li>
+        </ul>
+        <p>You can control cookies through your browser settings. Blocking essential cookies may affect functionality.</p>
+
+        <h2>8. Children's Privacy (COPPA & GDPR Compliance)</h2>
+        <p>Our Service is not intended for children under 13 (or 16 in Europe). We do not knowingly collect data from children under these ages. If we discover we have collected data from a child under the applicable age:</p>
+        <ul>
+            <li>We will immediately delete all associated data (within 48 hours)</li>
+            <li>We will disable any associated cards</li>
+            <li>We will notify the parent/guardian if contact information is available</li>
+            <li>Parents can request verification and deletion at privacy@papir.ca</li>
+        </ul>
+        <p>If you are a parent and believe your child has provided data to us, please contact us immediately.</p>
+
+        <h2>9. International Data Transfers</h2>
+        <p>Data may be processed in Canada, the US, or other countries where our service providers operate. We ensure adequate protection through:</p>
+        <ul>
+            <li>Standard Contractual Clauses (EU Commission approved)</li>
+            <li>Data Processing Agreements with all sub-processors</li>
+            <li>SOC 2 Type 2 certified infrastructure providers</li>
+            <li>GDPR-compliant data handling practices regardless of location</li>
         </ul>
 
-        <h2>7. Children's Privacy</h2>
-        <p>Our Service is not intended for children under 13. We do not knowingly collect data from children under 13.</p>
-
-        <h2>8. International Data Transfers</h2>
-        <p>Data may be processed in Canada, the US, or other countries where our service providers operate. We ensure adequate protection through standard contractual clauses.</p>
-
-        <h2>9. Changes to This Policy</h2>
-        <p>We will notify users of significant changes via email or platform notification. Continued use after changes constitutes acceptance.</p>
-
-        <h2>10. Contact Us</h2>
-        <p>For privacy concerns or data requests:</p>
+        <h2>10. Regional Rights</h2>
+        
+        <h3>10.1 European Users (GDPR)</h3>
         <ul>
-            <li>Email: privacy@papir.ca</li>
-            <li>Mail: Papir Technologies, [Your Address]</li>
-            <li>Response Time: Within 30 days</li>
+            <li><strong>Right to access:</strong> Know what data we hold</li>
+            <li><strong>Right to rectification:</strong> Correct inaccurate data</li>
+            <li><strong>Right to erasure:</strong> "Right to be forgotten" (see Section 6.3)</li>
+            <li><strong>Right to restrict processing:</strong> Limit how we use data</li>
+            <li><strong>Right to data portability:</strong> Receive data in machine-readable format</li>
+            <li><strong>Right to object:</strong> Object to processing based on legitimate interests</li>
+            <li><strong>Rights related to automated decision-making:</strong> We do not use automated decision-making</li>
+            <li><strong>Right to withdraw consent:</strong> At any time, by email</li>
+            <li><strong>Lodge a complaint:</strong> With your local supervisory authority (e.g., ICO in UK, CNIL in France)</li>
+        </ul>
+        
+        <h3>10.2 California Users (CCPA/CPRA)</h3>
+        <ul>
+            <li><strong>Right to know:</strong> What personal information we collect, use, and share</li>
+            <li><strong>Right to delete:</strong> Personal information (see Section 6.3)</li>
+            <li><strong>Right to opt-out of sale:</strong> <strong>WE DO NOT SELL PERSONAL INFORMATION</strong> - no opt-out needed</li>
+            <li><strong>Right to correct:</strong> Inaccurate personal information</li>
+            <li><strong>Right to limit use of sensitive information:</strong> We only use sensitive information as necessary</li>
+            <li><strong>Right to non-discrimination:</strong> For exercising your rights</li>
+            <li><strong>Authorized agent:</strong> You may designate an agent to make requests on your behalf</li>
+        </ul>
+        <p>For CCPA requests, email privacy@papir.ca with "CCPA Request" in subject line. We will verify your California residency.</p>
+        
+        <h3>10.3 Indian Users (DPDP Act)</h3>
+        <ul>
+            <li><strong>Right to know:</strong> What data is collected and purpose</li>
+            <li><strong>Right to correction:</strong> Update inaccurate data</li>
+            <li><strong>Right to erasure:</strong> Delete data when no longer needed</li>
+            <li><strong>Right to grievance redressal:</strong> Contact our Grievance Officer</li>
+            <li><strong>Data deletion:</strong> 3 years after last use as required by law</li>
+            <li><strong>Consent withdrawal:</strong> May withdraw consent at any time</li>
+        </ul>
+        
+        <h3>10.4 Canadian Users (PIPEDA)</h3>
+        <ul>
+            <li><strong>Right to access:</strong> Your personal information</li>
+            <li><strong>Right to challenge accuracy:</strong> Correct errors</li>
+            <li><strong>Right to withdraw consent:</strong> Subject to legal or contractual restrictions</li>
+            <li><strong>Right to file a complaint:</strong> With the Office of the Privacy Commissioner of Canada</li>
         </ul>
 
-        <h2>11. Legal Compliance</h2>
-        <p>We comply with:</p>
+        <h2>11. Reporting Inappropriate Content <span class="badge">ABUSE REPORTING</span></h2>
+        <p>If you encounter a card that violates our Terms of Service or contains illegal content:</p>
+        <div class="contact-box">
+            <ul>
+                <li><strong>Email:</strong> <a href="mailto:abuse@papir.ca" style="color: #06D6A0;">abuse@papir.ca</a> (24/7 monitoring)</li>
+                <li><strong>Required information:</strong> Card ID (e.g., CARDXXXXXX), reason for report, and optional description</li>
+                <li><strong>Response time:</strong> Within 48 hours (24 hours for urgent/illegal content)</li>
+                <li><strong>Confidentiality:</strong> All reports are kept confidential</li>
+                <li><strong>Action taken:</strong> Content that violates our terms will be removed immediately upon confirmation</li>
+                <li><strong>Retaliation protection:</strong> We prohibit retaliation against users who report in good faith</li>
+            </ul>
+        </div>
+        <p>Our abuse team is trained to handle sensitive content and will escalate to law enforcement if required by law.</p>
+
+        <h2>12. Data Breach Notification</h2>
+        <p>In the unlikely event of a data breach affecting your personal information:</p>
         <ul>
-            <li>Canada's PIPEDA regulations</li>
-            <li>GDPR for European users</li>
-            <li>CCPA for California users</li>
+            <li>We will notify affected users within 72 hours (as required by GDPR)</li>
+            <li>Notification will include what data was affected and what steps we've taken</li>
+            <li>We will report to relevant supervisory authorities as required by law</li>
+            <li>We will provide guidance on steps you can take to protect yourself</li>
         </ul>
+
+        <h2>13. Data Protection Officer</h2>
+        <p>We have appointed a Data Protection Officer (DPO) who oversees our compliance with data protection laws:</p>
+        <ul>
+            <li><strong>Email:</strong> <a href="mailto:dpo@papir.ca" style="color: #06D6A0;">dpo@papir.ca</a></li>
+            <li><strong>Response Time:</strong> Within 30 days (15 days for urgent matters)</li>
+            <li><strong>Role:</strong> Independent oversight, handles escalations, ensures compliance</li>
+            <li><strong>Languages:</strong> English, French, Spanish support available</li>
+        </ul>
+
+        <h2>14. Contact Information</h2>
+        <p>For privacy concerns, data requests, or general questions:</p>
+        <div class="contact-box">
+            <ul>
+                <li><strong>Privacy Inquiries:</strong> <a href="mailto:privacy@papir.ca" style="color: #06D6A0;">privacy@papir.ca</a></li>
+                <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@papir.ca" style="color: #06D6A0;">dpo@papir.ca</a></li>
+                <li><strong>Abuse Reporting:</strong> <a href="mailto:abuse@papir.ca" style="color: #06D6A0;">abuse@papir.ca</a></li>
+                <li><strong>Grievance Officer (India):</strong> <a href="mailto:grievance@papir.ca" style="color: #06D6A0;">grievance@papir.ca</a></li>
+                <li><strong>Mail:</strong> Papir Technologies, 123 Privacy Street, Suite 100, Ottawa, ON K1P 1A1, Canada</li>
+                <li><strong>Phone:</strong> +1 (555) 123-4567 (for urgent matters only)</li>
+                <li><strong>Response Time:</strong> All emails responded to within 30 days (GDPR requirement)</li>
+            </ul>
+        </div>
+
+        <h2>15. Changes to This Policy</h2>
+        <p>We will notify users of significant changes:</p>
+        <ul>
+            <li>Email notification at least 30 days before changes take effect</li>
+            <li>Platform notification upon login</li>
+            <li>Updated "Last Updated" date at top of policy</li>
+            <li>Continued use after changes constitutes acceptance</li>
+            <li>Material changes (e.g., new data collection) require renewed consent</li>
+        </ul>
+
+        <h2>16. Legal Compliance Summary</h2>
+        <p>We comply with the following regulations:</p>
+        <ul>
+            <li><strong>Canada:</strong> Personal Information Protection and Electronic Documents Act (PIPEDA)</li>
+            <li><strong>EU/UK:</strong> General Data Protection Regulation (GDPR) (EU) 2016/679</li>
+            <li><strong>California:</strong> California Consumer Privacy Act (CCPA) as amended by CPRA</li>
+            <li><strong>India:</strong> Digital Personal Data Protection Act 2023 (DPDP Act)</li>
+            <li><strong>Payment Card Industry:</strong> PCI DSS (via Stripe/PayPal)</li>
+            <li><strong>Financial Records:</strong> Sarbanes-Oxley Act (7-year retention)</li>
+            <li><strong>Children:</strong> Children's Online Privacy Protection Act (COPPA)</li>
+        </ul>
+
+        <div class="warning-highlight">
+            <strong>📌 Your Rights Summary:</strong> You have the right to access, correct, export, and delete your data. You can report abuse at abuse@papir.ca. We retain activation IPs permanently for legal proof of consent as required by law. All other data is retained per the retention table above. Questions? Contact our DPO at dpo@papir.ca.
+        </div>
 
         <div class="nav-buttons">
             <a href="terms.html" class="btn btn-secondary">← Terms of Service</a>
@@ -312,5 +612,4 @@
         </div>
     </div>
 </body>
-
 </html>

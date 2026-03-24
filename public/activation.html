@@ -42,14 +42,18 @@
         });
         
         activateBtn.addEventListener('click', async function() {
+            console.log('🔵 Activate button clicked!');
+            console.log('🔵 Card ID:', cardId);
             try {
+                console.log('🟡 About to fetch...');
                 const response = await fetch('/api/activate-card', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ card_id: cardId })
                 });
-                
+                console.log('🟢 Fetch completed! Status:', response.status);
                 const result = await response.json();
+                console.log('📦 Response data:', result);
                 
                 if (result.success) {
                     messageDiv.innerHTML = '<p style="color: green;">✅ Card activated! Redirecting...</p>';
@@ -65,4 +69,5 @@
         });
     </script>
 </body>
+
 </html>
