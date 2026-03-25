@@ -6,6 +6,11 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// ============================================
+// FETCH POLYFILL (for Node < 18 compatibility)
+// ============================================
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +27,8 @@ app.use(helmet({
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com",
         "https://unpkg.com",
+        "https://js.stripe.com",
+        "https://*.stripe.com",
         "'unsafe-inline'",
         "'unsafe-eval'"
       ],
@@ -49,7 +56,8 @@ app.use(helmet({
         "https://api.qrserver.com",
         "https://ipapi.co",
         "http://ip-api.com",
-        "https://api.ipify.org"
+        "https://api.ipify.org",
+        "https://api.stripe.com"
       ],
       fontSrc: [
         "'self'",
@@ -58,7 +66,7 @@ app.use(helmet({
       ],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", "blob:", "https://elmhkhvryjzljxskbfps.supabase.co"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       workerSrc: ["'self'", "blob:"],
       childSrc: ["'self'", "blob:"],
       formAction: ["'self'"],
@@ -79,6 +87,77 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// ============================================
+// 🎫 STRIPE - Optional, won't crash if missing
+// ============================================
+let stripe = null;
+try {
+  // Try to require stripe (if installed)
+  const stripeModule = require('stripe');
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = stripeModule(process.env.STRIPE_SECRET_KEY);
+    console.log('✅ Stripe initialized');
+  } else {
+    console.log('⚠️ Stripe secret key not set - payments disabled');
+  }
+} catch (err) {
+  // Stripe module not installed or other error
+  console.log('⚠️ Stripe module not installed - payments disabled');
+}
+
+// Webhook handler - Gracefully handles missing secret and missing module
+app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  if (!stripe) return res.status(503).send('Stripe not configured');
+  
+  // Skip if webhook secret not set (safe for testing)
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.log('⚠️ Webhook: STRIPE_WEBHOOK_SECRET not set - skipping');
+    return res.status(503).json({ error: 'Webhook secret not configured - safe to ignore for testing' });
+  }
+  
+  const sig = req.headers['stripe-signature'];
+  let event;
+  
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  
+  // Handle successful payment
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object;
+    const { quantity, batch_id } = paymentIntent.metadata;
+    
+    await supabaseAdmin.from('payments').update({ 
+      status: 'completed', 
+      completed_at: new Date().toISOString() 
+    }).eq('stripe_payment_intent_id', paymentIntent.id);
+    
+    const { data: existingBatch } = await supabaseAdmin
+      .from('batches')
+      .select('batch_id')
+      .eq('batch_id', batch_id)
+      .maybeSingle();
+    
+    if (!existingBatch) {
+      await supabaseAdmin.from('batches').insert({
+        batch_id: batch_id,
+        total_cards_purchased: parseInt(quantity) || 1,
+        cards_created: 0,
+        max_cards_allowed: parseInt(quantity) || 1,
+        created_at: new Date().toISOString()
+      });
+    }
+  }
+  
+  res.json({received: true});
+});
+
+// ============================================
+// Standard JSON middleware (after webhook)
+// ============================================
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
@@ -180,7 +259,12 @@ app.get('/api/health', (req, res) => {
       exportAll: `GET ${baseUrl}/api/admin/export-all`,
       bulkDelete: `POST ${baseUrl}/api/admin/bulk-delete`,
       bulkActivate: `POST ${baseUrl}/api/admin/bulk-activate`,
-      cardsAllDetails: `GET ${baseUrl}/api/admin/cards-all-details`
+      cardsAllDetails: `GET ${baseUrl}/api/admin/cards-all-details`,
+      sendECard: `POST ${baseUrl}/api/cards/:id/send`,
+      activatePhysicalCard: `POST ${baseUrl}/api/physical-cards/:id/activate`,
+      stripeKey: `GET ${baseUrl}/api/stripe-key`,
+      createPaymentIntent: `POST ${baseUrl}/api/create-payment-intent`,
+      adminPayments: `GET ${baseUrl}/api/admin/payments`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -340,18 +424,28 @@ async function getGeolocationFromIp(ip) {
   }
 }
 
-// 🎨 Save a Magic Card - UPDATED with batch fields and activation deadline
+// 🎨 Save a Magic Card - UPDATED for E-Cards and Dormant Physical Cards
 app.post('/api/cards', async (req, res) => {
   try {
-    const { card_id, message_type, message_text, media_url, file_name, file_size, file_type, batch_id, batch_order } = req.body;
+    const { 
+      card_id, 
+      message_type, 
+      message_text, 
+      media_url, 
+      file_name, 
+      file_size, 
+      file_type, 
+      batch_id, 
+      batch_order,
+      card_type = 'physical',  // ← NEW: 'ecard' or 'physical'
+      delivery_method,         // ← NEW: for e-cards
+      recipient_contact        // ← NEW: for e-cards
+    } = req.body;
     
-    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}`);
-    console.log('🔍 BATCH_ID RECEIVED:', batch_id);
+    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}, Card Type: ${card_type}`);
     
-    // Get clean client IP address (FIXED)
+    // Get clean client IP address
     const clientIp = getClientIp(req);
-    
-    console.log(`📝 Client IP: ${clientIp}`);
     
     // Validation
     if (!card_id || !message_type) {
@@ -372,7 +466,7 @@ app.post('/api/cards', async (req, res) => {
     // Check if card exists
     const { data: existingCard } = await supabaseAdmin
       .from('cards')
-      .select('card_id')
+      .select('card_id, card_type')
       .eq('card_id', card_id)
       .maybeSingle();
     
@@ -381,12 +475,6 @@ app.post('/api/cards', async (req, res) => {
     if (existingCard) {
       // UPDATE existing card
       console.log(`🔄 Updating existing card: ${card_id}`);
-      
-      const { data: cardCheck } = await supabaseAdmin
-        .from('cards')
-        .select('created_by_ip')
-        .eq('card_id', card_id)
-        .single();
       
       const updateData = {
         message_type: message_type.trim(),
@@ -403,23 +491,11 @@ app.post('/api/cards', async (req, res) => {
       if (batch_id) updateData.batch_id = batch_id;
       if (batch_order) updateData.batch_order = batch_order;
       
-      // If card is pending and has no deadline, set one
-      const { data: currentCard } = await supabaseAdmin
-        .from('cards')
-        .select('status, activation_deadline')
-        .eq('card_id', card_id)
-        .single();
-      
-      if (currentCard && currentCard.status === 'pending' && !currentCard.activation_deadline) {
-        const deadline = new Date();
-        deadline.setFullYear(deadline.getFullYear() + 1);
-        updateData.activation_deadline = deadline.toISOString();
-        console.log(`📅 Setting missing deadline for pending card ${card_id}`);
-      }
-      
-      if (!cardCheck?.created_by_ip) {
-        console.log(`📝 Setting created_by_ip for first time: ${clientIp}`);
-        updateData.created_by_ip = clientIp;
+      // Add e-card fields if this is an e-card
+      if (existingCard.card_type === 'ecard' || card_type === 'ecard') {
+        updateData.card_type = 'ecard';
+        if (delivery_method) updateData.delivery_method = delivery_method;
+        if (recipient_contact) updateData.recipient_contact = recipient_contact;
       }
       
       const { data, error } = await supabaseAdmin
@@ -434,9 +510,9 @@ app.post('/api/cards', async (req, res) => {
     
     } else {
       // INSERT new card
-      console.log(`🆕 Creating new card: ${card_id}`);
+      console.log(`🆕 Creating new ${card_type} card: ${card_id}`);
       
-      // Set activation deadline (1 year from now)
+      // Set activation deadline (1 year from now) - ONLY for physical cards
       const deadline = new Date();
       deadline.setFullYear(deadline.getFullYear() + 1);
       
@@ -449,12 +525,24 @@ app.post('/api/cards', async (req, res) => {
         file_size: file_size || null,
         file_type: file_type || null,
         scan_count: 0,
-        status: 'pending',
+        
+        // ← KEY LOGIC: E-cards are immediately active, physical cards are dormant (pending)
+        status: card_type === 'ecard' ? 'active' : 'pending',
+        card_type: card_type,  // ← NEW
+        
+        // Physical card fields (dormant by default)
+        physical_card_status: card_type === 'physical' ? 'dormant' : null,
+        activation_deadline: card_type === 'physical' ? deadline.toISOString() : null,
+        
+        // E-card fields
+        delivery_method: card_type === 'ecard' ? delivery_method : null,
+        recipient_contact: card_type === 'ecard' ? recipient_contact : null,
+        delivery_status: card_type === 'ecard' ? 'pending' : null,
+        
         created_by_ip: clientIp,
         updated_by_ip: clientIp,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        activation_deadline: deadline.toISOString()
+        updated_at: new Date().toISOString()
       };
       
       // Add batch fields if provided
@@ -471,14 +559,14 @@ app.post('/api/cards', async (req, res) => {
       result = data;
     }
     
-    console.log(`✅ Card saved: ${card_id}`);
+    console.log(`✅ Card saved: ${card_id} (Type: ${result.card_type})`);
     
     const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
     
     res.status(201).json({ 
       success: true, 
-      message: 'Card saved successfully!',
+      message: card_type === 'ecard' ? 'E-Card saved and ready to send!' : 'Physical card saved (dormant until manufactured)',
       card: result,
       urls: {
         viewer: viewerUrl,
@@ -1035,6 +1123,29 @@ app.post('/api/increment-scan', async (req, res) => {
   } catch (error) {
     console.error('💥 Increment error:', error);
     res.json({ success: false, error: error.message });
+  }
+});
+
+// 📊 Track E-Card Opens (NEW)
+app.post('/api/cards/:card_id/track', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    const { event } = req.body;
+    
+    if (event === 'ecard_opened') {
+      await supabaseAdmin
+        .from('cards')
+        .update({ 
+          opened_at: new Date().toISOString(),
+          delivery_status: 'opened'
+        })
+        .eq('card_id', card_id);
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Tracking error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -2223,6 +2334,294 @@ app.post('/api/admin/expire-cards', async (req, res) => {
   }
 });
 
+// ============================================
+// NEW E-CARD ENDPOINTS
+// ============================================
+
+// 📧 Send E-Card (SMS, Email, WhatsApp, or Link)
+app.post('/api/cards/:card_id/send', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    const { method, contact } = req.body; // method: 'sms', 'email', 'whatsapp', 'link'
+    
+    console.log(`📧 Sending e-card ${card_id} via ${method} to ${contact}`);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Get card details
+    const { data: card, error } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .eq('card_id', card_id)
+      .single();
+    
+    if (error || !card) {
+      return res.status(404).json({ success: false, error: 'Card not found' });
+    }
+    
+    // Verify it's an e-card
+    if (card.card_type !== 'ecard') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Not an e-card',
+        message: 'This feature is only for digital e-cards. Physical cards cannot be sent digitally.'
+      });
+    }
+    
+    // Generate viewer URL with e-card indicator
+    const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}&type=ecard`;
+    
+    // Log the delivery attempt
+    const { error: deliveryError } = await supabaseAdmin
+      .from('card_deliveries')
+      .insert({
+        card_id: card_id,
+        method: method,
+        recipient: contact || 'N/A (link)',
+        sent_at: new Date().toISOString(),
+        status: 'sent'
+      });
+    
+    if (deliveryError) {
+      console.error('❌ Failed to log delivery:', deliveryError);
+    }
+    
+    // Update card delivery status
+    const { error: updateError } = await supabaseAdmin
+      .from('cards')
+      .update({
+        delivery_status: method === 'link' ? 'pending' : 'sent',
+        delivered_at: new Date().toISOString(),
+        recipient_contact: contact || null,
+        delivery_method: method
+      })
+      .eq('card_id', card_id);
+    
+    if (updateError) {
+      console.error('❌ Failed to update card:', updateError);
+    }
+    
+    // Generate QR code for sharing
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+    
+    // Prepare response based on method
+    let response = {
+      success: true,
+      card_id: card_id,
+      viewer_url: viewerUrl,
+      qr_code_url: qrCodeUrl
+    };
+    
+    if (method === 'link') {
+      response.shareable_link = viewerUrl;
+      response.message = 'Copy this link and share it with the recipient';
+    } else {
+      response.message = `E-card queued for ${method} delivery to ${contact}`;
+      // TODO: Integrate with Twilio (SMS), SendGrid (Email), or WhatsApp Business API here
+      // For now, it just logs the request. You'll add actual sending logic later.
+    }
+    
+    res.json(response);
+    
+  } catch (error) {
+    console.error('💥 Send e-card error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 🎴 ACTIVATE Physical Card for Manufacturing (Dormant → Active)
+// This endpoint is for FUTURE USE when you launch physical cards
+app.post('/api/physical-cards/:card_id/activate', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    const { manufacturing_batch_id, notes } = req.body;
+    
+    console.log(`🎴 Activating physical card for manufacturing: ${card_id}`);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Get the dormant card
+    const { data: card, error } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .eq('card_id', card_id)
+      .eq('card_type', 'physical')
+      .single();
+    
+    if (error || !card) {
+      return res.status(404).json({ success: false, error: 'Physical card not found' });
+    }
+    
+    // Check if already activated
+    if (card.physical_card_status === 'activated') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Already activated',
+        message: 'This physical card was already activated for manufacturing'
+      });
+    }
+    
+    // Activate the physical card
+    const { data: updatedCard, error: updateError } = await supabaseAdmin
+      .from('cards')
+      .update({
+        physical_card_status: 'activated',
+        physical_activation_date: new Date().toISOString(),
+        status: 'active', // Now it can be scanned via NFC
+        updated_at: new Date().toISOString()
+      })
+      .eq('card_id', card_id)
+      .select()
+      .single();
+    
+    if (updateError) throw updateError;
+    
+    // Log the activation
+    await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: card.batch_id || 'manufacturing',
+        event_type: 'physical_card_activated',
+        quantity: 1,
+        card_id: card_id,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          manufacturing_batch_id: manufacturing_batch_id,
+          notes: notes,
+          previous_status: 'dormant'
+        }
+      });
+    
+    res.json({
+      success: true,
+      message: 'Physical card activated for manufacturing',
+      card: updatedCard,
+      viewer_url: `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`,
+      qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`)}&format=png&margin=10`
+    });
+    
+  } catch (error) {
+    console.error('💥 Physical card activation error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// STRIPE PAYMENT ENDPOINTS
+// ============================================
+
+// 🔑 Serve publishable key securely (fetched by checkout page)
+app.get('/api/stripe-key', (req, res) => {
+  if (!process.env.STRIPE_PUBLISHABLE_KEY) {
+    return res.status(503).json({ 
+      success: false, 
+      error: 'Stripe not configured' 
+    });
+  }
+  
+  res.json({ 
+    success: true,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY 
+  });
+});
+
+// 💳 Create payment intent
+app.post('/api/create-payment-intent', async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ 
+      success: false, 
+      error: 'Stripe not configured' 
+    });
+  }
+  
+  try {
+    const { quantity, email, batchId } = req.body;
+    
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid quantity' 
+      });
+    }
+    
+    // Pricing tiers (cents)
+    const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
+    let unitPrice = pricing[1];
+    let totalAmount = unitPrice * quantity;
+    
+    // Apply bulk pricing
+    const tiers = Object.keys(pricing).map(Number).sort((a, b) => b - a);
+    for (const tier of tiers) {
+      if (quantity >= tier) {
+        totalAmount = pricing[tier] * quantity;
+        unitPrice = pricing[tier];
+        break;
+      }
+    }
+    
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmount,
+      currency: 'usd',
+      receipt_email: email,
+      metadata: {
+        quantity: quantity.toString(),
+        batch_id: batchId || `batch_${Date.now()}`,
+        card_type: 'ecard'
+      },
+      automatic_payment_methods: { enabled: true },
+    });
+    
+    // Record in database
+    await supabaseAdmin.from('payments').insert({
+      stripe_payment_intent_id: paymentIntent.id,
+      batch_id: batchId || `batch_${Date.now()}`,
+      card_type: 'ecard',
+      quantity: quantity,
+      amount_total: totalAmount,
+      currency: 'usd',
+      status: 'pending',
+      customer_email: email,
+      metadata: { unit_price: unitPrice }
+    });
+    
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      amount: totalAmount,
+      quantity: quantity
+    });
+    
+  } catch (error) {
+    console.error('Stripe error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// 📊 Admin: Get payments
+app.get('/api/admin/payments', async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('payments')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    res.json({ success: true, payments: data });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // 📊 Supabase Connection Test
 app.get('/api/test-supabase', async (req, res) => {
   try {
@@ -2311,7 +2710,12 @@ app.use((req, res) => {
       `${baseUrl}/api/admin/batches`,
       `${baseUrl}/api/admin/batches/:id/delete`,
       `${baseUrl}/api/admin/expire-cards`,
-      `${baseUrl}/api/test-supabase`
+      `${baseUrl}/api/cards/:id/send`,
+      `${baseUrl}/api/physical-cards/:id/activate`,
+      `${baseUrl}/api/test-supabase`,
+      `${baseUrl}/api/stripe-key`,
+      `${baseUrl}/api/create-payment-intent`,
+      `${baseUrl}/api/admin/payments`
     ]
   });
 });
@@ -2364,6 +2768,12 @@ app.listen(PORT, () => {
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
   console.log(`   Delete Batch: https://papir.ca/api/admin/batches/:id/delete`);
   console.log(`   Expire Cards: https://papir.ca/api/admin/expire-cards`);
+  console.log(`   Send E-Card: POST https://papir.ca/api/cards/:id/send`);
+  console.log(`   Activate Physical Card: POST https://papir.ca/api/physical-cards/:id/activate`);
+  console.log(`   Track E-Card: POST https://papir.ca/api/cards/:id/track`);
+  console.log(`   Stripe Key: GET https://papir.ca/api/stripe-key`);
+  console.log(`   Create Payment Intent: POST https://papir.ca/api/create-payment-intent`);
+  console.log(`   Admin Payments: GET https://papir.ca/api/admin/payments`);
   
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
@@ -2398,6 +2808,12 @@ app.listen(PORT, () => {
   console.log('   ✅ ARITHMETIC COUNTING (avoids race conditions)');
   console.log('   ✅ DEBUG LOGGING for batch creation');
   console.log('   ✅ Card DELETE updates batch counts and logs only on actual change');
+  console.log('   ✅ E-CARD MODE ACTIVE (cards created as active)');
+  console.log('   ✅ E-Card delivery logging endpoint');
+  console.log('   ✅ E-Card tracking endpoint (opened_at)');
+  console.log('   ✅ Physical card dormant endpoints ready for future');
+  console.log('   ✅ Stripe payment integration (optional)');
+  console.log('   ✅ Payment tracking via webhook (optional)');
   console.log('   ✅ 24/7 Railway hosting');
   
   console.log('\n' + '─'.repeat(70));
