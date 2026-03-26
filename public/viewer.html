@@ -6,6 +6,7 @@
     <title>Papir Card Viewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS – unchanged */
         * {
             margin: 0;
             padding: 0;
@@ -533,6 +534,17 @@
             pointer-events: none;
         }
         
+        .card-type-badge {
+            background: linear-gradient(135deg, #06D6A0, #118AB2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -630,7 +642,7 @@
         <span>Connected to Papir Backend</span>
     </div>
     
-    <!-- Confirmation Modal for Active Cards Only -->
+    <!-- Confirmation Modal for Active Physical Cards Only -->
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
             <h3>
@@ -768,17 +780,9 @@
                 manualInput: document.getElementById('manualInput'),
                 closeCardBtn: document.getElementById('closeCardBtn'),
                 pageHeader: document.getElementById('pageHeader'),
-                // Confirmation modal elements
                 confirmationModal: document.getElementById('confirmationModal'),
                 confirmViewingBtn: document.getElementById('confirmViewingBtn'),
-                cancelViewingBtn: document.getElementById('cancelViewingBtn'),
-                modalClientIp: document.getElementById('modalClientIp'),
-                ipAddressValue: document.getElementById('ipAddressValue'),
-                legalIpDisplay: document.getElementById('legalIpDisplay'),
-                modalTitle: document.getElementById('modalTitle'),
-                modalDescription: document.getElementById('modalDescription'),
-                confirmationList: document.getElementById('confirmationList'),
-                legalNotice: document.getElementById('legalNotice')
+                cancelViewingBtn: document.getElementById('cancelViewingBtn')
             };
             
             console.log('Initializing viewer with backend:', BACKEND_URL);
@@ -789,14 +793,8 @@
                     const response = await fetch('https://api.ipify.org?format=json');
                     const data = await response.json();
                     clientIp = data.ip;
-                    elements.modalClientIp.innerHTML = `<i class="fas fa-network-wired"></i> Your IP: ${clientIp}`;
-                    elements.ipAddressValue.textContent = clientIp;
-                    elements.legalIpDisplay.textContent = clientIp;
                 } catch (error) {
                     console.log('Could not detect IP');
-                    elements.modalClientIp.innerHTML = `<i class="fas fa-network-wired"></i> Your IP will be recorded`;
-                    elements.ipAddressValue.textContent = 'will be recorded';
-                    elements.legalIpDisplay.textContent = 'will be recorded';
                 }
             }
             detectClientIp();
@@ -877,15 +875,10 @@
                 
                 // Stop any playing media
                 const video = document.querySelector('.card-video');
-                if (video) {
-                    video.pause();
-                }
+                if (video) video.pause();
                 const audio = document.querySelector('.card-audio');
-                if (audio) {
-                    audio.pause();
-                }
+                if (audio) audio.pause();
                 
-                // Re-enable start scanner button if scanner was stopped
                 if (!isScannerActive) {
                     elements.startScanner.disabled = false;
                 }
@@ -898,16 +891,8 @@
                 elements.emptyState.style.display = 'none';
             }
             
-            // Handle viewing confirmation for active cards
-            function handleViewingConfirmation() {
-                if (!currentCardData) return;
-                
-                elements.confirmationModal.classList.remove('active');
-                displayCardContent(currentCardData);
-            }
-            
-            // Display the actual card content
-            function displayCardContent(card) {
+            // ========== RENDER CARD CONTENT (shared) ==========
+            function renderCardContent(card) {
                 elements.displayCardId.textContent = card.card_id;
                 elements.displayCardType.textContent = card.message_type;
                 elements.displayCardDate.textContent = formatDate(card.created_at);
@@ -922,7 +907,6 @@
                             </div>
                         `;
                         break;
-                        
                     case 'image':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
@@ -934,7 +918,6 @@
                             elements.cardContent.innerHTML = `<div class="text-message">No image available</div>`;
                         }
                         break;
-                        
                     case 'video':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
@@ -948,7 +931,6 @@
                             elements.cardContent.innerHTML = `<div class="text-message">No video available</div>`;
                         }
                         break;
-                        
                     case 'audio':
                         if (card.media_url) {
                             elements.cardContent.innerHTML = `
@@ -967,20 +949,87 @@
                 elements.cardDisplay.classList.add('active');
                 hideAllExceptCard();
                 hideError();
-                
-                // Log the scan
-                incrementScanCount(card.card_id);
             }
             
-            // Confirmation modal buttons
-            elements.confirmViewingBtn.addEventListener('click', handleViewingConfirmation);
-            elements.cancelViewingBtn.addEventListener('click', function() {
-                elements.confirmationModal.classList.remove('active');
-                currentCardData = null;
-                resetView();
-                showNotification('Viewing cancelled', 'info');
-            });
+            // ========== E-CARD VIEW (no activation) ==========
+            function showEcardView(card) {
+                console.log('📧 Loading E-Card:', card.card_id);
+                
+                // Add a type badge at the top of the viewer
+                const existingBadge = document.querySelector('.card-type-badge');
+                if (existingBadge) existingBadge.remove();
+                const badge = document.createElement('div');
+                badge.className = 'card-type-badge';
+                badge.innerHTML = '<i class="fas fa-mobile-alt"></i> Digital E-Card (Instant View)';
+                badge.style.cssText = 'text-align: center; margin-bottom: 20px;';
+                elements.cardContent.insertAdjacentElement('beforebegin', badge);
+                
+                // Show content immediately
+                renderCardContent(card);
+                
+                // Track e-card opened
+                trackEcardOpened(card.card_id);
+            }
             
+            // ========== PHYSICAL CARD FLOW (unchanged, but now with dormant fallback) ==========
+            function showPhysicalCardView(card) {
+                console.log('🎴 Loading Physical Card:', card.card_id);
+                
+                // Check if the physical card is dormant (not yet manufactured)
+                if (card.physical_card_status === 'dormant' || (card.status === 'pending' && card.card_type === 'physical')) {
+                    showDormantPhysicalCardMessage(card);
+                    return;
+                }
+                
+                // Existing physical card activation flow (confirmation modal, etc.)
+                currentCardData = card;
+                elements.confirmationModal.classList.add('active');
+            }
+            
+            function showDormantPhysicalCardMessage(card) {
+                const contentDiv = elements.cardContent;
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; max-width: 600px; margin: 0 auto;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">🎴</div>
+                        <h2 style="color: #fff; margin-bottom: 15px;">Physical Card Reserved</h2>
+                        <p style="color: #a0aec0; line-height: 1.6; margin-bottom: 25px;">
+                            This physical card code exists but hasn't been manufactured yet. 
+                            The physical card will be available in a future update.
+                        </p>
+                        <div style="background: rgba(6, 214, 160, 0.1); border: 1px solid #06D6A0; border-radius: 10px; padding: 20px; margin-bottom: 25px;">
+                            <p style="color: #06D6A0; margin: 0; font-weight: bold;">Card ID: ${card.card_id}</p>
+                            <p style="color: #a0aec0; margin: 5px 0 0 0; font-size: 0.9rem;">Status: Dormant</p>
+                        </div>
+                        <p style="color: #666; font-size: 0.85rem;">
+                            Want a digital card instead? Ask the sender to create an E-Card.
+                        </p>
+                    </div>
+                `;
+                elements.displayCardId.textContent = card.card_id;
+                elements.displayCardType.textContent = card.message_type;
+                elements.displayCardDate.textContent = formatDate(card.created_at);
+                elements.cardDisplay.classList.add('active');
+                hideAllExceptCard();
+            }
+            
+            // ========== E-CARD TRACKING ==========
+            async function trackEcardOpened(cardId) {
+                try {
+                    await fetch(`${BACKEND_URL}/api/cards/${cardId}/track`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            event: 'ecard_opened',
+                            timestamp: new Date().toISOString(),
+                            user_agent: navigator.userAgent
+                        })
+                    });
+                } catch (e) {
+                    console.log('Tracking error (non-critical):', e);
+                }
+            }
+            
+            // ========== MAIN LOAD CARD LOGIC ==========
             async function loadCard(cardId) {
                 try {
                     console.log(`Loading card from backend: ${cardId}`);
@@ -1000,27 +1049,17 @@
                     
                     if (response.ok) {
                         const result = await response.json();
-                        
                         if (result.success && result.card) {
                             const card = result.card;
                             console.log('Card loaded successfully:', card);
                             
-                            // CHECK CARD STATUS
-                            if (card.status === 'pending') {
-                                // PENDING CARD - Redirect to maker page
-                                console.log('⏳ Pending card detected - redirecting to maker');
-                                showNotification('This card needs to be activated first. Redirecting...', 'info');
-                                
-                                // Redirect to maker.html with the card ID
-                                setTimeout(() => {
-                                    window.location.href = `/maker.html?card=${card.card_id}`;
-                                }, 1500);
-                                return;
+                            // DETECT CARD TYPE
+                            if (card.card_type === 'ecard') {
+                                showEcardView(card);
+                            } else {
+                                // Physical card (or legacy cards without card_type)
+                                showPhysicalCardView(card);
                             }
-                            
-                            // ACTIVE CARD - Show confirmation modal
-                            currentCardData = card;
-                            elements.confirmationModal.classList.add('active');
                             
                             return { success: true, card: card };
                         } else {
@@ -1032,15 +1071,30 @@
                     
                 } catch (error) {
                     console.error('Error loading card:', error);
-                    
                     elements.cardDisplay.classList.remove('active');
                     resetView();
                     showError(`Error: ${error.message}`);
-                    
                     return { success: false, error: error.message };
                 }
             }
             
+            // ========== CONFIRMATION MODAL HANDLERS (for physical cards) ==========
+            function handleViewingConfirmation() {
+                if (!currentCardData) return;
+                elements.confirmationModal.classList.remove('active');
+                renderCardContent(currentCardData);
+                incrementScanCount(currentCardData.card_id);
+            }
+            
+            elements.confirmViewingBtn.addEventListener('click', handleViewingConfirmation);
+            elements.cancelViewingBtn.addEventListener('click', function() {
+                elements.confirmationModal.classList.remove('active');
+                currentCardData = null;
+                resetView();
+                showNotification('Viewing cancelled', 'info');
+            });
+            
+            // ========== QR SCANNER (unchanged) ==========
             function initScanner() {
                 try {
                     html5QrCode = new Html5Qrcode("reader");
@@ -1055,34 +1109,22 @@
                     async function startScanner() {
                         try {
                             const cameras = await Html5Qrcode.getCameras();
-                            
                             if (cameras && cameras.length > 0) {
                                 let cameraId = cameras.find(camera => 
                                     camera.label.toLowerCase().includes('back') || 
                                     camera.label.toLowerCase().includes('rear') || 
                                     camera.label.toLowerCase().includes('environment')
                                 )?.id;
+                                if (!cameraId) cameraId = cameras[0].id;
                                 
-                                if (!cameraId) {
-                                    cameraId = cameras[0].id;
-                                }
-                                
-                                await html5QrCode.start(
-                                    cameraId,
-                                    config,
-                                    onScanSuccess,
-                                    onScanFailure
-                                );
-                                
+                                await html5QrCode.start(cameraId, config, onScanSuccess, onScanFailure);
                                 isScannerActive = true;
                                 elements.startScanner.disabled = true;
                                 elements.stopScanner.disabled = false;
                                 showNotification('Camera started successfully', 'success');
-                                
                             } else {
                                 throw new Error('No cameras found');
                             }
-                            
                         } catch (error) {
                             console.error('Camera error:', error);
                             showNotification(`Camera error: ${error.message}`, 'error');
@@ -1096,86 +1138,49 @@
                                 elements.startScanner.disabled = false;
                                 elements.stopScanner.disabled = true;
                                 showNotification('Camera stopped', 'info');
-                            }).catch(err => {
-                                console.error('Error stopping scanner:', err);
-                            });
+                            }).catch(err => console.error('Error stopping scanner:', err));
                         }
                     }
                     
                     function onScanSuccess(decodedText, decodedResult) {
                         console.log(`QR Code scanned: ${decodedText}`);
-                        
-                        // Extract card ID from QR code data
                         let cardId = decodedText;
-                        
-                        // If QR contains URL, extract card parameter
                         try {
                             if (decodedText.includes('papir.ca') || decodedText.includes('http')) {
                                 const url = new URL(decodedText);
                                 const cardParam = url.searchParams.get('card');
-                                if (cardParam) {
-                                    cardId = cardParam;
-                                }
+                                if (cardParam) cardId = cardParam;
                             }
-                        } catch (error) {
-                            console.log('Not a URL, using raw text:', decodedText);
-                        }
-                        
-                        // Clean up the card ID - remove any non-alphanumeric characters
+                        } catch (error) { /* not a URL */ }
                         cardId = cardId.replace(/[^a-zA-Z0-9]/g, '');
-                        
                         console.log('Extracted card ID:', cardId);
                         
-                        // Stop scanner immediately
                         if (html5QrCode && isScannerActive) {
                             html5QrCode.stop().then(() => {
                                 isScannerActive = false;
                                 elements.startScanner.disabled = false;
                                 elements.stopScanner.disabled = true;
-                                
-                                // Small delay to ensure scanner stops completely
-                                setTimeout(() => {
-                                    // Load the card
-                                    if (cardId) {
-                                        loadCard(cardId);
-                                    } else {
-                                        showNotification('Invalid QR code', 'error');
-                                        resetView();
-                                    }
-                                }, 100);
+                                setTimeout(() => { if (cardId) loadCard(cardId); else showNotification('Invalid QR code', 'error'); }, 100);
                             }).catch(err => {
                                 console.error('Error stopping scanner:', err);
-                                // Still try to load the card even if scanner stop fails
-                                if (cardId) {
-                                    loadCard(cardId);
-                                } else {
-                                    resetView();
-                                }
+                                if (cardId) loadCard(cardId);
                             });
                         } else {
-                            // If scanner wasn't active, just load the card
-                            if (cardId) {
-                                loadCard(cardId);
-                            } else {
-                                showNotification('Invalid QR code', 'error');
-                            }
+                            if (cardId) loadCard(cardId);
                         }
                     }
                     
-                    function onScanFailure(error) {
-                        // Silent failure - just keep scanning
-                        // console.log('Scan failure (expected):', error);
-                    }
+                    function onScanFailure(error) { /* silent */ }
                     
                     elements.startScanner.addEventListener('click', startScanner);
                     elements.stopScanner.addEventListener('click', stopScanner);
-                    
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
                     showNotification('QR scanner initialization failed', 'error');
                 }
             }
             
+            // ========== OTHER HELPER FUNCTIONS ==========
             async function checkBackendConnection() {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/health`);
@@ -1186,7 +1191,6 @@
                 } catch (error) {
                     console.log('Backend not available:', error.message);
                 }
-                
                 updateSyncStatus(false);
                 return false;
             }
@@ -1194,49 +1198,30 @@
             function checkUrlForCard() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const cardParam = urlParams.get('card');
-                
                 if (cardParam) {
                     console.log('Found card in URL:', cardParam);
                     elements.cardIdInput.value = cardParam;
-                    
-                    // Auto-load the card when opened from phone camera
-                    setTimeout(() => {
-                        loadCard(cardParam);
-                    }, 100);
+                    setTimeout(() => loadCard(cardParam), 100);
                 }
             }
             
             async function initApp() {
                 console.log('Initializing Papir Viewer...');
-                
                 await checkBackendConnection();
-                
                 initScanner();
-                
                 checkUrlForCard();
-                
                 elements.loadCardBtn.addEventListener('click', function() {
                     const cardId = elements.cardIdInput.value.trim();
-                    if (cardId) {
-                        loadCard(cardId);
-                    } else {
-                        showError('Please enter a Card ID');
-                    }
+                    if (cardId) loadCard(cardId);
+                    else showError('Please enter a Card ID');
                 });
-                
                 elements.cardIdInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         const cardId = elements.cardIdInput.value.trim();
-                        if (cardId) {
-                            loadCard(cardId);
-                        }
+                        if (cardId) loadCard(cardId);
                     }
                 });
-                
-                elements.closeCardBtn.addEventListener('click', function() {
-                    resetView();
-                });
-                
+                elements.closeCardBtn.addEventListener('click', resetView);
                 console.log('Papir Viewer initialized successfully');
             }
             
