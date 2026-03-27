@@ -437,7 +437,7 @@ app.post('/api/cards', async (req, res) => {
       file_type, 
       batch_id, 
       batch_order,
-      card_type = 'ecard',  // ← NEW: 'ecard' or 'physical'
+      card_type = 'ecrd',  // ← NEW: 'ecard' or 'physical'
       delivery_method,         // ← NEW: for e-cards
       recipient_contact        // ← NEW: for e-cards
     } = req.body;
