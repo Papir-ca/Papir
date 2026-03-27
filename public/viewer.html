@@ -967,7 +967,8 @@
                 // Show content immediately
                 renderCardContent(card);
                 
-                // Track e-card opened
+                // Track scan for e-card
+                incrementScanCount(card.card_id);
                 trackEcardOpened(card.card_id);
             }
             
@@ -1053,11 +1054,11 @@
                             const card = result.card;
                             console.log('Card loaded successfully:', card);
                             
-                            // DETECT CARD TYPE
-                            if (card.card_type === 'ecard') {
+                            // DETECT CARD TYPE (treat missing/null as e-card)
+                            if (card.card_type === 'ecard' || !card.card_type) {
                                 showEcardView(card);
                             } else {
-                                // Physical card (or legacy cards without card_type)
+                                // Physical card
                                 showPhysicalCardView(card);
                             }
                             

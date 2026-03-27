@@ -437,7 +437,7 @@ app.post('/api/cards', async (req, res) => {
       file_type, 
       batch_id, 
       batch_order,
-      card_type = 'ecard',  // ← NEW: 'ecard' or 'physical'
+      card_type = 'ecard',  // ← CHANGED: Default to ecard for launch
       delivery_method,         // ← NEW: for e-cards
       recipient_contact        // ← NEW: for e-cards
     } = req.body;
@@ -1777,6 +1777,7 @@ app.post('/api/admin/batches', async (req, res) => {
       .from('batches')
       .insert({
         batch_id,
+        batch_type: 'ecard',  // ← ADD THIS
         shipping_address,
         shipping_country,
         shipping_city,
@@ -1929,6 +1930,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         .from('batches')
         .insert({
           batch_id: batch_id,
+          batch_type: 'ecard',  // ← ADD THIS
           cards_created: cards.length,
           total_cards_purchased: cards.length,
           created_at: new Date().toISOString(),
@@ -2134,6 +2136,7 @@ app.post('/api/batches/:batch_id/add', async (req, res) => {
       
       cards.push({
         card_id: cardId,
+        card_type: 'ecard',  // ← ADD THIS
         batch_id: batch_id,
         batch_order: order,
         message_type: templateCard.message_type,
