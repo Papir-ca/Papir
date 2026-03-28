@@ -144,6 +144,7 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
     if (!existingBatch) {
       await supabaseAdmin.from('batches').insert({
         batch_id: batch_id,
+        batch_type: 'ecard',  // ← ADDED: consistent batch type
         total_cards_purchased: parseInt(quantity) || 1,
         cards_created: 0,
         max_cards_allowed: parseInt(quantity) || 1,
@@ -955,6 +956,7 @@ app.post('/api/activate-card', async (req, res) => {
         .from('cards')
         .insert({
           card_id: card_id,
+          card_type: 'ecard',  // ← ADDED: ensure new cards are e-cards
           message_type: 'pending',
           message_text: null,
           media_url: null,
