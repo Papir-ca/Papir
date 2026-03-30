@@ -234,6 +234,11 @@
             background: rgba(255, 255, 255, 0.2);
         }
         
+        /* CSP‑safe button styles */
+        .use-template-btn, .preview-btn {
+            cursor: pointer;
+        }
+        
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .template-grid { grid-template-columns: 1fr; }
@@ -267,7 +272,12 @@
     
     <script>
         const SUPABASE_URL = 'https://elmhkhvryjzljxskbfps.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw'; // Replace with your anon key
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw';
+        
+        // Global state
+        let templates = [];
+        let currentFilter = 'all';
+        let currentFlow = 'single'; // 'single' or 'batch'
         
         async function loadTemplates() {
             try {
@@ -278,44 +288,91 @@
                     }
                 });
                 
-                const templates = await response.json();
-                displayTemplates(templates);
+                templates = await response.json();
+                renderTemplates();
             } catch (error) {
                 console.error('Error loading templates:', error);
                 document.getElementById('templateGrid').innerHTML = '<p>Error loading templates</p>';
             }
         }
         
-        function displayTemplates(templates) {
+        function renderTemplates() {
             const grid = document.getElementById('templateGrid');
-            
-            if (!templates || templates.length === 0) {
+            if (!templates.length) {
                 grid.innerHTML = '<p>No templates available</p>';
                 return;
             }
             
-            grid.innerHTML = templates.map(template => {
+            // Filter templates
+            let filtered = currentFilter === 'all' 
+                ? templates 
+                : templates.filter(t => t.category === currentFilter);
+            
+            if (currentFlow === 'batch') {
+                filtered = filtered.filter(t => t.supportsBatch);
+            }
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p>No templates match your selection.</p>';
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            filtered.forEach(template => {
                 const previewClass = getPreviewClass(template.css_class);
+                const isBatch = currentFlow === 'batch';
+                const badgeHtml = `
+                    ${template.popular ? '<span class="badge badge-popular">Popular</span>' : ''}
+                    ${template.isNew ? '<span class="badge badge-new">New</span>' : ''}
+                    ${isBatch && template.supportsBatch ? '<span class="badge badge-batch">Batch Ready</span>' : ''}
+                `;
                 
-                return `
-                    <div class="template-card" data-category="${template.category}">
-                        <div class="template-preview ${previewClass}"></div>
-                        <div class="template-info">
-                            <div class="template-category">${template.category_display || template.category}</div>
-                            <div class="template-name">${template.name}</div>
-                            <div class="template-description">${template.description || 'Elegant design for your special occasion'}</div>
-                            <div class="template-price">$${(template.price / 100).toFixed(2)}</div>
-                            <button class="customize-btn" onclick="selectTemplate('${template.id}')">
-                                <i class="fas fa-paint-brush"></i> Customize Single
+                const card = document.createElement('div');
+                card.className = 'template-card';
+                card.dataset.templateId = template.id;
+                card.innerHTML = `
+                    <div class="badges">${badgeHtml}</div>
+                    <div class="template-preview ${previewClass}"></div>
+                    <div class="template-info">
+                        <div class="template-meta">
+                            <span class="template-category">${template.category_display || template.category}</span>
+                            <span class="template-price">$${(template.price / 100).toFixed(2)}</span>
+                        </div>
+                        <h3 class="template-name">${template.name}</h3>
+                        <p class="template-description">${template.description || 'Elegant design for your special occasion'}</p>
+                        <div class="action-buttons">
+                            <button class="customize-btn use-template-btn" data-template-id="${template.id}" data-is-batch="${isBatch}">
+                                <i class="fas fa-${isBatch ? 'layer-group' : 'paint-brush'}"></i> 
+                                ${isBatch ? 'Use for Batch' : 'Customize & Send'}
                             </button>
-                            <button class="customize-btn" onclick="selectTemplateBatch('${template.id}')" 
-                                style="margin-top: 8px; background: linear-gradient(to right, #06D6A0, #118AB2);">
-                                <i class="fas fa-layer-group"></i> Create Batch (10+)
-                            </button>
+                            ${isBatch ? `
+                            <button class="customize-btn preview-btn" data-template-id="${template.id}" style="margin-top: 8px; background: linear-gradient(to right, #06D6A0, #118AB2);">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>` : ''}
                         </div>
                     </div>
                 `;
-            }).join('');
+                grid.appendChild(card);
+            });
+            
+            // Attach CSP‑safe event listeners
+            document.querySelectorAll('.use-template-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const templateId = this.dataset.templateId;
+                    const isBatch = this.dataset.isBatch === 'true';
+                    selectTemplate(templateId, isBatch);
+                });
+            });
+            
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const templateId = this.dataset.templateId;
+                    selectTemplate(templateId, false); // preview = single mode
+                });
+            });
         }
         
         function getPreviewClass(cssClass) {
@@ -329,15 +386,11 @@
             return classMap[cssClass] || 'preview-modern';
         }
         
-        function selectTemplate(templateId) {
-            window.location.href = `/customize.html?template=${templateId}`;
-        }
-        
-        // New function for batch mode
-        function selectTemplateBatch(templateId) {
-            // Generate a unique batch ID
-            const batchId = 'BATCH_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-            window.location.href = `/customize.html?template=${templateId}&mode=batch&batch_id=${batchId}`;
+        function selectTemplate(templateId, isBatch) {
+            const url = isBatch 
+                ? `/customize.html?template=${templateId}&mode=batch&batch_id=BATCH_${Date.now()}`
+                : `/customize.html?template=${templateId}`;
+            window.location.href = url;
         }
         
         // Filter functionality
@@ -345,21 +398,17 @@
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                
-                const filter = this.dataset.filter;
-                const cards = document.querySelectorAll('.template-card');
-                
-                cards.forEach(card => {
-                    if (filter === 'all' || card.dataset.category === filter) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                currentFilter = this.dataset.filter;
+                renderTemplates();
             });
         });
         
-        // Load templates on page load
+        // Detect flow from URL? (optional, can be removed)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'batch') {
+            currentFlow = 'batch';
+        }
+        
         loadTemplates();
     </script>
 </body>

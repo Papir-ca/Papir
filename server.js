@@ -529,11 +529,11 @@ app.post('/api/cards', async (req, res) => {
         
         // ← KEY LOGIC: Use provided status (e.g., 'draft') or default based on card_type
         status: req.body.status || (card_type === 'ecard' ? 'active' : 'pending'),
-        card_type: card_type,  // ← NEW
+        card_type: card_type,
         
         // ADD THESE FIELDS for Hallmark flow:
-        is_batch_template: req.body.is_batch_template || false,
-        quantity: req.body.quantity || null,
+        is_batch_template: req.body.is_batch_template || false,  // ← ADDED
+        quantity: req.body.quantity || null,                      // ← ADDED
         
         // Physical card fields (dormant by default)
         physical_card_status: card_type === 'physical' ? 'dormant' : null,
@@ -1068,6 +1068,54 @@ app.post('/api/activate-card', async (req, res) => {
 });
 
 // ============================================
+// NEW ENDPOINT: Activate card after payment (for Create‑First flow)
+// ============================================
+app.post('/api/cards/:card_id/activate-after-payment', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    const clientIp = getClientIp(req);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Update card status from 'draft' to 'active'
+    const { error } = await supabaseAdmin
+      .from('cards')
+      .update({ 
+        status: 'active',
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      })
+      .eq('card_id', card_id)
+      .eq('status', 'draft'); // Only activate if it was a draft
+    
+    if (error) throw error;
+    
+    // Also log activation in card_activations
+    const { error: logError } = await supabaseAdmin
+      .from('card_activations')
+      .insert({
+        card_id: card_id,
+        activated_at: new Date().toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: req.headers['user-agent'] || 'unknown',
+        activation_source: 'checkout',
+        location_data: null
+      });
+    
+    if (logError) console.error('Activation log failed:', logError);
+    
+    res.json({ success: true, message: 'Card activated' });
+  } catch (error) {
+    console.error('Activation after payment error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
 // HALLMARK FLOW: Create batch from template after payment
 // ============================================
 app.post('/api/batch/create-from-template', async (req, res) => {
@@ -1095,15 +1143,15 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             .single();
             
         if (templateError || !template) {
-            console.error('Template not found or already activated:', templateError);
+            console.error('Template not found:', templateError);
             return res.status(404).json({ 
                 success: false, 
                 error: 'Template not found or already processed' 
             });
         }
         
-        // 2. Activate the template card first (AUDIT TRAIL #1)
-        const { error: activateError } = await supabaseAdmin
+        // 2. Activate template + log audit
+        await supabaseAdmin
             .from('cards')
             .update({ 
                 status: 'active',
@@ -1112,27 +1160,18 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             })
             .eq('card_id', template.card_id);
         
-        if (activateError) throw activateError;
+        await supabaseAdmin.from('card_activations').insert({
+            card_id: template.card_id,
+            activated_at: new Date().toISOString(),
+            activated_by_ip: clientIp,
+            terms_accepted_at: new Date().toISOString(),
+            terms_accepted_ip: clientIp,
+            user_agent: userAgent,
+            activation_source: 'checkout_payment',
+            metadata: { batch_id, is_template: true, quantity }
+        });
         
-        // Log template activation (AUDIT TRAIL #2)
-        await supabaseAdmin
-            .from('card_activations')
-            .insert({
-                card_id: template.card_id,
-                activated_at: new Date().toISOString(),
-                activated_by_ip: clientIp,
-                terms_accepted_at: new Date().toISOString(),
-                terms_accepted_ip: clientIp,
-                user_agent: userAgent,
-                activation_source: 'checkout_payment',
-                metadata: {
-                    batch_id: batch_id,
-                    is_template: true,
-                    quantity: quantity
-                }
-            });
-        
-        // 3. Create remaining cards (quantity - 1)
+        // 3. Create remaining cards (2 to quantity)
         const cardsToCreate = [];
         const deadline = new Date();
         deadline.setFullYear(deadline.getFullYear() + 1);
@@ -1148,9 +1187,8 @@ app.post('/api/batch/create-from-template', async (req, res) => {
                 file_name: template.file_name,
                 file_size: template.file_size,
                 file_type: template.file_type,
-                status: 'active', // Auto-activated
+                status: 'active',
                 card_type: 'ecard',
-                is_batch_template: false,
                 created_by_ip: clientIp,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
@@ -1158,15 +1196,10 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             });
         }
         
-        // 4. Insert batch cards
         if (cardsToCreate.length > 0) {
-            const { error: insertError } = await supabaseAdmin
-                .from('cards')
-                .insert(cardsToCreate);
+            await supabaseAdmin.from('cards').insert(cardsToCreate);
             
-            if (insertError) throw insertError;
-            
-            // Log activations for all created cards (AUDIT TRAIL #3)
+            // Log activations for all cards
             const activationRecords = cardsToCreate.map(card => ({
                 card_id: card.card_id,
                 activated_at: new Date().toISOString(),
@@ -1175,19 +1208,13 @@ app.post('/api/batch/create-from-template', async (req, res) => {
                 terms_accepted_ip: clientIp,
                 user_agent: userAgent,
                 activation_source: 'batch_auto_created',
-                metadata: {
-                    batch_id: batch_id,
-                    template_card_id: template.card_id,
-                    batch_order: card.batch_order
-                }
+                metadata: { batch_id, template_card_id: template.card_id }
             }));
             
-            await supabaseAdmin
-                .from('card_activations')
-                .insert(activationRecords);
+            await supabaseAdmin.from('card_activations').insert(activationRecords);
         }
         
-        // 5. Create or update batch record (AUDIT TRAIL #4)
+        // 4. Create/update batch record
         const { data: existingBatch } = await supabaseAdmin
             .from('batches')
             .select('batch_id')
@@ -1195,19 +1222,17 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             .maybeSingle();
         
         if (!existingBatch) {
-            await supabaseAdmin
-                .from('batches')
-                .insert({
-                    batch_id: batch_id,
-                    batch_type: 'ecard',
-                    cards_created: quantity,
-                    total_cards_purchased: quantity,
-                    max_cards_allowed: quantity,
-                    content_locked: true,
-                    created_by_ip: clientIp,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                });
+            await supabaseAdmin.from('batches').insert({
+                batch_id: batch_id,
+                batch_type: 'ecard',
+                cards_created: quantity,
+                total_cards_purchased: quantity,
+                max_cards_allowed: quantity,
+                content_locked: true,
+                created_by_ip: clientIp,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
         } else {
             await supabaseAdmin
                 .from('batches')
@@ -1220,48 +1245,34 @@ app.post('/api/batch/create-from-template', async (req, res) => {
                 .eq('batch_id', batch_id);
         }
         
-        // 6. Log batch event (AUDIT TRAIL #5)
-        await supabaseAdmin
-            .from('batch_events')
-            .insert({
-                batch_id: batch_id,
-                event_type: 'batch_paid_and_created',
-                quantity: quantity,
-                card_id: template.card_id,
-                timestamp: new Date().toISOString(),
-                ip_address: clientIp,
-                user_agent: userAgent,
-                metadata: {
-                    template_card_id: template.card_id,
-                    all_card_ids: [template.card_id, ...cardsToCreate.map(c => c.card_id)],
-                    total_cards: quantity,
-                    payment_completed: true,
-                    auto_activated: true
-                }
-            });
-        
-        console.log(`✅ Hallmark Batch Created: ${batch_id} with ${quantity} cards`);
-        
-        res.json({ 
-            success: true, 
-            message: `Batch created with ${quantity} cards`,
+        // 5. Log batch event
+        await supabaseAdmin.from('batch_events').insert({
             batch_id: batch_id,
+            event_type: 'batch_paid_and_created',
             quantity: quantity,
-            template_card_id: template.card_id,
-            audit_trail: {
-                template_activated: true,
-                cards_created: cardsToCreate.length + 1,
-                activations_logged: cardsToCreate.length + 1,
-                batch_event_logged: true
+            card_id: template.card_id,
+            timestamp: new Date().toISOString(),
+            ip_address: clientIp,
+            user_agent: userAgent,
+            metadata: {
+                template_card_id: template.card_id,
+                total_cards: quantity,
+                payment_completed: true
             }
         });
         
-    } catch (error) {
-        console.error('❌ Hallmark batch creation error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        console.log(`✅ Batch Created: ${batch_id} with ${quantity} cards`);
+        
+        res.json({ 
+            success: true, 
+            message: `Created ${quantity} cards`,
+            batch_id: batch_id,
+            quantity: quantity
         });
+        
+    } catch (error) {
+        console.error('Batch creation error:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -1349,52 +1360,6 @@ app.post('/api/cards/:card_id/track', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Tracking error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// ========== NEW ENDPOINT: Activate card after payment (for Create‑First flow) ==========
-app.post('/api/cards/:card_id/activate-after-payment', async (req, res) => {
-  try {
-    const { card_id } = req.params;
-    const clientIp = getClientIp(req);
-    
-    if (!supabaseAdmin) {
-      return res.status(503).json({ success: false, error: 'Database unavailable' });
-    }
-    
-    // Update card status from 'draft' to 'active'
-    const { error } = await supabaseAdmin
-      .from('cards')
-      .update({ 
-        status: 'active',
-        updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
-      })
-      .eq('card_id', card_id)
-      .eq('status', 'draft'); // Only activate if it was a draft
-    
-    if (error) throw error;
-    
-    // Also log activation in card_activations
-    const { error: logError } = await supabaseAdmin
-      .from('card_activations')
-      .insert({
-        card_id: card_id,
-        activated_at: new Date().toISOString(),
-        activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp,
-        user_agent: req.headers['user-agent'] || 'unknown',
-        activation_source: 'checkout',
-        location_data: null
-      });
-    
-    if (logError) console.error('Activation log failed:', logError);
-    
-    res.json({ success: true, message: 'Card activated' });
-  } catch (error) {
-    console.error('Activation after payment error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
