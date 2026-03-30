@@ -137,6 +137,12 @@
             text-decoration: none;
             border-radius: 8px;
         }
+        .btn-primary {
+            background: linear-gradient(135deg, #06D6A0, #118AB2);
+            margin-top: 20px;
+            display: inline-block;
+            width: auto;
+        }
     </style>
 </head>
 <body>
@@ -192,10 +198,7 @@
         </div>
         
         <div class="success-message" id="success-message">
-            <h2>✅ Payment Successful!</h2>
-            <p>Your E-Cards are ready. You can now create and send them.</p>
-            <p style="margin-top: 10px; color: #a0aec0;">Batch ID: <span id="batch-id"></span></p>
-            <a href="/maker.html" id="success-link">Create Your Cards</a>
+            <!-- Content will be replaced dynamically -->
         </div>
     </div>
 
@@ -204,25 +207,46 @@
         let stripe, elements, card;
         let selectedQty = 1;
         let selectedPrice = 299;
-        let cardId = null;  // ← Single card ID from URL
+        let cardId = null;      // Single card ID from URL
+        let batchId = null;     // Batch ID from URL
+        let isBatchMode = false; // Whether we're in batch purchase mode
         
         // Initialize everything when page loads
         async function initialize() {
-            // Check if we have a card_id in URL (Create‑First flow)
             const urlParams = new URLSearchParams(window.location.search);
             cardId = urlParams.get('card_id');
+            batchId = urlParams.get('batch_id');
+            const mode = urlParams.get('mode');
             
             if (cardId) {
                 // Single card purchase mode
                 selectedQty = 1;
                 selectedPrice = 299;
                 document.querySelector('.subtitle').textContent = 'Complete your purchase to send this card';
-                document.getElementById('pricing-section').style.display = 'none'; // Hide quantity selector
+                document.getElementById('pricing-section').style.display = 'none';
                 document.getElementById('submit-btn').textContent = 'Pay $2.99 to Send Card';
+                isBatchMode = false;
+            } else if (batchId && mode === 'batch') {
+                // Batch purchase mode (Hallmark flow)
+                const qty = parseInt(urlParams.get('qty')) || 1;
+                selectedQty = qty;
+                // Calculate price based on quantity (same as batch pricing)
+                const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
+                let totalAmount = 299 * qty;
+                for (const tier of Object.keys(pricing).map(Number).sort((a,b)=>b-a)) {
+                    if (qty >= tier) {
+                        totalAmount = pricing[tier] * qty;
+                        break;
+                    }
+                }
+                selectedPrice = totalAmount;
+                document.querySelector('.subtitle').textContent = `Batch of ${qty} Cards – Total $${(selectedPrice/100).toFixed(2)}`;
+                document.getElementById('pricing-section').style.display = 'none';
+                document.getElementById('submit-btn').textContent = `Pay $${(selectedPrice/100).toFixed(2)}`;
+                isBatchMode = true;
             }
             
             try {
-                // Fetch publishable key from backend (SAFEST WAY)
                 const response = await fetch(`${BACKEND_URL}/api/stripe-key`);
                 const data = await response.json();
                 
@@ -230,7 +254,6 @@
                     throw new Error('Stripe not configured');
                 }
                 
-                // Initialize Stripe with key from server
                 stripe = Stripe(data.publishableKey);
                 elements = stripe.elements();
                 card = elements.create('card', { 
@@ -244,14 +267,13 @@
                 });
                 card.mount('#card-element');
                 
-                // Handle real-time validation
                 card.on('change', (event) => {
                     const displayError = document.getElementById('card-errors');
                     displayError.textContent = event.error ? event.error.message : '';
                 });
                 
-                // Show the form
-                if (!cardId) {
+                // Show the form (pricing already hidden if batch or single)
+                if (!cardId && !batchId) {
                     document.getElementById('pricing-section').style.display = 'grid';
                 }
                 document.getElementById('email-section').style.display = 'block';
@@ -267,8 +289,8 @@
         }
         
         function setupEventListeners() {
-            // Pricing selection (only if batch mode)
-            if (!cardId) {
+            // Pricing selection only if not in special modes
+            if (!cardId && !batchId) {
                 document.querySelectorAll('.price-option').forEach(option => {
                     option.addEventListener('click', function() {
                         document.querySelectorAll('.price-option').forEach(o => o.classList.remove('selected'));
@@ -280,7 +302,6 @@
                 });
             }
             
-            // Submit payment
             document.getElementById('submit-btn').addEventListener('click', handleSubmit);
         }
         
@@ -301,22 +322,29 @@
             
             try {
                 // Create payment intent
+                let batchIdToSend = null;
+                if (batchId) {
+                    batchIdToSend = batchId;
+                } else if (cardId) {
+                    batchIdToSend = cardId;
+                } else {
+                    batchIdToSend = `batch_${Date.now()}`;
+                }
+                
                 const response = await fetch(`${BACKEND_URL}/api/create-payment-intent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         quantity: selectedQty,
                         email: email,
-                        batchId: cardId ? cardId : `batch_${Date.now()}`, // Use card ID as batch ID if single card
-                        card_id: cardId // ← Pass card_id to backend
+                        batchId: batchIdToSend,
+                        card_id: cardId || null
                     })
                 });
                 
                 const data = await response.json();
-                
                 if (!data.success) throw new Error(data.error);
                 
-                // Confirm payment with Stripe
                 const result = await stripe.confirmCardPayment(data.clientSecret, {
                     payment_method: {
                         card: card,
@@ -328,27 +356,74 @@
                     throw new Error(result.error.message);
                 }
                 
-                // SUCCESS! Activate the card if it's a single card purchase
-                if (cardId) {
+                // Payment succeeded – now handle card activation / batch creation
+                if (batchId) {
+                    // BATCH MODE: Create batch from template
+                    loading.querySelector('p').textContent = 'Creating your cards...';
+                    
+                    const createResponse = await fetch(`${BACKEND_URL}/api/batch/create-from-template`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            batch_id: batchId,
+                            quantity: selectedQty
+                        })
+                    });
+                    
+                    const createResult = await createResponse.json();
+                    
+                    if (createResult.success) {
+                        // Clear pending data
+                        localStorage.removeItem('pendingBatchId');
+                        localStorage.removeItem('pendingBatchQty');
+                        localStorage.removeItem('batchTemplateCard');
+                        
+                        // Show success
+                        document.getElementById('checkout-form').style.display = 'none';
+                        const successDiv = document.getElementById('success-message');
+                        successDiv.innerHTML = `
+                            <h2>✅ ${selectedQty} Cards Ready!</h2>
+                            <p>Your batch is created and all cards are active.</p>
+                            <a href="/batch-manager.html?batch=${batchId}" class="btn btn-primary" style="display: inline-block;">
+                                <i class="fas fa-layer-group"></i> Manage & Send Cards
+                            </a>
+                        `;
+                        successDiv.style.display = 'block';
+                    } else {
+                        throw new Error(createResult.error || 'Failed to create cards');
+                    }
+                    
+                } else if (cardId) {
+                    // SINGLE CARD MODE: Activate the draft card
                     await fetch(`${BACKEND_URL}/api/cards/${cardId}/activate-after-payment`, {
                         method: 'POST'
                     });
-                }
-                
-                // Show success
-                document.getElementById('checkout-form').style.display = 'none';
-                document.getElementById('success-message').style.display = 'block';
-                document.getElementById('batch-id').textContent = cardId || result.paymentIntent.metadata.batch_id;
-                
-                // Update success message for single card
-                if (cardId) {
-                    document.querySelector('.success-message h2').textContent = '✅ Card Activated!';
-                    document.querySelector('.success-message p').innerHTML = 'Your card is ready to send.';
-                    document.getElementById('success-link').textContent = 'Send Your Card';
-                    document.getElementById('success-link').href = `/viewer.html?card=${cardId}`;
+                    
+                    document.getElementById('checkout-form').style.display = 'none';
+                    const successDiv = document.getElementById('success-message');
+                    successDiv.innerHTML = `
+                        <h2>✅ Card Activated!</h2>
+                        <p>Your card is ready to send.</p>
+                        <a href="/viewer.html?card=${cardId}" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> View & Send Card
+                        </a>
+                    `;
+                    successDiv.style.display = 'block';
+                    
                 } else {
+                    // BULK BATCH (no template) – store for maker
                     localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
                     localStorage.setItem('pendingCardQuantity', selectedQty);
+                    
+                    document.getElementById('checkout-form').style.display = 'none';
+                    const successDiv = document.getElementById('success-message');
+                    successDiv.innerHTML = `
+                        <h2>✅ Payment Successful!</h2>
+                        <p>Your E-Cards are ready. You can now create and send them.</p>
+                        <p style="margin-top: 10px; color: #a0aec0;">Batch ID: ${result.paymentIntent.metadata.batch_id}</p>
+                        <a href="/maker.html" class="btn btn-primary">Create Your Cards</a>
+                    `;
+                    successDiv.style.display = 'block';
                 }
                 
             } catch (error) {
@@ -358,7 +433,6 @@
             }
         }
         
-        // Start initialization
         initialize();
     </script>
 </body>

@@ -6,7 +6,7 @@
     <title>Card Creator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Your existing CSS – unchanged */
+        /* Your existing CSS – unchanged (all styles remain) */
         * {
             margin: 0;
             padding: 0;
@@ -1871,7 +1871,106 @@
                 }
             }
             
-            // ========== NEW: SEND E-CARD (no longer used directly, kept for reference) ==========
+            // ========== NEW: HALLMARK-STYLE BATCH SAVE - Design Once, Pay First, Auto-Activate ==========
+            async function saveBatchCards() {
+                const batchId = elements.batchId?.value?.trim();
+                const requestedQty = parseInt(elements.batchSize?.value) || 10;
+                
+                if (!batchId) {
+                    showNotification('Please enter a Batch ID', 'error');
+                    return;
+                }
+                
+                if (requestedQty < 1 || requestedQty > 500) {
+                    showNotification('Quantity must be between 1 and 500', 'error');
+                    return;
+                }
+                
+                const btn = elements.saveBtn;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span> Saving Template...';
+                
+                try {
+                    const cardData = generatePreview();
+                    
+                    // Generate template card ID
+                    const templateCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    
+                    // Handle media upload for template
+                    let mediaUrl = null, fileName = null, fileSize = null, fileType = null;
+                    const contentType = cardData.message_type;
+                    
+                    if (contentType !== 'text' && currentMedia[contentType]) {
+                        showNotification(`Uploading ${contentType}...`, 'info');
+                        
+                        const uploadResult = await uploadWithProgress(
+                            currentMedia[contentType].url,
+                            currentMedia[contentType].name,
+                            currentMedia[contentType].type,
+                            templateCardId,
+                            getProgressElements(contentType)
+                        );
+                        
+                        if (uploadResult.success) {
+                            mediaUrl = uploadResult.url;
+                            fileName = uploadResult.file_name;
+                            fileSize = uploadResult.file_size;
+                            fileType = uploadResult.file_type;
+                        }
+                    }
+                    
+                    // Save TEMPLATE as DRAFT (this is the Hallmark way!)
+                    const templateData = {
+                        card_id: templateCardId,
+                        batch_id: batchId,
+                        batch_order: 1, // Template is always #1
+                        message_type: cardData.message_type,
+                        message_text: cardData.message_text || '',
+                        media_url: mediaUrl,
+                        file_name: fileName,
+                        file_size: fileSize,
+                        file_type: fileType,
+                        status: 'draft', // ← KEY: Draft until payment
+                        card_type: 'ecard',
+                        is_batch_template: true, // ← Marks this as the template
+                        quantity: requestedQty,   // ← How many cards to create after payment
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(templateData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to save template');
+                    }
+                    
+                    // Store for checkout page
+                    localStorage.setItem('pendingBatchId', batchId);
+                    localStorage.setItem('pendingBatchQty', requestedQty);
+                    localStorage.setItem('batchTemplateCard', templateCardId);
+                    
+                    showNotification(`✅ Template saved! ${requestedQty} cards ready for payment...`, 'success');
+                    
+                    // Redirect to checkout (Hallmark flow!)
+                    setTimeout(() => {
+                        window.location.href = `/checkout.html?batch_id=${batchId}&qty=${requestedQty}&mode=batch`;
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.error('Batch save error:', error);
+                    showNotification('Error: ' + error.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+            
+            // ========== SEND E-CARD (no longer used directly, kept for reference) ==========
             async function sendECard(cardId, method, contact) {
                 // This function is no longer called from the save flow, but kept for completeness.
                 try {
@@ -1904,7 +2003,7 @@
                 }
             }
             
-            // ========== NEW: SHAREABLE LINK UI (kept for completeness) ==========
+            // ========== SHAREABLE LINK UI (kept for completeness) ==========
             function showShareableLink(link, qrUrl, cardId) {
                 let shareHtml = `
                     <div class="qr-success" style="background: linear-gradient(to right, #36D1DC, #5B86E5);">
@@ -2178,116 +2277,6 @@
                     this.innerHTML = '<i class="fas fa-check-circle"></i> Activate Card';
                 }
             });
-            
-            async function saveBatchCards() {
-                if (!window.currentBatchCards || window.currentBatchCards.length === 0) {
-                    showNotification('Please activate cards first', 'error');
-                    return;
-                }
-                
-                try {
-                    showNotification(`Saving ${window.currentBatchCards.length} cards...`, 'info');
-                    
-                    const batchIdForSync = window.currentBatchCards[0]?.batch_id;
-                    if (batchIdForSync) {
-                        try {
-                            const checkResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchIdForSync)}`);
-                            const checkResult = await checkResponse.json();
-                            if (checkResult.success) {
-                                const dbCardIds = checkResult.cards.map(c => c.card_id);
-                                window.currentBatchCards = window.currentBatchCards.filter(card => 
-                                    dbCardIds.includes(card.card_id)
-                                );
-                                window.currentBatchCards = checkResult.cards.map(card => ({
-                                    ...card,
-                                    batch_id: batchIdForSync
-                                }));
-                                console.log('🔄 Synced with server before save, count:', window.currentBatchCards.length);
-                            }
-                        } catch (e) {
-                            console.error('Pre-save sync failed:', e);
-                        }
-                    }
-                    
-                    const cardData = generatePreview();
-                    const batchCards = window.currentBatchCards;
-                    console.log('Cards before filter:', batchCards.map(c => ({id: c.card_id, status: c.status})));
-                    const batchIdForSave = batchCards[0].batch_id;
-                    
-                    let mediaUrl = null, fileName = null, fileSize = null, fileType = null;
-                    const contentType = cardData.message_type;
-                    
-                    if (contentType !== 'text' && currentMedia[contentType]) {
-                        showNotification(`Uploading ${contentType}...`, 'info');
-                        
-                        const uploadResult = await uploadWithProgress(
-                            currentMedia[contentType].url,
-                            currentMedia[contentType].name,
-                            currentMedia[contentType].type,
-                            batchCards[0].card_id,
-                            getProgressElements(contentType)
-                        );
-                        
-                        if (uploadResult.success) {
-                            mediaUrl = uploadResult.url;
-                            fileName = uploadResult.file_name;
-                            fileSize = uploadResult.file_size;
-                            fileType = uploadResult.file_type;
-                            showNotification(`${contentType} uploaded successfully!`, 'success');
-                        }
-                    }
-                    
-                    const cardsToSave = batchCards
-                        .filter(card => card.status !== 'deleted')
-                        .map(card => ({
-                            card_id: card.card_id,
-                            message_type: cardData.message_type,
-                            message_text: cardData.message_text || '',
-                            media_url: mediaUrl,
-                            file_name: fileName,
-                            file_size: fileSize,
-                            file_type: fileType,
-                            batch_id: batchIdForSave,
-                            batch_order: card.batch_order,
-                            status: 'active'
-                        }));
-                    
-                    const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchIdForSave)}/add-cards`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ cards: cardsToSave })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        showNotification(`✅ Batch template saved! Redirecting to payment...`, 'success');
-                        clearUnsavedChanges();
-                        
-                        // Store batch info and redirect to checkout
-                        localStorage.setItem('pendingBatchId', batchIdForSave);
-                        localStorage.setItem('pendingBatchQty', cardsToSave.length);
-                        localStorage.setItem('batchTemplate', JSON.stringify({
-                            message_type: cardData.message_type,
-                            message_text: cardData.message_text,
-                            media_url: mediaUrl,
-                            file_name: fileName
-                        }));
-                        
-                        // Redirect to checkout for payment
-                        setTimeout(() => {
-                            window.location.href = `/checkout.html?batch_id=${batchIdForSave}&qty=${cardsToSave.length}`;
-                        }, 1500);
-                        
-                    } else {
-                        showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
-                    }
-                    
-                } catch (error) {
-                    console.error('Batch save error:', error);
-                    showNotification('Error saving batch: ' + error.message, 'error');
-                }
-            }
             
             elements.activationCheckbox.addEventListener('change', function() {
                 elements.activateBtn.disabled = !this.checked;
@@ -2674,8 +2663,8 @@
                             <td colspan="5">
                                 <div class="loading" style="margin-right: 10px;"></div>
                                 Loading cards from database...
-                            <\/td>
-                        <\/tr>
+                            </td>
+                        </tr>
                     `;
                     
                     console.log('Loading cards from:', `${BACKEND_URL}/api/cards`);
@@ -2702,10 +2691,10 @@
                                 
                                 html += `
                                     <tr>
-                                        <td><strong>${card.card_id}</strong><\/td>
-                                        <td>${card.message_type}<\/td>
-                                        <td>${messagePreview}<\/td>
-                                        <td>${date}<\/td>
+                                        <td><strong>${card.card_id}</strong></td>
+                                        <td>${card.message_type}</td>
+                                        <td>${messagePreview}</td>
+                                        <td>${date}</td>
                                         <td>
                                             <div class="action-buttons">
                                                 <button class="action-btn view" onclick="window.open('${BACKEND_URL}/viewer.html?card=${card.card_id}', '_blank')">
@@ -2715,8 +2704,8 @@
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </div>
-                                        <\/td>
-                                    <\/tr>
+                                        </td>
+                                    </tr>
                                 `;
                             });
                             elements.cardsTableBody.innerHTML = html;
@@ -2727,8 +2716,8 @@
                                     <td colspan="5">
                                         <i class="fas fa-info-circle"></i> 
                                         No cards found in database. Create your first Papir card above!
-                                    <\/td>
-                                <\/tr>
+                                    </td>
+                                </tr>
                             `;
                             console.log('No cards found in response');
                         }
@@ -2739,8 +2728,8 @@
                                 <td colspan="5">
                                     <i class="fas fa-exclamation-triangle"></i> 
                                     Could not load cards: Server returned ${response.status} ${response.statusText}
-                                <\/td>
-                            <\/tr>
+                                </td>
+                            </tr>
                         `;
                     }
                     
@@ -2751,8 +2740,8 @@
                             <td colspan="5">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 Error loading cards: ${error.message}
-                            <\/td>
-                        <\/tr>
+                            </td>
+                        </tr>
                     `;
                 }
             }

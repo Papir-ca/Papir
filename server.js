@@ -531,6 +531,10 @@ app.post('/api/cards', async (req, res) => {
         status: req.body.status || (card_type === 'ecard' ? 'active' : 'pending'),
         card_type: card_type,  // ← NEW
         
+        // ADD THESE FIELDS for Hallmark flow:
+        is_batch_template: req.body.is_batch_template || false,
+        quantity: req.body.quantity || null,
+        
         // Physical card fields (dormant by default)
         physical_card_status: card_type === 'physical' ? 'dormant' : null,
         activation_deadline: card_type === 'physical' ? deadline.toISOString() : null,
@@ -1061,6 +1065,204 @@ app.post('/api/activate-card', async (req, res) => {
     console.error('💥 Activation error details:', error);
     res.json({ success: false, error: 'Server error: ' + error.message });
   }
+});
+
+// ============================================
+// HALLMARK FLOW: Create batch from template after payment
+// ============================================
+app.post('/api/batch/create-from-template', async (req, res) => {
+    try {
+        const { batch_id, quantity } = req.body;
+        const clientIp = getClientIp(req);
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        
+        console.log(`📦 Hallmark Batch Creation: ${batch_id} | ${quantity} cards`);
+        
+        if (!batch_id || !quantity || quantity < 1) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing batch_id or invalid quantity' 
+            });
+        }
+        
+        // 1. Get the template card (draft status)
+        const { data: template, error: templateError } = await supabaseAdmin
+            .from('cards')
+            .select('*')
+            .eq('batch_id', batch_id)
+            .eq('is_batch_template', true)
+            .eq('status', 'draft')
+            .single();
+            
+        if (templateError || !template) {
+            console.error('Template not found or already activated:', templateError);
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Template not found or already processed' 
+            });
+        }
+        
+        // 2. Activate the template card first (AUDIT TRAIL #1)
+        const { error: activateError } = await supabaseAdmin
+            .from('cards')
+            .update({ 
+                status: 'active',
+                updated_by_ip: clientIp,
+                updated_at: new Date().toISOString()
+            })
+            .eq('card_id', template.card_id);
+        
+        if (activateError) throw activateError;
+        
+        // Log template activation (AUDIT TRAIL #2)
+        await supabaseAdmin
+            .from('card_activations')
+            .insert({
+                card_id: template.card_id,
+                activated_at: new Date().toISOString(),
+                activated_by_ip: clientIp,
+                terms_accepted_at: new Date().toISOString(),
+                terms_accepted_ip: clientIp,
+                user_agent: userAgent,
+                activation_source: 'checkout_payment',
+                metadata: {
+                    batch_id: batch_id,
+                    is_template: true,
+                    quantity: quantity
+                }
+            });
+        
+        // 3. Create remaining cards (quantity - 1)
+        const cardsToCreate = [];
+        const deadline = new Date();
+        deadline.setFullYear(deadline.getFullYear() + 1);
+        
+        for (let i = 2; i <= quantity; i++) {
+            cardsToCreate.push({
+                card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+                batch_id: batch_id,
+                batch_order: i,
+                message_type: template.message_type,
+                message_text: template.message_text,
+                media_url: template.media_url,
+                file_name: template.file_name,
+                file_size: template.file_size,
+                file_type: template.file_type,
+                status: 'active', // Auto-activated
+                card_type: 'ecard',
+                is_batch_template: false,
+                created_by_ip: clientIp,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                activation_deadline: deadline.toISOString()
+            });
+        }
+        
+        // 4. Insert batch cards
+        if (cardsToCreate.length > 0) {
+            const { error: insertError } = await supabaseAdmin
+                .from('cards')
+                .insert(cardsToCreate);
+            
+            if (insertError) throw insertError;
+            
+            // Log activations for all created cards (AUDIT TRAIL #3)
+            const activationRecords = cardsToCreate.map(card => ({
+                card_id: card.card_id,
+                activated_at: new Date().toISOString(),
+                activated_by_ip: clientIp,
+                terms_accepted_at: new Date().toISOString(),
+                terms_accepted_ip: clientIp,
+                user_agent: userAgent,
+                activation_source: 'batch_auto_created',
+                metadata: {
+                    batch_id: batch_id,
+                    template_card_id: template.card_id,
+                    batch_order: card.batch_order
+                }
+            }));
+            
+            await supabaseAdmin
+                .from('card_activations')
+                .insert(activationRecords);
+        }
+        
+        // 5. Create or update batch record (AUDIT TRAIL #4)
+        const { data: existingBatch } = await supabaseAdmin
+            .from('batches')
+            .select('batch_id')
+            .eq('batch_id', batch_id)
+            .maybeSingle();
+        
+        if (!existingBatch) {
+            await supabaseAdmin
+                .from('batches')
+                .insert({
+                    batch_id: batch_id,
+                    batch_type: 'ecard',
+                    cards_created: quantity,
+                    total_cards_purchased: quantity,
+                    max_cards_allowed: quantity,
+                    content_locked: true,
+                    created_by_ip: clientIp,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+        } else {
+            await supabaseAdmin
+                .from('batches')
+                .update({
+                    cards_created: quantity,
+                    total_cards_purchased: quantity,
+                    content_locked: true,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('batch_id', batch_id);
+        }
+        
+        // 6. Log batch event (AUDIT TRAIL #5)
+        await supabaseAdmin
+            .from('batch_events')
+            .insert({
+                batch_id: batch_id,
+                event_type: 'batch_paid_and_created',
+                quantity: quantity,
+                card_id: template.card_id,
+                timestamp: new Date().toISOString(),
+                ip_address: clientIp,
+                user_agent: userAgent,
+                metadata: {
+                    template_card_id: template.card_id,
+                    all_card_ids: [template.card_id, ...cardsToCreate.map(c => c.card_id)],
+                    total_cards: quantity,
+                    payment_completed: true,
+                    auto_activated: true
+                }
+            });
+        
+        console.log(`✅ Hallmark Batch Created: ${batch_id} with ${quantity} cards`);
+        
+        res.json({ 
+            success: true, 
+            message: `Batch created with ${quantity} cards`,
+            batch_id: batch_id,
+            quantity: quantity,
+            template_card_id: template.card_id,
+            audit_trail: {
+                template_activated: true,
+                cards_created: cardsToCreate.length + 1,
+                activations_logged: cardsToCreate.length + 1,
+                batch_event_logged: true
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Hallmark batch creation error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
 });
 
 // 🔢 STEP 2: Increment scan count AND log individual scan (UPDATED)
