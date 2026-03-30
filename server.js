@@ -527,8 +527,8 @@ app.post('/api/cards', async (req, res) => {
         file_type: file_type || null,
         scan_count: 0,
         
-        // ← KEY LOGIC: E-cards are immediately active, physical cards are dormant (pending)
-        status: card_type === 'ecard' ? 'active' : 'pending',
+        // ← KEY LOGIC: Use provided status (e.g., 'draft') or default based on card_type
+        status: req.body.status || (card_type === 'ecard' ? 'active' : 'pending'),
         card_type: card_type,  // ← NEW
         
         // Physical card fields (dormant by default)
@@ -1011,7 +1011,7 @@ app.post('/api/activate-card', async (req, res) => {
       return res.json({ success: false, error: 'Card already active' });
     }
     
-    if (card.status !== 'pending') {
+    if (card.status !== 'pending' && card.status !== 'draft') {
       return res.json({ success: false, error: `Card cannot be activated (status: ${card.status})` });
     }
     
@@ -1147,6 +1147,52 @@ app.post('/api/cards/:card_id/track', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Tracking error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========== NEW ENDPOINT: Activate card after payment (for Create‑First flow) ==========
+app.post('/api/cards/:card_id/activate-after-payment', async (req, res) => {
+  try {
+    const { card_id } = req.params;
+    const clientIp = getClientIp(req);
+    
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    // Update card status from 'draft' to 'active'
+    const { error } = await supabaseAdmin
+      .from('cards')
+      .update({ 
+        status: 'active',
+        updated_by_ip: clientIp,
+        updated_at: new Date().toISOString()
+      })
+      .eq('card_id', card_id)
+      .eq('status', 'draft'); // Only activate if it was a draft
+    
+    if (error) throw error;
+    
+    // Also log activation in card_activations
+    const { error: logError } = await supabaseAdmin
+      .from('card_activations')
+      .insert({
+        card_id: card_id,
+        activated_at: new Date().toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: req.headers['user-agent'] || 'unknown',
+        activation_source: 'checkout',
+        location_data: null
+      });
+    
+    if (logError) console.error('Activation log failed:', logError);
+    
+    res.json({ success: true, message: 'Card activated' });
+  } catch (error) {
+    console.error('Activation after payment error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2544,7 +2590,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
   
   try {
-    const { quantity, email, batchId } = req.body;
+    const { quantity, email, batchId, card_id } = req.body;  // ← Added card_id
     
     if (!quantity || quantity < 1) {
       return res.status(400).json({ 
@@ -2574,7 +2620,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
       receipt_email: email,
       metadata: {
         quantity: quantity.toString(),
-        batch_id: batchId || `batch_${Date.now()}`,
+        batch_id: batchId,
+        card_id: card_id || '', // ← Store card ID if present
         card_type: 'ecard'
       },
       automatic_payment_methods: { enabled: true },
@@ -2583,7 +2630,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
     // Record in database
     await supabaseAdmin.from('payments').insert({
       stripe_payment_intent_id: paymentIntent.id,
-      batch_id: batchId || `batch_${Date.now()}`,
+      batch_id: batchId,
+      card_id: card_id || null, // ← Also store card_id in payments table if present
       card_type: 'ecard',
       quantity: quantity,
       amount_total: totalAmount,

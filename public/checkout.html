@@ -143,7 +143,7 @@
     <div class="container">
         <div id="checkout-form">
             <h1 class="logo">📧 Papir E-Cards</h1>
-            <p class="subtitle">Purchase digital cards to share instantly</p>
+            <p class="subtitle" id="page-subtitle">Purchase digital cards to share instantly</p>
             
             <div class="error-message" id="config-error">
                 ⚠️ Payment system not configured. Please contact support.
@@ -195,7 +195,7 @@
             <h2>✅ Payment Successful!</h2>
             <p>Your E-Cards are ready. You can now create and send them.</p>
             <p style="margin-top: 10px; color: #a0aec0;">Batch ID: <span id="batch-id"></span></p>
-            <a href="/maker.html">Create Your Cards</a>
+            <a href="/maker.html" id="success-link">Create Your Cards</a>
         </div>
     </div>
 
@@ -204,9 +204,23 @@
         let stripe, elements, card;
         let selectedQty = 1;
         let selectedPrice = 299;
+        let cardId = null;  // ← Single card ID from URL
         
         // Initialize everything when page loads
         async function initialize() {
+            // Check if we have a card_id in URL (Create‑First flow)
+            const urlParams = new URLSearchParams(window.location.search);
+            cardId = urlParams.get('card_id');
+            
+            if (cardId) {
+                // Single card purchase mode
+                selectedQty = 1;
+                selectedPrice = 299;
+                document.querySelector('.subtitle').textContent = 'Complete your purchase to send this card';
+                document.getElementById('pricing-section').style.display = 'none'; // Hide quantity selector
+                document.getElementById('submit-btn').textContent = 'Pay $2.99 to Send Card';
+            }
+            
             try {
                 // Fetch publishable key from backend (SAFEST WAY)
                 const response = await fetch(`${BACKEND_URL}/api/stripe-key`);
@@ -237,7 +251,9 @@
                 });
                 
                 // Show the form
-                document.getElementById('pricing-section').style.display = 'grid';
+                if (!cardId) {
+                    document.getElementById('pricing-section').style.display = 'grid';
+                }
                 document.getElementById('email-section').style.display = 'block';
                 document.getElementById('card-section').style.display = 'block';
                 document.getElementById('submit-btn').style.display = 'block';
@@ -251,16 +267,18 @@
         }
         
         function setupEventListeners() {
-            // Pricing selection
-            document.querySelectorAll('.price-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.price-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedQty = parseInt(this.dataset.qty);
-                    selectedPrice = parseInt(this.dataset.price);
-                    document.getElementById('submit-btn').textContent = `Pay $${(selectedPrice/100).toFixed(2)}`;
+            // Pricing selection (only if batch mode)
+            if (!cardId) {
+                document.querySelectorAll('.price-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('.price-option').forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedQty = parseInt(this.dataset.qty);
+                        selectedPrice = parseInt(this.dataset.price);
+                        document.getElementById('submit-btn').textContent = `Pay $${(selectedPrice/100).toFixed(2)}`;
+                    });
                 });
-            });
+            }
             
             // Submit payment
             document.getElementById('submit-btn').addEventListener('click', handleSubmit);
@@ -289,7 +307,8 @@
                     body: JSON.stringify({
                         quantity: selectedQty,
                         email: email,
-                        batchId: `batch_${Date.now()}`
+                        batchId: cardId ? cardId : `batch_${Date.now()}`, // Use card ID as batch ID if single card
+                        card_id: cardId // ← Pass card_id to backend
                     })
                 });
                 
@@ -309,14 +328,28 @@
                     throw new Error(result.error.message);
                 }
                 
-                // Success!
+                // SUCCESS! Activate the card if it's a single card purchase
+                if (cardId) {
+                    await fetch(`${BACKEND_URL}/api/cards/${cardId}/activate-after-payment`, {
+                        method: 'POST'
+                    });
+                }
+                
+                // Show success
                 document.getElementById('checkout-form').style.display = 'none';
                 document.getElementById('success-message').style.display = 'block';
-                document.getElementById('batch-id').textContent = result.paymentIntent.metadata.batch_id;
+                document.getElementById('batch-id').textContent = cardId || result.paymentIntent.metadata.batch_id;
                 
-                // Store for maker.html
-                localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
-                localStorage.setItem('pendingCardQuantity', selectedQty);
+                // Update success message for single card
+                if (cardId) {
+                    document.querySelector('.success-message h2').textContent = '✅ Card Activated!';
+                    document.querySelector('.success-message p').innerHTML = 'Your card is ready to send.';
+                    document.getElementById('success-link').textContent = 'Send Your Card';
+                    document.getElementById('success-link').href = `/viewer.html?card=${cardId}`;
+                } else {
+                    localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
+                    localStorage.setItem('pendingCardQuantity', selectedQty);
+                }
                 
             } catch (error) {
                 document.getElementById('card-errors').textContent = error.message;

@@ -6,7 +6,7 @@
     <title>Card Creator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ⚠️ All your existing CSS stays exactly the same – no changes */
+        /* Your existing CSS – unchanged */
         * {
             margin: 0;
             padding: 0;
@@ -1760,7 +1760,7 @@
                         card_id: cardData.card_id,
                         message_type: cardData.message_type,
                         message_text: cardData.message_text,
-                        status: cardData.status,
+                        status: 'draft',  // ← CHANGED: Save as draft first
                         card_type: cardData.card_type,
                         delivery_method: cardData.delivery_method,
                         recipient_contact: cardData.recipient_contact
@@ -1843,43 +1843,16 @@
                     elements.saveBtn.disabled = false;
                     
                     if (result.success) {
-                        if (cardDataToSend.card_type === 'ecard') {
-                            await sendECard(result.card.card_id, cardDataToSend.delivery_method, cardDataToSend.recipient_contact);
-                        } else {
-                            showNotification(`Card ${cardData.card_id} saved to Papir backend!`, 'success');
-                            clearUnsavedChanges();
-                            await loadCardsFromBackend();
-                            
-                            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${BACKEND_URL}/viewer.html?card=${cardData.card_id}`)}&format=png&margin=10`;
-                            const viewerUrl = `${BACKEND_URL}/viewer.html?card=${cardData.card_id}`;
-                            
-                            elements.qrCodeContainer.innerHTML = `
-                                <div class="qr-success">
-                                    <i class="fas fa-check-circle"></i>
-                                    <h3>Card Saved Successfully!</h3>
-                                    <p>Card ID: <strong>${cardData.card_id}</strong></p>
-                                    <p>Type: <strong>${cardData.message_type}</strong></p>
-                                </div>
-                                <img src="${qrCodeUrl}" alt="QR Code" class="qr-code-img">
-                                <p style="color: #a0aec0; margin-bottom: 20px;">Scan with phone camera</p>
-                                <div class="share-url-container">
-                                    <input type="text" id="shareableUrl" class="share-url-input" value="${viewerUrl}" readonly>
-                                    <button class="copy-btn" onclick="copyShareUrl()">
-                                        <i class="fas fa-copy"></i> Copy
-                                    </button>
-                                </div>
-                                <div style="margin-top: 15px;">
-                                    <button class="btn btn-secondary" onclick="downloadQRCode('${qrCodeUrl}', '${cardData.card_id}')">
-                                        <i class="fas fa-download"></i> Download QR
-                                    </button>
-                                </div>
-                            `;
-                            elements.qrCodeSection.style.display = 'block';
-                            
-                            setTimeout(() => {
-                                elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
-                            }, 500);
-                        }
+                        // NEW FLOW: Save as draft, then redirect to checkout
+                        showNotification('Card saved! Redirecting to payment...', 'success');
+                        
+                        // Store card ID for checkout (optional, as we pass via URL)
+                        localStorage.setItem('pendingCardId', result.card.card_id);
+                        
+                        // Redirect to checkout after short delay
+                        setTimeout(() => {
+                            window.location.href = `/checkout.html?card_id=${result.card.card_id}&qty=1`;
+                        }, 1500);
                         
                         return { success: true, data: result.card };
                     } else {
@@ -1898,8 +1871,9 @@
                 }
             }
             
-            // ========== NEW: SEND E-CARD ==========
+            // ========== NEW: SEND E-CARD (no longer used directly, kept for reference) ==========
             async function sendECard(cardId, method, contact) {
+                // This function is no longer called from the save flow, but kept for completeness.
                 try {
                     showNotification('Preparing e-card for delivery...', 'info');
                     
@@ -1930,7 +1904,7 @@
                 }
             }
             
-            // ========== NEW: SHAREABLE LINK UI ==========
+            // ========== NEW: SHAREABLE LINK UI (kept for completeness) ==========
             function showShareableLink(link, qrUrl, cardId) {
                 let shareHtml = `
                     <div class="qr-success" style="background: linear-gradient(to right, #36D1DC, #5B86E5);">
