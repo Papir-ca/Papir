@@ -2261,74 +2261,23 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        showNotification(`✅ Successfully saved ${result.details.cards_associated} cards!`, 'success');
+                        showNotification(`✅ Batch template saved! Redirecting to payment...`, 'success');
                         clearUnsavedChanges();
                         
-                        try {
-                            const refreshResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchIdForSave)}`);
-                            const refreshResult = await refreshResponse.json();
-                            if (refreshResult.success) {
-                                window.currentBatchCards = refreshResult.cards.map(card => ({
-                                    ...card,
-                                    batch_id: batchIdForSave
-                                }));
-                                console.log('🔄 Refreshed cards from server:', window.currentBatchCards.length);
-                            }
-                        } catch (e) {
-                            console.error('Failed to refresh cards:', e);
-                        }
+                        // Store batch info and redirect to checkout
+                        localStorage.setItem('pendingBatchId', batchIdForSave);
+                        localStorage.setItem('pendingBatchQty', cardsToSave.length);
+                        localStorage.setItem('batchTemplate', JSON.stringify({
+                            message_type: cardData.message_type,
+                            message_text: cardData.message_text,
+                            media_url: mediaUrl,
+                            file_name: fileName
+                        }));
                         
-                        let batchHtml = `
-                            <div class="qr-success">
-                                <i class="fas fa-check-circle"></i>
-                                <h3>Batch Saved Successfully!</h3>
-                                <p>Batch ID: <strong>${batchIdForSave}</strong></p>
-                                <p>Total Cards: <strong>${batchCards.filter(c => c.status !== 'deleted').length}</strong></p>
-                            </div>
-                            <div class="qr-card-container">
-                        `;
-                        
-                        batchCards.filter(card => card.status !== 'deleted').forEach((card) => {
-                            const cardViewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
-                            const cardQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cardViewerUrl)}&format=png&margin=5`;
-                            
-                            batchHtml += `
-                                <div class="qr-card-item">
-                                    <div style="margin-bottom: 10px;">
-                                        <strong style="color: #06D6A0; font-size: 1.1rem;">Card #${card.batch_order}</strong>
-                                        <div style="font-size: 0.75rem; color: #666; word-break: break-all; margin-top: 5px;">${card.card_id}</div>
-                                    </div>
-                                    <img src="${cardQrUrl}" alt="QR Code" style="width: 150px; height: 150px; border: 2px solid white; border-radius: 5px; display: block; margin: 0 auto 10px;">
-                                    <div style="text-align: center;">
-                                        <button class="action-btn copy-btn" onclick="copyToClipboard('${cardViewerUrl}')" style="margin-right: 5px; font-size: 0.8rem; padding: 5px 10px;">
-                                            <i class="fas fa-copy"></i> URL
-                                        </button>
-                                        <button class="action-btn qr-btn" onclick="downloadQRCode('${cardQrUrl}', '${card.card_id}')" style="font-size: 0.8rem; padding: 5px 10px;">
-                                            <i class="fas fa-download"></i> QR
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        
-                        batchHtml += `</div>`;
-                        
-                        batchHtml += `
-                            <div style="margin-top: 20px; text-align: center;">
-                                <a href="/batch-manager?batch=${encodeURIComponent(batchIdForSave)}" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #f39c12; color: white; text-decoration: none; border-radius: 5px;">
-                                    <i class="fas fa-layer-group"></i> Manage This Batch
-                                </a>
-                            </div>
-                        `;
-                        
-                        elements.qrCodeContainer.innerHTML = batchHtml;
-                        elements.qrCodeSection.style.display = 'block';
-                        
+                        // Redirect to checkout for payment
                         setTimeout(() => {
-                            elements.qrCodeSection.scrollIntoView({ behavior: 'smooth' });
-                        }, 500);
-                        
-                        switchToBatchModifyMode(batchIdForSave, result.details.count_after);
+                            window.location.href = `/checkout.html?batch_id=${batchIdForSave}&qty=${cardsToSave.length}`;
+                        }, 1500);
                         
                     } else {
                         showNotification(`Failed to save: ${result.error || 'Unknown error'}`, 'error');
