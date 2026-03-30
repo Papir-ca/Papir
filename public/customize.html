@@ -75,6 +75,104 @@
             font-size: 1.2rem;
         }
 
+        /* ========== HALLMARK FLOW STYLES ========== */
+        .mode-indicator {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .mode-indicator i {
+            color: #e94560;
+        }
+
+        #batchControls {
+            display: none;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .batch-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #e94560;
+            border-color: #e94560;
+        }
+
+        #quantityInput {
+            width: 80px;
+            padding: 10px;
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .price-calculation {
+            text-align: right;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #06D6A0;
+        }
+
+        .per-card {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .draft-notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffc107;
+        }
+
+        .draft-notice i {
+            font-size: 1.2rem;
+        }
+        /* ========== END HALLMARK STYLES ========== */
+
         .design-layout {
             display: flex;
             gap: 20px;
@@ -593,16 +691,53 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- ========== UPDATED HEADER ========== -->
         <div class="design-header">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="templates.html" style="color: white; text-decoration: none;">
-                    <i class="fas fa-arrow-left"></i> Back
+                    <i class="fas fa-arrow-left"></i> Back to Templates
                 </a>
                 <h1><i class="fas fa-magic"></i> Professional Card Designer</h1>
                 <span class="template-badge" id="templateName">Chantilly Lace</span>
             </div>
-            <div class="price-display">
-                <i class="fas fa-tag"></i> $19.99
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="mode-indicator" id="modeIndicator">
+                    <i class="fas fa-heart"></i>
+                    <span id="modeText">Single Card Mode</span>
+                </div>
+                <div class="price-display" id="priceDisplay">
+                    <i class="fas fa-tag"></i> $2.99
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Controls (shown only in batch mode) -->
+        <div id="batchControls">
+            <div class="batch-info">
+                <div>
+                    <h3 style="margin-bottom: 5px;"><i class="fas fa-layer-group"></i> Batch Mode</h3>
+                    <p style="opacity: 0.8; font-size: 0.9rem;">Design once, send to multiple people</p>
+                </div>
+                <div class="price-calculation">
+                    <div class="total-price" id="totalPrice">$29.90</div>
+                    <div class="per-card">$2.99 per card</div>
+                </div>
+            </div>
+            
+            <div class="quantity-selector">
+                <span>Number of cards:</span>
+                <button class="quantity-btn" onclick="updateQuantity(-1)"><i class="fas fa-minus"></i></button>
+                <input type="number" id="quantityInput" value="10" min="1" max="500" readonly>
+                <button class="quantity-btn" onclick="updateQuantity(1)"><i class="fas fa-plus"></i></button>
+                <span style="margin-left: 10px; opacity: 0.7;">(Max 500)</span>
+            </div>
+        </div>
+
+        <div class="draft-notice" id="draftNotice">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Hallmark Style:</strong> Your card will be saved as a draft. Complete payment to activate and send.
             </div>
         </div>
 
@@ -988,6 +1123,7 @@
     </div>
 
     <script>
+        // ========== Existing canvas initialization code (unchanged) ==========
         const canvas = new fabric.Canvas('designCanvas');
         let selectedObject = null;
         let currentPage = 'front';
@@ -1840,85 +1976,149 @@
         canvas.on('object:removed', updateLayersList);
         canvas.on('object:modified', updateLayersList);
 
-    document.getElementById('closePreviewBtn').addEventListener('click', function() {
-        document.getElementById('previewModal').style.display = 'none';
-     });
-        
+        document.getElementById('closePreviewBtn').addEventListener('click', function() {
+            document.getElementById('previewModal').style.display = 'none';
+        });
+
+        // ========== HALLMARK FLOW INTEGRATION ==========
+        // Detect mode from URL
+        const isBatchMode = urlParams.get('mode') === 'batch';
+        const batchId = urlParams.get('batch_id') || 'BATCH_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        const templateFromUrl = urlParams.get('template');
+
+        // Load template data from localStorage or URL
+        const selectedTemplate = JSON.parse(localStorage.getItem('selectedTemplate') || '{}');
+        if (templateFromUrl) {
+            document.getElementById('templateName').textContent = templateFromUrl.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        } else if (selectedTemplate.name) {
+            document.getElementById('templateName').textContent = selectedTemplate.name;
+        }
+
+        // Configure UI based on mode
+        if (isBatchMode) {
+            document.getElementById('batchControls').style.display = 'block';
+            document.getElementById('modeIndicator').innerHTML = '<i class="fas fa-layer-group"></i><span>Batch Mode</span>';
+            document.getElementById('checkoutBtn').innerHTML = '<i class="fas fa-save"></i> Save Template & Continue';
+            updatePrice();
+        } else {
+            document.getElementById('checkoutBtn').innerHTML = '<i class="fas fa-lock"></i> Save & Continue ($2.99)';
+        }
+
+        function updateQuantity(change) {
+            const input = document.getElementById('quantityInput');
+            let newVal = parseInt(input.value) + change;
+            if (newVal < 1) newVal = 1;
+            if (newVal > 500) newVal = 500;
+            input.value = newVal;
+            updatePrice();
+        }
+
+        function updatePrice() {
+            if (!isBatchMode) return;
+            const qty = parseInt(document.getElementById('quantityInput').value) || 1;
+            const total = (qty * 2.99).toFixed(2);
+            document.getElementById('totalPrice').textContent = '$' + total;
+        }
+
+        // Quantity input change
+        document.getElementById('quantityInput').addEventListener('change', updatePrice);
+
+        // REPLACE checkout button listener with Hallmark flow
         document.getElementById('checkoutBtn').addEventListener('click', async function() {
-            // Generate unique card ID
-            const cardId = 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            const btn = document.getElementById('checkoutBtn');
+            const originalText = btn.innerHTML;
             
-            // Collect all canvas elements data
-            const objects = canvas.getObjects().map(obj => ({
-                type: obj.type,
-                text: obj.text,
-                left: obj.left,
-                top: obj.top,
-                width: obj.width,
-                height: obj.height,
-                scaleX: obj.scaleX,
-                scaleY: obj.scaleY,
-                fontSize: obj.fontSize,
-                fontFamily: obj.fontFamily,
-                fill: obj.fill,
-                fontWeight: obj.fontWeight,
-                fontStyle: obj.fontStyle,
-                underline: obj.underline,
-                linethrough: obj.linethrough,
-                textAlign: obj.textAlign,
-                angle: obj.angle
-            }));
-            
-            // Get border settings
-            const borderStyle = document.querySelector('.border-style-option.active')?.dataset.border || 'none';
-            const borderColor = document.getElementById('borderColor').value;
-            const borderWidth = document.getElementById('borderWidthSlider').value;
-            
-            const customization = {
-                objects: objects,
-                border: {
-                    style: borderStyle,
-                    color: borderColor,
-                    width: borderWidth
-                }
-            };
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Draft...';
             
             try {
-                // Disable button to prevent double-click
-                const btn = document.getElementById('checkoutBtn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                // Generate IDs
+                const cardId = isBatchMode ? batchId : 'CARD_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                const quantity = isBatchMode ? parseInt(document.getElementById('quantityInput').value) || 1 : 1;
                 
-                // Create checkout session
-                const response = await fetch('/api/create-checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cardId: cardId,
-                        templateName: document.getElementById('templateName').textContent,
-                        price: 19.99,
-                        customization: customization
-                    })
+                // Capture canvas as image
+                const canvasImage = canvas.toDataURL({
+                    format: 'png',
+                    quality: 1,
+                    multiplier: 2
                 });
                 
-                const result = await response.json();
+                // Collect complete design data
+                const designData = {
+                    card_id: cardId,
+                    template_name: document.getElementById('templateName').textContent,
+                    preview_image: canvasImage,
+                    customization: {
+                        objects: canvas.getObjects().map(obj => ({
+                            type: obj.type,
+                            text: obj.text || null,
+                            left: obj.left,
+                            top: obj.top,
+                            width: obj.width,
+                            height: obj.height,
+                            scaleX: obj.scaleX,
+                            scaleY: obj.scaleY,
+                            fontSize: obj.fontSize,
+                            fontFamily: obj.fontFamily,
+                            fill: obj.fill,
+                            fontWeight: obj.fontWeight,
+                            fontStyle: obj.fontStyle,
+                            underline: obj.underline,
+                            linethrough: obj.linethrough,
+                            textAlign: obj.textAlign,
+                            angle: obj.angle,
+                            opacity: obj.opacity,
+                            charSpacing: obj.charSpacing,
+                            lineHeight: obj.lineHeight
+                        })),
+                        border: {
+                            style: document.querySelector('.border-style-option.active')?.dataset.border || 'none',
+                            color: document.getElementById('borderColor').value,
+                            width: document.getElementById('borderWidthSlider').value,
+                            radius: document.getElementById('borderRadiusSlider').value
+                        },
+                        background: document.getElementById('canvasContainer').style.backgroundColor || '#f0f0f0'
+                    },
+                    status: 'draft',
+                    card_type: 'ecard',
+                    is_batch_template: isBatchMode,
+                    quantity: quantity,
+                    created_at: new Date().toISOString()
+                };
                 
-                if (result.success && result.url) {
-                    // Redirect to Stripe checkout
-                    window.location.href = result.url;
-                } else {
-                    alert('Error creating checkout: ' + (result.error || 'Unknown error'));
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock"></i> Continue to Payment ($19.99)';
+                // Save to backend as DRAFT
+                const saveResponse = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(designData)
+                });
+                
+                const saveResult = await saveResponse.json();
+                
+                if (!saveResult.success) {
+                    throw new Error(saveResult.error || 'Failed to save design');
                 }
+                
+                // Show success and redirect
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved! Redirecting...';
+                btn.style.background = '#06D6A0';
+                
+                setTimeout(() => {
+                    const checkoutUrl = isBatchMode 
+                        ? `/checkout.html?batch_id=${cardId}&qty=${quantity}&mode=batch`
+                        : `/checkout.html?card_id=${cardId}&qty=1&mode=single`;
+                        
+                    window.location.href = checkoutUrl;
+                }, 1500);
+                
             } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Failed to start checkout. Please try again.');
-                document.getElementById('checkoutBtn').disabled = false;
-                document.getElementById('checkoutBtn').innerHTML = '<i class="fas fa-lock"></i> Continue to Payment ($19.99)';
+                console.error('Save error:', error);
+                alert('Error saving design: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.background = '';
             }
         });
-        
     </script>
 </body>
 </html>
