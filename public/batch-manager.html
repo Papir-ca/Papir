@@ -799,8 +799,11 @@
         // Initialize
         displayRecentBatches();
         
-        // No auto-load – spinner starts hidden, batch only loads on user action
-        
+        // FIXED: Auto-load from URL if present
+        if (urlBatchId) {
+            console.log('Auto-loading batch from URL:', urlBatchId);
+            loadBatchById(urlBatchId);
+        }
     </script>
 </body>
 </html>

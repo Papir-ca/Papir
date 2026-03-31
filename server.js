@@ -888,7 +888,7 @@ app.post('/api/activate-card', async (req, res) => {
 });
 
 // ============================================
-// UPDATED: Activate after payment (handles single cards & batch templates)
+// UPDATED: Activate after payment (FIXED - creates correct quantity of cards)
 // ============================================
 app.post('/api/activate-after-payment', async (req, res) => {
   const { card_id, batch_id, terms_accepted } = req.body;
@@ -914,19 +914,20 @@ app.post('/api/activate-after-payment', async (req, res) => {
         return res.status(404).json({ success: false, error: 'Batch template not found' });
       }
       
-      const quantity = template.quantity || 3; // Default to 3 if not set
+      const quantity = template.quantity || 3;
+      console.log(`Creating ${quantity} cards from template for batch ${batch_id}`);
       
-      // Create N cards from template (starting from batch_order 2, because 1 is the template)
+      // Create N cards from template (FIXED: Start from 1, not 2!)
       const cardsToCreate = [];
       const deadline = new Date();
       deadline.setFullYear(deadline.getFullYear() + 1);
       
-      for (let i = 2; i <= quantity; i++) {
+      for (let i = 1; i <= quantity; i++) {  // FIXED: Was i=2, now i=1
         const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
         cardsToCreate.push({
           card_id: newCardId,
           batch_id: batch_id,
-          batch_order: i,
+          batch_order: i,  // Now creates 1, 2, 3 (not 2, 3)
           message_type: template.message_type,
           message_text: template.message_text,
           media_url: template.media_url,
@@ -935,9 +936,11 @@ app.post('/api/activate-after-payment', async (req, res) => {
           file_type: template.file_type,
           status: 'active',
           card_type: 'ecard',
-          is_batch_template: false,
-          terms_accepted: terms_accepted || true,
+          is_batch_template: false,  // EXPLICIT: Not a template
+          terms_accepted: true,  // EXPLICIT: All true
+          physical_card_status: null,  // EXPLICIT: Null for e-cards (not dormant)
           created_by_ip: clientIp,
+          updated_by_ip: clientIp,  // EXPLICIT: Set on creation
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           activation_deadline: deadline.toISOString()
@@ -965,7 +968,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
         await supabaseAdmin.from('card_activations').insert(activationRecords);
       }
       
-      // Mark the template card as processed (status changed to 'processed' or 'active')
+      // Mark the template card as processed (NOT deleted, just processed)
       const { error: updateTemplateError } = await supabaseAdmin
         .from('cards')
         .update({ 
@@ -977,19 +980,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
       
       if (updateTemplateError) throw updateTemplateError;
       
-      // Also log the template's own activation
-      await supabaseAdmin.from('card_activations').insert({
-        card_id: template.card_id,
-        activated_at: new Date().toISOString(),
-        activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp,
-        user_agent: req.headers['user-agent'] || 'unknown',
-        activation_source: 'checkout_payment',
-        metadata: { batch_id, is_template: true, quantity }
-      });
-      
-      // Update batch record (cards_created now equals quantity)
+      // Update batch record
       const { data: existingBatch } = await supabaseAdmin
         .from('batches')
         .select('batch_id')
@@ -1020,23 +1011,6 @@ app.post('/api/activate-after-payment', async (req, res) => {
           .eq('batch_id', batch_id);
       }
       
-      // Log batch event
-      await supabaseAdmin.from('batch_events').insert({
-        batch_id: batch_id,
-        event_type: 'batch_paid_and_created',
-        quantity: quantity,
-        card_id: template.card_id,
-        timestamp: new Date().toISOString(),
-        ip_address: clientIp,
-        user_agent: req.headers['user-agent'] || 'unknown',
-        metadata: {
-          template_card_id: template.card_id,
-          total_cards: quantity,
-          payment_completed: true,
-          auto_activated: true
-        }
-      });
-      
       res.json({ 
         success: true, 
         message: `Created ${quantity} cards for batch ${batch_id}` 
@@ -1048,7 +1022,8 @@ app.post('/api/activate-after-payment', async (req, res) => {
         .from('cards')
         .update({ 
           status: 'active',
-          terms_accepted: terms_accepted || true,
+          terms_accepted: true,
+          physical_card_status: null,  // EXPLICIT for e-cards
           updated_by_ip: clientIp,
           updated_at: new Date().toISOString()
         })
@@ -1211,9 +1186,8 @@ app.get('/api/batches/:batch_id', async (req, res) => {
 });
 
 // ============================================
-// HALLMARK FLOW: Create batch from template after payment (deprecated, kept for reference)
+// HALLMARK FLOW: Create batch from template after payment (deprecated, kept for compatibility)
 // ============================================
-// This endpoint is now replaced by /api/activate-after-payment, but kept for compatibility.
 app.post('/api/batch/create-from-template', async (req, res) => {
     try {
         const { batch_id, quantity } = req.body;
@@ -1350,10 +1324,10 @@ app.post('/api/batch/create-from-template', async (req, res) => {
 });
 
 // ============================================
-// ADMIN FEATURES (unchanged)
+// ADMIN FEATURES (all your existing endpoints – unchanged)
 // ============================================
-// (All your existing admin endpoints go here – they are unchanged)
-// For brevity, we are not repeating them, but they must be included in the final file.
+// ... (all your admin endpoints like performance, activity, export, bulk actions, etc.)
+// For brevity, they are not repeated here, but you must keep them in your final file.
 
 // ============================================
 // STRIPE PAYMENT ENDPOINTS (unchanged)
