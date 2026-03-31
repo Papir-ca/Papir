@@ -6,6 +6,7 @@
     <title>Checkout | Papir E-Cards</title>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
+        /* Your existing CSS – unchanged */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { 
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
@@ -122,36 +123,6 @@
             display: none;
         }
         
-        .success-message {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        .success-message h2 { color: #06D6A0; margin-bottom: 15px; }
-        .success-message a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #06D6A0;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-        .view-card-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #06D6A0;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .view-card-btn.hidden {
-            display: none;
-        }
-        
-        /* Terms section styling */
         .terms-section {
             background: rgba(243, 156, 18, 0.1);
             padding: 15px;
@@ -238,13 +209,6 @@
                 <div class="spinner"></div>
                 <p>Processing payment...</p>
             </div>
-        </div>
-        
-        <!-- Success message area (initially hidden) -->
-        <div id="successMessage" style="display: none;">
-            <h2>✅ Payment Successful!</h2>
-            <p id="successMessageText">Your card is being activated...</p>
-            <button id="viewCardBtn" class="view-card-btn hidden">View & Send Card</button>
         </div>
     </div>
 
@@ -398,60 +362,17 @@
                     throw new Error(result.error.message);
                 }
                 
-                // Payment succeeded – now activate
-                const paymentIntent = result.paymentIntent;
-                if (paymentIntent.status === 'succeeded') {
-                    // Hide the checkout form and show success area
-                    document.getElementById('checkout-form').style.display = 'none';
-                    const successDiv = document.getElementById('successMessage');
-                    const successText = document.getElementById('successMessageText');
-                    const viewBtn = document.getElementById('viewCardBtn');
-                    
-                    successDiv.style.display = 'block';
-                    successText.textContent = 'Activating your card(s)...';
-                    viewBtn.classList.add('hidden');
-                    
-                    // === ADDED ACTIVATION CODE ===
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const cardIdFromUrl = urlParams.get('card_id');
-                    const batchIdFromUrl = urlParams.get('batch_id');
-                    
-                    console.log('Activating...', { cardIdFromUrl, batchIdFromUrl });
-                    
-                    const activateResponse = await fetch('/api/activate-after-payment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            card_id: cardIdFromUrl,
-                            batch_id: batchIdFromUrl,
-                            terms_accepted: true
-                        })
-                    });
-                    
-                    const activateData = await activateResponse.json();
-                    console.log('Activation response:', activateData);
-                    
-                    if (activateData.success) {
-                        successText.textContent = '✅ Card(s) activated!';
-                        viewBtn.classList.remove('hidden');
-                        
-                        if (cardIdFromUrl) {
-                            viewBtn.textContent = 'View & Send Card';
-                            viewBtn.onclick = () => window.location.href = `/viewer.html?card=${cardIdFromUrl}`;
-                        } else if (batchIdFromUrl) {
-                            viewBtn.textContent = 'Manage Batch';
-                            viewBtn.onclick = () => window.location.href = `/batch-manager.html?batch=${batchIdFromUrl}`;
-                        } else {
-                            // Fallback (should not happen)
-                            viewBtn.textContent = 'Go to Dashboard';
-                            viewBtn.onclick = () => window.location.href = '/dashboard.html';
-                        }
-                    } else {
-                        successText.textContent = 'Payment successful but activation failed. Please contact support.';
-                        viewBtn.classList.add('hidden');
-                    }
-                    // === END ACTIVATION CODE ===
+                // Payment succeeded – redirect to success page with parameters
+                let successUrl = `${BACKEND_URL}/success.html?`;
+                if (cardId) {
+                    successUrl += `card_id=${cardId}&qty=1`;
+                } else if (batchId) {
+                    successUrl += `batch_id=${batchId}&qty=${selectedQty}`;
+                } else {
+                    // Fallback (should not happen)
+                    successUrl += `batch_id=${result.paymentIntent.metadata.batch_id}&qty=${selectedQty}`;
                 }
+                window.location.href = successUrl;
                 
             } catch (error) {
                 document.getElementById('card-errors').textContent = error.message;
