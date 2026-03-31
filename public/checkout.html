@@ -228,7 +228,7 @@
         </div>
         
         <div class="success-message" id="success-message">
-            <!-- Content will be replaced dynamically -->
+            <!-- Success content will be inserted here -->
         </div>
     </div>
 
@@ -240,7 +240,6 @@
         let cardId = null;
         let batchId = null;
         
-        // Initialize everything when page loads
         async function initialize() {
             const urlParams = new URLSearchParams(window.location.search);
             cardId = urlParams.get('card_id');
@@ -303,8 +302,6 @@
                 // Initially disable submit button until terms are accepted
                 const submitBtn = document.getElementById('submit-btn');
                 submitBtn.disabled = true;
-                
-                // Enable button when terms checkbox is checked
                 document.getElementById('checkoutTerms').addEventListener('change', function() {
                     submitBtn.disabled = !this.checked;
                 });
@@ -340,8 +337,6 @@
                 document.getElementById('card-errors').textContent = 'Please enter your email';
                 return;
             }
-            
-            // Ensure terms are accepted (this should already be enforced by disabled button, but double-check)
             if (!document.getElementById('checkoutTerms').checked) {
                 document.getElementById('card-errors').textContent = 'Please accept the Terms of Service and Privacy Policy';
                 return;
@@ -349,7 +344,6 @@
             
             const btn = document.getElementById('submit-btn');
             const loading = document.getElementById('loading');
-            
             btn.disabled = true;
             loading.style.display = 'block';
             
@@ -388,70 +382,62 @@
                     throw new Error(result.error.message);
                 }
                 
-                // Payment succeeded – now handle card activation / batch creation
-                if (batchId) {
-                    loading.querySelector('p').textContent = 'Creating your cards...';
-                    const createResponse = await fetch(`${BACKEND_URL}/api/batch/create-from-template`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            batch_id: batchId,
-                            quantity: selectedQty
-                        })
-                    });
-                    const createResult = await createResponse.json();
-                    if (createResult.success) {
-                        localStorage.removeItem('pendingBatchId');
-                        localStorage.removeItem('pendingBatchQty');
-                        localStorage.removeItem('batchTemplateCard');
-                        document.getElementById('checkout-form').style.display = 'none';
-                        const successDiv = document.getElementById('success-message');
-                        successDiv.innerHTML = `
-                            <h2>✅ ${selectedQty} Cards Ready!</h2>
-                            <p>Your batch is created and all cards are active.</p>
-                            <a href="/batch-manager.html?batch=${batchId}" class="btn btn-primary" style="display: inline-block;">
-                                <i class="fas fa-layer-group"></i> Manage & Send Cards
-                            </a>
-                        `;
-                        successDiv.style.display = 'block';
-                    } else {
-                        throw new Error(createResult.error || 'Failed to create cards');
-                    }
-                } else if (cardId) {
-                    // Use the new temporary activation endpoint
-                    const activateResponse = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ card_id: cardId, terms_accepted: true })
-                    });
-                    const activateResult = await activateResponse.json();
-                    if (!activateResult.success) {
-                        throw new Error(activateResult.error || 'Activation failed');
-                    }
-                    
-                    document.getElementById('checkout-form').style.display = 'none';
-                    const successDiv = document.getElementById('success-message');
+                // PAYMENT SUCCEEDED – Now activate the card/batch
+                loading.querySelector('p').textContent = 'Activating your cards...';
+                
+                // Use the generic activation endpoint (handles both single and batch)
+                const activateResponse = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        card_id: cardId,
+                        batch_id: batchId,
+                        terms_accepted: true
+                    })
+                });
+                
+                const activateData = await activateResponse.json();
+                if (!activateData.success) {
+                    throw new Error(activateData.error || 'Activation failed');
+                }
+                
+                console.log('✅ Activation successful:', activateData);
+                
+                // Hide the checkout form and show success message
+                document.getElementById('checkout-form').style.display = 'none';
+                const successDiv = document.getElementById('success-message');
+                
+                if (cardId) {
+                    // Single card success
                     successDiv.innerHTML = `
                         <h2>✅ Card Activated!</h2>
                         <p>Your card is ready to send.</p>
-                        <a href="/viewer.html?card=${cardId}" class="btn btn-primary">
+                        <a href="/viewer.html?card=${cardId}" class="btn btn-primary" style="display: inline-block;">
                             <i class="fas fa-paper-plane"></i> View & Send Card
                         </a>
                     `;
-                    successDiv.style.display = 'block';
+                } else if (batchId) {
+                    // Batch success
+                    successDiv.innerHTML = `
+                        <h2>✅ ${selectedQty} Cards Ready!</h2>
+                        <p>Your batch is created and all cards are active.</p>
+                        <a href="/batch-manager.html?batch=${batchId}" class="btn btn-primary" style="display: inline-block;">
+                            <i class="fas fa-layer-group"></i> Manage & Send Cards
+                        </a>
+                    `;
                 } else {
+                    // Bulk batch (no pre‑existing batchId) – just store pending data
                     localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
                     localStorage.setItem('pendingCardQuantity', selectedQty);
-                    document.getElementById('checkout-form').style.display = 'none';
-                    const successDiv = document.getElementById('success-message');
                     successDiv.innerHTML = `
                         <h2>✅ Payment Successful!</h2>
                         <p>Your E-Cards are ready. You can now create and send them.</p>
                         <p style="margin-top: 10px; color: #a0aec0;">Batch ID: ${result.paymentIntent.metadata.batch_id}</p>
                         <a href="/maker.html" class="btn btn-primary">Create Your Cards</a>
                     `;
-                    successDiv.style.display = 'block';
                 }
+                
+                successDiv.style.display = 'block';
                 
             } catch (error) {
                 document.getElementById('card-errors').textContent = error.message;
