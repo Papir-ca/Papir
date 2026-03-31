@@ -137,6 +137,19 @@
             text-decoration: none;
             border-radius: 8px;
         }
+        .view-card-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #06D6A0;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .view-card-btn.hidden {
+            display: none;
+        }
         
         /* Terms section styling */
         .terms-section {
@@ -227,8 +240,11 @@
             </div>
         </div>
         
-        <div class="success-message" id="success-message">
-            <!-- Success content will be inserted here -->
+        <!-- Success message area (initially hidden) -->
+        <div id="successMessage" style="display: none;">
+            <h2>✅ Payment Successful!</h2>
+            <p id="successMessageText">Your card is being activated...</p>
+            <button id="viewCardBtn" class="view-card-btn hidden">View & Send Card</button>
         </div>
     </div>
 
@@ -382,62 +398,60 @@
                     throw new Error(result.error.message);
                 }
                 
-                // PAYMENT SUCCEEDED – Now activate the card/batch
-                loading.querySelector('p').textContent = 'Activating your cards...';
-                
-                // Use the generic activation endpoint (handles both single and batch)
-                const activateResponse = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        card_id: cardId,
-                        batch_id: batchId,
-                        terms_accepted: true
-                    })
-                });
-                
-                const activateData = await activateResponse.json();
-                if (!activateData.success) {
-                    throw new Error(activateData.error || 'Activation failed');
+                // Payment succeeded – now activate
+                const paymentIntent = result.paymentIntent;
+                if (paymentIntent.status === 'succeeded') {
+                    // Hide the checkout form and show success area
+                    document.getElementById('checkout-form').style.display = 'none';
+                    const successDiv = document.getElementById('successMessage');
+                    const successText = document.getElementById('successMessageText');
+                    const viewBtn = document.getElementById('viewCardBtn');
+                    
+                    successDiv.style.display = 'block';
+                    successText.textContent = 'Activating your card(s)...';
+                    viewBtn.classList.add('hidden');
+                    
+                    // === ADDED ACTIVATION CODE ===
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const cardIdFromUrl = urlParams.get('card_id');
+                    const batchIdFromUrl = urlParams.get('batch_id');
+                    
+                    console.log('Activating...', { cardIdFromUrl, batchIdFromUrl });
+                    
+                    const activateResponse = await fetch('/api/activate-after-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            card_id: cardIdFromUrl,
+                            batch_id: batchIdFromUrl,
+                            terms_accepted: true
+                        })
+                    });
+                    
+                    const activateData = await activateResponse.json();
+                    console.log('Activation response:', activateData);
+                    
+                    if (activateData.success) {
+                        successText.textContent = '✅ Card(s) activated!';
+                        viewBtn.classList.remove('hidden');
+                        
+                        if (cardIdFromUrl) {
+                            viewBtn.textContent = 'View & Send Card';
+                            viewBtn.onclick = () => window.location.href = `/viewer.html?card=${cardIdFromUrl}`;
+                        } else if (batchIdFromUrl) {
+                            viewBtn.textContent = 'Manage Batch';
+                            viewBtn.onclick = () => window.location.href = `/batch-manager.html?batch=${batchIdFromUrl}`;
+                        } else {
+                            // Fallback (should not happen)
+                            viewBtn.textContent = 'Go to Dashboard';
+                            viewBtn.onclick = () => window.location.href = '/dashboard.html';
+                        }
+                    } else {
+                        successText.textContent = 'Payment successful but activation failed. Please contact support.';
+                        viewBtn.classList.add('hidden');
+                    }
+                    // === END ACTIVATION CODE ===
                 }
-                
-                console.log('✅ Activation successful:', activateData);
-                
-                // Hide the checkout form and show success message
-                document.getElementById('checkout-form').style.display = 'none';
-                const successDiv = document.getElementById('success-message');
-                
-                if (cardId) {
-                    // Single card success
-                    successDiv.innerHTML = `
-                        <h2>✅ Card Activated!</h2>
-                        <p>Your card is ready to send.</p>
-                        <a href="/viewer.html?card=${cardId}" class="btn btn-primary" style="display: inline-block;">
-                            <i class="fas fa-paper-plane"></i> View & Send Card
-                        </a>
-                    `;
-                } else if (batchId) {
-                    // Batch success
-                    successDiv.innerHTML = `
-                        <h2>✅ ${selectedQty} Cards Ready!</h2>
-                        <p>Your batch is created and all cards are active.</p>
-                        <a href="/batch-manager.html?batch=${batchId}" class="btn btn-primary" style="display: inline-block;">
-                            <i class="fas fa-layer-group"></i> Manage & Send Cards
-                        </a>
-                    `;
-                } else {
-                    // Bulk batch (no pre‑existing batchId) – just store pending data
-                    localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
-                    localStorage.setItem('pendingCardQuantity', selectedQty);
-                    successDiv.innerHTML = `
-                        <h2>✅ Payment Successful!</h2>
-                        <p>Your E-Cards are ready. You can now create and send them.</p>
-                        <p style="margin-top: 10px; color: #a0aec0;">Batch ID: ${result.paymentIntent.metadata.batch_id}</p>
-                        <a href="/maker.html" class="btn btn-primary">Create Your Cards</a>
-                    `;
-                }
-                
-                successDiv.style.display = 'block';
                 
             } catch (error) {
                 document.getElementById('card-errors').textContent = error.message;
