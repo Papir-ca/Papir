@@ -968,17 +968,16 @@ app.post('/api/activate-after-payment', async (req, res) => {
         await supabaseAdmin.from('card_activations').insert(activationRecords);
       }
       
-      // Mark the template card as processed (NOT deleted, just processed)
-      const { error: updateTemplateError } = await supabaseAdmin
+      // Delete the template card (only cloned cards remain)
+      const { error: deleteTemplateError } = await supabaseAdmin
         .from('cards')
-        .update({ 
-          status: 'processed',
-          updated_by_ip: clientIp,
-          updated_at: new Date().toISOString()
-        })
+        .delete() 
         .eq('card_id', template.card_id);
       
-      if (updateTemplateError) throw updateTemplateError;
+      if (deleteTemplateError) {
+          console.error('Failed to delete template:', deleteTemplateError);
+          // Non-critical error, continue anyway
+      }
       
       // Update batch record
       const { data: existingBatch } = await supabaseAdmin
