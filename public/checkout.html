@@ -137,11 +137,32 @@
             text-decoration: none;
             border-radius: 8px;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #06D6A0, #118AB2);
-            margin-top: 20px;
-            display: inline-block;
-            width: auto;
+        
+        /* Terms section styling */
+        .terms-section {
+            background: rgba(243, 156, 18, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .terms-section label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin: 0;
+        }
+        .terms-section input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+        .terms-section a {
+            color: #06D6A0;
+            text-decoration: none;
+        }
+        .terms-section a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -189,6 +210,15 @@
                 <div id="card-errors"></div>
             </div>
             
+            <!-- Terms acceptance section -->
+            <div class="terms-section">
+                <label>
+                    <input type="checkbox" id="checkoutTerms" required>
+                    <span>I agree to the <a href="terms.html" target="_blank">Terms of Service</a> and <a href="privacy.html" target="_blank">Privacy Policy</a>. 
+                    I understand that $2.99 will be charged per card.</span>
+                </label>
+            </div>
+            
             <button class="btn" id="submit-btn" style="display: none;">Pay $2.99</button>
             
             <div class="loading" id="loading">
@@ -207,9 +237,8 @@
         let stripe, elements, card;
         let selectedQty = 1;
         let selectedPrice = 299;
-        let cardId = null;      // Single card ID from URL
-        let batchId = null;     // Batch ID from URL
-        let isBatchMode = false; // Whether we're in batch purchase mode
+        let cardId = null;
+        let batchId = null;
         
         // Initialize everything when page loads
         async function initialize() {
@@ -219,18 +248,14 @@
             const mode = urlParams.get('mode');
             
             if (cardId) {
-                // Single card purchase mode
                 selectedQty = 1;
                 selectedPrice = 299;
                 document.querySelector('.subtitle').textContent = 'Complete your purchase to send this card';
                 document.getElementById('pricing-section').style.display = 'none';
                 document.getElementById('submit-btn').textContent = 'Pay $2.99 to Send Card';
-                isBatchMode = false;
             } else if (batchId && mode === 'batch') {
-                // Batch purchase mode (Hallmark flow)
                 const qty = parseInt(urlParams.get('qty')) || 1;
                 selectedQty = qty;
-                // Calculate price based on quantity (same as batch pricing)
                 const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
                 let totalAmount = 299 * qty;
                 for (const tier of Object.keys(pricing).map(Number).sort((a,b)=>b-a)) {
@@ -243,17 +268,14 @@
                 document.querySelector('.subtitle').textContent = `Batch of ${qty} Cards – Total $${(selectedPrice/100).toFixed(2)}`;
                 document.getElementById('pricing-section').style.display = 'none';
                 document.getElementById('submit-btn').textContent = `Pay $${(selectedPrice/100).toFixed(2)}`;
-                isBatchMode = true;
             }
             
             try {
                 const response = await fetch(`${BACKEND_URL}/api/stripe-key`);
                 const data = await response.json();
-                
                 if (!data.success || !data.publishableKey) {
                     throw new Error('Stripe not configured');
                 }
-                
                 stripe = Stripe(data.publishableKey);
                 elements = stripe.elements();
                 card = elements.create('card', { 
@@ -266,19 +288,26 @@
                     } 
                 });
                 card.mount('#card-element');
-                
                 card.on('change', (event) => {
                     const displayError = document.getElementById('card-errors');
                     displayError.textContent = event.error ? event.error.message : '';
                 });
                 
-                // Show the form (pricing already hidden if batch or single)
                 if (!cardId && !batchId) {
                     document.getElementById('pricing-section').style.display = 'grid';
                 }
                 document.getElementById('email-section').style.display = 'block';
                 document.getElementById('card-section').style.display = 'block';
                 document.getElementById('submit-btn').style.display = 'block';
+                
+                // Initially disable submit button until terms are accepted
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.disabled = true;
+                
+                // Enable button when terms checkbox is checked
+                document.getElementById('checkoutTerms').addEventListener('change', function() {
+                    submitBtn.disabled = !this.checked;
+                });
                 
                 setupEventListeners();
                 
@@ -289,7 +318,6 @@
         }
         
         function setupEventListeners() {
-            // Pricing selection only if not in special modes
             if (!cardId && !batchId) {
                 document.querySelectorAll('.price-option').forEach(option => {
                     option.addEventListener('click', function() {
@@ -301,7 +329,6 @@
                     });
                 });
             }
-            
             document.getElementById('submit-btn').addEventListener('click', handleSubmit);
         }
         
@@ -314,6 +341,12 @@
                 return;
             }
             
+            // Ensure terms are accepted (this should already be enforced by disabled button, but double-check)
+            if (!document.getElementById('checkoutTerms').checked) {
+                document.getElementById('card-errors').textContent = 'Please accept the Terms of Service and Privacy Policy';
+                return;
+            }
+            
             const btn = document.getElementById('submit-btn');
             const loading = document.getElementById('loading');
             
@@ -321,7 +354,6 @@
             loading.style.display = 'block';
             
             try {
-                // Create payment intent
                 let batchIdToSend = null;
                 if (batchId) {
                     batchIdToSend = batchId;
@@ -358,9 +390,7 @@
                 
                 // Payment succeeded – now handle card activation / batch creation
                 if (batchId) {
-                    // BATCH MODE: Create batch from template
                     loading.querySelector('p').textContent = 'Creating your cards...';
-                    
                     const createResponse = await fetch(`${BACKEND_URL}/api/batch/create-from-template`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -369,16 +399,11 @@
                             quantity: selectedQty
                         })
                     });
-                    
                     const createResult = await createResponse.json();
-                    
                     if (createResult.success) {
-                        // Clear pending data
                         localStorage.removeItem('pendingBatchId');
                         localStorage.removeItem('pendingBatchQty');
                         localStorage.removeItem('batchTemplateCard');
-                        
-                        // Show success
                         document.getElementById('checkout-form').style.display = 'none';
                         const successDiv = document.getElementById('success-message');
                         successDiv.innerHTML = `
@@ -392,12 +417,17 @@
                     } else {
                         throw new Error(createResult.error || 'Failed to create cards');
                     }
-                    
                 } else if (cardId) {
-                    // SINGLE CARD MODE: Activate the draft card
-                    await fetch(`${BACKEND_URL}/api/cards/${cardId}/activate-after-payment`, {
-                        method: 'POST'
+                    // Use the new temporary activation endpoint
+                    const activateResponse = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ card_id: cardId, terms_accepted: true })
                     });
+                    const activateResult = await activateResponse.json();
+                    if (!activateResult.success) {
+                        throw new Error(activateResult.error || 'Activation failed');
+                    }
                     
                     document.getElementById('checkout-form').style.display = 'none';
                     const successDiv = document.getElementById('success-message');
@@ -409,12 +439,9 @@
                         </a>
                     `;
                     successDiv.style.display = 'block';
-                    
                 } else {
-                    // BULK BATCH (no template) – store for maker
                     localStorage.setItem('pendingBatchId', result.paymentIntent.metadata.batch_id);
                     localStorage.setItem('pendingCardQuantity', selectedQty);
-                    
                     document.getElementById('checkout-form').style.display = 'none';
                     const successDiv = document.getElementById('success-message');
                     successDiv.innerHTML = `

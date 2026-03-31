@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | Papir</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .success-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            color: #06D6A0;
+            margin-bottom: 30px;
+            animation: scaleIn 0.5s ease;
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #06D6A0, #118AB2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #a0aec0;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .card-info {
+            background: rgba(6, 214, 160, 0.1);
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #06D6A0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #06D6A0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #06D6A0, #118AB2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .error-box {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #FF6B6B;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .hidden { display: none; }
+        
+        @media (max-width: 600px) {
+            .success-container { padding: 30px 20px; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-container">
+    <!-- Loading State -->
+    <div id="loadingState">
+        <div class="loading"></div>
+        <p style="color: #a0aec0; margin-top: 15px;">Activating your card...</p>
+    </div>
+    
+    <!-- Success State -->
+    <div id="successState" class="hidden">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h1>Payment Successful!</h1>
+        <p class="subtitle">Your card has been activated and is ready to send.</p>
+        
+        <div class="card-info" id="cardInfo">
+            Card ID: <span id="cardIdDisplay">-</span>
+        </div>
+        
+        <div id="batchInfo" class="hidden" style="margin: 20px 0;">
+            <p style="color: #a0aec0; margin-bottom: 10px;">Batch created with <strong id="batchCount" style="color: #06D6A0;">-</strong> cards</p>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="#" id="viewCardBtn" class="btn btn-primary">
+                <i class="fas fa-eye"></i> View Card
+            </a>
+            <a href="maker.html" class="btn btn-secondary">
+                <i class="fas fa-plus"></i> Create Another
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Share this link with your recipient:</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <input type="text" id="shareUrl" readonly style="flex: 1; min-width: 250px; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-family: monospace;">
+                <button onclick="copyUrl()" class="btn btn-secondary" style="margin: 0;">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Error State -->
+    <div id="errorState" class="hidden">
+        <div class="error-box">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+            <h3>Activation Failed</h3>
+            <p id="errorMessage" style="margin-top: 10px;">Something went wrong.</p>
+        </div>
+        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
+            <i class="fas fa-redo"></i> Try Again
+        </button>
+        <a href="contact.html" class="btn btn-secondary" style="margin-top: 10px;">
+            <i class="fas fa-envelope"></i> Contact Support
+        </a>
+    </div>
+</div>
+
+<script>
+    const BACKEND_URL = 'https://papir.ca'; // Change to your backend
+    
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const cardId = urlParams.get('card_id');
+    const batchId = urlParams.get('batch_id');
+    const qty = urlParams.get('qty') || 1;
+    
+    async function activateCard() {
+        try {
+            // Determine what we're activating
+            const isBatch = !!batchId;
+            const idToActivate = batchId || cardId;
+            
+            if (!idToActivate) {
+                throw new Error('No card or batch ID found in URL');
+            }
+            
+            // Call activation endpoint
+            const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    card_id: cardId,
+                    batch_id: batchId,
+                    terms_accepted: true
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || 'Activation failed');
+            }
+            
+            // Show success UI
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('successState').classList.remove('hidden');
+            
+            // Update UI based on single vs batch
+            if (isBatch) {
+                document.getElementById('cardIdDisplay').textContent = batchId;
+                document.getElementById('batchInfo').classList.remove('hidden');
+                document.getElementById('batchCount').textContent = qty;
+                document.getElementById('viewCardBtn').href = `/batch-manager?batch=${batchId}`;
+                document.getElementById('viewCardBtn').innerHTML = '<i class="fas fa-layer-group"></i> Manage Batch';
+                document.getElementById('shareUrl').value = `${BACKEND_URL}/batch-manager?batch=${batchId}`;
+            } else {
+                document.getElementById('cardIdDisplay').textContent = cardId;
+                document.getElementById('viewCardBtn').href = `/viewer.html?card=${cardId}`;
+                document.getElementById('shareUrl').value = `${BACKEND_URL}/viewer.html?card=${cardId}`;
+            }
+            
+        } catch (error) {
+            console.error('Activation error:', error);
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = error.message;
+        }
+    }
+    
+    function copyUrl() {
+        const input = document.getElementById('shareUrl');
+        input.select();
+        document.execCommand('copy');
+        
+        // Visual feedback
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.style.background = 'rgba(6, 214, 160, 0.3)';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.style.background = '';
+        }, 2000);
+    }
+    
+    // Run activation on page load
+    activateCard();
+</script>
+
+</body>
+</html>
