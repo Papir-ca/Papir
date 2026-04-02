@@ -867,14 +867,12 @@
         }
 
         /* ========== ADDED CSS TO HIDE PHYSICAL CARD OPTION ========== */
-        /* Hide the physical card radio button and its label entirely */
         .form-group input[name="cardType"][value="physical"] {
             display: none !important;
         }
         .form-group label:has(input[name="cardType"][value="physical"]) {
             display: none !important;
         }
-        /* Also hide the wrapper if needed */
         .form-group .card-type-option.physical,
         .form-group .physical-option {
             display: none !important;
@@ -1327,21 +1325,21 @@
                 toggleMode();
             };
             
-            // ========== ALL OTHER FUNCTIONS REMAIN EXACTLY AS IN YOUR ORIGINAL MAKER.HTML ==========
-            // (The rest of the file – switchToBatchModifyMode, showUpdatedBatchQR, showNotification,
-            //  generatePreview, saveCardToBackend, saveBatchCards, etc. – is unchanged.
-            //  For brevity, I am not repeating them here. In your final file, you must include the
-            //  full content of all these functions exactly as they were in your previous maker.html.
-            //  The modifications only affect toggleMode and the card type radio listener.)
-            //
-            // Since the full original maker.html is extremely long, I've only shown the modified parts.
-            // When you replace your file, keep the entire existing script section and just replace
-            // the toggleMode function and the card type radio listeners as shown above.
-            //
-            // IMPORTANT: Copy your current maker.html's complete script (from the last working version)
-            // and replace only the toggleMode function and the card type radio event listeners.
+            // ========== ALL YOUR ORIGINAL FUNCTIONS (unchanged) ==========
+            // (The following functions are exactly as they were in your working maker.html.
+            //  They include: switchToBatchModifyMode, showUpdatedBatchQR, showNotification,
+            //  updateSyncStatus, updateMediaUploadVisibility, updateDeliveryUI, generatePreview,
+            //  saveCardToBackend, saveBatchCards, sendECard, showShareableLink, checkCardStatus,
+            //  loadCardDetails, activation button logic, setupImageUpload, setupVideoUpload,
+            //  setupAudioUpload, getProgressElements, uploadWithProgress, removeImage, etc.)
+            // 
+            // For brevity, I am not repeating them here – you must keep the full content from your
+            // current working maker.html. The changes above only affect toggleMode and the radio listeners.
+            // 
+            // When you replace your file, keep the entire <script> content from your current maker.html
+            // and only replace the toggleMode function and the card type radio event listeners as shown.
             
-            console.log('Maker page loaded with updated toggleMode');
+            console.log('Maker page initialized');
         });
     </script>
     
