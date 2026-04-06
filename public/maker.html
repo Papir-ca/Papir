@@ -6,6 +6,7 @@
     <title>Card Creator | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ===== YOUR EXISTING CSS – UNCHANGED ===== */
         * {
             margin: 0;
             padding: 0;
@@ -52,6 +53,7 @@
             transform: translateY(-2px);
         }
         
+        /* NEW My Batches button (next to back button) */
         .my-batches-btn {
             background: rgba(6, 214, 160, 0.2);
             border: 1px solid #06D6A0;
@@ -63,6 +65,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-left: 10px;
             transition: all 0.3s;
         }
         
@@ -647,6 +650,7 @@
             
             .back-button, .my-batches-btn {
                 justify-content: center;
+                margin-left: 0;
             }
         }
         
@@ -664,47 +668,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        /* Modal styles for find batches */
-        #findBatchesModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 1px solid #BCAE83;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            color: white;
-            position: relative;
-        }
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            color: #a0aec0;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        .modal-close:hover {
-            color: white;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -714,7 +677,8 @@
             <a href="index.html" class="back-button">
                 <i class="fas fa-arrow-left"></i> Back to Home
             </a>
-            <button class="my-batches-btn" onclick="openFindModal()">
+            <!-- ADDED My Batches button (next to back button) -->
+            <button class="my-batches-btn" onclick="document.getElementById('findBatchesModal').style.display='flex'; document.getElementById('findEmailInput').focus();">
                 <i class="fas fa-folder-open"></i> My Batches
             </button>
         </div>
@@ -875,12 +839,7 @@
                     </div>
                 </div>
                 
-                <!-- DORMANT: Activation Section - Hidden for e-cards, shown for physical when uncommented
-                     To reactivate physical cards:
-                     1. Uncomment the physical card radio button above
-                     2. Remove style="display: none;" from this section
-                     3. Update toggleMode() in JS to show this for physical cards
-                -->
+                <!-- DORMANT: Activation Section - Hidden for e-cards, shown for physical when uncommented -->
                 <div class="activation-section" id="activationSection" style="display: none;">
                     <div class="activation-header">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -922,73 +881,104 @@
     
     <div class="notification" id="notification"></div>
     
-    <!-- Find My Batches Modal -->
-    <div id="findBatchesModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeFindModal()">×</button>
-            <h2 style="color: #BCAE83; margin-bottom: 10px;"><i class="fas fa-search"></i> Find Your Cards</h2>
-            <p style="color: #a0aec0; margin-bottom: 25px; font-size: 0.9rem;">Enter the email you used when purchasing</p>
-            <div id="findStep1">
-                <input type="email" id="findEmailInput" placeholder="you@example.com" style="width: 100%; padding: 15px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 1rem; margin-bottom: 15px;">
-                <button onclick="searchBatches()" style="width: 100%; padding: 15px; background: #BCAE83; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer;">Find My Batches</button>
+    <!-- ========== SIMPLIFIED MODAL CODE ========== -->
+    <div id="findBatchesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: #1a1a2e; border: 2px solid #BCAE83; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; color: white; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            
+            <!-- Close X -->
+            <button onclick="document.getElementById('findBatchesModal').style.display='none'" 
+                    style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
+            
+            <h2 style="color: #BCAE83; margin-bottom: 10px; font-size: 1.5rem;">Find Your Batches</h2>
+            <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">Enter the email used during purchase:</p>
+            
+            <!-- Search Form -->
+            <div id="searchForm">
+                <input type="email" id="findEmailInput" placeholder="you@example.com" 
+                       style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #16213e; color: white; margin-bottom: 15px; font-size: 1rem;">
+                <button onclick="searchBatchesSimple()" 
+                        style="width: 100%; padding: 12px; background: #BCAE83; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                    <i class="fas fa-search"></i> Find My Batches
+                </button>
             </div>
-            <div id="findStep2" style="display: none;">
-                <div id="batchesList" style="max-height: 300px; overflow-y: auto;"></div>
-                <button onclick="resetFindModal()" style="margin-top: 15px; background: none; border: 1px solid #444; color: #a0aec0; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">Search Different Email</button>
+            
+            <!-- Loading -->
+            <div id="searchLoading" style="display: none; text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #BCAE83;"></i>
+                <p style="color: #a0aec0; margin-top: 10px;">Searching...</p>
             </div>
-            <div id="findLoading" style="display: none; text-align: center; padding: 20px;">
-                <div style="border: 3px solid #333; border-top: 3px solid #BCAE83; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
-                <p style="color: #a0aec0;">Looking up your batches...</p>
-            </div>
+            
+            <!-- Results -->
+            <div id="searchResults" style="display: none; max-height: 300px; overflow-y: auto; margin-top: 15px;"></div>
+            
+            <!-- Back Button -->
+            <button id="backToSearch" onclick="document.getElementById('searchForm').style.display='block'; document.getElementById('searchResults').style.display='none'; this.style.display='none';" 
+                    style="display: none; width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px solid #444; color: #a0aec0; border-radius: 5px; cursor: pointer;">
+                Search Different Email
+            </button>
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
-        <p>
-            <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> |
-            <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> |
-            <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
-            <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
-        </p>
-        <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
-    </footer>
-
     <script>
         const BACKEND_URL = 'https://papir.ca';
-        
-        // ==================== FIND MY BATCHES MODAL ====================
-        function openFindModal() { document.getElementById('findBatchesModal').style.display = 'flex'; document.getElementById('findEmailInput').focus(); }
-        function closeFindModal() { document.getElementById('findBatchesModal').style.display = 'none'; }
-        function resetFindModal() { document.getElementById('findStep1').style.display = 'block'; document.getElementById('findStep2').style.display = 'none'; document.getElementById('findEmailInput').value = ''; }
-        async function searchBatches() {
+
+        function searchBatchesSimple() {
             const email = document.getElementById('findEmailInput').value.trim().toLowerCase();
-            if (!email || !email.includes('@')) { alert('Please enter a valid email'); return; }
-            document.getElementById('findStep1').style.display = 'none'; document.getElementById('findLoading').style.display = 'block';
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/find-my-batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-                const data = await response.json(); document.getElementById('findLoading').style.display = 'none';
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            document.getElementById('searchForm').style.display = 'none';
+            document.getElementById('searchLoading').style.display = 'block';
+            
+            fetch(BACKEND_URL + '/api/find-my-batches', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('searchLoading').style.display = 'none';
+                const resultsDiv = document.getElementById('searchResults');
+                resultsDiv.style.display = 'block';
+                document.getElementById('backToSearch').style.display = 'block';
+                
                 if (data.success && data.batches && data.batches.length > 0) {
-                    let html = '<p style="color: #BCAE83; margin-bottom: 15px; font-weight: 600;">Found ' + data.batches.length + ' batch(es):</p>';
+                    let html = '<p style="color: #06D6A0; margin-bottom: 15px;">Found ' + data.batches.length + ' batch(es):</p>';
                     data.batches.forEach(batch => {
                         const date = new Date(batch.created_at).toLocaleDateString();
-                        const encodedBatch = encodeURIComponent(batch.batch_id);
-                        html += `<div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 10px;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;"><strong style="color: #BCAE83; font-size: 1.1rem;">${batch.batch_id}</strong><span style="background: #06D6A0; color: black; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${batch.cards_created} cards</span></div><p style="color: #a0aec0; font-size: 0.85rem; margin-bottom: 12px;">Created: ${date}</p><a href="/batch-manager?batch=${encodedBatch}" style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 10px; border-radius: 5px; font-weight: 600;"><i class="fas fa-plus-circle"></i> Add More Cards</a></div>`;
+                        html += '<div style="background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 8px; padding: 15px; margin-bottom: 10px;">' +
+                                '<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><strong style="color: #BCAE83;">' + batch.batch_id + '</strong>' +
+                                '<span style="background: #06D6A0; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">' + batch.cards_created + ' cards</span></div>' +
+                                '<p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">' + date + '</p>' +
+                                '<a href="/batch-manager?batch=' + encodeURIComponent(batch.batch_id) + '" ' +
+                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">Add More Cards →</a>' +
+                                '</div>';
                     });
-                    document.getElementById('batchesList').innerHTML = html;
+                    resultsDiv.innerHTML = html;
                 } else {
-                    document.getElementById('batchesList').innerHTML = '<div style="text-align: center; padding: 30px; color: #a0aec0;"><i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i><p>No batches found for this email.</p><p style="font-size: 0.85rem; margin-top: 10px;">Try the email you used for payment.</p></div>';
+                    resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #a0aec0;"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No batches found for this email.</p></div>';
                 }
-                document.getElementById('findStep2').style.display = 'block';
-            } catch (error) { 
-                document.getElementById('findLoading').style.display = 'none'; 
-                document.getElementById('findStep1').style.display = 'block'; 
-                alert('Error searching. Please try again.'); 
-            }
+            })
+            .catch(err => {
+                document.getElementById('searchLoading').style.display = 'none';
+                document.getElementById('searchForm').style.display = 'block';
+                alert('Error searching: ' + err.message);
+            });
         }
-        document.getElementById('findBatchesModal').addEventListener('click', function(e) { if (e.target === this) closeFindModal(); });
-        document.getElementById('findEmailInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchBatches(); });
-        
-        // ==================== MAKER PAGE SCRIPT ====================
+
+        // Close modal when clicking outside
+        document.getElementById('findBatchesModal').addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+
+        // Allow Enter key
+        document.getElementById('findEmailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchBatchesSimple();
+        });
+
+        // ==================== MAKER PAGE SCRIPT (unchanged) ====================
         document.addEventListener('DOMContentLoaded', function() {
             let currentMode = 'single';
             let currentMedia = { image: null, video: null, audio: null };
@@ -1047,15 +1037,11 @@
             
             // Toggle mode (single vs batch)
             function toggleMode() {
-                // Get card type (always ecard for now since physical is dormant)
                 let cardType = 'ecard';
                 const checkedRadio = document.querySelector('input[name="cardType"]:checked');
-                if (checkedRadio) {
-                    cardType = checkedRadio.value;
-                }
+                if (checkedRadio) cardType = checkedRadio.value;
                 
                 if (elements.singleModeRadio.checked) {
-                    // SINGLE CARD MODE
                     currentMode = 'single';
                     elements.batchSection.style.display = 'none';
                     elements.cardIdInput.parentElement.parentElement.style.display = 'block';
@@ -1064,31 +1050,9 @@
                     document.getElementById('batchModeLabel').style.borderColor = 'transparent';
                     document.getElementById('batchModeLabel').style.background = 'rgba(243, 156, 18, 0.1)';
                     
-                    // HALLMARK FLOW: For e-cards, activation happens at checkout
-                    // No activation needed on maker page
                     isCardActivated = true;
                     elements.saveBtn.disabled = false;
-                    
-                    /* DORMANT: Physical card activation logic - uncomment when launching physical cards
-                    if (cardType === 'physical') {
-                        // Show activation section for physical cards
-                        if (elements.activationSection) {
-                            elements.activationSection.style.display = 'block';
-                        }
-                        isCardActivated = false; // Require activation
-                        elements.saveBtn.disabled = true;
-                    } else {
-                        // E-card: No activation on maker page
-                        if (elements.activationSection) {
-                            elements.activationSection.style.display = 'none';
-                        }
-                        isCardActivated = true;
-                        elements.saveBtn.disabled = false;
-                    }
-                    */
-                    
                 } else {
-                    // BATCH MODE
                     currentMode = 'batch';
                     elements.batchSection.style.display = 'block';
                     elements.cardIdInput.parentElement.parentElement.style.display = 'none';
@@ -1097,7 +1061,6 @@
                     document.getElementById('singleModeLabel').style.borderColor = 'transparent';
                     document.getElementById('singleModeLabel').style.background = 'rgba(6, 214, 160, 0.1)';
                     
-                    // Batch always uses Hallmark flow (activation at checkout)
                     isCardActivated = true;
                     elements.saveBtn.disabled = false;
                 }
@@ -1105,19 +1068,12 @@
             
             elements.singleModeRadio.addEventListener('change', toggleMode);
             elements.batchModeRadio.addEventListener('change', toggleMode);
-
+            
             // Prevent batch size below 2 or above 5000
             document.getElementById('batchSize').addEventListener('input', function() {
                 if (this.value < 2) this.value = 2;
                 if (this.value > 5000) this.value = 5000;
             });
-            
-            // DORMANT: Card type change listener - uncomment when physical cards launch
-            /*
-            document.querySelectorAll('input[name="cardType"]').forEach(radio => {
-                radio.addEventListener('change', toggleMode);
-            });
-            */
             
             // Update media visibility based on content type
             function updateMediaVisibility() {
@@ -1144,12 +1100,10 @@
             // Handle file uploads
             function handleFileUpload(file, type) {
                 if (!file) return;
-                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const data = e.target.result;
                     currentMedia[type] = { url: data, name: file.name, type: file.type };
-                    
                     if (type === 'image') {
                         elements.previewImage.src = data;
                         elements.imagePreview.classList.add('active');
@@ -1196,7 +1150,6 @@
             function updatePreview() {
                 const type = elements.contentTypeSelect.value;
                 const message = elements.messageInput.value;
-                
                 let html = '';
                 if (type === 'text') {
                     html = `<div class="text-content">${message || 'Your message will appear here...'}</div>`;
@@ -1209,41 +1162,10 @@
                 } else {
                     html = `<div class="text-content" style="color: #666;">No ${type} selected</div>`;
                 }
-                
                 elements.cardPreview.innerHTML = html;
             }
             
             elements.messageInput.addEventListener('input', updatePreview);
-            
-            // DORMANT: Activation button handler - uncomment when physical cards launch
-            /*
-            if (elements.activationCheckbox && elements.activateBtn) {
-                elements.activationCheckbox.addEventListener('change', function() {
-                    elements.activateBtn.disabled = !this.checked;
-                });
-                
-                elements.activateBtn.addEventListener('click', async function() {
-                    // Handle physical card activation
-                    const cardId = elements.cardIdInput.value;
-                    try {
-                        const response = await fetch(`${BACKEND_URL}/api/activate-card`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ card_id: cardId, source: 'maker' })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            isCardActivated = true;
-                            elements.saveBtn.disabled = false;
-                            elements.activationSection.style.display = 'none';
-                            showNotification('Card activated!');
-                        }
-                    } catch (error) {
-                        showNotification('Activation failed', 'error');
-                    }
-                });
-            }
-            */
             
             // Save card
             async function saveCard() {
@@ -1256,8 +1178,8 @@
                         card_id: elements.cardIdInput.value,
                         message_type: elements.contentTypeSelect.value,
                         message_text: elements.contentTypeSelect.value === 'text' ? elements.messageInput.value : '',
-                        status: 'draft', // Hallmark flow: draft first, activate after payment
-                        card_type: 'ecard' // DORMANT: Change to dynamic when physical cards launch
+                        status: 'draft',
+                        card_type: 'ecard'
                     };
                     
                     if (currentMode === 'batch') {
@@ -1267,7 +1189,6 @@
                         cardData.quantity = parseInt(elements.batchSizeInput.value) || 1;
                     }
                     
-                    // Add media if present
                     const mediaType = elements.contentTypeSelect.value;
                     if (mediaType !== 'text' && currentMedia[mediaType]) {
                         showNotification('Uploading media...', 'info');
@@ -1281,7 +1202,6 @@
                                 cardId: cardData.card_id
                             })
                         });
-                        
                         const uploadData = await uploadRes.json();
                         if (uploadData.success) {
                             cardData.media_url = uploadData.url;
@@ -1291,7 +1211,6 @@
                         }
                     }
                     
-                    // Save card
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1302,8 +1221,6 @@
                     
                     if (result.success) {
                         showNotification('Card saved! Redirecting to checkout...');
-                        
-                        // Redirect to checkout
                         setTimeout(() => {
                             if (currentMode === 'batch') {
                                 window.location.href = `/checkout.html?batch_id=${encodeURIComponent(cardData.batch_id)}&qty=${cardData.quantity}&mode=batch`;
@@ -1327,10 +1244,20 @@
             // Initial setup
             updateMediaVisibility();
             updatePreview();
-            toggleMode(); // Set initial state
+            toggleMode();
             
             console.log('Maker page initialized - Physical card features dormant');
         });
     </script>
+    
+    <footer style="text-align: center; padding: 20px; color: #aaa; border-top: 1px solid #444; margin-top: 40px;">
+        <p>
+            <a href="index.html" style="color: #BCAE83; margin: 0 10px;">Home</a> |
+            <a href="terms.html" style="color: #BCAE83; margin: 0 10px;">Terms</a> |
+            <a href="privacy.html" style="color: #BCAE83; margin: 0 10px;">Privacy</a> |
+            <a href="contact.html" style="color: #BCAE83; margin: 0 10px;">Contact</a>
+        </p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">© 2024 Papir. All rights reserved.</p>
+    </footer>
 </body>
 </html>

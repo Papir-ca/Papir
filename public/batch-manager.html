@@ -6,6 +6,7 @@
     <title>Batch Manager | Papir</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         * {
             margin: 0;
@@ -200,7 +201,7 @@
             margin-top: 5px;
         }
         
-        /* Cards container with scroll (like maker page) */
+        /* Cards container with scroll */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
@@ -211,7 +212,6 @@
             padding-right: 5px;
         }
         
-        /* Individual card styling (20% smaller) */
         .card-item {
             background: #2a2a2a;
             border-radius: 10px;
@@ -369,6 +369,7 @@
             background: linear-gradient(to right, #36D1DC, #5B86E5);
         }
         
+        /* Add More Cards Section (simplified) */
         .add-more-section {
             background: rgba(6, 214, 160, 0.1);
             border: 2px solid #06D6A0;
@@ -437,8 +438,28 @@
             transform: translateY(-2px);
         }
         
-        .quick-add-price {
-            font-weight: bold;
+        .card-element-container {
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: left;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        
+        .card-element-container label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        
+        #card-element {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #555;
         }
         
         .error-message {
@@ -521,7 +542,7 @@
     </style>
 </head>
 <body>
-    <a href="maker.html" class="back-button" id="backBtn">
+    <a href="/maker.html" class="back-button" id="backBtn">
         <i class="fas fa-arrow-left"></i> Back to Creator
     </a>
     
@@ -577,20 +598,25 @@
                 <!-- Cards will be loaded here -->
             </div>
             
-            <!-- REPLACED "Add More Cards" link with quick-add section -->
+            <!-- Add More Cards Section (simplified) -->
             <div class="add-more-section">
-                <h3><i class="fas fa-plus-circle"></i> Need More Cards?</h3>
-                <p>Same design. Same message. $2.99 each. Instant delivery.</p>
+                <h3><i class="fas fa-plus-circle"></i> Add More Cards</h3>
+                <p>Same design. Same message. $2.99 each.</p>
+                
                 <div class="quick-add-controls">
                     <div class="qty-wrapper">
-                        <input type="number" id="additionalQty" value="5" min="1" max="100">
+                        <input type="number" id="additionalQty" value="5" min="1" max="500">
                         <span>cards</span>
                     </div>
-                    <button class="quick-add-btn" id="quickAddBtn">
-                        Add Cards — $<span id="quickAddPrice">14.95</span>
-                    </button>
+                    <button class="quick-add-btn" id="quickAddBtn">Add Cards — $14.95</button>
                 </div>
-                <p style="font-size: 0.85rem; color: #666; margin-top: 15px;">These will match your existing batch content exactly.</p>
+                
+                <!-- Stripe Card Element (visible) -->
+                <div class="card-element-container" id="cardElementContainer">
+                    <label>Card Details</label>
+                    <div id="card-element"></div>
+                    <div id="card-errors" style="color: #FF6B6B; font-size: 0.85rem; margin-top: 8px;"></div>
+                </div>
             </div>
         </div>
         
@@ -625,6 +651,11 @@
         let currentCards = [];
         let recentBatches = JSON.parse(localStorage.getItem('recentBatches') || '[]');
         
+        // Stripe
+        let stripe = null;
+        let cardElement = null;
+        let elementsStripe = null; // avoid naming conflict with existing elements object
+        
         const elements = {
             batchSearchInput: document.getElementById('batchSearchInput'),
             searchBtn: document.getElementById('searchBtn'),
@@ -642,10 +673,11 @@
             cardsContainer: document.getElementById('cardsContainer'),
             additionalQty: document.getElementById('additionalQty'),
             quickAddBtn: document.getElementById('quickAddBtn'),
-            quickAddPrice: document.getElementById('quickAddPrice'),
             notification: document.getElementById('notification'),
             backBtn: document.getElementById('backBtn'),
-            batchTagline: document.getElementById('batchTagline')
+            batchTagline: document.getElementById('batchTagline'),
+            cardElementContainer: document.getElementById('cardElementContainer'),
+            cardErrors: document.getElementById('card-errors')
         };
         
         function showNotification(message, type = 'success') {
@@ -671,7 +703,6 @@
             navigator.clipboard.writeText(text).then(() => {
                 showNotification('URL copied to clipboard!', 'success');
             }).catch(() => {
-                // Fallback
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -683,7 +714,6 @@
         }
         
         function saveRecentBatch(batchId) {
-            // Add to recent list, avoid duplicates, keep last 5
             recentBatches = recentBatches.filter(id => id !== batchId);
             recentBatches.unshift(batchId);
             recentBatches = recentBatches.slice(0, 5);
@@ -700,7 +730,6 @@
                 });
                 elements.recentList.innerHTML = html;
                 
-                // Add click listeners to recent badges
                 document.querySelectorAll('.recent-badge').forEach(badge => {
                     badge.addEventListener('click', function() {
                         const batchId = this.dataset.batch;
@@ -714,11 +743,8 @@
         
         async function loadBatchById(batchId) {
             if (!batchId) return;
-            
-            // Update URL without reloading
             const newUrl = `${window.location.pathname}?batch=${encodeURIComponent(batchId)}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
-            
             elements.batchSearchInput.value = batchId;
             await loadBatch(batchId);
         }
@@ -738,14 +764,11 @@
                 const response = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(batchId)}`);
                 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Batch not found. Please check the batch ID.');
-                    }
+                    if (response.status === 404) throw new Error('Batch not found. Please check the batch ID.');
                     throw new Error(`Server returned ${response.status}`);
                 }
                 
                 const result = await response.json();
-                
                 if (result.success) {
                     currentBatch = result.batch;
                     currentCards = result.cards;
@@ -775,7 +798,6 @@
             const totalScans = currentCards.reduce((sum, card) => sum + (card.scan_count || 0), 0);
             elements.totalScans.textContent = totalScans;
             
-            // Display cards
             let cardsHtml = '';
             if (currentCards.length === 0) {
                 cardsHtml = '<div class="no-cards">No cards in this batch yet. Click "Add More Cards" to create some.</div>';
@@ -783,7 +805,6 @@
                 currentCards.forEach((card, index) => {
                     const viewerUrl = `${BACKEND_URL}/viewer.html?card=${card.card_id}`;
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(viewerUrl)}&format=png&margin=5`;
-                    
                     const statusClass = card.status === 'active' ? 'status-active' : 'status-pending';
                     
                     cardsHtml += `
@@ -791,11 +812,9 @@
                             <div class="card-order">Card #${card.batch_order}</div>
                             <span class="status-badge ${statusClass}">${card.status}</span>
                             <div class="card-id">${card.card_id}</div>
-                            
                             <div class="qr-container">
                                 <img src="${qrUrl}" alt="QR Code" class="qr-small">
                             </div>
-                            
                             <div class="card-actions">
                                 <button class="action-btn view-btn" data-action="view" data-index="${index}">
                                     <i class="fas fa-eye"></i> View Card
@@ -814,7 +833,6 @@
             
             elements.cardsContainer.innerHTML = cardsHtml;
             
-            // Add event listeners to all action buttons
             document.querySelectorAll('.action-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -824,13 +842,9 @@
                     const viewerUrl = cardItem.dataset.viewerUrl;
                     const qrUrl = cardItem.dataset.qrUrl;
                     
-                    if (action === 'view') {
-                        window.open(viewerUrl, '_blank');
-                    } else if (action === 'copy') {
-                        copyToClipboard(viewerUrl);
-                    } else if (action === 'download') {
-                        downloadQRCode(qrUrl, cardId);
-                    }
+                    if (action === 'view') window.open(viewerUrl, '_blank');
+                    else if (action === 'copy') copyToClipboard(viewerUrl);
+                    else if (action === 'download') downloadQRCode(qrUrl, cardId);
                 });
             });
         }
@@ -842,18 +856,58 @@
             elements.errorText.textContent = message;
         }
         
-        // Quick Add Cards functionality
-        function updateQuickAddPrice() {
-            const qty = parseInt(elements.additionalQty.value) || 0;
-            elements.quickAddPrice.textContent = (qty * 2.99).toFixed(2);
+        // ---------- Stripe Quick Add Cards ----------
+        async function initStripe() {
+            try {
+                const keyRes = await fetch(`${BACKEND_URL}/api/stripe-key`);
+                const keyData = await keyRes.json();
+                if (!keyData.success) throw new Error('Payment system not available');
+                
+                stripe = Stripe(keyData.publishableKey);
+                elementsStripe = stripe.elements();
+                cardElement = elementsStripe.create('card', {
+                    style: {
+                        base: {
+                            color: '#ffffff',
+                            fontFamily: '"Segoe UI", sans-serif',
+                            fontSize: '16px',
+                            '::placeholder': { color: '#666' }
+                        }
+                    }
+                });
+                cardElement.mount('#card-element');
+                
+                cardElement.on('change', (event) => {
+                    if (event.error) {
+                        elements.cardErrors.textContent = event.error.message;
+                    } else {
+                        elements.cardErrors.textContent = '';
+                    }
+                });
+            } catch (err) {
+                console.error('Stripe init error:', err);
+                showNotification('Payment system error. Please refresh.', 'error');
+            }
         }
         
-        elements.additionalQty.addEventListener('input', updateQuickAddPrice);
+        function updatePrice() {
+            const qty = parseInt(elements.additionalQty.value) || 0;
+            const total = (qty * 2.99).toFixed(2);
+            elements.quickAddBtn.innerHTML = `Add Cards — $${total}`;
+        }
+        
+        elements.additionalQty.addEventListener('input', updatePrice);
+        updatePrice();
         
         async function quickAddCards() {
             const qty = parseInt(elements.additionalQty.value);
             if (!qty || qty < 1) {
                 showNotification('Please enter at least 1 card', 'error');
+                return;
+            }
+            
+            if (!stripe) {
+                showNotification('Payment system not ready. Please wait.', 'error');
                 return;
             }
             
@@ -863,10 +917,57 @@
             btn.disabled = true;
             
             try {
-                // Redirect to maker.html with batch ID and quantity
-                window.location.href = `maker.html?batch=${encodeURIComponent(currentBatch.batch_id)}&add=${qty}`;
+                // 1. Create payment intent
+                const response = await fetch(`${BACKEND_URL}/api/create-payment-intent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quantity: qty,
+                        batchId: currentBatch.batch_id,
+                        email: '',
+                        mode: 'add_to_existing'
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Payment setup failed');
+                
+                // 2. Confirm card payment with Stripe
+                const result = await stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: { email: '' }
+                    }
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                
+                // 3. Payment succeeded – add the cards
+                const addResponse = await fetch(`${BACKEND_URL}/api/batches/${encodeURIComponent(currentBatch.batch_id)}/add-cards`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quantity: qty,
+                        payment_intent_id: result.paymentIntent.id
+                    })
+                });
+                
+                const addData = await addResponse.json();
+                if (!addData.success) throw new Error(addData.error);
+                
+                // 4. Success – refresh the batch view
+                showNotification(`Successfully added ${qty} cards!`, 'success');
+                await loadBatch(currentBatch.batch_id);
+                
+                // Clear card element
+                cardElement.clear();
+                
             } catch (err) {
                 showNotification(err.message, 'error');
+                console.error('Add cards error:', err);
+            } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -874,37 +975,29 @@
         
         elements.quickAddBtn.addEventListener('click', quickAddCards);
         
-        // Event listeners for search and retry
+        // ---------- Event Listeners ----------
         elements.searchBtn.addEventListener('click', () => {
             const batchId = elements.batchSearchInput.value.trim();
-            if (batchId) {
-                loadBatchById(batchId);
-            } else {
-                showNotification('Please enter a Batch ID', 'error');
-            }
+            if (batchId) loadBatchById(batchId);
+            else showNotification('Please enter a Batch ID', 'error');
         });
         
         elements.batchSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const batchId = elements.batchSearchInput.value.trim();
-                if (batchId) {
-                    loadBatchById(batchId);
-                }
+                if (batchId) loadBatchById(batchId);
             }
         });
         
         elements.retryBtn.addEventListener('click', () => {
             const batchId = elements.batchSearchInput.value.trim() || urlBatchId;
-            if (batchId) {
-                loadBatch(batchId);
-            }
+            if (batchId) loadBatch(batchId);
         });
         
         // Initialize
         displayRecentBatches();
-        updateQuickAddPrice(); // set initial price display
+        initStripe();
         
-        // Auto-load from URL if present
         if (urlBatchId) {
             console.log('Auto-loading batch from URL:', urlBatchId);
             loadBatchById(urlBatchId);
