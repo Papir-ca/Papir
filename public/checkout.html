@@ -252,6 +252,7 @@
             try {
                 const response = await fetch(`${BACKEND_URL}/api/stripe-key`);
                 const data = await response.json();
+                console.log('Stripe key response:', data);
                 if (!data.success || !data.publishableKey) {
                     throw new Error('Stripe not configured');
                 }
