@@ -1,4 +1,4 @@
-// 🎪 Ppir Business Server - PRODUCTION READY
+// 🎪 Papir Business Server - PRODUCTION READY
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
