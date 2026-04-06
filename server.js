@@ -252,7 +252,8 @@ app.get('/api/health', (req, res) => {
       createPaymentIntent: `POST ${baseUrl}/api/create-payment-intent`,
       adminPayments: `GET ${baseUrl}/api/admin/payments`,
       activateAfterPayment: `POST ${baseUrl}/api/activate-after-payment`,
-      findMyBatches: `POST ${baseUrl}/api/find-my-batches`
+      findMyBatches: `POST ${baseUrl}/api/find-my-batches`,
+      addCardsToBatch: `POST ${baseUrl}/api/batches/:batch_id/add-cards`
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -992,7 +993,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
       console.log('Found template:', template.card_id, 'Quantity:', template.quantity);
       const quantity = template.quantity || 2;
       
-      // 🔧 FIX: Get current max batch_order to avoid collisions
+      // Get current max batch_order to avoid collisions
       const { data: maxOrderCard } = await supabaseAdmin.from('cards').select('batch_order').eq('batch_id', batch_id).eq('is_batch_template', false).order('batch_order', { ascending: false }).limit(1);
       const startOrder = (maxOrderCard?.[0]?.batch_order || 0) + 1;
       
@@ -1002,7 +1003,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
         cardsToCreate.push({
           card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
           batch_id: batch_id,
-          batch_order: startOrder + i,  // ✅ Continues from existing max
+          batch_order: startOrder + i,
           message_type: template.message_type,
           message_text: template.message_text,
           media_url: template.media_url,
@@ -1076,6 +1077,110 @@ app.post('/api/activate-after-payment', async (req, res) => {
   } catch (error) {
     console.error('Activation error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// Add More Cards to Existing Batch (via payment)
+// ============================================
+app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
+  try {
+    const { batch_id } = req.params;
+    const { quantity, payment_intent_id } = req.body;
+    const clientIp = getClientIp(req);
+    
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ success: false, error: 'Invalid quantity' });
+    }
+    
+    // Get existing batch info
+    const { data: batch } = await supabaseAdmin
+      .from('batches')
+      .select('*')
+      .eq('batch_id', batch_id)
+      .single();
+      
+    if (!batch) return res.status(404).json({ success: false, error: 'Batch not found' });
+    
+    // Get source content from first active card
+    const { data: sourceCards } = await supabaseAdmin
+      .from('cards')
+      .select('message_type, message_text, media_url, file_name, file_size, file_type')
+      .eq('batch_id', batch_id)
+      .eq('status', 'active')
+      .order('batch_order', { ascending: true })
+      .limit(1);
+      
+    if (!sourceCards?.length) {
+      return res.status(400).json({ success: false, error: 'No active cards found in batch' });
+    }
+    
+    const source = sourceCards[0];
+    
+    // Get current max batch_order
+    const { data: maxOrder } = await supabaseAdmin
+      .from('cards')
+      .select('batch_order')
+      .eq('batch_id', batch_id)
+      .eq('is_batch_template', false)
+      .order('batch_order', { ascending: false })
+      .limit(1);
+      
+    const startOrder = (maxOrder?.[0]?.batch_order || 0) + 1;
+    const deadline = new Date();
+    deadline.setFullYear(deadline.getFullYear() + 1);
+    
+    // Create new cards
+    const newCards = [];
+    for (let i = 0; i < quantity; i++) {
+      newCards.push({
+        card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+        batch_id: batch_id,
+        batch_order: startOrder + i,
+        message_type: source.message_type,
+        message_text: source.message_text,
+        media_url: source.media_url,
+        file_name: source.file_name,
+        file_size: source.file_size,
+        file_type: source.file_type,
+        status: 'active',
+        card_type: 'ecard',
+        is_batch_template: false,
+        terms_accepted: true,
+        physical_card_status: null,
+        created_by_ip: clientIp,
+        updated_by_ip: clientIp,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activation_deadline: deadline.toISOString()
+      });
+    }
+    
+    // Insert cards
+    const { error: insertError } = await supabaseAdmin.from('cards').insert(newCards);
+    if (insertError) throw insertError;
+    
+    // Update batch counts
+    const newTotal = batch.cards_created + quantity;
+    await supabaseAdmin
+      .from('batches')
+      .update({ 
+        cards_created: newTotal,
+        total_cards_purchased: newTotal,
+        updated_at: new Date().toISOString()
+      })
+      .eq('batch_id', batch_id);
+    
+    res.json({ 
+      success: true, 
+      message: `Added ${quantity} cards`,
+      new_total: newTotal,
+      cards: newCards.map(c => ({ card_id: c.card_id, batch_order: c.batch_order }))
+    });
+    
+  } catch (error) {
+    console.error('Add cards error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -1591,7 +1696,7 @@ app.listen(PORT, () => {
   console.log(`   Bulk Activate: https://papir.ca/api/admin/bulk-activate`);
   console.log(`   Cards All Details: https://papir.ca/api/admin/cards-all-details`);
   console.log(`   Get Batch: https://papir.ca/api/batches/:id`);
-  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards (ARITHMETIC COUNTING)`);
+  console.log(`   Add Cards to Batch: https://papir.ca/api/batches/:id/add-cards`);
   console.log(`   Add to Batch: https://papir.ca/api/batches/:id/add`);
   console.log(`   Calculate Price: https://papir.ca/api/batches/calculate-price`);
   console.log(`   Create Batch: https://papir.ca/api/admin/batches`);
