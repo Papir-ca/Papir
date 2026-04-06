@@ -203,7 +203,7 @@ app.get('/admin', (req, res) => {
     }
 });
 
-// 🩺 Enhanced Health Check
+// 🩺 Enhanced Health Check (UPDATED: includes activateAfterPayment)
 app.get('/api/health', (req, res) => {
   const protocol = req.protocol;
   const host = req.get('host');
@@ -250,7 +250,8 @@ app.get('/api/health', (req, res) => {
       activatePhysicalCard: `POST ${baseUrl}/api/physical-cards/:id/activate`,
       stripeKey: `GET ${baseUrl}/api/stripe-key`,
       createPaymentIntent: `POST ${baseUrl}/api/create-payment-intent`,
-      adminPayments: `GET ${baseUrl}/api/admin/payments`
+      adminPayments: `GET ${baseUrl}/api/admin/payments`,
+      activateAfterPayment: `POST ${baseUrl}/api/activate-after-payment`  // ← ADDED
     },
     database: supabaseAdmin ? '✅ Connected' : '❌ Disconnected'
   });
@@ -887,178 +888,6 @@ app.post('/api/activate-card', async (req, res) => {
   }
 });
 
-// ============================================
-// UPDATED: Activate after payment (FIXED - creates correct quantity of cards)
-// ============================================
-app.post('/api/activate-after-payment', async (req, res) => {
-  const { card_id, batch_id, terms_accepted } = req.body;
-  const clientIp = getClientIp(req);
-  
-  try {
-    if (!supabaseAdmin) {
-      return res.status(503).json({ success: false, error: 'Database unavailable' });
-    }
-    
-    if (batch_id) {
-      // BATCH MODE: Get the template card
-      const { data: template, error: templateError } = await supabaseAdmin
-        .from('cards')
-        .select('*')
-        .eq('batch_id', batch_id)
-        .eq('is_batch_template', true)
-        .eq('status', 'draft')
-        .maybeSingle();
-      
-      if (templateError || !template) {
-        console.error('Template not found:', templateError);
-        return res.status(404).json({ success: false, error: 'Batch template not found' });
-      }
-      
-      const quantity = template.quantity || 3;
-      console.log(`Creating ${quantity} cards from template for batch ${batch_id}`);
-      
-      // Create N cards from template (FIXED: Start from 1, not 2!)
-      const cardsToCreate = [];
-      const deadline = new Date();
-      deadline.setFullYear(deadline.getFullYear() + 1);
-      
-      for (let i = 1; i <= quantity; i++) {  // FIXED: Was i=2, now i=1
-        const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
-        cardsToCreate.push({
-          card_id: newCardId,
-          batch_id: batch_id,
-          batch_order: i,  // Now creates 1, 2, 3 (not 2, 3)
-          message_type: template.message_type,
-          message_text: template.message_text,
-          media_url: template.media_url,
-          file_name: template.file_name,
-          file_size: template.file_size,
-          file_type: template.file_type,
-          status: 'active',
-          card_type: 'ecard',
-          is_batch_template: false,  // EXPLICIT: Not a template
-          terms_accepted: true,  // EXPLICIT: All true
-          physical_card_status: null,  // EXPLICIT: Null for e-cards (not dormant)
-          created_by_ip: clientIp,
-          updated_by_ip: clientIp,  // EXPLICIT: Set on creation
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          activation_deadline: deadline.toISOString()
-        });
-      }
-      
-      // Insert all new cards
-      if (cardsToCreate.length > 0) {
-        const { error: insertError } = await supabaseAdmin
-          .from('cards')
-          .insert(cardsToCreate);
-        if (insertError) throw insertError;
-        
-        // Log activations for each new card
-        const activationRecords = cardsToCreate.map(card => ({
-          card_id: card.card_id,
-          activated_at: new Date().toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          terms_accepted_ip: clientIp,
-          user_agent: req.headers['user-agent'] || 'unknown',
-          activation_source: 'checkout_payment',
-          metadata: { batch_id, template_card_id: template.card_id, batch_order: card.batch_order }
-        }));
-        await supabaseAdmin.from('card_activations').insert(activationRecords);
-      }
-      
-      // Delete the template card (only cloned cards remain)
-      const { error: deleteTemplateError } = await supabaseAdmin
-        .from('cards')
-        .delete() 
-        .eq('card_id', template.card_id);
-      
-      if (deleteTemplateError) {
-          console.error('Failed to delete template:', deleteTemplateError);
-          // Non-critical error, continue anyway
-      }
-      
-      // Update batch record
-      const { data: existingBatch } = await supabaseAdmin
-        .from('batches')
-        .select('batch_id')
-        .eq('batch_id', batch_id)
-        .maybeSingle();
-      
-      if (!existingBatch) {
-        await supabaseAdmin.from('batches').insert({
-          batch_id: batch_id,
-          batch_type: 'ecard',
-          cards_created: quantity,
-          total_cards_purchased: quantity,
-          max_cards_allowed: quantity,
-          content_locked: true,
-          created_by_ip: clientIp,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-      } else {
-        await supabaseAdmin
-          .from('batches')
-          .update({
-            cards_created: quantity,
-            total_cards_purchased: quantity,
-            content_locked: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq('batch_id', batch_id);
-      }
-      
-      res.json({ 
-        success: true, 
-        message: `Created ${quantity} cards for batch ${batch_id}` 
-      });
-      
-    } else if (card_id) {
-      // SINGLE CARD MODE: Just activate the draft card
-      const { error } = await supabaseAdmin
-        .from('cards')
-        .update({ 
-          status: 'active',
-          terms_accepted: true,
-          physical_card_status: null,  // EXPLICIT for e-cards
-          updated_by_ip: clientIp,
-          updated_at: new Date().toISOString()
-        })
-        .eq('card_id', card_id)
-        .eq('status', 'draft');
-      
-      if (error) throw error;
-      
-      // Log activation
-      await supabaseAdmin
-        .from('card_activations')
-        .insert({
-          card_id: card_id,
-          activated_at: new Date().toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          terms_accepted_ip: clientIp,
-          user_agent: req.headers['user-agent'] || 'unknown',
-          activation_source: 'checkout',
-          metadata: { single_card: true }
-        });
-      
-      res.json({ 
-        success: true, 
-        message: `Activated card ${card_id}` 
-      });
-      
-    } else {
-      res.status(400).json({ error: 'No card_id or batch_id provided' });
-    }
-  } catch (error) {
-    console.error('Activation error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // 🔢 Increment scan count AND log individual scan (UPDATED)
 app.post('/api/increment-scan', async (req, res) => {
   try {
@@ -1467,6 +1296,175 @@ app.get('/api/test-supabase', async (req, res) => {
   }
 });
 
+// ============================================
+// Activate after payment (Hallmark Flow) – PLACED AT THE VERY END BEFORE app.listen
+// ============================================
+app.post('/api/activate-after-payment', async (req, res) => {
+  const { card_id, batch_id, terms_accepted } = req.body;
+  const clientIp = getClientIp(req);
+  
+  console.log('Activate request:', { card_id, batch_id, terms_accepted });
+  
+  try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+    
+    if (batch_id) {
+      // BATCH MODE
+      console.log('Looking for template with batch_id:', batch_id);
+      
+      const { data: template, error: templateError } = await supabaseAdmin
+        .from('cards')
+        .select('*')
+        .eq('batch_id', batch_id)
+        .eq('is_batch_template', true)
+        .eq('status', 'draft')
+        .maybeSingle();
+      
+      if (templateError) {
+        console.error('Template query error:', templateError);
+        return res.status(500).json({ success: false, error: 'Database error' });
+      }
+      
+      if (!template) {
+        console.error('Template not found for batch_id:', batch_id);
+        return res.status(404).json({ success: false, error: 'Batch template not found' });
+      }
+      
+      console.log('Found template:', template.card_id, 'Quantity:', template.quantity);
+      
+      const quantity = template.quantity || 2; // Default to 2 (your new minimum)
+      
+      // Create cards
+      const cardsToCreate = [];
+      const deadline = new Date();
+      deadline.setFullYear(deadline.getFullYear() + 1);
+      
+      for (let i = 1; i <= quantity; i++) {
+        const newCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        cardsToCreate.push({
+          card_id: newCardId,
+          batch_id: batch_id,
+          batch_order: i,
+          message_type: template.message_type,
+          message_text: template.message_text,
+          media_url: template.media_url,
+          file_name: template.file_name,
+          file_size: template.file_size,
+          file_type: template.file_type,
+          status: 'active',
+          card_type: 'ecard',
+          is_batch_template: false,
+          terms_accepted: true,
+          physical_card_status: null,
+          created_by_ip: clientIp,
+          updated_by_ip: clientIp,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          activation_deadline: deadline.toISOString()
+        });
+      }
+      
+      if (cardsToCreate.length > 0) {
+        const { error: insertError } = await supabaseAdmin
+          .from('cards')
+          .insert(cardsToCreate);
+          
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+        
+        // Log activations
+        const activationRecords = cardsToCreate.map(card => ({
+          card_id: card.card_id,
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_ip: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          activation_source: 'checkout_payment',
+          metadata: { batch_id, template_card_id: template.card_id }
+        }));
+        
+        await supabaseAdmin.from('card_activations').insert(activationRecords);
+      }
+      
+      // Delete template
+      await supabaseAdmin.from('cards').delete().eq('card_id', template.card_id);
+      
+      // Update batch record
+      const { data: existingBatch } = await supabaseAdmin
+        .from('batches')
+        .select('batch_id')
+        .eq('batch_id', batch_id)
+        .maybeSingle();
+      
+      if (!existingBatch) {
+        await supabaseAdmin.from('batches').insert({
+          batch_id: batch_id,
+          batch_type: 'ecard',
+          cards_created: quantity,
+          total_cards_purchased: quantity,
+          max_cards_allowed: quantity,
+          content_locked: true,
+          created_by_ip: clientIp,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      } else {
+        await supabaseAdmin
+          .from('batches')
+          .update({
+            cards_created: quantity,
+            total_cards_purchased: quantity,
+            content_locked: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('batch_id', batch_id);
+      }
+      
+      res.json({ success: true, message: `Created ${quantity} cards for batch ${batch_id}` });
+      
+    } else if (card_id) {
+      // SINGLE CARD MODE
+      const { error } = await supabaseAdmin
+        .from('cards')
+        .update({ 
+          status: 'active',
+          terms_accepted: true,
+          physical_card_status: null,
+          updated_by_ip: clientIp,
+          updated_at: new Date().toISOString()
+        })
+        .eq('card_id', card_id)
+        .eq('status', 'draft');
+      
+      if (error) throw error;
+      
+      await supabaseAdmin.from('card_activations').insert({
+        card_id: card_id,
+        activated_at: new Date().toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: req.headers['user-agent'] || 'unknown',
+        activation_source: 'checkout',
+        metadata: { single_card: true }
+      });
+      
+      res.json({ success: true, message: `Activated card ${card_id}` });
+      
+    } else {
+      res.status(400).json({ error: 'No card_id or batch_id provided' });
+    }
+  } catch (error) {
+    console.error('Activation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 🚫 404 Handler
 app.use((req, res) => {
   const protocol = req.protocol;
@@ -1512,7 +1510,8 @@ app.use((req, res) => {
       `${baseUrl}/api/test-supabase`,
       `${baseUrl}/api/stripe-key`,
       `${baseUrl}/api/create-payment-intent`,
-      `${baseUrl}/api/admin/payments`
+      `${baseUrl}/api/admin/payments`,
+      `${baseUrl}/api/activate-after-payment`
     ]
   });
 });
@@ -1567,6 +1566,7 @@ app.listen(PORT, () => {
   console.log(`   Stripe Key: GET https://papir.ca/api/stripe-key`);
   console.log(`   Create Payment Intent: POST https://papir.ca/api/create-payment-intent`);
   console.log(`   Admin Payments: GET https://papir.ca/api/admin/payments`);
+  console.log(`   Activate After Payment: POST https://papir.ca/api/activate-after-payment`);
   console.log('\n🎯 FEATURES:');
   console.log('   ✅ Media uploads to Supabase Storage');
   console.log('   ✅ File metadata tracking');
