@@ -1094,14 +1094,16 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid quantity' });
     }
     
-    // Get existing batch info
-    const { data: batch } = await supabaseAdmin
+    // Get existing batch
+    const { data: batch, error: batchError } = await supabaseAdmin
       .from('batches')
       .select('*')
       .eq('batch_id', batch_id)
       .single();
       
-    if (!batch) return res.status(404).json({ success: false, error: 'Batch not found' });
+    if (batchError || !batch) {
+      return res.status(404).json({ success: false, error: 'Batch not found' });
+    }
     
     // Get source content from first active card
     const { data: sourceCards } = await supabaseAdmin
@@ -1113,7 +1115,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .limit(1);
       
     if (!sourceCards?.length) {
-      return res.status(400).json({ success: false, error: 'No active cards found in batch' });
+      return res.status(400).json({ success: false, error: 'No active cards in batch' });
     }
     
     const source = sourceCards[0];
@@ -1128,6 +1130,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .limit(1);
       
     const startOrder = (maxOrder?.[0]?.batch_order || 0) + 1;
+    const now = new Date();
     const deadline = new Date();
     deadline.setFullYear(deadline.getFullYear() + 1);
     
@@ -1151,8 +1154,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         physical_card_status: null,
         created_by_ip: clientIp,
         updated_by_ip: clientIp,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
         activation_deadline: deadline.toISOString()
       });
     }
@@ -1161,56 +1164,66 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const { error: insertError } = await supabaseAdmin.from('cards').insert(newCards);
     if (insertError) throw insertError;
     
-    // 🔧 FIX 1: Update batch counts AND max_cards_allowed
+    // Update batch counts AND max_cards_allowed
     const newTotal = batch.cards_created + quantity;
-    const newMax = (batch.max_cards_allowed || 0) + quantity; // Add to existing max
+    const newMax = (batch.max_cards_allowed || 0) + quantity;
     
     await supabaseAdmin
       .from('batches')
       .update({ 
         cards_created: newTotal,
         total_cards_purchased: newTotal,
-        max_cards_allowed: newMax,  // <-- FIXED: Now updates max allowed
-        updated_at: new Date().toISOString()
+        max_cards_allowed: newMax,
+        updated_at: now.toISOString()
       })
       .eq('batch_id', batch_id);
     
-    // 🔧 FIX 2: Log to batch_events table
-    await supabaseAdmin
-      .from('batch_events')
-      .insert({
-        batch_id: batch_id,
-        event_type: 'cards_added',
-        quantity: quantity,
-        timestamp: new Date().toISOString(),
-        ip_address: clientIp,
-        user_agent: userAgent,
-        metadata: { 
-          payment_intent_id: payment_intent_id || null,
-          previous_count: batch.cards_created,
-          new_count: newTotal,
-          previous_max: batch.max_cards_allowed,
-          new_max: newMax
-        }
-      });
-    
-    // 🔧 FIX 3: Log activations to card_activations table
-    const activationRecords = newCards.map(card => ({
-      card_id: card.card_id,
-      activated_at: new Date().toISOString(),
-      activated_by_ip: clientIp,
-      terms_accepted_at: new Date().toISOString(),
-      terms_accepted_ip: clientIp,
+    // Log to batch_events
+    await supabaseAdmin.from('batch_events').insert({
+      batch_id: batch_id,
+      event_type: 'cards_added_via_payment',
+      quantity: quantity,
+      timestamp: now.toISOString(),
+      ip_address: clientIp,
       user_agent: userAgent,
-      activation_source: 'batch_add_on',
       metadata: { 
-        batch_id: batch_id,
-        added_via: 'batch_manager_payment',
-        payment_intent_id: payment_intent_id || null
+        payment_intent_id: payment_intent_id || null,
+        previous_count: batch.cards_created,
+        new_count: newTotal,
+        card_ids: newCards.map(c => c.card_id)
       }
-    }));
+    });
     
-    await supabaseAdmin.from('card_activations').insert(activationRecords);
+    // 🔴 CRITICAL FIX: Log to card_activations with error handling
+    try {
+      const activationRecords = newCards.map(card => ({
+        card_id: card.card_id,
+        activated_at: now.toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: now.toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: userAgent,
+        activation_source: 'batch_manager_add_on',
+        metadata: { 
+          batch_id: batch_id,
+          batch_order: card.batch_order,
+          payment_intent_id: payment_intent_id || null,
+          added_via: 'inline_payment'
+        }
+      }));
+      
+      const { error: actError } = await supabaseAdmin
+        .from('card_activations')
+        .insert(activationRecords);
+        
+      if (actError) {
+        console.error('Card activations insert error:', actError);
+        // Don't fail the request, but log the error
+      }
+    } catch (actErr) {
+      console.error('Card activations exception:', actErr);
+      // Don't fail the main request
+    }
     
     res.json({ 
       success: true, 
