@@ -1081,13 +1081,14 @@ app.post('/api/activate-after-payment', async (req, res) => {
 });
 
 // ============================================
-// Add More Cards to Existing Batch (via payment)
+// Add More Cards to Existing Batch (UPDATED VERSION)
 // ============================================
 app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
   try {
     const { batch_id } = req.params;
     const { quantity, payment_intent_id } = req.body;
     const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
     if (!quantity || quantity < 1) {
       return res.status(400).json({ success: false, error: 'Invalid quantity' });
@@ -1160,21 +1161,62 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const { error: insertError } = await supabaseAdmin.from('cards').insert(newCards);
     if (insertError) throw insertError;
     
-    // Update batch counts
+    // 🔧 FIX 1: Update batch counts AND max_cards_allowed
     const newTotal = batch.cards_created + quantity;
+    const newMax = (batch.max_cards_allowed || 0) + quantity; // Add to existing max
+    
     await supabaseAdmin
       .from('batches')
       .update({ 
         cards_created: newTotal,
         total_cards_purchased: newTotal,
+        max_cards_allowed: newMax,  // <-- FIXED: Now updates max allowed
         updated_at: new Date().toISOString()
       })
       .eq('batch_id', batch_id);
+    
+    // 🔧 FIX 2: Log to batch_events table
+    await supabaseAdmin
+      .from('batch_events')
+      .insert({
+        batch_id: batch_id,
+        event_type: 'cards_added',
+        quantity: quantity,
+        timestamp: new Date().toISOString(),
+        ip_address: clientIp,
+        user_agent: userAgent,
+        metadata: { 
+          payment_intent_id: payment_intent_id || null,
+          previous_count: batch.cards_created,
+          new_count: newTotal,
+          previous_max: batch.max_cards_allowed,
+          new_max: newMax
+        }
+      });
+    
+    // 🔧 FIX 3: Log activations to card_activations table
+    const activationRecords = newCards.map(card => ({
+      card_id: card.card_id,
+      activated_at: new Date().toISOString(),
+      activated_by_ip: clientIp,
+      terms_accepted_at: new Date().toISOString(),
+      terms_accepted_ip: clientIp,
+      user_agent: userAgent,
+      activation_source: 'batch_add_on',
+      metadata: { 
+        batch_id: batch_id,
+        added_via: 'batch_manager_payment',
+        payment_intent_id: payment_intent_id || null
+      }
+    }));
+    
+    await supabaseAdmin.from('card_activations').insert(activationRecords);
     
     res.json({ 
       success: true, 
       message: `Added ${quantity} cards`,
       new_total: newTotal,
+      new_max: newMax,
       cards: newCards.map(c => ({ card_id: c.card_id, batch_order: c.batch_order }))
     });
     
