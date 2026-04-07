@@ -1308,21 +1308,92 @@ app.post('/api/cards/:card_id/track', async (req, res) => {
 });
 
 // ============================================
-// Find My Batches (by customer email)
+// Find My Batches (PRODUCTION-READY VERSION)
 // ============================================
 app.post('/api/find-my-batches', async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email || !email.includes('@')) return res.status(400).json({ success: false, error: 'Valid email required' });
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ success: false, error: 'Valid email required' });
+    }
     
-    // Find by email in payments
-    const { data: payments } = await supabaseAdmin.from('payments').select('batch_id').eq('customer_email', email.toLowerCase().trim()).not('batch_id', 'is', null);
-    if (!payments || payments.length === 0) return res.json({ success: true, batches: [] });
+    const normalizedEmail = email.toLowerCase().trim();
     
-    const batchIds = [...new Set(payments.map(p => p.batch_id))];
-    const { data: batches } = await supabaseAdmin.from('batches').select('batch_id, cards_created, created_at').in('batch_id', batchIds).order('created_at', { ascending: false });
-    res.json({ success: true, batches: batches || [] });
+    // Find payments by this email
+    const { data: payments, error: payError } = await supabaseAdmin
+      .from('payments')
+      .select('batch_id, quantity, created_at, status, metadata')
+      .eq('customer_email', normalizedEmail)
+      .not('batch_id', 'is', null)
+      .order('created_at', { ascending: false });
+      
+    if (payError) throw payError;
+    if (!payments || payments.length === 0) {
+      return res.json({ success: true, batches: [] });
+    }
+    
+    // Strategy 1: Try exact match on batch_id
+    const paymentBatchIds = [...new Set(payments.map(p => p.batch_id))];
+    let { data: batches } = await supabaseAdmin
+      .from('batches')
+      .select('batch_id, cards_created, total_cards_purchased, created_at')
+      .in('batch_id', paymentBatchIds)
+      .order('created_at', { ascending: false });
+    
+    // Strategy 2: If no matches, try to find by time proximity + quantity
+    if (!batches || batches.length === 0) {
+      console.log('No direct batch matches for:', normalizedEmail);
+      
+      // Get payment timestamps
+      const paymentTimes = payments.map(p => new Date(p.created_at));
+      const earliestPayment = new Date(Math.min(...paymentTimes));
+      const latestPayment = new Date(Math.max(...paymentTimes));
+      
+      // Look for batches created within 5 minutes of any payment
+      const timeBuffer = 5 * 60 * 1000; // 5 minutes
+      
+      const { data: nearbyBatches, error: nearbyError } = await supabaseAdmin
+        .from('batches')
+        .select('*')
+        .gte('created_at', new Date(earliestPayment - timeBuffer).toISOString())
+        .lte('created_at', new Date(latestPayment + timeBuffer).toISOString())
+        .order('created_at', { ascending: false });
+        
+      if (!nearbyError && nearbyBatches && nearbyBatches.length > 0) {
+        // Match by quantity similarity
+        batches = nearbyBatches.filter(b => {
+          return payments.some(p => {
+            // Match if quantity is close (allowing for the +1 template vs actual cards difference)
+            const qtyMatch = Math.abs((p.quantity || 0) - (b.cards_created || 0)) <= 2;
+            const timeMatch = Math.abs(new Date(p.created_at) - new Date(b.created_at)) < timeBuffer;
+            return qtyMatch && timeMatch;
+          });
+        });
+      }
+    }
+    
+    // Strategy 3: If still no matches, return all recent batches as suggestions
+    if (!batches || batches.length === 0) {
+      // Last resort: show recent batches
+      const { data: recentBatches } = await supabaseAdmin
+        .from('batches')
+        .select('batch_id, cards_created, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+        
+      // Don't return these - they might not belong to this user
+      // Just log for debugging
+      console.log('No matching batches found for email:', normalizedEmail);
+      console.log('Payment batch IDs:', paymentBatchIds);
+    }
+    
+    res.json({ 
+      success: true, 
+      batches: batches || []
+    });
+    
   } catch (error) {
+    console.error('Find batches error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
