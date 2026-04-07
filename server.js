@@ -1081,7 +1081,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
 });
 
 // ============================================
-// Add More Cards to Existing Batch (UPDATED VERSION)
+// Add More Cards to Existing Batch (ERROR-HANDLING VERSION)
 // ============================================
 app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
   try {
@@ -1089,6 +1089,8 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     const { quantity, payment_intent_id } = req.body;
     const clientIp = getClientIp(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    console.log(`🟡 Add cards request: batch=${batch_id}, qty=${quantity}`);
     
     if (!quantity || quantity < 1) {
       return res.status(400).json({ success: false, error: 'Invalid quantity' });
@@ -1102,8 +1104,15 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       .single();
       
     if (batchError || !batch) {
+      console.error('🔴 Batch not found:', batch_id, batchError);
       return res.status(404).json({ success: false, error: 'Batch not found' });
     }
+    
+    console.log('🟡 Current batch state:', {
+      batch_id: batch.batch_id,
+      cards_created: batch.cards_created,
+      max_cards_allowed: batch.max_cards_allowed
+    });
     
     // Get source content from first active card
     const { data: sourceCards } = await supabaseAdmin
@@ -1162,13 +1171,21 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     
     // Insert cards
     const { error: insertError } = await supabaseAdmin.from('cards').insert(newCards);
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('🔴 Card insert error:', insertError);
+      throw insertError;
+    }
     
-    // Update batch counts AND max_cards_allowed
-    const newTotal = batch.cards_created + quantity;
+    console.log(`🟢 Inserted ${newCards.length} cards`);
+    
+    // Calculate new values
+    const newTotal = (batch.cards_created || 0) + quantity;
     const newMax = (batch.max_cards_allowed || 0) + quantity;
     
-    await supabaseAdmin
+    console.log(`🟡 Updating batch: cards_created ${batch.cards_created} → ${newTotal}, max_cards_allowed ${batch.max_cards_allowed} → ${newMax}`);
+    
+    // Update batch counts AND max_cards_allowed WITH ERROR HANDLING
+    const { data: updatedBatch, error: updateError } = await supabaseAdmin
       .from('batches')
       .update({ 
         cards_created: newTotal,
@@ -1176,7 +1193,20 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         max_cards_allowed: newMax,
         updated_at: now.toISOString()
       })
-      .eq('batch_id', batch_id);
+      .eq('batch_id', batch_id)
+      .select(); // Return the updated row to verify
+      
+    if (updateError) {
+      console.error('🔴 Batch update error:', updateError);
+      throw new Error(`Failed to update batch: ${updateError.message}`);
+    }
+    
+    if (!updatedBatch || updatedBatch.length === 0) {
+      console.error('🔴 No rows updated! batch_id:', batch_id);
+      throw new Error('Batch update affected 0 rows');
+    }
+    
+    console.log('🟢 Batch updated successfully:', updatedBatch[0]);
     
     // Log to batch_events
     await supabaseAdmin.from('batch_events').insert({
@@ -1190,11 +1220,13 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         payment_intent_id: payment_intent_id || null,
         previous_count: batch.cards_created,
         new_count: newTotal,
+        previous_max: batch.max_cards_allowed,
+        new_max: newMax,
         card_ids: newCards.map(c => c.card_id)
       }
     });
     
-    // 🔴 CRITICAL FIX: Log to card_activations with error handling
+    // Log to card_activations with error handling
     try {
       const activationRecords = newCards.map(card => ({
         card_id: card.card_id,
@@ -1218,11 +1250,9 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         
       if (actError) {
         console.error('Card activations insert error:', actError);
-        // Don't fail the request, but log the error
       }
     } catch (actErr) {
       console.error('Card activations exception:', actErr);
-      // Don't fail the main request
     }
     
     res.json({ 
@@ -1234,7 +1264,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Add cards error:', error);
+    console.error('🔴 Add cards error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1350,7 +1380,7 @@ app.post('/api/find-my-batches', async (req, res) => {
       const latestPayment = new Date(Math.max(...paymentTimes));
       
       // Look for batches created within 5 minutes of any payment
-      const timeBuffer = 20 * 60 * 1000; // 20 minutes
+      const timeBuffer = 5 * 60 * 1000; // 5 minutes
       
       const { data: nearbyBatches, error: nearbyError } = await supabaseAdmin
         .from('batches')
