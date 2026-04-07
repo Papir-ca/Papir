@@ -369,7 +369,7 @@
             background: linear-gradient(to right, #36D1DC, #5B86E5);
         }
         
-        /* Add More Cards Section (simplified) */
+        /* Add More Cards Section */
         .add-more-section {
             background: rgba(6, 214, 160, 0.1);
             border: 2px solid #06D6A0;
@@ -460,6 +460,28 @@
             padding: 12px;
             border-radius: 5px;
             border: 1px solid #555;
+        }
+        
+        .email-field {
+            max-width: 400px;
+            margin: 0 auto 20px;
+            text-align: left;
+        }
+        
+        .email-field label {
+            display: block;
+            color: #a0aec0;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .email-field input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            background: #1a1a1a;
+            color: white;
         }
         
         .error-message {
@@ -598,10 +620,16 @@
                 <!-- Cards will be loaded here -->
             </div>
             
-            <!-- Add More Cards Section (simplified) -->
+            <!-- Add More Cards Section (with email field) -->
             <div class="add-more-section">
                 <h3><i class="fas fa-plus-circle"></i> Add More Cards</h3>
                 <p>Same design. Same message. $2.99 each.</p>
+                
+                <!-- Email Field - Required for receipt and lookup -->
+                <div class="email-field">
+                    <label>Email (for receipt) <span style="color: #FF6B6B;">*</span></label>
+                    <input type="email" id="addCardsEmail" placeholder="you@example.com" required>
+                </div>
                 
                 <div class="quick-add-controls">
                     <div class="qty-wrapper">
@@ -611,8 +639,8 @@
                     <button class="quick-add-btn" id="quickAddBtn">Add Cards — $14.95</button>
                 </div>
                 
-                <!-- Stripe Card Element (visible) -->
-                <div class="card-element-container" id="cardElementContainer">
+                <!-- Stripe Card Element -->
+                <div class="card-element-container">
                     <label>Card Details</label>
                     <div id="card-element"></div>
                     <div id="card-errors" style="color: #FF6B6B; font-size: 0.85rem; margin-top: 8px;"></div>
@@ -654,7 +682,7 @@
         // Stripe
         let stripe = null;
         let cardElement = null;
-        let elementsStripe = null; // avoid naming conflict with existing elements object
+        let elementsStripe = null;
         
         const elements = {
             batchSearchInput: document.getElementById('batchSearchInput'),
@@ -673,12 +701,19 @@
             cardsContainer: document.getElementById('cardsContainer'),
             additionalQty: document.getElementById('additionalQty'),
             quickAddBtn: document.getElementById('quickAddBtn'),
+            addCardsEmail: document.getElementById('addCardsEmail'),
             notification: document.getElementById('notification'),
             backBtn: document.getElementById('backBtn'),
             batchTagline: document.getElementById('batchTagline'),
             cardElementContainer: document.getElementById('cardElementContainer'),
             cardErrors: document.getElementById('card-errors')
         };
+        
+        // Auto-fill email from localStorage
+        const savedEmail = localStorage.getItem('papir_customer_email');
+        if (savedEmail && elements.addCardsEmail) {
+            elements.addCardsEmail.value = savedEmail;
+        }
         
         function showNotification(message, type = 'success') {
             elements.notification.textContent = message;
@@ -906,6 +941,15 @@
                 return;
             }
             
+            // Validate email
+            const email = elements.addCardsEmail.value.trim();
+            if (!email || !email.includes('@')) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+            // Save email for next time
+            localStorage.setItem('papir_customer_email', email);
+            
             if (!stripe) {
                 showNotification('Payment system not ready. Please wait.', 'error');
                 return;
@@ -924,7 +968,7 @@
                     body: JSON.stringify({
                         quantity: qty,
                         batchId: currentBatch.batch_id,
-                        email: '',
+                        email: email,
                         mode: 'add_to_existing'
                     })
                 });
@@ -936,7 +980,7 @@
                 const result = await stripe.confirmCardPayment(data.clientSecret, {
                     payment_method: {
                         card: cardElement,
-                        billing_details: { email: '' }
+                        billing_details: { email: email }
                     }
                 });
                 
