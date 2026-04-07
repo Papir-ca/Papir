@@ -223,18 +223,22 @@
         async function initialize() {
             const urlParams = new URLSearchParams(window.location.search);
             cardId = urlParams.get('card_id');
+            // Use batch_id from URL directly (if present)
             batchId = urlParams.get('batch_id');
             const mode = urlParams.get('mode');
             
             if (cardId) {
+                // Single card purchase mode
                 selectedQty = 1;
                 selectedPrice = 299;
                 document.querySelector('.subtitle').textContent = 'Complete your purchase to send this card';
                 document.getElementById('pricing-section').style.display = 'none';
                 document.getElementById('submit-btn').textContent = 'Pay $2.99 to Send Card';
             } else if (batchId && mode === 'batch') {
-                const qty = parseInt(urlParams.get('qty')) || 1;
+                // Batch purchase mode – use quantity from URL, default to 2 if missing
+                const qty = parseInt(urlParams.get('qty')) || 2;
                 selectedQty = qty;
+                // Calculate total price using bulk pricing
                 const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
                 let totalAmount = 299 * qty;
                 for (const tier of Object.keys(pricing).map(Number).sort((a,b)=>b-a)) {
@@ -331,10 +335,13 @@
             try {
                 let batchIdToSend = null;
                 if (batchId) {
+                    // Use the existing batch_id from URL
                     batchIdToSend = batchId;
                 } else if (cardId) {
+                    // For single card, treat the card ID as the batch ID (legacy)
                     batchIdToSend = cardId;
                 } else {
+                    // Fallback – generate a new batch ID (should rarely happen)
                     batchIdToSend = `batch_${Date.now()}`;
                 }
                 
@@ -363,15 +370,15 @@
                     throw new Error(result.error.message);
                 }
                 
-                // Payment succeeded – redirect to success page with parameters
+                // Payment succeeded – redirect to success page
+                // Use the exact batchId (from URL or generated) for consistency
+                const finalBatchId = batchId || batchIdToSend;
                 let successUrl = `${BACKEND_URL}/success.html?`;
                 if (cardId) {
                     successUrl += `card_id=${cardId}&qty=1`;
-                } else if (batchId) {
-                    successUrl += `batch_id=${batchId}&qty=${selectedQty}`;
                 } else {
-                    // Fallback (should not happen)
-                    successUrl += `batch_id=${result.paymentIntent.metadata.batch_id}&qty=${selectedQty}`;
+                    // For batch mode (or fallback), always use batch_id
+                    successUrl += `batch_id=${encodeURIComponent(finalBatchId)}&qty=${selectedQty}`;
                 }
                 window.location.href = successUrl;
                 
