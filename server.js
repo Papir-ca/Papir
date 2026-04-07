@@ -1350,7 +1350,7 @@ app.post('/api/find-my-batches', async (req, res) => {
       const latestPayment = new Date(Math.max(...paymentTimes));
       
       // Look for batches created within 5 minutes of any payment
-      const timeBuffer = 5 * 60 * 1000; // 5 minutes
+      const timeBuffer = 20 * 60 * 1000; // 20 minutes
       
       const { data: nearbyBatches, error: nearbyError } = await supabaseAdmin
         .from('batches')
