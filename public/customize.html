@@ -8,328 +8,151 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gold: #BCAE83;
-            --primary-teal: #06D6A0;
-            --dark-bg: #1a1a2e;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-gold: #BCAE83; 
+            --primary-teal: #06D6A0; 
+            --dark-bg: #1a1a2e; 
             --light-bg: #f5f5f5;
+            --accent-purple: #764ba2;
+            --danger: #FF6B6B;
+            --warning: #FFD166;
         }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
+        .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; }
+        .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
+        .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
+        .mode-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 3px; }
+        .mode-option { padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: 600; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 0.85rem; }
+        .mode-option.active { background: var(--primary-teal); color: #1a1a2e; }
+        .price-display { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: 2px solid var(--primary-teal); font-size: 0.9rem; }
+        .batch-controls { display: none; background: rgba(6, 214, 160, 0.1); border: 2px solid var(--primary-teal); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+        .batch-controls.active { display: block; }
+        .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: white;
-        }
+        /* Enhanced Tools Panel */
+        .tools-panel { width: 65px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; }
+        .tool-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; position: relative; }
+        .tool-btn:hover, .tool-btn.active { background: var(--primary-gold); color: white; transform: translateY(-2px); }
+        .tool-btn.danger:hover { background: var(--danger); }
+        .tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .tool-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.1); margin: 3px 0; }
 
-        .app-container {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
+        /* Canvas Area */
+        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
+        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
+        .canvas-controls { display: flex; gap: 10px; align-items: center; }
+        .canvas-container { flex: 1; border-radius: 8px; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 15px; background: linear-gradient(45deg, #2a2a3e 25%, transparent 25%), linear-gradient(-45deg, #2a2a3e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a3e 75%), linear-gradient(-45deg, transparent 75%, #2a2a3e 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #252538; }
+        #designCanvas { box-shadow: 0 15px 50px rgba(0,0,0,0.6); border-radius: 4px; }
 
-        .design-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px 25px;
-            border-radius: 15px;
-        }
+        /* Enhanced Properties Panel */
+        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+        .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
 
-        .back-link {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            padding: 8px 15px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-        }
+        /* Form Controls */
+        .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .control-group { flex: 1; }
+        .control-group label { display: block; font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; }
+        .text-input { width: 100%; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: inherit; font-size: 0.9rem; }
+        .text-input:focus { outline: none; border-color: var(--primary-teal); }
 
-        .template-badge {
-            background: var(--primary-gold);
-            color: var(--dark-bg);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
+        select, input[type="number"] { width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 0.85rem; }
+        select option { background: #2a2a3e; }
 
-        .mode-switch {
-            display: flex;
-            background: rgba(255,255,255,0.1);
-            border-radius: 25px;
-            padding: 4px;
-        }
+        /* Sliders */
+        .slider-container { display: flex; align-items: center; gap: 10px; }
+        .slider { flex: 1; height: 6px; -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary-teal); border-radius: 50%; cursor: pointer; }
+        .slider-value { min-width: 45px; text-align: center; font-size: 0.85rem; font-weight: 600; }
 
-        .mode-option {
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-        }
+        /* Buttons */
+        .btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+        .btn-icon { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-icon:hover, .btn-icon.active { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
+        .btn-icon.small { padding: 6px 10px; font-size: 0.75rem; }
+        .btn-icon.danger { border-color: var(--danger); }
+        .btn-icon.danger:hover { background: var(--danger); color: white; }
 
-        .mode-option.active {
-            background: var(--primary-teal);
-            color: #1a1a2e;
-        }
+        /* Color Picker */
+        .color-picker-wrapper { display: flex; align-items: center; gap: 10px; }
+        input[type="color"] { width: 45px; height: 40px; border: none; border-radius: 6px; cursor: pointer; background: transparent; }
+        .color-presets { display: flex; gap: 5px; flex-wrap: wrap; }
+        .color-preset { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .color-preset:hover { transform: scale(1.1); border-color: white; }
 
-        .price-display {
-            background: rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            border: 2px solid var(--primary-teal);
-        }
+        /* Layers */
+        .layer-item { background: rgba(255,255,255,0.08); padding: 10px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; transition: all 0.2s; border: 1px solid transparent; }
+        .layer-item:hover { background: rgba(255,255,255,0.15); }
+        .layer-item.active { border-color: var(--primary-gold); background: rgba(188, 174, 131, 0.15); }
+        .layer-item.locked { opacity: 0.5; }
+        .layer-actions { display: flex; gap: 5px; }
+        .layer-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 4px; border-radius: 4px; }
+        .layer-btn:hover { color: white; background: rgba(255,255,255,0.1); }
 
-        .batch-controls {
-            display: none;
-            background: rgba(6, 214, 160, 0.1);
-            border: 2px solid var(--primary-teal);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
+        /* Effects Panel */
+        .effect-toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
+        .effect-toggle:hover { background: rgba(255,255,255,0.1); }
+        .toggle-switch { width: 40px; height: 22px; background: rgba(255,255,255,0.2); border-radius: 11px; position: relative; transition: all 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
+        .effect-toggle.active .toggle-switch { background: var(--primary-teal); }
+        .effect-toggle.active .toggle-switch::after { left: 20px; }
 
-        .batch-controls.active {
-            display: block;
-        }
+        /* Background Panel */
+        .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .bg-option:hover { transform: scale(1.05); }
+        .bg-option.active { border-color: var(--primary-teal); }
 
-        .design-layout {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            height: calc(100vh - 180px);
-        }
+        /* Checkout Section */
+        .checkout-section { background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(102, 126, 234, 0.15)); border: 2px solid var(--primary-teal); border-radius: 12px; padding: 15px; margin-top: auto; }
+        .checkout-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
+        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4); }
+        .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .tools-panel {
-            width: 70px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .tab { padding: 8px 16px; background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.85rem; border-radius: 6px; transition: all 0.2s; }
+        .tab:hover { color: white; background: rgba(255,255,255,0.1); }
+        .tab.active { color: var(--primary-teal); background: rgba(6, 214, 160, 0.1); font-weight: 600; }
 
-        .tool-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .tool-btn:hover, .tool-btn.active {
-            background: var(--primary-gold);
-            color: white;
-        }
+        .hidden { display: none !important; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .canvas-area {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
+        /* Grid overlay */
+        .grid-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px; opacity: 0; transition: opacity 0.3s; }
+        .grid-overlay.show { opacity: 1; }
 
-        .canvas-toolbar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+        /* Ruler */
+        .ruler { position: absolute; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+        .show-rulers .ruler { opacity: 1; }
 
-        .canvas-container {
-            flex: 1;
-            background: #f0f0f0;
-            border-radius: 10px;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #designCanvas {
-            border: 2px solid #ddd;
-            background: white;
-        }
-
-        .properties-panel {
-            width: 350px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-            color: white;
-        }
-
-        .property-section {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .property-section h4 {
-            margin-bottom: 12px;
-            color: var(--primary-gold);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-
-        .text-input-area {
-            width: 100%;
-            min-height: 80px;
-            padding: 10px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: white;
-            resize: vertical;
-        }
-
-        .font-selector {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 0.9rem;
-        }
-
-        .font-selector option {
-            background: #2a2a2a;
-            color: white;
-        }
-
-        .slider-with-value {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .slider-with-value input[type="range"] {
-            flex: 1;
-        }
-
-        .slider-with-value input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 5px;
-            color: white;
-            text-align: center;
-        }
-
-        .alignment-buttons, .text-effect-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .align-btn, .effect-btn {
-            flex: 1;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .align-btn:hover, .align-btn.active, .effect-btn:hover, .effect-btn.active {
-            background: var(--primary-gold);
-            color: #1a1a2e;
-        }
-
-        .upload-area {
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .upload-area:hover {
-            border-color: var(--primary-gold);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn-primary {
-            flex: 2;
-            padding: 14px;
-            background: linear-gradient(to right, var(--primary-teal), #0ef7b9);
-            color: #1a1a2e;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-secondary {
-            flex: 1;
-            padding: 14px;
-            background: transparent;
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        input[type="color"] {
-            width: 50px;
-            height: 40px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+        /* Upload area */
+        .upload-area { border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { border-color: var(--primary-gold); background: rgba(255,255,255,0.05); }
+        .upload-area i { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-gold); }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
-                <a href="templates.html" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Back
-                </a>
-                <h1><i class="fas fa-magic"></i> Customize</h1>
+                <a href="templates.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+                <h1 style="font-size: 1.3rem;"><i class="fas fa-magic"></i> Studio</h1>
                 <span class="template-badge" id="templateName">Design</span>
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
                 <div class="mode-switch">
                     <button class="mode-option active" id="singleModeBtn">Single</button>
                     <button class="mode-option" id="batchModeBtn">Batch</button>
@@ -339,190 +162,1532 @@
         </div>
 
         <div class="batch-controls" id="batchControls">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <h3 style="color: var(--primary-teal);">Batch Order</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color: var(--primary-teal); margin: 0; font-size: 1rem;">Batch Order</h3>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Perfect for events & invitations</div>
+                </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 1.5rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$29.90</div>
-                    <div style="font-size: 0.8rem;">$2.99 per card</div>
+                    <div style="font-size: 1.4rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$29.90</div>
+                    <div style="font-size: 0.75rem;">$2.99 × <span id="qtyDisplay">10</span> cards</div>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span>Quantity:</span>
-                <button onclick="updateQty(-1)" style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;">-</button>
-                <input type="number" id="qtyInput" value="10" min="2" max="500" style="width: 70px; padding: 8px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px;">
-                <button onclick="updateQty(1)" style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;">+</button>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
+                <span style="font-size: 0.85rem;">Quantity:</span>
+                <button onclick="updateQty(-1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;"><i class="fas fa-minus"></i></button>
+                <input type="number" id="qtyInput" value="10" min="2" max="500" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
+                <button onclick="updateQty(1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;"><i class="fas fa-plus"></i></button>
+                <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 500</span>
             </div>
         </div>
 
         <div class="design-layout">
+            <!-- Left Tools -->
             <div class="tools-panel">
-                <button class="tool-btn active" data-tool="select"><i class="fas fa-mouse-pointer"></i></button>
-                <button class="tool-btn" data-tool="text"><i class="fas fa-font"></i></button>
-                <button class="tool-btn" data-tool="image"><i class="fas fa-image"></i></button>
-                <button class="tool-btn" data-tool="shape"><i class="fas fa-shapes"></i></button>
-                <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0;"></div>
-                <button class="tool-btn" data-tool="undo"><i class="fas fa-undo"></i></button>
-                <button class="tool-btn" data-tool="redo"><i class="fas fa-redo"></i></button>
-                <button class="tool-btn" data-tool="delete"><i class="fas fa-trash"></i></button>
+                <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
+                <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
+                <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
+                <div class="tool-divider"></div>
+                <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="far fa-square"></i></button>
+                <button class="tool-btn" data-tool="circle" title="Circle (C)"><i class="far fa-circle"></i></button>
+                <button class="tool-btn" data-tool="triangle" title="Triangle"><i class="fas fa-play" style="transform: rotate(-90deg);"></i></button>
+                <button class="tool-btn" data-tool="line" title="Line (L)"><i class="fas fa-minus"></i></button>
+                <div class="tool-divider"></div>
+                <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                <div class="tool-divider"></div>
+                <button class="tool-btn" data-tool="grid" title="Toggle Grid (G)"><i class="fas fa-border-all"></i></button>
+                <button class="tool-btn" data-tool="rulers" title="Toggle Rulers"><i class="fas fa-ruler-combined"></i></button>
+                <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
             </div>
 
+            <!-- Canvas Area -->
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <div>Front of Card</div>
-                    <div>
-                        <button onclick="zoom(-0.1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">-</button>
-                        <span id="zoomDisplay" style="margin: 0 10px;">100%</span>
-                        <button onclick="zoom(0.1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">+</button>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
+                        <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
+                        <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
+                    </div>
+                    <div class="canvas-controls">
+                        <button onclick="fitToScreen()" class="btn-icon small" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button onclick="zoom(-0.1)" class="btn-icon small"><i class="fas fa-minus"></i></button>
+                        <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
+                        <button onclick="zoom(0.1)" class="btn-icon small"><i class="fas fa-plus"></i></button>
+                        <button onclick="resetZoom()" class="btn-icon small" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer">
+                    <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
             </div>
 
+            <!-- Right Properties Panel -->
             <div class="properties-panel">
-                <h3 style="margin-bottom: 20px; color: var(--primary-gold);"><i class="fas fa-sliders-h"></i> Properties</h3>
-                
-                <div id="textControls">
-                    <div class="property-section">
-                        <h4>Text Content</h4>
-                        <textarea class="text-input-area" id="textContent" placeholder="Enter text..."></textarea>
-                    </div>
+                <div class="panel-header">
+                    <div class="panel-title"><i class="fas fa-sliders-h"></i> Properties</div>
+                    <button onclick="resetDesign()" class="btn-icon small" style="padding: 6px 12px;"><i class="fas fa-undo"></i> Reset</button>
+                </div>
 
-                    <div class="property-section">
-                        <h4>Font</h4>
-                        <select class="font-selector" id="fontFamily">
-                            <option value="Playfair Display">Playfair Display</option>
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Parisienne">Parisienne</option>
-                            <option value="Great Vibes">Great Vibes</option>
-                            <option value="Pacifico">Pacifico</option>
-                            <option value="Cinzel">Cinzel</option>
-                            <option value="Alex Brush">Alex Brush</option>
-                            <option value="Comic Sans MS">Comic Sans MS</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Georgia">Georgia</option>
-                        </select>
-                    </div>
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
+                    <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
+                    <button class="tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+                </div>
 
-                    <div class="property-section">
-                        <h4>Size & Color</h4>
-                        <div class="slider-with-value" style="margin-bottom: 10px;">
-                            <input type="range" id="fontSize" min="12" max="100" value="32">
-                            <input type="number" id="fontSizeNum" min="12" max="100" value="32">
-                        </div>
-                        <input type="color" id="textColor" value="#333333">
-                    </div>
+                <!-- Design Tab -->
+                <div class="tab-content active" id="designTab">
+                    <!-- No Selection State -->
+                    <div id="noSelection" class="empty-state">
+                        <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.4;"></i>
+                        <p style="font-size: 0.95rem; margin-bottom: 8px;">Select an element to edit</p>
+                        <p style="font-size: 0.75rem; opacity: 0.6;">Or use tools to add new elements</p>
 
-                    <div class="property-section">
-                        <h4>Style</h4>
-                        <div class="text-effect-buttons">
-                            <button class="effect-btn" id="boldBtn"><i class="fas fa-bold"></i></button>
-                            <button class="effect-btn" id="italicBtn"><i class="fas fa-italic"></i></button>
-                            <button class="effect-btn" id="underlineBtn"><i class="fas fa-underline"></i></button>
+                        <div class="property-section" style="margin-top: 20px;">
+                            <h4><i class="fas fa-image"></i> Change Background</h4>
+                            <div class="bg-options" id="bgOptions">
+                                <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
+                                <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
+                                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="true" data-colors="#667eea,#764ba2" title="Purple Gradient"></div>
+                                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="true" data-colors="#f093fb,#f5576c" title="Pink Gradient"></div>
+                                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="true" data-colors="#4facfe,#00f2fe" title="Blue Gradient"></div>
+                                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-gradient="true" data-colors="#43e97b,#38f9d7" title="Green Gradient"></div>
+                                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-gradient="true" data-colors="#fa709a,#fee140" title="Sunset"></div>
+                                <div class="bg-option" style="background: #1a1a2e;" data-color="#1a1a2e" title="Dark"></div>
+                            </div>
+                            <div class="color-picker-wrapper" style="margin-top: 10px;">
+                                <input type="color" id="bgColorPicker" value="#ffffff">
+                                <span style="font-size: 0.85rem;">Custom Color</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="property-section">
-                        <h4>Alignment</h4>
-                        <div class="alignment-buttons">
-                            <button class="align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
-                            <button class="align-btn" data-align="center"><i class="fas fa-align-center"></i></button>
-                            <button class="align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
+                    <!-- Selected Element Controls -->
+                    <div id="selectionControls" style="display: none;">
+                        <!-- Text Controls -->
+                        <div id="textControls">
+                            <div class="property-section">
+                                <h4><i class="fas fa-edit"></i> Text Content</h4>
+                                <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
+                            </div>
+
+                            <div class="property-section">
+                                <h4><i class="fas fa-font"></i> Typography</h4>
+                                <select id="fontFamily" style="margin-bottom: 10px;">
+                                    <optgroup label="Serif Fonts">
+                                        <option value="Playfair Display">Playfair Display</option>
+                                        <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                        <option value="Merriweather">Merriweather</option>
+                                        <option value="Lora">Lora</option>
+                                        <option value="Libre Baskerville">Libre Baskerville</option>
+                                        <option value="Cinzel">Cinzel</option>
+                                        <option value="PT Serif">PT Serif</option>
+                                        <option value="Noto Serif">Noto Serif</option>
+                                        <option value="Crimson Text">Crimson Text</option>
+                                        <option value="Old Standard TT">Old Standard TT</option>
+                                        <option value="Bitter">Bitter</option>
+                                    </optgroup>
+                                    <optgroup label="Sans Serif">
+                                        <option value="Montserrat">Montserrat</option>
+                                        <option value="Raleway">Raleway</option>
+                                        <option value="Poppins">Poppins</option>
+                                        <option value="Oswald">Oswald</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Open Sans">Open Sans</option>
+                                        <option value="Lato">Lato</option>
+                                        <option value="Nunito">Nunito</option>
+                                        <option value="Source Sans Pro">Source Sans Pro</option>
+                                        <option value="PT Sans">PT Sans</option>
+                                        <option value="Ubuntu">Ubuntu</option>
+                                        <option value="Work Sans">Work Sans</option>
+                                    </optgroup>
+                                    <optgroup label="Script & Decorative">
+                                        <option value="Parisienne">Parisienne</option>
+                                        <option value="Great Vibes">Great Vibes</option>
+                                        <option value="Pacifico">Pacifico</option>
+                                        <option value="Alex Brush">Alex Brush</option>
+                                        <option value="Sacramento">Sacramento</option>
+                                        <option value="Dancing Script">Dancing Script</option>
+                                        <option value="Tangerine">Tangerine</option>
+                                        <option value="Satisfy">Satisfy</option>
+                                        <option value="Courgette">Courgette</option>
+                                        <option value="Kalam">Kalam</option>
+                                        <option value="Amatic SC">Amatic SC</option>
+                                        <option value="Lobster">Lobster</option>
+                                    </optgroup>
+                                    <optgroup label="Display & Fun">
+                                        <option value="Abril Fatface">Abril Fatface</option>
+                                        <option value="Bebas Neue">Bebas Neue</option>
+                                        <option value="Fredoka One">Fredoka One</option>
+                                        <option value="Monoton">Monoton</option>
+                                        <option value="Bangers">Bangers</option>
+                                        <option value="Comfortaa">Comfortaa</option>
+                                        <option value="Quicksand">Quicksand</option>
+                                        <option value="Space Mono">Space Mono</option>
+                                    </optgroup>
+                                </select>
+
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Size</label>
+                                        <div class="slider-container">
+                                            <input type="range" class="slider" id="fontSize" min="8" max="150" value="32">
+                                            <span class="slider-value" id="fontSizeVal">32</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Letter Spacing</label>
+                                        <div class="slider-container">
+                                            <input type="range" class="slider" id="charSpacing" min="-50" max="200" value="0">
+                                            <span class="slider-value">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label>Line Height</label>
+                                        <div class="slider-container">
+                                            <input type="range" class="slider" id="lineHeight" min="0.5" max="3" step="0.1" value="1.16">
+                                            <span class="slider-value">1.2</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="property-section">
+                                <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Text Color</label>
+                                        <div class="color-picker-wrapper">
+                                            <input type="color" id="textColor" value="#333333">
+                                            <div class="color-presets">
+                                                <div class="color-preset" style="background: #333;" onclick="setTextColor('#333333')"></div>
+                                                <div class="color-preset" style="background: #fff; border: 1px solid #ccc;" onclick="setTextColor('#ffffff')"></div>
+                                                <div class="color-preset" style="background: #764ba2;" onclick="setTextColor('#764ba2')"></div>
+                                                <div class="color-preset" style="background: #06D6A0;" onclick="setTextColor('#06D6A0')"></div>
+                                                <div class="color-preset" style="background: #FFD166;" onclick="setTextColor('#FFD166')"></div>
+                                                <div class="color-preset" style="background: #FF6B6B;" onclick="setTextColor('#FF6B6B')"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="effect-toggle" id="textStrokeToggle">
+                                    <span><i class="fas fa-border-style"></i> Text Outline</span>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                                <div id="strokeControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 10px;">
+                                    <div class="control-row">
+                                        <input type="color" id="strokeColor" value="#000000" style="width: 40px;">
+                                        <div class="control-group" style="flex: 1;">
+                                            <label>Stroke Width</label>
+                                            <div class="slider-container">
+                                                <input type="range" class="slider" id="strokeWidth" min="0" max="10" value="0">
+                                                <span class="slider-value">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="effect-toggle" id="shadowToggle">
+                                    <span><i class="fas fa-cloud"></i> Drop Shadow</span>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                                <div id="shadowControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                                    <div class="control-row">
+                                        <input type="color" id="shadowColor" value="#000000" style="width: 40px;">
+                                        <div class="control-group" style="flex: 1;">
+                                            <label>Blur</label>
+                                            <input type="range" class="slider" id="shadowBlur" min="0" max="50" value="10">
+                                        </div>
+                                    </div>
+                                    <div class="control-row">
+                                        <div class="control-group">
+                                            <label>Offset X</label>
+                                            <input type="number" id="shadowOffsetX" value="5" style="width: 60px;">
+                                        </div>
+                                        <div class="control-group">
+                                            <label>Offset Y</label>
+                                            <input type="number" id="shadowOffsetY" value="5" style="width: 60px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="property-section">
+                                <h4><i class="fas fa-bold"></i> Text Style</h4>
+                                <div class="btn-group">
+                                    <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
+                                    <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
+                                    <button class="btn-icon" id="underlineBtn"><i class="fas fa-underline"></i> Underline</button>
+                                    <button class="btn-icon" id="overlineBtn"><i class="fas fa-text-width"></i> Overline</button>
+                                    <button class="btn-icon" id="linethroughBtn"><i class="fas fa-strikethrough"></i> Strike</button>
+                                </div>
+                                <div class="btn-group" style="margin-top: 8px;">
+                                    <button class="btn-icon" data-align="left"><i class="fas fa-align-left"></i></button>
+                                    <button class="btn-icon" data-align="center"><i class="fas fa-align-center"></i></button>
+                                    <button class="btn-icon" data-align="right"><i class="fas fa-align-right"></i></button>
+                                    <button class="btn-icon" data-align="justify"><i class="fas fa-align-justify"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Object Transform Controls -->
+                        <div id="transformControls">
+                            <div class="property-section">
+                                <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>X Position</label>
+                                        <input type="number" id="posX" value="300">
+                                    </div>
+                                    <div class="control-group">
+                                        <label>Y Position</label>
+                                        <input type="number" id="posY" value="200">
+                                    </div>
+                                </div>
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Width</label>
+                                        <input type="number" id="objWidth" value="100">
+                                    </div>
+                                    <div class="control-group">
+                                        <label>Height</label>
+                                        <input type="number" id="objHeight" value="100">
+                                    </div>
+                                </div>
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Rotation</label>
+                                        <div class="slider-container">
+                                            <input type="range" class="slider" id="rotation" min="-180" max="180" value="0">
+                                            <span class="slider-value">0°</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="control-row">
+                                    <div class="control-group">
+                                        <label>Opacity</label>
+                                        <div class="slider-container">
+                                            <input type="range" class="slider" id="opacity" min="0" max="100" value="100">
+                                            <span class="slider-value">100%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="property-section">
+                                <h4><i class="fas fa-layer-group"></i> Arrange</h4>
+                                <div class="btn-group">
+                                    <button class="btn-icon" onclick="bringToFront()"><i class="fas fa-arrow-up"></i> To Front</button>
+                                    <button class="btn-icon" onclick="bringForward()"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
+                                    <button class="btn-icon" onclick="sendBackward()"><i class="fas fa-arrow-down" style="font-size: 0.7em;"></i> Backward</button>
+                                    <button class="btn-icon" onclick="sendToBack()"><i class="fas fa-arrow-down"></i> To Back</button>
+                                </div>
+                            </div>
+
+                            <div class="property-section">
+                                <h4><i class="fas fa-magic"></i> Effects</h4>
+                                <div class="btn-group">
+                                    <button class="btn-icon" onclick="flipHorizontal()"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
+                                    <button class="btn-icon" onclick="flipVertical()"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
+                                    <button class="btn-icon" onclick="lockObject()" id="lockBtn"><i class="fas fa-lock"></i> Lock</button>
+                                    <button class="btn-icon" onclick="duplicateObject()"><i class="fas fa-copy"></i> Duplicate</button>
+                                </div>
+                            </div>
+
+                            <!-- Shape-specific controls -->
+                            <div id="shapeControls" style="display: none;">
+                                <div class="property-section">
+                                    <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
+                                    <div class="control-row">
+                                        <div class="control-group">
+                                            <label>Fill Color</label>
+                                            <input type="color" id="shapeFill" value="#BCAE83">
+                                        </div>
+                                        <div class="control-group">
+                                            <label>Stroke Color</label>
+                                            <input type="color" id="shapeStroke" value="#000000">
+                                        </div>
+                                    </div>
+                                    <div class="control-row">
+                                        <div class="control-group">
+                                            <label>Stroke Width</label>
+                                            <input type="range" class="slider" id="shapeStrokeWidth" min="0" max="20" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="control-row" id="cornerRadiusRow" style="display: none;">
+                                        <div class="control-group">
+                                            <label>Corner Radius</label>
+                                            <input type="range" class="slider" id="cornerRadius" min="0" max="50" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-section">
+                            <h4><i class="fas fa-image"></i> Add Image</h4>
+                            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div>
+                                <div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div>
+                            </div>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
                         </div>
                     </div>
                 </div>
 
-                <div class="property-section">
-                    <h4>Add Image</h4>
-                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                        <div>Click to upload</div>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                <!-- Layers Tab -->
+                <div class="tab-content" id="layersTab">
+                    <div class="property-section">
+                        <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
+                        <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="btn-group" style="margin-top: 10px;">
+                        <button class="btn-icon" onclick="groupSelected()"><i class="fas fa-object-group"></i> Group</button>
+                        <button class="btn-icon" onclick="ungroupSelected()"><i class="fas fa-object-ungroup"></i> Ungroup</button>
+                        <button class="btn-icon danger" onclick="deleteAll()"><i class="fas fa-trash"></i> Clear All</button>
                     </div>
                 </div>
 
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="saveAndContinue()">
-                        <i class="fas fa-arrow-right"></i> Continue
+                <!-- Settings Tab -->
+                <div class="tab-content" id="settingsTab">
+                    <div class="property-section">
+                        <h4><i class="fas fa-cog"></i> Canvas Settings</h4>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label>Canvas Width</label>
+                                <input type="number" id="canvasWidth" value="600" min="200" max="1200">
+                            </div>
+                            <div class="control-group">
+                                <label>Canvas Height</label>
+                                <input type="number" id="canvasHeight" value="450" min="200" max="900">
+                            </div>
+                        </div>
+                        <button class="btn-icon" onclick="resizeCanvas()" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
+                    </div>
+
+                    <div class="property-section">
+                        <h4><i class="fas fa-border-all"></i> Grid & Guides</h4>
+                        <div class="effect-toggle" id="snapToggle">
+                            <span><i class="fas fa-magnet"></i> Snap to Grid</span>
+                            <div class="toggle-switch"></div>
+                        </div>
+                        <div class="control-row" style="margin-top: 10px;">
+                            <div class="control-group">
+                                <label>Grid Size</label>
+                                <input type="range" class="slider" id="gridSize" min="5" max="50" value="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-section">
+                        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+                        <div style="font-size: 0.8rem; line-height: 1.8; opacity: 0.9;">
+                            <div><strong>V</strong> - Select tool</div>
+                            <div><strong>T</strong> - Text tool</div>
+                            <div><strong>I</strong> - Image tool</div>
+                            <div><strong>R</strong> - Rectangle</div>
+                            <div><strong>C</strong> - Circle</div>
+                            <div><strong>L</strong> - Line</div>
+                            <div><strong>G</strong> - Toggle grid</div>
+                            <div><strong>Delete</strong> - Remove selected</div>
+                            <div><strong>Ctrl+D</strong> - Duplicate</div>
+                            <div><strong>Ctrl+G</strong> - Group</div>
+                            <div><strong>Ctrl+Shift+G</strong> - Ungroup</div>
+                            <div><strong>Ctrl+Z</strong> - Undo</div>
+                            <div><strong>Ctrl+Y</strong> - Redo</div>
+                            <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout -->
+                <div class="checkout-section">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Design</div>
+                            <div style="font-weight: 600;" id="designName">Custom Card</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Total</div>
+                            <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
+                        </div>
+                    </div>
+                    <button class="checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()">
+                        <i class="fas fa-lock"></i> Secure Checkout
                     </button>
-                    <button class="btn-secondary" onclick="preview()">
-                        <i class="fas fa-eye"></i> Preview
-                    </button>
+                    <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; opacity: 0.6;">
+                        <i class="fas fa-shield-alt"></i> SSL Secure Payment
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=IBM+Plex+Sans:wght@400;700&family=Arimo:wght@400;700&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&family=Roboto+Mono&display=swap" rel="stylesheet">
+
     <script>
-        // Initialize Fabric
-        const canvas = new fabric.Canvas('designCanvas');
+
+        // Global State
+        const canvas = new fabric.Canvas('designCanvas', {
+            preserveObjectStacking: true,
+            selection: true,
+            allowTouchScrolling: false,
+            perPixelTargetFind: false
+        });
+
         let selectedObject = null;
         let templateConfig = null;
         let isBatchMode = false;
         let currentZoom = 1;
+        let undoStack = [];
+        let redoStack = [];
+        let snapToGrid = false;
+        let gridSize = 20;
+        let showGrid = false;
 
-        // Load template
+        // Initialize
         function init() {
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
-            
+
             if (saved) {
                 templateConfig = JSON.parse(saved);
                 document.getElementById('templateName').textContent = templateConfig.name;
-                
+                document.getElementById('designName').textContent = templateConfig.name;
+
                 if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
                     enableBatchMode();
+                    if (templateConfig.batchSize) {
+                        document.getElementById('qtyInput').value = templateConfig.batchSize;
+                        updatePrice();
+                    }
                 }
-                
+
                 loadTemplateDesign();
+                saveState();
+            } else {
+                canvas.backgroundColor = '#ffffff';
+                canvas.renderAll();
+            }
+
+            updateCheckoutDisplay();
+            setupEventListeners();
+            setupTabs();
+            setupBackgroundOptions();
+        }
+
+        // Load Template with Full Layout
+        function loadTemplateDesign() {
+            const config = templateConfig.config;
+            canvas.clear();
+
+            // Set background
+            canvas.backgroundColor = config.backgroundColor || '#ffffff';
+
+            // Add border
+            if (config.borderWidth > 0) {
+                const border = new fabric.Rect({
+                    left: config.borderWidth / 2,
+                    top: config.borderWidth / 2,
+                    width: 600 - config.borderWidth,
+                    height: 450 - config.borderWidth,
+                    fill: 'transparent',
+                    stroke: config.borderColor,
+                    strokeWidth: config.borderWidth,
+                    selectable: false,
+                    evented: false
+                });
+                canvas.add(border);
+            }
+
+            // Add decorations (lines)
+            if (config.decorations) {
+                config.decorations.forEach(dec => {
+                    if (dec.type === 'line') {
+                        const line = new fabric.Line(dec.coords, {
+                            stroke: dec.color || config.accentColor,
+                            strokeWidth: dec.width || 2,
+                            selectable: false,
+                            evented: false
+                        });
+                        canvas.add(line);
+                    }
+                });
+            }
+
+            // Create text elements
+            const layout = config.layout;
+
+            // Header
+            if (config.sampleText.header && config.sampleText.header.trim() !== '') {
+                addTextElement(config.sampleText.header, 300, layout.headerY || 80, {
+                    fontSize: layout.headerSize || 24,
+                    fontFamily: config.defaultFont,
+                    fill: config.textColor,
+                    fontWeight: layout.headerWeight || 'normal'
+                });
+            }
+
+            // Names
+            if (config.sampleText.names) {
+                addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
+                    fontSize: layout.namesSize || 48,
+                    fontFamily: config.defaultFont,
+                    fill: config.textColor,
+                    fontWeight: layout.namesWeight || 'bold',
+                    charSpacing: layout.namesSpacing || 0
+                });
+            }
+
+            // Subtext
+            if (config.sampleText.subtext) {
+                addTextElement(config.sampleText.subtext, 300, layout.subtextY || 280, {
+                    fontSize: layout.subtextSize || 18,
+                    fontFamily: layout.subtextFont || config.defaultFont,
+                    fill: config.accentColor || config.textColor
+                });
+            }
+
+            // Date
+            if (config.sampleText.date) {
+                addTextElement(config.sampleText.date, 300, layout.dateY || 380, {
+                    fontSize: layout.dateSize || 20,
+                    fontFamily: layout.dateFont || config.defaultFont,
+                    fill: config.accentColor || config.textColor,
+                    fontWeight: layout.dateWeight || 'normal'
+                });
+            }
+
+            canvas.renderAll();
+        }
+
+        function addTextElement(text, left, top, options = {}) {
+            const textObj = new fabric.IText(text, {
+                left: left,
+                top: top,
+                originX: 'center',
+                originY: 'center',
+                textAlign: 'center',
+                editable: true,
+                ...options
+            });
+            canvas.add(textObj);
+        }
+
+        // Background Options
+        function setupBackgroundOptions() {
+            document.querySelectorAll('.bg-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (this.dataset.gradient) {
+                        const colors = this.dataset.colors.split(',');
+                        // Apply gradient (simplified - just use first color for now)
+                        canvas.backgroundColor = colors[0];
+                    } else {
+                        canvas.backgroundColor = this.dataset.color;
+                    }
+                    canvas.renderAll();
+                    saveState();
+                });
+            });
+
+            document.getElementById('bgColorPicker').addEventListener('input', function() {
+                canvas.backgroundColor = this.value;
+                canvas.renderAll();
+                saveState();
+            });
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Canvas events
+            canvas.on('selection:created', handleSelection);
+            canvas.on('selection:updated', handleSelection);
+            canvas.on('selection:cleared', handleDeselection);
+            canvas.on('object:modified', saveState);
+            canvas.on('object:moving', handleObjectMoving);
+
+            // Tools
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', () => handleToolClick(btn.dataset.tool));
+            });
+
+            // Text controls
+            setupTextControls();
+            setupTransformControls();
+            setupEffectsControls();
+
+            // File upload
+            document.getElementById('fileInput').addEventListener('change', handleImageUpload);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyboard);
+        }
+
+        function handleSelection(e) {
+            selectedObject = e.selected[0];
+            updateControls();
+            showSelectionControls();
+            updateLayerList();
+        }
+
+        function handleDeselection() {
+            selectedObject = null;
+            showNoSelection();
+        }
+
+        function handleObjectMoving(e) {
+            if (snapToGrid && e.target) {
+                e.target.set({
+                    left: Math.round(e.target.left / gridSize) * gridSize,
+                    top: Math.round(e.target.top / gridSize) * gridSize
+                });
             }
         }
 
-        function loadTemplateDesign() {
-            const config = templateConfig.config;
-            const container = document.getElementById('canvasContainer');
-            
-            // Background
-            if (config.gradient) {
-                container.style.background = config.gradient;
-            } else {
-                container.style.background = config.backgroundColor || '#f0f0f0';
+        // Tool Handlers
+        function handleToolClick(tool) {
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-tool="${tool}"]`)?.classList.add('active');
+
+            switch(tool) {
+                case 'select':
+                    canvas.isDrawingMode = false;
+                    break;
+                case 'text':
+                    addNewText();
+                    break;
+                case 'rect':
+                    addShape('rect');
+                    break;
+                case 'circle':
+                    addShape('circle');
+                    break;
+                case 'triangle':
+                    addShape('triangle');
+                    break;
+                case 'line':
+                    addLine();
+                    break;
+                case 'image':
+                    document.getElementById('fileInput').click();
+                    break;
+                case 'delete':
+                    deleteSelected();
+                    break;
+                case 'undo':
+                    undo();
+                    break;
+                case 'redo':
+                    redo();
+                    break;
+                case 'grid':
+                    toggleGrid();
+                    break;
+                case 'rulers':
+                    document.body.classList.toggle('show-rulers');
+                    break;
             }
-            
-            // Border
-            if (config.borderWidth > 0) {
-                container.style.border = `${config.borderWidth}px ${config.borderStyle || 'solid'} ${config.borderColor}`;
-            }
-            
-            // Sample text with template font
-            const text = new fabric.Text(config.sampleText.names, {
+        }
+
+        function addNewText() {
+            const text = new fabric.IText('New Text', {
                 left: 300,
                 top: 225,
-                fontSize: 40,
-                fontFamily: config.defaultFont,
-                fill: config.textColor,
-                textAlign: 'center',
+                fontSize: 32,
+                fontFamily: templateConfig?.config?.defaultFont || 'Montserrat',
+                fill: templateConfig?.config?.textColor || '#333333',
                 originX: 'center',
                 originY: 'center'
             });
-            
             canvas.add(text);
+            canvas.setActiveObject(text);
             canvas.renderAll();
-            
-            // Load the font
-            const link = document.createElement('link');
-            link.href = `https://fonts.googleapis.com/css2?family=${config.defaultFont.replace(' ', '+')}&display=swap`;
-            link.rel = 'stylesheet';
-            document.head.appendChild(link);
+            saveState();
         }
 
+        function addShape(type) {
+            let shape;
+            const options = {
+                left: 300,
+                top: 225,
+                fill: templateConfig?.config?.accentColor || '#BCAE83',
+                originX: 'center',
+                originY: 'center'
+            };
+
+            switch(type) {
+                case 'rect':
+                    shape = new fabric.Rect({ ...options, width: 100, height: 100 });
+                    break;
+                case 'circle':
+                    shape = new fabric.Circle({ ...options, radius: 50 });
+                    break;
+                case 'triangle':
+                    shape = new fabric.Triangle({ ...options, width: 100, height: 100 });
+                    break;
+            }
+
+            if (shape) {
+                canvas.add(shape);
+                canvas.setActiveObject(shape);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function addLine() {
+            const line = new fabric.Line([250, 225, 350, 225], {
+                stroke: templateConfig?.config?.accentColor || '#333333',
+                strokeWidth: 3,
+                originX: 'center',
+                originY: 'center'
+            });
+            canvas.add(line);
+            canvas.setActiveObject(line);
+            canvas.renderAll();
+            saveState();
+        }
+
+        function deleteSelected() {
+            const active = canvas.getActiveObject();
+            if (active) {
+                if (active.type === 'activeSelection') {
+                    active.getObjects().forEach(obj => canvas.remove(obj));
+                } else {
+                    canvas.remove(active);
+                }
+                canvas.discardActiveObject();
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        // Control Updates
+        function updateControls() {
+            if (!selectedObject) return;
+
+            // Position & Size
+            document.getElementById('posX').value = Math.round(selectedObject.left);
+            document.getElementById('posY').value = Math.round(selectedObject.top);
+            document.getElementById('objWidth').value = Math.round(selectedObject.width * selectedObject.scaleX);
+            document.getElementById('objHeight').value = Math.round(selectedObject.height * selectedObject.scaleY);
+            document.getElementById('rotation').value = Math.round(selectedObject.angle || 0);
+            document.getElementById('opacity').value = Math.round((selectedObject.opacity || 1) * 100);
+
+            // Text specific
+            if (selectedObject.type === 'i-text') {
+                document.getElementById('textControls').style.display = 'block';
+                document.getElementById('textContent').value = selectedObject.text;
+                document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Montserrat';
+                document.getElementById('fontSize').value = selectedObject.fontSize;
+                document.getElementById('fontSizeVal').textContent = selectedObject.fontSize;
+                document.getElementById('charSpacing').value = selectedObject.charSpacing || 0;
+                document.getElementById('lineHeight').value = selectedObject.lineHeight || 1.16;
+                document.getElementById('textColor').value = selectedObject.fill || '#333333';
+
+                // Styles
+                document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
+                document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
+                document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
+                document.getElementById('linethroughBtn').classList.toggle('active', selectedObject.linethrough);
+                document.getElementById('overlineBtn').classList.toggle('active', selectedObject.overline);
+
+                // Alignment
+                document.querySelectorAll('[data-align]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
+                });
+
+                // Effects
+                document.getElementById('textStrokeToggle').classList.toggle('active', selectedObject.stroke && selectedObject.strokeWidth > 0);
+                document.getElementById('strokeControls').style.display = (selectedObject.stroke && selectedObject.strokeWidth > 0) ? 'block' : 'none';
+                if (selectedObject.stroke) {
+                    document.getElementById('strokeColor').value = selectedObject.stroke;
+                    document.getElementById('strokeWidth').value = selectedObject.strokeWidth;
+                }
+
+                document.getElementById('shadowToggle').classList.toggle('active', selectedObject.shadow);
+                document.getElementById('shadowControls').style.display = selectedObject.shadow ? 'block' : 'none';
+                if (selectedObject.shadow) {
+                    document.getElementById('shadowColor').value = selectedObject.shadow.color;
+                    document.getElementById('shadowBlur').value = selectedObject.shadow.blur;
+                    document.getElementById('shadowOffsetX').value = selectedObject.shadow.offsetX;
+                    document.getElementById('shadowOffsetY').value = selectedObject.shadow.offsetY;
+                }
+            } else {
+                document.getElementById('textControls').style.display = 'none';
+            }
+
+            // Shape specific
+            if (['rect', 'circle', 'triangle'].includes(selectedObject.type)) {
+                document.getElementById('shapeControls').style.display = 'block';
+                document.getElementById('shapeFill').value = selectedObject.fill || '#BCAE83';
+                document.getElementById('shapeStroke').value = selectedObject.stroke || '#000000';
+                document.getElementById('shapeStrokeWidth').value = selectedObject.strokeWidth || 0;
+                document.getElementById('cornerRadiusRow').style.display = selectedObject.type === 'rect' ? 'block' : 'none';
+                if (selectedObject.type === 'rect') {
+                    document.getElementById('cornerRadius').value = selectedObject.rx || 0;
+                }
+            } else {
+                document.getElementById('shapeControls').style.display = 'none';
+            }
+
+            updateLockButton();
+        }
+
+        function setupTextControls() {
+            // Content
+            document.getElementById('textContent').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('text', this.value);
+                    canvas.renderAll();
+                }
+            });
+
+            // Font
+            document.getElementById('fontFamily').addEventListener('change', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('fontFamily', this.value);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            // Size
+            document.getElementById('fontSize').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('fontSize', parseInt(this.value));
+                    document.getElementById('fontSizeVal').textContent = this.value;
+                    canvas.renderAll();
+                }
+            });
+
+            // Letter spacing
+            document.getElementById('charSpacing').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('charSpacing', parseInt(this.value));
+                    canvas.renderAll();
+                }
+            });
+
+            // Line height
+            document.getElementById('lineHeight').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('lineHeight', parseFloat(this.value));
+                    canvas.renderAll();
+                }
+            });
+
+            // Color
+            document.getElementById('textColor').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('fill', this.value);
+                    canvas.renderAll();
+                }
+            });
+
+            // Styles
+            document.getElementById('boldBtn').addEventListener('click', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    const isBold = selectedObject.fontWeight === 'bold';
+                    selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
+                    this.classList.toggle('active', !isBold);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            document.getElementById('italicBtn').addEventListener('click', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    const isItalic = selectedObject.fontStyle === 'italic';
+                    selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
+                    this.classList.toggle('active', !isItalic);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            document.getElementById('underlineBtn').addEventListener('click', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('underline', !selectedObject.underline);
+                    this.classList.toggle('active', selectedObject.underline);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            document.getElementById('linethroughBtn').addEventListener('click', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('linethrough', !selectedObject.linethrough);
+                    this.classList.toggle('active', selectedObject.linethrough);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            document.getElementById('overlineBtn').addEventListener('click', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('overline', !selectedObject.overline);
+                    this.classList.toggle('active', selectedObject.overline);
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            // Alignment
+            document.querySelectorAll('[data-align]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (selectedObject && selectedObject.type === 'i-text') {
+                        document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedObject.set('textAlign', this.dataset.align);
+                        canvas.renderAll();
+                        saveState();
+                    }
+                });
+            });
+        }
+
+        function setupTransformControls() {
+            // Position
+            ['posX', 'posY'].forEach(id => {
+                document.getElementById(id).addEventListener('change', function() {
+                    if (selectedObject) {
+                        const prop = id === 'posX' ? 'left' : 'top';
+                        selectedObject.set(prop, parseInt(this.value));
+                        canvas.renderAll();
+                        saveState();
+                    }
+                });
+            });
+
+            // Size
+            ['objWidth', 'objHeight'].forEach(id => {
+                document.getElementById(id).addEventListener('change', function() {
+                    if (selectedObject) {
+                        const prop = id === 'objWidth' ? 'scaleX' : 'scaleY';
+                        const original = id === 'objWidth' ? selectedObject.width : selectedObject.height;
+                        selectedObject.set(prop, parseInt(this.value) / original);
+                        canvas.renderAll();
+                        saveState();
+                    }
+                });
+            });
+
+            // Rotation
+            document.getElementById('rotation').addEventListener('input', function() {
+                if (selectedObject) {
+                    selectedObject.set('angle', parseInt(this.value));
+                    canvas.renderAll();
+                }
+            });
+
+            // Opacity
+            document.getElementById('opacity').addEventListener('input', function() {
+                if (selectedObject) {
+                    selectedObject.set('opacity', parseInt(this.value) / 100);
+                    canvas.renderAll();
+                }
+            });
+
+            // Shape controls
+            document.getElementById('shapeFill').addEventListener('input', function() {
+                if (selectedObject) {
+                    selectedObject.set('fill', this.value);
+                    canvas.renderAll();
+                }
+            });
+
+            document.getElementById('shapeStroke').addEventListener('input', function() {
+                if (selectedObject) {
+                    selectedObject.set('stroke', this.value);
+                    canvas.renderAll();
+                }
+            });
+
+            document.getElementById('shapeStrokeWidth').addEventListener('input', function() {
+                if (selectedObject) {
+                    selectedObject.set('strokeWidth', parseInt(this.value));
+                    canvas.renderAll();
+                }
+            });
+
+            document.getElementById('cornerRadius').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'rect') {
+                    selectedObject.set({ rx: parseInt(this.value), ry: parseInt(this.value) });
+                    canvas.renderAll();
+                }
+            });
+        }
+
+        function setupEffectsControls() {
+            // Text stroke toggle
+            document.getElementById('textStrokeToggle').addEventListener('click', function() {
+                this.classList.toggle('active');
+                const show = this.classList.contains('active');
+                document.getElementById('strokeControls').style.display = show ? 'block' : 'none';
+
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    if (show) {
+                        selectedObject.set({
+                            stroke: document.getElementById('strokeColor').value,
+                            strokeWidth: parseInt(document.getElementById('strokeWidth').value)
+                        });
+                    } else {
+                        selectedObject.set({ strokeWidth: 0 });
+                    }
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            document.getElementById('strokeColor').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('stroke', this.value);
+                    canvas.renderAll();
+                }
+            });
+
+            document.getElementById('strokeWidth').addEventListener('input', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    selectedObject.set('strokeWidth', parseInt(this.value));
+                    canvas.renderAll();
+                }
+            });
+
+            // Shadow toggle
+            document.getElementById('shadowToggle').addEventListener('click', function() {
+                this.classList.toggle('active');
+                const show = this.classList.contains('active');
+                document.getElementById('shadowControls').style.display = show ? 'block' : 'none';
+
+                if (selectedObject) {
+                    if (show) {
+                        selectedObject.set('shadow', new fabric.Shadow({
+                            color: document.getElementById('shadowColor').value,
+                            blur: parseInt(document.getElementById('shadowBlur').value),
+                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
+                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
+                        }));
+                    } else {
+                        selectedObject.set('shadow', null);
+                    }
+                    canvas.renderAll();
+                    saveState();
+                }
+            });
+
+            // Shadow properties
+            ['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    if (selectedObject && selectedObject.shadow) {
+                        selectedObject.shadow.set({
+                            color: document.getElementById('shadowColor').value,
+                            blur: parseInt(document.getElementById('shadowBlur').value),
+                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
+                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
+                        });
+                        canvas.renderAll();
+                    }
+                });
+            });
+
+            // Snap to grid toggle
+            document.getElementById('snapToggle').addEventListener('click', function() {
+                this.classList.toggle('active');
+                snapToGrid = this.classList.contains('active');
+            });
+
+            document.getElementById('gridSize').addEventListener('input', function() {
+                gridSize = parseInt(this.value);
+            });
+        }
+
+        // Transform Actions
+        function bringToFront() {
+            if (selectedObject) {
+                canvas.bringToFront(selectedObject);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function bringForward() {
+            if (selectedObject) {
+                canvas.bringForward(selectedObject);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function sendBackward() {
+            if (selectedObject) {
+                canvas.sendBackwards(selectedObject);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function sendToBack() {
+            if (selectedObject) {
+                canvas.sendToBack(selectedObject);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function flipHorizontal() {
+            if (selectedObject) {
+                selectedObject.set('flipX', !selectedObject.flipX);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function flipVertical() {
+            if (selectedObject) {
+                selectedObject.set('flipY', !selectedObject.flipY);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function lockObject() {
+            if (selectedObject) {
+                selectedObject.set('selectable', !selectedObject.selectable);
+                selectedObject.set('evented', !selectedObject.evented);
+                canvas.discardActiveObject();
+                canvas.renderAll();
+                updateLayerList();
+                updateLockButton();
+            }
+        }
+
+        function updateLockButton() {
+            const btn = document.getElementById('lockBtn');
+            if (selectedObject && !selectedObject.selectable) {
+                btn.innerHTML = '<i class="fas fa-lock"></i> Unlock';
+                btn.classList.add('active');
+            } else {
+                btn.innerHTML = '<i class="fas fa-lock"></i> Lock';
+                btn.classList.remove('active');
+            }
+        }
+
+        function duplicateObject() {
+            if (selectedObject) {
+                selectedObject.clone(function(cloned) {
+                    cloned.set({
+                        left: selectedObject.left + 20,
+                        top: selectedObject.top + 20
+                    });
+                    canvas.add(cloned);
+                    canvas.setActiveObject(cloned);
+                    canvas.renderAll();
+                    saveState();
+                });
+            }
+        }
+
+        // Group/Ungroup
+        function groupSelected() {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'activeSelection') {
+                const group = active.toGroup();
+                canvas.setActiveObject(group);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function ungroupSelected() {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'group') {
+                active.toActiveSelection();
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        // Layer List
+        function updateLayerList() {
+            const list = document.getElementById('layerList');
+            list.innerHTML = '';
+
+            canvas.getObjects().forEach((obj, index) => {
+                const item = document.createElement('div');
+                item.className = 'layer-item' + (obj === selectedObject ? ' active' : '') + (!obj.selectable ? ' locked' : '');
+
+                let icon = 'fa-square';
+                let name = `Object ${index + 1}`;
+
+                if (obj.type === 'i-text') {
+                    icon = 'fa-font';
+                    name = obj.text ? obj.text.substring(0, 20) : 'Text';
+                } else if (obj.type === 'image') {
+                    icon = 'fa-image';
+                    name = 'Image';
+                } else if (obj.type === 'group') {
+                    icon = 'fa-object-group';
+                    name = 'Group';
+                } else if (obj.type === 'line') {
+                    icon = 'fa-minus';
+                    name = 'Line';
+                }
+
+                item.innerHTML = `
+                    <span><i class="fas ${icon}"></i> ${name}</span>
+                    <div class="layer-actions">
+                        ${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}
+                        <button class="layer-btn" onclick="event.stopPropagation(); deleteObjectByIndex(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    if (obj.selectable) {
+                        canvas.setActiveObject(obj);
+                        canvas.renderAll();
+                    }
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        function deleteObjectByIndex(index) {
+            const obj = canvas.getObjects()[index];
+            if (obj) {
+                canvas.remove(obj);
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        function deleteAll() {
+            if (confirm('Clear all objects? This cannot be undone.')) {
+                canvas.getObjects().forEach(obj => canvas.remove(obj));
+                canvas.renderAll();
+                saveState();
+            }
+        }
+
+        // Undo/Redo
+        function saveState() {
+            const json = JSON.stringify(canvas.toJSON());
+            if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
+                undoStack.push(json);
+                if (undoStack.length > 30) undoStack.shift();
+                redoStack = [];
+            }
+        }
+
+        function undo() {
+            if (undoStack.length > 1) {
+                redoStack.push(undoStack.pop());
+                const prevState = undoStack[undoStack.length - 1];
+                canvas.loadFromJSON(prevState, () => {
+                    canvas.renderAll();
+                    updateLayerList();
+                });
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const nextState = redoStack.pop();
+                undoStack.push(nextState);
+                canvas.loadFromJSON(nextState, () => {
+                    canvas.renderAll();
+                    updateLayerList();
+                });
+            }
+        }
+
+        // Grid
+        function toggleGrid() {
+            showGrid = !showGrid;
+            document.getElementById('gridOverlay').classList.toggle('show', showGrid);
+        }
+
+        // Image Upload
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be under 5MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                fabric.Image.fromURL(f.target.result, (img) => {
+                    const scale = Math.min(200 / img.width, 200 / img.height);
+                    img.set({
+                        scaleX: scale,
+                        scaleY: scale,
+                        left: 300,
+                        top: 225,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    canvas.renderAll();
+                    saveState();
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Zoom & Canvas
+        function zoom(delta) {
+            currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
+            canvas.setZoom(currentZoom);
+            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            canvas.setZoom(1);
+            document.getElementById('zoomDisplay').textContent = '100%';
+        }
+
+        function fitToScreen() {
+            const container = document.querySelector('.canvas-container');
+            const scaleX = (container.clientWidth - 60) / 600;
+            const scaleY = (container.clientHeight - 60) / 450;
+            currentZoom = Math.min(scaleX, scaleY, 1);
+            canvas.setZoom(currentZoom);
+            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resizeCanvas() {
+            const width = parseInt(document.getElementById('canvasWidth').value);
+            const height = parseInt(document.getElementById('canvasHeight').value);
+            canvas.setWidth(width);
+            canvas.setHeight(height);
+            canvas.renderAll();
+            document.getElementById('canvasSize').textContent = `${width} × ${height} px`;
+            saveState();
+        }
+
+        function resetDesign() {
+            if (confirm('Reset to template defaults? All changes will be lost.')) {
+                loadTemplateDesign();
+                saveState();
+            }
+        }
+
+        // UI Helpers
+        function showSelectionControls() {
+            document.getElementById('selectionControls').style.display = 'block';
+            document.getElementById('noSelection').style.display = 'none';
+        }
+
+        function showNoSelection() {
+            document.getElementById('selectionControls').style.display = 'none';
+            document.getElementById('noSelection').style.display = 'block';
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+                });
+            });
+        }
+
+        // Keyboard Shortcuts
+        function handleKeyboard(e) {
+            // Tool shortcuts
+            if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'v': handleToolClick('select'); break;
+                    case 't': handleToolClick('text'); break;
+                    case 'i': handleToolClick('image'); break;
+                    case 'r': handleToolClick('rect'); break;
+                    case 'c': handleToolClick('circle'); break;
+                    case 'l': handleToolClick('line'); break;
+                    case 'g': handleToolClick('grid'); break;
+                    case 'delete':
+                    case 'backspace':
+                        if (selectedObject && selectedObject.type !== 'i-text') {
+                            deleteSelected();
+                        }
+                        break;
+                }
+            }
+
+            // Ctrl/Cmd shortcuts
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'z':
+                        e.preventDefault();
+                        undo();
+                        break;
+                    case 'y':
+                        e.preventDefault();
+                        redo();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        duplicateObject();
+                        break;
+                    case 'g':
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            ungroupSelected();
+                        } else {
+                            groupSelected();
+                        }
+                        break;
+                    case 'a':
+                        e.preventDefault();
+                        canvas.discardActiveObject();
+                        const sel = new fabric.ActiveSelection(canvas.getObjects(), { canvas: canvas });
+                        canvas.setActiveObject(sel);
+                        canvas.requestRenderAll();
+                        break;
+                }
+            }
+
+            // Arrow keys for nudging
+            if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                const step = e.shiftKey ? 10 : 1;
+                switch(e.key) {
+                    case 'ArrowUp': selectedObject.top -= step; break;
+                    case 'ArrowDown': selectedObject.top += step; break;
+                    case 'ArrowLeft': selectedObject.left -= step; break;
+                    case 'ArrowRight': selectedObject.left += step; break;
+                }
+                canvas.renderAll();
+                updateControls();
+            }
+        }
+
+        // Batch Mode
         function enableBatchMode() {
             isBatchMode = true;
             document.getElementById('batchControls').classList.add('active');
             document.getElementById('singleModeBtn').classList.remove('active');
             document.getElementById('batchModeBtn').classList.add('active');
             updatePrice();
+            updateCheckoutDisplay();
         }
 
         function updateQty(change) {
@@ -531,197 +1696,110 @@
             if (val < 2) val = 2;
             if (val > 500) val = 500;
             input.value = val;
+            document.getElementById('qtyDisplay').textContent = val;
             updatePrice();
+            updateCheckoutDisplay();
         }
 
         function updatePrice() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 2;
-            document.getElementById('totalPrice').textContent = '$' + (qty * 2.99).toFixed(2);
-            document.getElementById('priceDisplay').textContent = '$' + (qty * 2.99).toFixed(2);
+            const total = (qty * 2.99).toFixed(2);
+            document.getElementById('totalPrice').textContent = '$' + total;
+            document.getElementById('priceDisplay').textContent = '$' + total;
         }
 
-        // Mode toggle
+        function updateCheckoutDisplay() {
+            const qty = isBatchMode ? (parseInt(document.getElementById('qtyInput').value) || 10) : 1;
+            const total = (qty * 2.99).toFixed(2);
+            document.getElementById('checkoutTotal').textContent = '$' + total;
+        }
+
         document.getElementById('singleModeBtn').addEventListener('click', function() {
             isBatchMode = false;
             this.classList.add('active');
             document.getElementById('batchModeBtn').classList.remove('active');
             document.getElementById('batchControls').classList.remove('active');
             document.getElementById('priceDisplay').textContent = '$2.99';
+            updateCheckoutDisplay();
         });
 
-        document.getElementById('batchModeBtn').addEventListener('click', function() {
-            enableBatchMode();
+        document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
+        document.getElementById('qtyInput').addEventListener('change', () => {
+            document.getElementById('qtyDisplay').textContent = document.getElementById('qtyInput').value;
+            updatePrice();
+            updateCheckoutDisplay();
         });
 
-        document.getElementById('qtyInput').addEventListener('change', updatePrice);
+        // Checkout
+        async function proceedToCheckout() {
+            const btn = document.getElementById('checkoutBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+            btn.disabled = true;
 
-        // Canvas events
-        canvas.on('selection:created', (e) => {
-            selectedObject = e.selected[0];
-            updateControls();
-        });
-
-        canvas.on('selection:updated', (e) => {
-            selectedObject = e.selected[0];
-            updateControls();
-        });
-
-        canvas.on('selection:cleared', () => {
-            selectedObject = null;
-        });
-
-        function updateControls() {
-            if (!selectedObject || !selectedObject.type.includes('text')) return;
-            
-            document.getElementById('textContent').value = selectedObject.text || '';
-            document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Arial';
-            document.getElementById('fontSize').value = selectedObject.fontSize || 32;
-            document.getElementById('fontSizeNum').value = selectedObject.fontSize || 32;
-            document.getElementById('textColor').value = selectedObject.fill || '#333333';
-            
-            document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
-            document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
-            document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-        }
-
-        // Text controls
-        document.getElementById('textContent').addEventListener('input', (e) => {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('text', e.target.value);
-                canvas.renderAll();
-            }
-        });
-
-        document.getElementById('fontFamily').addEventListener('change', (e) => {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('fontFamily', e.target.value);
-                canvas.renderAll();
-            }
-        });
-
-        document.getElementById('fontSize').addEventListener('input', (e) => {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('fontSize', parseInt(e.target.value));
-                document.getElementById('fontSizeNum').value = e.target.value;
-                canvas.renderAll();
-            }
-        });
-
-        document.getElementById('textColor').addEventListener('input', (e) => {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('fill', e.target.value);
-                canvas.renderAll();
-            }
-        });
-
-        // Style buttons
-        document.getElementById('boldBtn').addEventListener('click', function() {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                const isBold = selectedObject.fontWeight === 'bold';
-                selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
-                this.classList.toggle('active', !isBold);
-                canvas.renderAll();
-            }
-        });
-
-        document.getElementById('italicBtn').addEventListener('click', function() {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                const isItalic = selectedObject.fontStyle === 'italic';
-                selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
-                this.classList.toggle('active', !isItalic);
-                canvas.renderAll();
-            }
-        });
-
-        // Alignment
-        document.querySelectorAll('.align-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (selectedObject && selectedObject.type.includes('text')) {
-                    document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedObject.set('textAlign', this.dataset.align);
-                    canvas.renderAll();
-                }
-            });
-        });
-
-        // Tools
-        document.querySelectorAll('.tool-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tool = this.dataset.tool;
-                
-                if (tool === 'text') {
-                    const text = new fabric.Text('New Text', {
-                        left: 300,
-                        top: 225,
-                        fontSize: 32,
-                        fontFamily: templateConfig?.config?.defaultFont || 'Arial',
-                        fill: '#333333',
-                        originX: 'center',
-                        originY: 'center'
-                    });
-                    canvas.add(text);
-                    canvas.setActiveObject(text);
-                    canvas.renderAll();
-                } else if (tool === 'shape') {
-                    const rect = new fabric.Rect({
-                        left: 300,
-                        top: 225,
-                        width: 100,
-                        height: 100,
-                        fill: '#BCAE83',
-                        originX: 'center',
-                        originY: 'center'
-                    });
-                    canvas.add(rect);
-                    canvas.setActiveObject(rect);
-                    canvas.renderAll();
-                } else if (tool === 'delete' && selectedObject) {
-                    canvas.remove(selectedObject);
-                    canvas.renderAll();
-                }
-            });
-        });
-
-        // Image upload
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    img.scaleToWidth(200);
-                    img.set({
-                        left: 300,
-                        top: 225,
-                        originX: 'center',
-                        originY: 'center'
-                    });
-                    canvas.add(img);
-                    canvas.renderAll();
+            try {
+                // Export high-res image
+                const dataURL = canvas.toDataURL({
+                    format: 'png',
+                    quality: 1,
+                    multiplier: 2
                 });
-            };
-            reader.readAsDataURL(file);
-        });
 
-        function zoom(delta) {
-            currentZoom = Math.max(0.5, Math.min(2, currentZoom + delta));
-            canvas.setZoom(currentZoom);
-            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
+                const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) : 1;
+                const designData = {
+                    template: templateConfig,
+                    previewImage: dataURL,
+                    canvasData: canvas.toJSON(),
+                    isBatch: isBatchMode,
+                    quantity: qty,
+                    unitPrice: 299,
+                    totalAmount: qty * 299
+                };
+
+                localStorage.setItem('pendingOrder', JSON.stringify(designData));
+
+                // Create Stripe session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: [{
+                            name: `${templateConfig.name} - Custom E-Card`,
+                            description: `${qty} personalized ${templateConfig.categoryDisplay} card(s)`,
+                            amount: qty * 299,
+                            currency: 'usd',
+                            quantity: 1
+                        }],
+                        metadata: {
+                            template_id: templateConfig.id,
+                            template_name: templateConfig.name,
+                            quantity: qty.toString(),
+                            is_batch: isBatchMode.toString()
+                        }
+                    })
+                });
+
+                if (!response.ok) throw new Error('Checkout failed');
+
+                const session = await response.json();
+                const stripe = Stripe('pk_test_51T4RZE77QLXWkYn3IDeLAuNrwGhuZ58qQ7za8qBcEPjHyqwrtOWKo7rz3c8GG82BraRi4B43Odqi6I8reBkyG4U800RBdWcIIj');
+                await stripe.redirectToCheckout({ sessionId: session.id });
+
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Checkout failed. Please try again.');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         }
 
-        function preview() {
-            const dataURL = canvas.toDataURL();
-            const win = window.open();
-            win.document.write('<img src="' + dataURL + '" style="max-width:100%">');
-        }
-
-        function saveAndContinue() {
-            // This will integrate with your payment flow
-            const dataURL = canvas.toDataURL();
-            console.log('Saving design...', isBatchMode ? 'Batch' : 'Single');
-            alert('Design saved! Ready for payment integration.');
+        // Helper for color presets
+        function setTextColor(color) {
+            document.getElementById('textColor').value = color;
+            if (selectedObject && selectedObject.type === 'i-text') {
+                selectedObject.set('fill', color);
+                canvas.renderAll();
+            }
         }
 
         // Initialize
