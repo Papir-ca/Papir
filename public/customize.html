@@ -31,62 +31,44 @@
         .batch-controls { display: none; background: rgba(6, 214, 160, 0.1); border: 2px solid var(--primary-teal); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         .batch-controls.active { display: block; }
         .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
-
-        /* Enhanced Tools Panel */
         .tools-panel { width: 65px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; }
         .tool-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; position: relative; }
         .tool-btn:hover, .tool-btn.active { background: var(--primary-gold); color: white; transform: translateY(-2px); }
         .tool-btn.danger:hover { background: var(--danger); }
         .tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .tool-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.1); margin: 3px 0; }
-
-        /* Canvas Area */
         .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
         .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
         .canvas-container { flex: 1; border-radius: 8px; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 15px; background: linear-gradient(45deg, #2a2a3e 25%, transparent 25%), linear-gradient(-45deg, #2a2a3e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a3e 75%), linear-gradient(-45deg, transparent 75%, #2a2a3e 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #252538; }
         #designCanvas { box-shadow: 0 15px 50px rgba(0,0,0,0.6); border-radius: 4px; }
-
-        /* Enhanced Properties Panel */
         .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
-
         .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
-
-        /* Form Controls */
         .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .control-group { flex: 1; }
         .control-group label { display: block; font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; }
         .text-input { width: 100%; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: inherit; font-size: 0.9rem; }
         .text-input:focus { outline: none; border-color: var(--primary-teal); }
-
         select, input[type="number"] { width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 0.85rem; }
         select option { background: #2a2a3e; }
-
-        /* Sliders */
         .slider-container { display: flex; align-items: center; gap: 10px; }
         .slider { flex: 1; height: 6px; -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 3px; }
         .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary-teal); border-radius: 50%; cursor: pointer; }
         .slider-value { min-width: 45px; text-align: center; font-size: 0.85rem; font-weight: 600; }
-
-        /* Buttons */
         .btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
         .btn-icon { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-icon:hover, .btn-icon.active { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
         .btn-icon.small { padding: 6px 10px; font-size: 0.75rem; }
         .btn-icon.danger { border-color: var(--danger); }
         .btn-icon.danger:hover { background: var(--danger); color: white; }
-
-        /* Color Picker */
         .color-picker-wrapper { display: flex; align-items: center; gap: 10px; }
         input[type="color"] { width: 45px; height: 40px; border: none; border-radius: 6px; cursor: pointer; background: transparent; }
         .color-presets { display: flex; gap: 5px; flex-wrap: wrap; }
         .color-preset { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .color-preset:hover { transform: scale(1.1); border-color: white; }
-
-        /* Layers */
         .layer-item { background: rgba(255,255,255,0.08); padding: 10px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; transition: all 0.2s; border: 1px solid transparent; }
         .layer-item:hover { background: rgba(255,255,255,0.15); }
         .layer-item.active { border-color: var(--primary-gold); background: rgba(188, 174, 131, 0.15); }
@@ -94,53 +76,38 @@
         .layer-actions { display: flex; gap: 5px; }
         .layer-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 4px; border-radius: 4px; }
         .layer-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-
-        /* Effects Panel */
         .effect-toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
         .effect-toggle:hover { background: rgba(255,255,255,0.1); }
         .toggle-switch { width: 40px; height: 22px; background: rgba(255,255,255,0.2); border-radius: 11px; position: relative; transition: all 0.3s; }
         .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
         .effect-toggle.active .toggle-switch { background: var(--primary-teal); }
         .effect-toggle.active .toggle-switch::after { left: 20px; }
-
-        /* Background Panel */
         .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .bg-option:hover { transform: scale(1.05); }
         .bg-option.active { border-color: var(--primary-teal); }
-
-        /* Checkout Section */
         .checkout-section { background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(102, 126, 234, 0.15)); border: 2px solid var(--primary-teal); border-radius: 12px; padding: 15px; margin-top: auto; }
         .checkout-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
         .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4); }
         .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-        /* Tabs */
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
         .tab { padding: 8px 16px; background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.85rem; border-radius: 6px; transition: all 0.2s; }
         .tab:hover { color: white; background: rgba(255,255,255,0.1); }
         .tab.active { color: var(--primary-teal); background: rgba(6, 214, 160, 0.1); font-weight: 600; }
-
-        /* Tab Content */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .hidden { display: none !important; }
         .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Grid overlay */
         .grid-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px; opacity: 0; transition: opacity 0.3s; }
         .grid-overlay.show { opacity: 1; }
-
-        /* Ruler */
         .ruler { position: absolute; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .show-rulers .ruler { opacity: 1; }
-
-        /* Upload area */
         .upload-area { border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
         .upload-area:hover { border-color: var(--primary-gold); background: rgba(255,255,255,0.05); }
         .upload-area i { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-gold); }
+        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-btn:hover { background: rgba(255,255,255,0.1); }
     </style>
 <base target="_blank">
 </head>
@@ -154,8 +121,8 @@
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <div class="mode-switch">
-                    <button class="mode-option active" id="singleModeBtn">Single</button>
-                    <button class="mode-option" id="batchModeBtn">Batch</button>
+                    <button class="mode-option active" id="singleModeBtn" data-mode="single">Single</button>
+                    <button class="mode-option" id="batchModeBtn" data-mode="batch">Batch</button>
                 </div>
                 <div class="price-display" id="priceDisplay">$2.99</div>
             </div>
@@ -174,15 +141,14 @@
             </div>
             <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
                 <span style="font-size: 0.85rem;">Quantity:</span>
-                <button onclick="updateQty(-1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;"><i class="fas fa-minus"></i></button>
+                <button class="qty-btn" id="qtyMinus" data-change="-1"><i class="fas fa-minus"></i></button>
                 <input type="number" id="qtyInput" value="10" min="2" max="500" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
-                <button onclick="updateQty(1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;"><i class="fas fa-plus"></i></button>
+                <button class="qty-btn" id="qtyPlus" data-change="1"><i class="fas fa-plus"></i></button>
                 <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 500</span>
             </div>
         </div>
 
         <div class="design-layout">
-            <!-- Left Tools -->
             <div class="tools-panel">
                 <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
                 <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
@@ -201,7 +167,6 @@
                 <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
             </div>
 
-            <!-- Canvas Area -->
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 15px;">
@@ -210,11 +175,11 @@
                         <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
                     </div>
                     <div class="canvas-controls">
-                        <button onclick="fitToScreen()" class="btn-icon small" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
-                        <button onclick="zoom(-0.1)" class="btn-icon small"><i class="fas fa-minus"></i></button>
+                        <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
                         <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
-                        <button onclick="zoom(0.1)" class="btn-icon small"><i class="fas fa-plus"></i></button>
-                        <button onclick="resetZoom()" class="btn-icon small" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                        <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
+                        <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer">
@@ -223,23 +188,19 @@
                 </div>
             </div>
 
-            <!-- Right Properties Panel -->
             <div class="properties-panel">
                 <div class="panel-header">
                     <div class="panel-title"><i class="fas fa-sliders-h"></i> Properties</div>
-                    <button onclick="resetDesign()" class="btn-icon small" style="padding: 6px 12px;"><i class="fas fa-undo"></i> Reset</button>
+                    <button class="btn-icon small" id="resetDesignBtn" style="padding: 6px 12px;"><i class="fas fa-undo"></i> Reset</button>
                 </div>
 
-                <!-- Tabs -->
                 <div class="tabs">
                     <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                     <button class="tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
                 </div>
 
-                <!-- Design Tab -->
                 <div class="tab-content active" id="designTab">
-                    <!-- No Selection State -->
                     <div id="noSelection" class="empty-state">
                         <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.4;"></i>
                         <p style="font-size: 0.95rem; margin-bottom: 8px;">Select an element to edit</p>
@@ -264,9 +225,7 @@
                         </div>
                     </div>
 
-                    <!-- Selected Element Controls -->
                     <div id="selectionControls" style="display: none;">
-                        <!-- Text Controls -->
                         <div id="textControls">
                             <div class="property-section">
                                 <h4><i class="fas fa-edit"></i> Text Content</h4>
@@ -364,13 +323,13 @@
                                         <label>Text Color</label>
                                         <div class="color-picker-wrapper">
                                             <input type="color" id="textColor" value="#333333">
-                                            <div class="color-presets">
-                                                <div class="color-preset" style="background: #333;" onclick="setTextColor('#333333')"></div>
-                                                <div class="color-preset" style="background: #fff; border: 1px solid #ccc;" onclick="setTextColor('#ffffff')"></div>
-                                                <div class="color-preset" style="background: #764ba2;" onclick="setTextColor('#764ba2')"></div>
-                                                <div class="color-preset" style="background: #06D6A0;" onclick="setTextColor('#06D6A0')"></div>
-                                                <div class="color-preset" style="background: #FFD166;" onclick="setTextColor('#FFD166')"></div>
-                                                <div class="color-preset" style="background: #FF6B6B;" onclick="setTextColor('#FF6B6B')"></div>
+                                            <div class="color-presets" id="textColorPresets">
+                                                <div class="color-preset" style="background: #333;" data-color="#333333"></div>
+                                                <div class="color-preset" style="background: #fff; border: 1px solid #ccc;" data-color="#ffffff"></div>
+                                                <div class="color-preset" style="background: #764ba2;" data-color="#764ba2"></div>
+                                                <div class="color-preset" style="background: #06D6A0;" data-color="#06D6A0"></div>
+                                                <div class="color-preset" style="background: #FFD166;" data-color="#FFD166"></div>
+                                                <div class="color-preset" style="background: #FF6B6B;" data-color="#FF6B6B"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -436,7 +395,6 @@
                             </div>
                         </div>
 
-                        <!-- Object Transform Controls -->
                         <div id="transformControls">
                             <div class="property-section">
                                 <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
@@ -483,24 +441,23 @@
                             <div class="property-section">
                                 <h4><i class="fas fa-layer-group"></i> Arrange</h4>
                                 <div class="btn-group">
-                                    <button class="btn-icon" onclick="bringToFront()"><i class="fas fa-arrow-up"></i> To Front</button>
-                                    <button class="btn-icon" onclick="bringForward()"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
-                                    <button class="btn-icon" onclick="sendBackward()"><i class="fas fa-arrow-down" style="font-size: 0.7em;"></i> Backward</button>
-                                    <button class="btn-icon" onclick="sendToBack()"><i class="fas fa-arrow-down"></i> To Back</button>
+                                    <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
+                                    <button class="btn-icon" id="bringForwardBtn"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
+                                    <button class="btn-icon" id="sendBackwardBtn"><i class="fas fa-arrow-down" style="font-size: 0.7em;"></i> Backward</button>
+                                    <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
                                 </div>
                             </div>
 
                             <div class="property-section">
                                 <h4><i class="fas fa-magic"></i> Effects</h4>
                                 <div class="btn-group">
-                                    <button class="btn-icon" onclick="flipHorizontal()"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
-                                    <button class="btn-icon" onclick="flipVertical()"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
-                                    <button class="btn-icon" onclick="lockObject()" id="lockBtn"><i class="fas fa-lock"></i> Lock</button>
-                                    <button class="btn-icon" onclick="duplicateObject()"><i class="fas fa-copy"></i> Duplicate</button>
+                                    <button class="btn-icon" id="flipHBtn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
+                                    <button class="btn-icon" id="flipVBtn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
+                                    <button class="btn-icon" id="lockBtn"><i class="fas fa-lock"></i> Lock</button>
+                                    <button class="btn-icon" id="duplicateBtn"><i class="fas fa-copy"></i> Duplicate</button>
                                 </div>
                             </div>
 
-                            <!-- Shape-specific controls -->
                             <div id="shapeControls" style="display: none;">
                                 <div class="property-section">
                                     <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
@@ -532,7 +489,7 @@
 
                         <div class="property-section">
                             <h4><i class="fas fa-image"></i> Add Image</h4>
-                            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-area" id="uploadArea">
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div>
                                 <div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div>
@@ -542,20 +499,18 @@
                     </div>
                 </div>
 
-                <!-- Layers Tab -->
                 <div class="tab-content" id="layersTab">
                     <div class="property-section">
                         <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn-icon" onclick="groupSelected()"><i class="fas fa-object-group"></i> Group</button>
-                        <button class="btn-icon" onclick="ungroupSelected()"><i class="fas fa-object-ungroup"></i> Ungroup</button>
-                        <button class="btn-icon danger" onclick="deleteAll()"><i class="fas fa-trash"></i> Clear All</button>
+                        <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
+                        <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
+                        <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
                     </div>
                 </div>
 
-                <!-- Settings Tab -->
                 <div class="tab-content" id="settingsTab">
                     <div class="property-section">
                         <h4><i class="fas fa-cog"></i> Canvas Settings</h4>
@@ -569,7 +524,7 @@
                                 <input type="number" id="canvasHeight" value="450" min="200" max="900">
                             </div>
                         </div>
-                        <button class="btn-icon" onclick="resizeCanvas()" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
+                        <button class="btn-icon" id="resizeCanvasBtn" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
                     </div>
 
                     <div class="property-section">
@@ -607,7 +562,6 @@
                     </div>
                 </div>
 
-                <!-- Checkout -->
                 <div class="checkout-section">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <div>
@@ -619,7 +573,7 @@
                             <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
                         </div>
                     </div>
-                    <button class="checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()">
+                    <button class="checkout-btn" id="checkoutBtn">
                         <i class="fas fa-lock"></i> Secure Checkout
                     </button>
                     <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; opacity: 0.6;">
@@ -630,12 +584,9 @@
         </div>
     </div>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=IBM+Plex+Sans:wght@400;700&family=Arimo:wght@400;700&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
     <script>
-
-        // Global State
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -653,26 +604,37 @@
         let gridSize = 20;
         let showGrid = false;
 
-        // Initialize
-        function init() {
+        async function init() {
+            if (document.fonts) {
+                await document.fonts.ready;
+            }
+            
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
 
             if (saved) {
-                templateConfig = JSON.parse(saved);
-                document.getElementById('templateName').textContent = templateConfig.name;
-                document.getElementById('designName').textContent = templateConfig.name;
+                try {
+                    templateConfig = JSON.parse(saved);
+                    if (templateConfig) {
+                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
+                        document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
 
-                if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
-                    enableBatchMode();
-                    if (templateConfig.batchSize) {
-                        document.getElementById('qtyInput').value = templateConfig.batchSize;
-                        updatePrice();
+                        if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
+                            enableBatchMode();
+                            if (templateConfig.batchSize) {
+                                document.getElementById('qtyInput').value = templateConfig.batchSize;
+                                updatePrice();
+                            }
+                        }
+
+                        await loadTemplateDesign();
+                        saveState();
                     }
+                } catch (e) {
+                    console.error('Error loading template:', e);
+                    canvas.backgroundColor = '#ffffff';
+                    canvas.renderAll();
                 }
-
-                loadTemplateDesign();
-                saveState();
             } else {
                 canvas.backgroundColor = '#ffffff';
                 canvas.renderAll();
@@ -682,17 +644,30 @@
             setupEventListeners();
             setupTabs();
             setupBackgroundOptions();
+            setupQtyControls();
+            setupZoomControls();
+            setupArrangeControls();
+            setupModeSwitch();
         }
 
-        // Load Template with Full Layout
-        function loadTemplateDesign() {
+        async function loadTemplateDesign() {
+            if (!templateConfig || !templateConfig.config) {
+                console.warn('No template config available');
+                return;
+            }
+            
             const config = templateConfig.config;
             canvas.clear();
-
-            // Set background
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
-            // Add border
+            if (config.defaultFont && document.fonts) {
+                try {
+                    await document.fonts.load('1em "' + config.defaultFont + '"');
+                } catch (e) {
+                    console.warn('Font load error:', e);
+                }
+            }
+
             if (config.borderWidth > 0) {
                 const border = new fabric.Rect({
                     left: config.borderWidth / 2,
@@ -708,7 +683,6 @@
                 canvas.add(border);
             }
 
-            // Add decorations (lines)
             if (config.decorations) {
                 config.decorations.forEach(dec => {
                     if (dec.type === 'line') {
@@ -723,45 +697,40 @@
                 });
             }
 
-            // Create text elements
             const layout = config.layout;
 
-            // Header
             if (config.sampleText.header && config.sampleText.header.trim() !== '') {
-                addTextElement(config.sampleText.header, 300, layout.headerY || 80, {
+                await addTextElement(config.sampleText.header, 300, layout.headerY || 80, {
                     fontSize: layout.headerSize || 24,
-                    fontFamily: config.defaultFont,
-                    fill: config.textColor,
+                    fontFamily: config.defaultFont || 'Montserrat',
+                    fill: config.textColor || '#333',
                     fontWeight: layout.headerWeight || 'normal'
                 });
             }
 
-            // Names
             if (config.sampleText.names) {
-                addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
+                await addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
                     fontSize: layout.namesSize || 48,
-                    fontFamily: config.defaultFont,
-                    fill: config.textColor,
+                    fontFamily: config.defaultFont || 'Montserrat',
+                    fill: config.textColor || '#333',
                     fontWeight: layout.namesWeight || 'bold',
                     charSpacing: layout.namesSpacing || 0
                 });
             }
 
-            // Subtext
             if (config.sampleText.subtext) {
-                addTextElement(config.sampleText.subtext, 300, layout.subtextY || 280, {
+                await addTextElement(config.sampleText.subtext, 300, layout.subtextY || 280, {
                     fontSize: layout.subtextSize || 18,
-                    fontFamily: layout.subtextFont || config.defaultFont,
-                    fill: config.accentColor || config.textColor
+                    fontFamily: layout.subtextFont || config.defaultFont || 'Montserrat',
+                    fill: config.accentColor || config.textColor || '#333'
                 });
             }
 
-            // Date
             if (config.sampleText.date) {
-                addTextElement(config.sampleText.date, 300, layout.dateY || 380, {
+                await addTextElement(config.sampleText.date, 300, layout.dateY || 380, {
                     fontSize: layout.dateSize || 20,
-                    fontFamily: layout.dateFont || config.defaultFont,
-                    fill: config.accentColor || config.textColor,
+                    fontFamily: layout.dateFont || config.defaultFont || 'Montserrat',
+                    fill: config.accentColor || config.textColor || '#333',
                     fontWeight: layout.dateWeight || 'normal'
                 });
             }
@@ -769,7 +738,15 @@
             canvas.renderAll();
         }
 
-        function addTextElement(text, left, top, options = {}) {
+        async function addTextElement(text, left, top, options = {}) {
+            if (options.fontFamily && document.fonts) {
+                try {
+                    await document.fonts.load('1em "' + options.fontFamily + '"');
+                } catch (e) {
+                    console.warn('Font load error for:', options.fontFamily);
+                }
+            }
+            
             const textObj = new fabric.IText(text, {
                 left: left,
                 top: top,
@@ -782,7 +759,6 @@
             canvas.add(textObj);
         }
 
-        // Background Options
         function setupBackgroundOptions() {
             document.querySelectorAll('.bg-option').forEach(opt => {
                 opt.addEventListener('click', function() {
@@ -791,7 +767,6 @@
 
                     if (this.dataset.gradient) {
                         const colors = this.dataset.colors.split(',');
-                        // Apply gradient (simplified - just use first color for now)
                         canvas.backgroundColor = colors[0];
                     } else {
                         canvas.backgroundColor = this.dataset.color;
@@ -808,29 +783,50 @@
             });
         }
 
-        // Event Listeners
         function setupEventListeners() {
-            // Canvas events
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
 
-            // Tools
-            document.querySelectorAll('.tool-btn').forEach(btn => {
-                btn.addEventListener('click', () => handleToolClick(btn.dataset.tool));
+            document.querySelector('.tools-panel').addEventListener('click', function(e) {
+                const btn = e.target.closest('.tool-btn');
+                if (btn) {
+                    const tool = btn.dataset.tool;
+                    if (tool) handleToolClick(tool);
+                }
             });
 
-            // Text controls
             setupTextControls();
             setupTransformControls();
             setupEffectsControls();
 
-            // File upload
-            document.getElementById('fileInput').addEventListener('change', handleImageUpload);
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleImageUpload);
 
-            // Keyboard shortcuts
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--primary-gold)';
+            });
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
+            document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
         }
 
@@ -844,6 +840,7 @@
         function handleDeselection() {
             selectedObject = null;
             showNoSelection();
+            updateLayerList();
         }
 
         function handleObjectMoving(e) {
@@ -855,48 +852,24 @@
             }
         }
 
-        // Tool Handlers
         function handleToolClick(tool) {
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-tool="${tool}"]`)?.classList.add('active');
+            const btn = document.querySelector(`[data-tool="${tool}"]`);
+            if (btn) btn.classList.add('active');
 
             switch(tool) {
-                case 'select':
-                    canvas.isDrawingMode = false;
-                    break;
-                case 'text':
-                    addNewText();
-                    break;
-                case 'rect':
-                    addShape('rect');
-                    break;
-                case 'circle':
-                    addShape('circle');
-                    break;
-                case 'triangle':
-                    addShape('triangle');
-                    break;
-                case 'line':
-                    addLine();
-                    break;
-                case 'image':
-                    document.getElementById('fileInput').click();
-                    break;
-                case 'delete':
-                    deleteSelected();
-                    break;
-                case 'undo':
-                    undo();
-                    break;
-                case 'redo':
-                    redo();
-                    break;
-                case 'grid':
-                    toggleGrid();
-                    break;
-                case 'rulers':
-                    document.body.classList.toggle('show-rulers');
-                    break;
+                case 'select': canvas.isDrawingMode = false; break;
+                case 'text': addNewText(); break;
+                case 'rect': addShape('rect'); break;
+                case 'circle': addShape('circle'); break;
+                case 'triangle': addShape('triangle'); break;
+                case 'line': addLine(); break;
+                case 'image': document.getElementById('fileInput').click(); break;
+                case 'delete': deleteSelected(); break;
+                case 'undo': undo(); break;
+                case 'redo': redo(); break;
+                case 'grid': toggleGrid(); break;
+                case 'rulers': document.body.classList.toggle('show-rulers'); break;
             }
         }
 
@@ -927,15 +900,9 @@
             };
 
             switch(type) {
-                case 'rect':
-                    shape = new fabric.Rect({ ...options, width: 100, height: 100 });
-                    break;
-                case 'circle':
-                    shape = new fabric.Circle({ ...options, radius: 50 });
-                    break;
-                case 'triangle':
-                    shape = new fabric.Triangle({ ...options, width: 100, height: 100 });
-                    break;
+                case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
+                case 'circle': shape = new fabric.Circle({ ...options, radius: 50 }); break;
+                case 'triangle': shape = new fabric.Triangle({ ...options, width: 100, height: 100 }); break;
             }
 
             if (shape) {
@@ -973,11 +940,9 @@
             }
         }
 
-        // Control Updates
         function updateControls() {
             if (!selectedObject) return;
 
-            // Position & Size
             document.getElementById('posX').value = Math.round(selectedObject.left);
             document.getElementById('posY').value = Math.round(selectedObject.top);
             document.getElementById('objWidth').value = Math.round(selectedObject.width * selectedObject.scaleX);
@@ -985,7 +950,6 @@
             document.getElementById('rotation').value = Math.round(selectedObject.angle || 0);
             document.getElementById('opacity').value = Math.round((selectedObject.opacity || 1) * 100);
 
-            // Text specific
             if (selectedObject.type === 'i-text') {
                 document.getElementById('textControls').style.display = 'block';
                 document.getElementById('textContent').value = selectedObject.text;
@@ -996,19 +960,16 @@
                 document.getElementById('lineHeight').value = selectedObject.lineHeight || 1.16;
                 document.getElementById('textColor').value = selectedObject.fill || '#333333';
 
-                // Styles
                 document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
                 document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
                 document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
                 document.getElementById('linethroughBtn').classList.toggle('active', selectedObject.linethrough);
                 document.getElementById('overlineBtn').classList.toggle('active', selectedObject.overline);
 
-                // Alignment
                 document.querySelectorAll('[data-align]').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
                 });
 
-                // Effects
                 document.getElementById('textStrokeToggle').classList.toggle('active', selectedObject.stroke && selectedObject.strokeWidth > 0);
                 document.getElementById('strokeControls').style.display = (selectedObject.stroke && selectedObject.strokeWidth > 0) ? 'block' : 'none';
                 if (selectedObject.stroke) {
@@ -1028,7 +989,6 @@
                 document.getElementById('textControls').style.display = 'none';
             }
 
-            // Shape specific
             if (['rect', 'circle', 'triangle'].includes(selectedObject.type)) {
                 document.getElementById('shapeControls').style.display = 'block';
                 document.getElementById('shapeFill').value = selectedObject.fill || '#BCAE83';
@@ -1046,7 +1006,6 @@
         }
 
         function setupTextControls() {
-            // Content
             document.getElementById('textContent').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('text', this.value);
@@ -1054,16 +1013,21 @@
                 }
             });
 
-            // Font
-            document.getElementById('fontFamily').addEventListener('change', function() {
+            document.getElementById('fontFamily').addEventListener('change', async function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
+                    if (document.fonts) {
+                        try {
+                            await document.fonts.load('1em "' + this.value + '"');
+                        } catch (e) {
+                            console.warn('Font load error:', e);
+                        }
+                    }
                     selectedObject.set('fontFamily', this.value);
                     canvas.renderAll();
                     saveState();
                 }
             });
 
-            // Size
             document.getElementById('fontSize').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('fontSize', parseInt(this.value));
@@ -1072,7 +1036,6 @@
                 }
             });
 
-            // Letter spacing
             document.getElementById('charSpacing').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('charSpacing', parseInt(this.value));
@@ -1080,7 +1043,6 @@
                 }
             });
 
-            // Line height
             document.getElementById('lineHeight').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('lineHeight', parseFloat(this.value));
@@ -1088,7 +1050,6 @@
                 }
             });
 
-            // Color
             document.getElementById('textColor').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('fill', this.value);
@@ -1096,7 +1057,18 @@
                 }
             });
 
-            // Styles
+            document.getElementById('textColorPresets').addEventListener('click', function(e) {
+                const preset = e.target.closest('.color-preset');
+                if (preset && preset.dataset.color) {
+                    const color = preset.dataset.color;
+                    document.getElementById('textColor').value = color;
+                    if (selectedObject && selectedObject.type === 'i-text') {
+                        selectedObject.set('fill', color);
+                        canvas.renderAll();
+                    }
+                }
+            });
+
             document.getElementById('boldBtn').addEventListener('click', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     const isBold = selectedObject.fontWeight === 'bold';
@@ -1144,7 +1116,6 @@
                 }
             });
 
-            // Alignment
             document.querySelectorAll('[data-align]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (selectedObject && selectedObject.type === 'i-text') {
@@ -1159,7 +1130,6 @@
         }
 
         function setupTransformControls() {
-            // Position
             ['posX', 'posY'].forEach(id => {
                 document.getElementById(id).addEventListener('change', function() {
                     if (selectedObject) {
@@ -1171,7 +1141,6 @@
                 });
             });
 
-            // Size
             ['objWidth', 'objHeight'].forEach(id => {
                 document.getElementById(id).addEventListener('change', function() {
                     if (selectedObject) {
@@ -1184,7 +1153,6 @@
                 });
             });
 
-            // Rotation
             document.getElementById('rotation').addEventListener('input', function() {
                 if (selectedObject) {
                     selectedObject.set('angle', parseInt(this.value));
@@ -1192,7 +1160,6 @@
                 }
             });
 
-            // Opacity
             document.getElementById('opacity').addEventListener('input', function() {
                 if (selectedObject) {
                     selectedObject.set('opacity', parseInt(this.value) / 100);
@@ -1200,7 +1167,6 @@
                 }
             });
 
-            // Shape controls
             document.getElementById('shapeFill').addEventListener('input', function() {
                 if (selectedObject) {
                     selectedObject.set('fill', this.value);
@@ -1231,7 +1197,6 @@
         }
 
         function setupEffectsControls() {
-            // Text stroke toggle
             document.getElementById('textStrokeToggle').addEventListener('click', function() {
                 this.classList.toggle('active');
                 const show = this.classList.contains('active');
@@ -1265,7 +1230,6 @@
                 }
             });
 
-            // Shadow toggle
             document.getElementById('shadowToggle').addEventListener('click', function() {
                 this.classList.toggle('active');
                 const show = this.classList.contains('active');
@@ -1287,7 +1251,6 @@
                 }
             });
 
-            // Shadow properties
             ['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].forEach(id => {
                 document.getElementById(id).addEventListener('input', function() {
                     if (selectedObject && selectedObject.shadow) {
@@ -1302,7 +1265,6 @@
                 });
             });
 
-            // Snap to grid toggle
             document.getElementById('snapToggle').addEventListener('click', function() {
                 this.classList.toggle('active');
                 snapToGrid = this.classList.contains('active');
@@ -1313,12 +1275,57 @@
             });
         }
 
-        // Transform Actions
+        function setupArrangeControls() {
+            document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
+            document.getElementById('bringForwardBtn').addEventListener('click', bringForward);
+            document.getElementById('sendBackwardBtn').addEventListener('click', sendBackward);
+            document.getElementById('sendToBackBtn').addEventListener('click', sendToBack);
+            document.getElementById('flipHBtn').addEventListener('click', flipHorizontal);
+            document.getElementById('flipVBtn').addEventListener('click', flipVertical);
+            document.getElementById('lockBtn').addEventListener('click', lockObject);
+            document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
+            document.getElementById('groupBtn').addEventListener('click', groupSelected);
+            document.getElementById('ungroupBtn').addEventListener('click', ungroupSelected);
+            document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
+        }
+
+        function setupZoomControls() {
+            document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
+            document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
+            document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
+            document.getElementById('fitToScreenBtn').addEventListener('click', fitToScreen);
+            document.getElementById('resizeCanvasBtn').addEventListener('click', resizeCanvas);
+        }
+
+        function setupQtyControls() {
+            document.getElementById('qtyMinus').addEventListener('click', () => updateQty(-1));
+            document.getElementById('qtyPlus').addEventListener('click', () => updateQty(1));
+            document.getElementById('qtyInput').addEventListener('change', function() {
+                document.getElementById('qtyDisplay').textContent = this.value;
+                updatePrice();
+                updateCheckoutDisplay();
+            });
+        }
+
+        function setupModeSwitch() {
+            document.getElementById('singleModeBtn').addEventListener('click', function() {
+                isBatchMode = false;
+                this.classList.add('active');
+                document.getElementById('batchModeBtn').classList.remove('active');
+                document.getElementById('batchControls').classList.remove('active');
+                document.getElementById('priceDisplay').textContent = '$2.99';
+                updateCheckoutDisplay();
+            });
+
+            document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
+        }
+
         function bringToFront() {
             if (selectedObject) {
                 canvas.bringToFront(selectedObject);
                 canvas.renderAll();
                 saveState();
+                updateLayerList();
             }
         }
 
@@ -1327,6 +1334,7 @@
                 canvas.bringForward(selectedObject);
                 canvas.renderAll();
                 saveState();
+                updateLayerList();
             }
         }
 
@@ -1335,6 +1343,7 @@
                 canvas.sendBackwards(selectedObject);
                 canvas.renderAll();
                 saveState();
+                updateLayerList();
             }
         }
 
@@ -1343,6 +1352,7 @@
                 canvas.sendToBack(selectedObject);
                 canvas.renderAll();
                 saveState();
+                updateLayerList();
             }
         }
 
@@ -1399,7 +1409,6 @@
             }
         }
 
-        // Group/Ungroup
         function groupSelected() {
             const active = canvas.getActiveObject();
             if (active && active.type === 'activeSelection') {
@@ -1419,7 +1428,6 @@
             }
         }
 
-        // Layer List
         function updateLayerList() {
             const list = document.getElementById('layerList');
             list.innerHTML = '';
@@ -1449,7 +1457,7 @@
                     <span><i class="fas ${icon}"></i> ${name}</span>
                     <div class="layer-actions">
                         ${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}
-                        <button class="layer-btn" onclick="event.stopPropagation(); deleteObjectByIndex(${index})"><i class="fas fa-trash"></i></button>
+                        <button class="layer-btn" data-action="delete" data-index="${index}"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
 
@@ -1459,6 +1467,14 @@
                         canvas.renderAll();
                     }
                 });
+
+                const deleteBtn = item.querySelector('[data-action="delete"]');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteObjectByIndex(index);
+                    });
+                }
 
                 list.appendChild(item);
             });
@@ -1481,7 +1497,6 @@
             }
         }
 
-        // Undo/Redo
         function saveState() {
             const json = JSON.stringify(canvas.toJSON());
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
@@ -1513,19 +1528,25 @@
             }
         }
 
-        // Grid
         function toggleGrid() {
             showGrid = !showGrid;
             document.getElementById('gridOverlay').classList.toggle('show', showGrid);
         }
 
-        // Image Upload
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+            handleFile(file);
+        }
 
+        function handleFile(file) {
             if (file.size > 5 * 1024 * 1024) {
                 alert('Image must be under 5MB');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
                 return;
             }
 
@@ -1547,10 +1568,12 @@
                     saveState();
                 });
             };
+            reader.onerror = () => {
+                alert('Error reading file');
+            };
             reader.readAsDataURL(file);
         }
 
-        // Zoom & Canvas
         function zoom(delta) {
             currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
             canvas.setZoom(currentZoom);
@@ -1589,7 +1612,6 @@
             }
         }
 
-        // UI Helpers
         function showSelectionControls() {
             document.getElementById('selectionControls').style.display = 'block';
             document.getElementById('noSelection').style.display = 'none';
@@ -1611,9 +1633,7 @@
             });
         }
 
-        // Keyboard Shortcuts
         function handleKeyboard(e) {
-            // Tool shortcuts
             if (!e.ctrlKey && !e.metaKey && !e.altKey) {
                 switch(e.key.toLowerCase()) {
                     case 'v': handleToolClick('select'); break;
@@ -1632,7 +1652,6 @@
                 }
             }
 
-            // Ctrl/Cmd shortcuts
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key.toLowerCase()) {
                     case 'z':
@@ -1665,7 +1684,6 @@
                 }
             }
 
-            // Arrow keys for nudging
             if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
                 const step = e.shiftKey ? 10 : 1;
@@ -1680,7 +1698,6 @@
             }
         }
 
-        // Batch Mode
         function enableBatchMode() {
             isBatchMode = true;
             document.getElementById('batchControls').classList.add('active');
@@ -1714,23 +1731,6 @@
             document.getElementById('checkoutTotal').textContent = '$' + total;
         }
 
-        document.getElementById('singleModeBtn').addEventListener('click', function() {
-            isBatchMode = false;
-            this.classList.add('active');
-            document.getElementById('batchModeBtn').classList.remove('active');
-            document.getElementById('batchControls').classList.remove('active');
-            document.getElementById('priceDisplay').textContent = '$2.99';
-            updateCheckoutDisplay();
-        });
-
-        document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
-        document.getElementById('qtyInput').addEventListener('change', () => {
-            document.getElementById('qtyDisplay').textContent = document.getElementById('qtyInput').value;
-            updatePrice();
-            updateCheckoutDisplay();
-        });
-
-        // Checkout
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -1738,7 +1738,6 @@
             btn.disabled = true;
 
             try {
-                // Export high-res image
                 const dataURL = canvas.toDataURL({
                     format: 'png',
                     quality: 1,
@@ -1758,21 +1757,20 @@
 
                 localStorage.setItem('pendingOrder', JSON.stringify(designData));
 
-                // Create Stripe session
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         items: [{
-                            name: `${templateConfig.name} - Custom E-Card`,
-                            description: `${qty} personalized ${templateConfig.categoryDisplay} card(s)`,
+                            name: `${templateConfig?.name || 'Custom'} - Custom E-Card`,
+                            description: `${qty} personalized card(s)`,
                             amount: qty * 299,
                             currency: 'usd',
                             quantity: 1
                         }],
                         metadata: {
-                            template_id: templateConfig.id,
-                            template_name: templateConfig.name,
+                            template_id: templateConfig?.id || 'custom',
+                            template_name: templateConfig?.name || 'Custom',
                             quantity: qty.toString(),
                             is_batch: isBatchMode.toString()
                         }
@@ -1782,27 +1780,25 @@
                 if (!response.ok) throw new Error('Checkout failed');
 
                 const session = await response.json();
-                const stripe = Stripe('pk_test_51T4RZE77QLXWkYn3IDeLAuNrwGhuZ58qQ7za8qBcEPjHyqwrtOWKo7rz3c8GG82BraRi4B43Odqi6I8reBkyG4U800RBdWcIIj');
-                await stripe.redirectToCheckout({ sessionId: session.id });
+                const stripeKey = window.location.hostname === 'localhost' 
+                    ? 'pk_test_51T4RZE77QLXWkYn3IDeLAuNrwGhuZ58qQ7za8qBcEPjHyqwrtOWKo7rz3c8GG82BraRi4B43Odqi6I8reBkyG4U800RBdWcIIj'
+                    : 'pk_live_YOUR_LIVE_KEY';
+                    
+                const stripe = Stripe(stripeKey);
+                const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+                
+                if (error) {
+                    throw new Error(error.message);
+                }
 
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert('Checkout failed. Please try again.');
+                alert('Checkout failed: ' + error.message);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         }
 
-        // Helper for color presets
-        function setTextColor(color) {
-            document.getElementById('textColor').value = color;
-            if (selectedObject && selectedObject.type === 'i-text') {
-                selectedObject.set('fill', color);
-                canvas.renderAll();
-            }
-        }
-
-        // Initialize
         init();
     </script>
 </body>
