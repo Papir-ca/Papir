@@ -6,13 +6,7 @@
     <title>Payment Successful | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
@@ -22,7 +16,6 @@
             align-items: center;
             padding: 20px;
         }
-        
         .success-container {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -34,46 +27,24 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
-        
         .success-icon {
             font-size: 80px;
             color: #06D6A0;
             margin-bottom: 30px;
             animation: scaleIn 0.5s ease;
         }
-        
         @keyframes scaleIn {
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-        
         h1 {
             font-size: 2.5rem;
             margin-bottom: 15px;
             background: linear-gradient(45deg, #06D6A0, #118AB2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
-        
-        .subtitle {
-            color: #a0aec0;
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-        
-        .card-info {
-            background: rgba(6, 214, 160, 0.1);
-            border: 1px solid rgba(6, 214, 160, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-            font-family: monospace;
-            font-size: 1.1rem;
-            color: #06D6A0;
-        }
-        
+        .subtitle { color: #a0aec0; font-size: 1.2rem; margin-bottom: 30px; line-height: 1.6; }
         .loading {
             display: inline-block;
             width: 40px;
@@ -84,12 +55,43 @@
             animation: spin 1s linear infinite;
             margin: 20px 0;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 20px 0;
         }
-        
+        .progress-fill {
+            height: 100%;
+            background: #06D6A0;
+            width: 0%;
+            animation: progress 2s ease infinite;
+        }
+        @keyframes progress {
+            0% { width: 0%; opacity: 1; }
+            50% { width: 70%; opacity: 1; }
+            100% { width: 100%; opacity: 0; }
+        }
+        .details {
+            background: rgba(6, 214, 160, 0.1);
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
+        .detail-row:last-child { 
+            margin-bottom: 0; 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            padding-top: 10px; 
+            margin-top: 10px; 
+            font-weight: bold; 
+            color: #06D6A0; 
+        }
         .btn {
             display: inline-block;
             padding: 15px 40px;
@@ -102,27 +104,17 @@
             transition: all 0.3s;
             text-decoration: none;
         }
-        
         .btn-primary {
             background: linear-gradient(to right, #06D6A0, #118AB2);
             color: white;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3);
-        }
-        
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3); }
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
         .error-box {
             background: rgba(255, 107, 107, 0.1);
             border: 1px solid rgba(255, 107, 107, 0.3);
@@ -131,28 +123,19 @@
             border-radius: 10px;
             margin: 20px 0;
         }
-        
         .hidden { display: none; }
-        
         .share-section {
             margin-top: 30px;
             padding-top: 30px;
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-        
-        .share-label {
-            color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-        
+        .share-label { color: #888; font-size: 0.9rem; margin-bottom: 15px; }
         .share-container {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
         .share-input {
             flex: 1;
             min-width: 250px;
@@ -164,13 +147,6 @@
             font-family: monospace;
             font-size: 0.9rem;
         }
-        
-        @media (max-width: 600px) {
-            .success-container { padding: 30px 20px; }
-            h1 { font-size: 2rem; }
-            .share-container { flex-direction: column; }
-            .share-input { width: 100%; }
-        }
     </style>
 </head>
 <body>
@@ -178,40 +154,56 @@
 <div class="success-container">
     <!-- Loading State -->
     <div id="loadingState">
-        <div class="loading"></div>
-        <p style="color: #a0aec0; margin-top: 15px;">Activating your card...</p>
+        <div class="success-icon"><i class="fas fa-spinner fa-spin"></i></div>
+        <h1 id="loadingText">Processing...</h1>
+        <p class="subtitle">Please wait while we set up your cards.</p>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
     </div>
     
     <!-- Success State -->
     <div id="successState" class="hidden">
-        <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
+        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
         <h1>Payment Successful!</h1>
-        <p class="subtitle">Your card has been activated and is ready to send.</p>
+        <p class="subtitle" id="successSubtitle">Your cards are ready.</p>
         
-        <div class="card-info" id="cardInfo">
-            Card ID: <span id="cardIdDisplay">-</span>
-        </div>
-        
-        <div id="batchInfo" class="hidden" style="margin: 20px 0;">
-            <p style="color: #a0aec0; margin-bottom: 10px;">Batch created with <strong id="batchCount" style="color: #06D6A0;">-</strong> cards</p>
+        <div class="details" id="orderDetails">
+            <div class="detail-row">
+                <span>Template:</span>
+                <span id="templateName">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Quantity:</span>
+                <span id="cardQuantity">-</span>
+            </div>
+            <div class="detail-row" id="batchIdRow" style="display: none;">
+                <span>Batch ID:</span>
+                <span id="batchIdDisplay">-</span>
+            </div>
+            <div class="detail-row" id="cardIdRow" style="display: none;">
+                <span>Card ID:</span>
+                <span id="cardIdDisplay">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Status:</span>
+                <span style="color: #06D6A0;">Active</span>
+            </div>
         </div>
         
         <div style="margin-top: 30px;">
-            <a href="#" id="viewCardBtn" class="btn btn-primary">
-                <i class="fas fa-eye"></i> View Card
+            <a href="#" id="actionBtn" class="btn btn-primary">
+                <i class="fas fa-eye"></i> View Cards
             </a>
-            <a href="maker.html" class="btn btn-secondary">
+            <a href="customize.html" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Create Another
             </a>
         </div>
         
-        <div class="share-section">
+        <!-- Share Link Section (for single cards) -->
+        <div class="share-section" id="shareSection" style="display: none;">
             <p class="share-label">Share this link with your recipient:</p>
             <div class="share-container">
                 <input type="text" id="shareUrl" class="share-input" readonly>
-                <button id="copyBtn" class="btn btn-secondary">
+                <button id="copyBtn" class="btn btn-secondary" style="margin: 0;">
                     <i class="fas fa-copy"></i> Copy
                 </button>
             </div>
@@ -228,126 +220,154 @@
         <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
             <i class="fas fa-redo"></i> Try Again
         </button>
-        <a href="contact.html" class="btn btn-secondary" style="margin-top: 10px;">
+        <a href="mailto:support@papir.ca" class="btn btn-secondary" style="margin-top: 10px;">
             <i class="fas fa-envelope"></i> Contact Support
         </a>
     </div>
 </div>
 
 <script>
-    const BACKEND_URL = 'https://papir.ca'; // Change to your backend
-    
-    // Get URL parameters
+    const BACKEND_URL = window.location.origin;
     const urlParams = new URLSearchParams(window.location.search);
-    const cardId = urlParams.get('card_id');
-    const batchId = urlParams.get('batch_id');
-    const qty = urlParams.get('qty') || 1;
     
-    async function activateCard() {
+    // Check which flow we're handling
+    const sessionId = urlParams.get('session_id');  // NEW: Stripe Checkout (from customize.html)
+    const cardId = urlParams.get('card_id');        // OLD: Single card (from maker.html)
+    const batchId = urlParams.get('batch_id');      // OLD: Batch (from maker.html)
+    const qty = parseInt(urlParams.get('qty')) || 1;
+    
+    async function handlePaymentSuccess() {
         try {
-            const isBatch = !!batchId;
-            const idToActivate = batchId || cardId;
-            
-            if (!idToActivate) {
-                throw new Error('No card or batch ID found in URL');
-            }
-            
-            console.log('Activating...', { cardId, batchId });
-            
-            const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    card_id: cardId,
-                    batch_id: batchId,
-                    terms_accepted: true
-                })
-            });
-            
-            const result = await response.json();
-            console.log('Activation response:', result);
-            
-            if (!response.ok) {
-                throw new Error(result.error || 'Activation failed');
-            }
-            
-            // Show success UI
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('successState').classList.remove('hidden');
-            
-            // Update UI based on single vs batch
-            if (isBatch) {
-                document.getElementById('cardIdDisplay').textContent = batchId;
-                document.getElementById('batchInfo').classList.remove('hidden');
-                document.getElementById('batchCount').textContent = qty;
-                document.getElementById('viewCardBtn').href = `/batch-manager?batch=${encodeURIComponent(batchId)}`;
-                document.getElementById('viewCardBtn').innerHTML = '<i class="fas fa-layer-group"></i> Manage Batch';
-                document.getElementById('shareUrl').value = `${BACKEND_URL}/batch-manager?batch=${encodeURIComponent(batchId)}`;
+            // Determine which flow to use
+            if (sessionId) {
+                // NEW FLOW: Stripe Checkout Session (from customize.html)
+                document.getElementById('loadingText').textContent = 'Activating your design...';
+                await handleStripeSession(sessionId);
+            } else if (cardId || batchId) {
+                // OLD FLOW: Direct activation (from maker.html or other pages)
+                document.getElementById('loadingText').textContent = 'Activating your cards...';
+                await handleDirectActivation(cardId, batchId, qty);
             } else {
-                document.getElementById('cardIdDisplay').textContent = cardId;
-                document.getElementById('viewCardBtn').href = `/viewer.html?card=${cardId}`;
-                document.getElementById('shareUrl').value = `${BACKEND_URL}/viewer.html?card=${cardId}`;
+                throw new Error('No session, card, or batch ID found in URL');
             }
-            
         } catch (error) {
             console.error('Activation error:', error);
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = error.message;
+            showError(error.message);
         }
     }
     
-    // FIXED: CSP-compliant copy function with event listener
-    function copyUrl() {
+    // NEW FLOW: Handle Stripe Checkout Session
+    async function handleStripeSession(sessionId) {
+        // Get design data from localStorage (saved by customize.html)
+        const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || '{}');
+        
+        const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: sessionId,
+                design_data: pendingOrder
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Activation failed');
+        }
+        
+        // Clear pending order
+        localStorage.removeItem('pendingOrder');
+        
+        // Show success UI
+        showSuccessState({
+            isBatch: result.is_batch,
+            batchId: result.batch_id,
+            cardId: result.card_id,
+            quantity: result.cards_created || 1,
+            templateName: pendingOrder.template?.name || 'Custom Design'
+        });
+    }
+    
+    // OLD FLOW: Handle direct card/batch activation (backward compatibility)
+    async function handleDirectActivation(cardId, batchId, qty) {
+        const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                card_id: cardId,
+                batch_id: batchId,
+                terms_accepted: true
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Activation failed');
+        }
+        
+        // Show success UI with old flow data
+        showSuccessState({
+            isBatch: !!batchId,
+            batchId: batchId,
+            cardId: cardId,
+            quantity: qty,
+            templateName: 'Custom Card' // Old flow doesn't pass template name in URL
+        });
+    }
+    
+    function showSuccessState(data) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('successState').classList.remove('hidden');
+        
+        // Fill details
+        document.getElementById('templateName').textContent = data.templateName;
+        document.getElementById('cardQuantity').textContent = data.quantity;
+        
+        // Show appropriate ID
+        if (data.isBatch && data.batchId) {
+            document.getElementById('batchIdRow').style.display = 'flex';
+            document.getElementById('batchIdDisplay').textContent = data.batchId;
+            document.getElementById('actionBtn').href = `batch-manager.html?batch=${encodeURIComponent(data.batchId)}`;
+            document.getElementById('actionBtn').innerHTML = '<i class="fas fa-layer-group"></i> Manage Batch';
+            document.getElementById('successSubtitle').textContent = `Your batch of ${data.quantity} cards is ready.`;
+        } else if (data.cardId) {
+            document.getElementById('cardIdRow').style.display = 'flex';
+            document.getElementById('cardIdDisplay').textContent = data.cardId;
+            document.getElementById('actionBtn').href = `viewer.html?card=${data.cardId}`;
+            document.getElementById('actionBtn').innerHTML = '<i class="fas fa-eye"></i> View Card';
+            document.getElementById('successSubtitle').textContent = 'Your card is ready to send.';
+            
+            // Show share section for single cards
+            document.getElementById('shareSection').style.display = 'block';
+            document.getElementById('shareUrl').value = `${BACKEND_URL}/viewer.html?card=${data.cardId}`;
+        }
+    }
+    
+    function showError(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+    }
+    
+    // Copy button handler
+    document.getElementById('copyBtn')?.addEventListener('click', async function() {
         const input = document.getElementById('shareUrl');
-        input.select();
-        input.setSelectionRange(0, 99999); // For mobile
-        
         try {
-            navigator.clipboard.writeText(input.value).then(() => {
-                // Visual feedback
-                const btn = document.getElementById('copyBtn');
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                btn.style.background = 'rgba(6, 214, 160, 0.3)';
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.style.background = '';
-                }, 2000);
-            }).catch(err => {
-                console.error('Copy failed:', err);
-                // Fallback for older browsers
-                document.execCommand('copy');
-                showCopyFeedback();
-            });
+            await navigator.clipboard.writeText(input.value);
+            this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            }, 2000);
         } catch (err) {
-            // Final fallback
+            input.select();
             document.execCommand('copy');
-            showCopyFeedback();
         }
-    }
-    
-    function showCopyFeedback() {
-        const btn = document.getElementById('copyBtn');
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-            btn.innerHTML = originalHtml;
-        }, 2000);
-    }
-    
-    // FIXED: Attach event listener properly (no inline onclick)
-    document.addEventListener('DOMContentLoaded', function() {
-        // Attach copy button listener
-        const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', copyUrl);
-        }
-        
-        // Run activation
-        activateCard();
     });
+    
+    // Start the process
+    handlePaymentSuccess();
 </script>
 
 </body>
