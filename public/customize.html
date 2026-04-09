@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customize Your Card | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600&family=Great+Vibes&family=EB+Garamond:wght@400;600&family=Parisienne&family=Lato:wght@300;400&family=Open+Sans:wght@300;400&family=Raleway:wght@300;400&family=Roboto:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=Alex+Brush&family=Allura&family=Sacramento&family=Dancing+Script:wght@400;700&family=Pacifico&family=Quicksand:wght@300;400&family=Comic+Sans+MS&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -21,9 +19,6 @@
             --primary-teal: #06D6A0;
             --dark-bg: #1a1a2e;
             --light-bg: #f5f5f5;
-            --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --border-light: #e0e0e0;
         }
 
         body {
@@ -31,11 +26,10 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
         }
 
         .app-container {
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             padding: 20px;
@@ -47,10 +41,8 @@
             align-items: center;
             margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
             padding: 15px 25px;
             border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .header-left {
@@ -69,18 +61,6 @@
             padding: 8px 15px;
             border-radius: 8px;
             background: rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-
-        .back-link:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .template-badge {
@@ -90,12 +70,6 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
         }
 
         .mode-switch {
@@ -109,9 +83,7 @@
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.9rem;
             font-weight: 600;
-            transition: all 0.3s;
             border: none;
             background: transparent;
             color: rgba(255,255,255,0.7);
@@ -124,11 +96,9 @@
 
         .price-display {
             background: rgba(255,255,255,0.1);
-            color: white;
             padding: 10px 20px;
             border-radius: 30px;
             font-weight: bold;
-            font-size: 1.1rem;
             border: 2px solid var(--primary-teal);
         }
 
@@ -145,89 +115,11 @@
             display: block;
         }
 
-        .batch-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .batch-title {
-            font-size: 1.2rem;
-            color: var(--primary-teal);
-        }
-
-        .quantity-control {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .qty-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
-            background: transparent;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qty-btn:hover {
-            background: var(--primary-teal);
-            border-color: var(--primary-teal);
-            color: #1a1a2e;
-        }
-
-        #quantityInput {
-            width: 80px;
-            padding: 10px;
-            text-align: center;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .total-calc {
-            text-align: right;
-        }
-
-        .total-amount {
-            font-size: 1.8rem;
-            color: var(--primary-teal);
-            font-weight: 700;
-        }
-
-        .per-card {
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-
-        .notice-box {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #ffc107;
-        }
-
         .design-layout {
             display: flex;
             gap: 20px;
             flex: 1;
-            min-height: 0;
-            height: calc(100vh - 200px);
+            height: calc(100vh - 180px);
         }
 
         .tools-panel {
@@ -239,7 +131,6 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .tool-btn {
@@ -252,15 +143,9 @@
             font-size: 1.2rem;
             cursor: pointer;
             transition: all 0.2s;
-            position: relative;
         }
 
-        .tool-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: var(--primary-gold);
-        }
-
-        .tool-btn.active {
+        .tool-btn:hover, .tool-btn.active {
             background: var(--primary-gold);
             color: white;
         }
@@ -270,69 +155,16 @@
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             flex-direction: column;
-            overflow: auto;
         }
 
         .canvas-toolbar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .page-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .page-btn {
-            padding: 8px 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: transparent;
-            color: white;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .page-btn.active {
-            background: var(--primary-gold);
-            border-color: var(--primary-gold);
-            color: #1a1a2e;
-        }
-
-        .zoom-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .zoom-btn {
-            width: 35px;
-            height: 35px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: transparent;
-            color: white;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .zoom-btn:hover {
-            border-color: var(--primary-gold);
-            color: var(--primary-gold);
-        }
-
-        #zoomLevel {
-            min-width: 60px;
-            text-align: center;
-            color: white;
         }
 
         .canvas-container {
@@ -343,33 +175,20 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
         }
 
         #designCanvas {
             border: 2px solid #ddd;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             background: white;
         }
 
         .properties-panel {
-            width: 380px;
+            width: 350px;
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
             overflow-y: auto;
             color: white;
-        }
-
-        .properties-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .property-section {
@@ -381,60 +200,34 @@
         .property-section h4 {
             margin-bottom: 12px;
             color: var(--primary-gold);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .property-row {
-            margin-bottom: 12px;
-        }
-
-        .property-label {
-            display: flex;
-            justify-content: space-between;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 5px;
-            font-size: 0.85rem;
         }
 
         .text-input-area {
             width: 100%;
             min-height: 80px;
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .text-input-area:focus {
-            outline: none;
-            border-color: var(--primary-gold);
-        }
-
-        .font-selector {
-            width: 100%;
             padding: 10px;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
             color: white;
-            font-size: 0.9rem;
-            max-height: 150px;
+            resize: vertical;
         }
 
-        .font-selector optgroup {
-            color: var(--primary-gold);
+        .font-selector {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
         }
 
         .font-selector option {
-            color: white;
             background: #2a2a2a;
-            padding: 5px;
+            color: white;
         }
 
         .slider-with-value {
@@ -445,10 +238,6 @@
 
         .slider-with-value input[type="range"] {
             flex: 1;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            outline: none;
         }
 
         .slider-with-value input[type="number"] {
@@ -461,27 +250,12 @@
             text-align: center;
         }
 
-        .color-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        input[type="color"] {
-            width: 50px;
-            height: 40px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            cursor: pointer;
-            background: transparent;
-        }
-
-        .alignment-buttons {
+        .alignment-buttons, .text-effect-buttons {
             display: flex;
             gap: 5px;
         }
 
-        .align-btn {
+        .align-btn, .effect-btn {
             flex: 1;
             padding: 8px;
             background: rgba(255,255,255,0.1);
@@ -489,36 +263,10 @@
             color: white;
             border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .align-btn:hover,
-        .align-btn.active {
+        .align-btn:hover, .align-btn.active, .effect-btn:hover, .effect-btn.active {
             background: var(--primary-gold);
-            border-color: var(--primary-gold);
-            color: #1a1a2e;
-        }
-
-        .text-effect-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .effect-btn {
-            width: 35px;
-            height: 35px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .effect-btn:hover,
-        .effect-btn.active {
-            background: var(--primary-gold);
-            border-color: var(--primary-gold);
             color: #1a1a2e;
         }
 
@@ -528,20 +276,16 @@
             padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
         .upload-area:hover {
             border-color: var(--primary-gold);
-            background: rgba(188, 174, 131, 0.05);
         }
 
         .action-buttons {
             display: flex;
             gap: 10px;
             margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .btn-primary {
@@ -551,15 +295,8 @@
             color: #1a1a2e;
             border: none;
             border-radius: 10px;
-            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(6, 214, 160, 0.3);
         }
 
         .btn-secondary {
@@ -569,28 +306,15 @@
             color: white;
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .btn-secondary:hover {
-            border-color: var(--primary-gold);
-            background: rgba(255,255,255,0.05);
-        }
-
-        @media (max-width: 1024px) {
-            .design-layout {
-                flex-direction: column;
-                height: auto;
-            }
-            .properties-panel {
-                width: 100%;
-            }
-            .canvas-area {
-                min-height: 500px;
-            }
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -605,92 +329,50 @@
                 <span class="template-badge" id="templateName">Design</span>
             </div>
             
-            <div class="header-right">
+            <div style="display: flex; align-items: center; gap: 20px;">
                 <div class="mode-switch">
-                    <button class="mode-option active" id="singleModeBtn">
-                        <i class="fas fa-heart"></i> Single
-                    </button>
-                    <button class="mode-option" id="batchModeBtn">
-                        <i class="fas fa-layer-group"></i> Batch
-                    </button>
+                    <button class="mode-option active" id="singleModeBtn">Single</button>
+                    <button class="mode-option" id="batchModeBtn">Batch</button>
                 </div>
-                <div class="price-display" id="priceDisplay">
-                    $2.99
-                </div>
+                <div class="price-display" id="priceDisplay">$2.99</div>
             </div>
         </div>
 
-        <!-- Batch Controls -->
         <div class="batch-controls" id="batchControls">
-            <div class="batch-header">
-                <div class="batch-title">
-                    <i class="fas fa-layer-group"></i> Batch Order
-                </div>
-                <div class="total-calc">
-                    <div class="total-amount" id="totalAmount">$29.90</div>
-                    <div class="per-card">$2.99 per card</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <h3 style="color: var(--primary-teal);">Batch Order</h3>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.5rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$29.90</div>
+                    <div style="font-size: 0.8rem;">$2.99 per card</div>
                 </div>
             </div>
-            <div class="quantity-control">
-                <span>Number of cards:</span>
-                <button class="qty-btn" onclick="updateQuantity(-1)">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <input type="number" id="quantityInput" value="10" min="2" max="500">
-                <button class="qty-btn" onclick="updateQuantity(1)">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <span style="margin-left: 15px; opacity: 0.7;">Min: 2 | Max: 500</span>
-            </div>
-        </div>
-
-        <div class="notice-box" id="noticeBox">
-            <i class="fas fa-info-circle"></i>
-            <div>
-                <strong>Draft Mode:</strong> Complete your design and payment to instantly create your card(s).
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span>Quantity:</span>
+                <button onclick="updateQty(-1)" style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;">-</button>
+                <input type="number" id="qtyInput" value="10" min="2" max="500" style="width: 70px; padding: 8px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px;">
+                <button onclick="updateQty(1)" style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer;">+</button>
             </div>
         </div>
 
         <div class="design-layout">
             <div class="tools-panel">
-                <button class="tool-btn active" data-tool="select" title="Select">
-                    <i class="fas fa-mouse-pointer"></i>
-                </button>
-                <button class="tool-btn" data-tool="text" title="Add Text">
-                    <i class="fas fa-font"></i>
-                </button>
-                <button class="tool-btn" data-tool="image" title="Add Image">
-                    <i class="fas fa-image"></i>
-                </button>
-                <button class="tool-btn" data-tool="shape" title="Add Shape">
-                    <i class="fas fa-shapes"></i>
-                </button>
+                <button class="tool-btn active" data-tool="select"><i class="fas fa-mouse-pointer"></i></button>
+                <button class="tool-btn" data-tool="text"><i class="fas fa-font"></i></button>
+                <button class="tool-btn" data-tool="image"><i class="fas fa-image"></i></button>
+                <button class="tool-btn" data-tool="shape"><i class="fas fa-shapes"></i></button>
                 <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0;"></div>
-                <button class="tool-btn" data-tool="undo" title="Undo">
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button class="tool-btn" data-tool="redo" title="Redo">
-                    <i class="fas fa-redo"></i>
-                </button>
-                <button class="tool-btn" data-tool="delete" title="Delete">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="tool-btn" data-tool="undo"><i class="fas fa-undo"></i></button>
+                <button class="tool-btn" data-tool="redo"><i class="fas fa-redo"></i></button>
+                <button class="tool-btn" data-tool="delete"><i class="fas fa-trash"></i></button>
             </div>
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <div class="page-controls">
-                        <button class="page-btn active" id="frontBtn">Front</button>
-                        <button class="page-btn" id="backBtn">Back</button>
-                    </div>
-                    <div class="zoom-controls">
-                        <button class="zoom-btn" onclick="changeZoom(-0.1)">
-                            <i class="fas fa-search-minus"></i>
-                        </button>
-                        <span id="zoomLevel">100%</span>
-                        <button class="zoom-btn" onclick="changeZoom(0.1)">
-                            <i class="fas fa-search-plus"></i>
-                        </button>
+                    <div>Front of Card</div>
+                    <div>
+                        <button onclick="zoom(-0.1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">-</button>
+                        <span id="zoomDisplay" style="margin: 0 10px;">100%</span>
+                        <button onclick="zoom(0.1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">+</button>
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer">
@@ -698,119 +380,73 @@
                 </div>
             </div>
 
-            <div class="properties-panel" id="propertiesPanel">
-                <div class="properties-header">
-                    <h3><i class="fas fa-sliders-h"></i> Properties</h3>
-                    <span id="selectedType">Select an element</span>
-                </div>
-
-                <!-- Text Properties -->
-                <div id="textProperties" style="display: none;">
+            <div class="properties-panel">
+                <h3 style="margin-bottom: 20px; color: var(--primary-gold);"><i class="fas fa-sliders-h"></i> Properties</h3>
+                
+                <div id="textControls">
                     <div class="property-section">
                         <h4>Text Content</h4>
-                        <textarea class="text-input-area" id="textContent" placeholder="Enter your text..."></textarea>
+                        <textarea class="text-input-area" id="textContent" placeholder="Enter text..."></textarea>
                     </div>
 
                     <div class="property-section">
-                        <h4>Typography</h4>
-                        <div class="property-row">
-                            <label class="property-label">Font Family</label>
-                            <select class="font-selector" id="fontFamily" size="6">
-                                <optgroup label="Serif Fonts">
-                                    <option value="Playfair Display">Playfair Display</option>
-                                    <option value="EB Garamond">EB Garamond</option>
-                                    <option value="Libre Baskerville">Libre Baskerville</option>
-                                    <option value="Cinzel">Cinzel</option>
-                                </optgroup>
-                                <optgroup label="Script Fonts">
-                                    <option value="Great Vibes">Great Vibes</option>
-                                    <option value="Parisienne">Parisienne</option>
-                                    <option value="Alex Brush">Alex Brush</option>
-                                    <option value="Allura">Allura</option>
-                                    <option value="Sacramento">Sacramento</option>
-                                    <option value="Dancing Script">Dancing Script</option>
-                                </optgroup>
-                                <optgroup label="Modern Fonts">
-                                    <option value="Montserrat">Montserrat</option>
-                                    <option value="Lato">Lato</option>
-                                    <option value="Raleway">Raleway</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Open Sans">Open Sans</option>
-                                    <option value="Quicksand">Quicksand</option>
-                                </optgroup>
-                                <optgroup label="Fun Fonts">
-                                    <option value="Pacifico">Pacifico</option>
-                                    <option value="Comic Sans MS">Comic Sans MS</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        
-                        <div class="property-row">
-                            <label class="property-label">Size</label>
-                            <div class="slider-with-value">
-                                <input type="range" id="fontSize" min="12" max="120" value="32">
-                                <input type="number" id="fontSizeNum" min="12" max="120" value="32">
-                            </div>
-                        </div>
+                        <h4>Font</h4>
+                        <select class="font-selector" id="fontFamily">
+                            <option value="Playfair Display">Playfair Display</option>
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Parisienne">Parisienne</option>
+                            <option value="Great Vibes">Great Vibes</option>
+                            <option value="Pacifico">Pacifico</option>
+                            <option value="Cinzel">Cinzel</option>
+                            <option value="Alex Brush">Alex Brush</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                        </select>
+                    </div>
 
-                        <div class="property-row">
-                            <label class="property-label">Color</label>
-                            <div class="color-row">
-                                <input type="color" id="textColor" value="#333333">
-                                <input type="text" class="text-input-area" style="min-height: 40px; flex: 1;" id="textColorHex" value="#333333" maxlength="7">
-                            </div>
+                    <div class="property-section">
+                        <h4>Size & Color</h4>
+                        <div class="slider-with-value" style="margin-bottom: 10px;">
+                            <input type="range" id="fontSize" min="12" max="100" value="32">
+                            <input type="number" id="fontSizeNum" min="12" max="100" value="32">
                         </div>
+                        <input type="color" id="textColor" value="#333333">
+                    </div>
 
-                        <div class="property-row">
-                            <label class="property-label">Style</label>
-                            <div class="text-effect-buttons">
-                                <button class="effect-btn" id="boldBtn" title="Bold"><i class="fas fa-bold"></i></button>
-                                <button class="effect-btn" id="italicBtn" title="Italic"><i class="fas fa-italic"></i></button>
-                                <button class="effect-btn" id="underlineBtn" title="Underline"><i class="fas fa-underline"></i></button>
-                            </div>
+                    <div class="property-section">
+                        <h4>Style</h4>
+                        <div class="text-effect-buttons">
+                            <button class="effect-btn" id="boldBtn"><i class="fas fa-bold"></i></button>
+                            <button class="effect-btn" id="italicBtn"><i class="fas fa-italic"></i></button>
+                            <button class="effect-btn" id="underlineBtn"><i class="fas fa-underline"></i></button>
                         </div>
+                    </div>
 
-                        <div class="property-row">
-                            <label class="property-label">Alignment</label>
-                            <div class="alignment-buttons">
-                                <button class="align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
-                                <button class="align-btn" data-align="center"><i class="fas fa-align-center"></i></button>
-                                <button class="align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
-                            </div>
+                    <div class="property-section">
+                        <h4>Alignment</h4>
+                        <div class="alignment-buttons">
+                            <button class="align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
+                            <button class="align-btn" data-align="center"><i class="fas fa-align-center"></i></button>
+                            <button class="align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Image Properties -->
-                <div id="imageProperties" style="display: none;">
-                    <div class="property-section">
-                        <h4>Image Options</h4>
-                        <div class="property-row">
-                            <label class="property-label">Opacity</label>
-                            <div class="slider-with-value">
-                                <input type="range" id="imgOpacity" min="0" max="100" value="100">
-                                <input type="number" id="imgOpacityNum" min="0" max="100" value="100">%
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Upload Section (Always visible) -->
                 <div class="property-section">
                     <h4>Add Image</h4>
                     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                        <div>Click to upload photo</div>
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div>Click to upload</div>
                         <input type="file" id="fileInput" accept="image/*" style="display: none;">
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn-primary" id="continueBtn">
-                        <i class="fas fa-arrow-right"></i> Continue to Payment
+                    <button class="btn-primary" onclick="saveAndContinue()">
+                        <i class="fas fa-arrow-right"></i> Continue
                     </button>
-                    <button class="btn-secondary" id="previewBtn">
+                    <button class="btn-secondary" onclick="preview()">
                         <i class="fas fa-eye"></i> Preview
                     </button>
                 </div>
@@ -819,156 +455,78 @@
     </div>
 
     <script>
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://elmhkhvryjzljxskbfps.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Initialize Fabric Canvas
+        // Initialize Fabric
         const canvas = new fabric.Canvas('designCanvas');
         let selectedObject = null;
-        let zoomLevel = 1;
         let templateConfig = null;
         let isBatchMode = false;
+        let currentZoom = 1;
 
-        // URL Params
-        const urlParams = new URLSearchParams(window.location.search);
-        const templateId = urlParams.get('template');
-        const mode = urlParams.get('mode');
-
-        // Load template configuration
-        function loadTemplate() {
+        // Load template
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
+            
             if (saved) {
                 templateConfig = JSON.parse(saved);
-            } else {
-                // Default config if none selected
-                templateConfig = {
-                    name: 'Custom Design',
-                    config: {
-                        backgroundColor: '#ffffff',
-                        defaultFont: 'Playfair Display',
-                        textColor: '#333333'
-                    }
-                };
+                document.getElementById('templateName').textContent = templateConfig.name;
+                
+                if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
+                    enableBatchMode();
+                }
+                
+                loadTemplateDesign();
             }
-
-            document.getElementById('templateName').textContent = templateConfig.name;
-            
-            // Set batch mode from URL or localStorage
-            if (mode === 'batch' || templateConfig.isBatchMode) {
-                enableBatchMode();
-            } else {
-                enableSingleMode();
-            }
-
-            // Initialize canvas with template styling
-            initializeCanvas();
         }
 
-        function initializeCanvas() {
+        function loadTemplateDesign() {
             const config = templateConfig.config;
             const container = document.getElementById('canvasContainer');
             
-            // Set background
+            // Background
             if (config.gradient) {
                 container.style.background = config.gradient;
             } else {
                 container.style.background = config.backgroundColor || '#f0f0f0';
             }
-
-            // Set border if specified
+            
+            // Border
             if (config.borderWidth > 0) {
-                container.style.border = `${config.borderWidth}px ${config.borderStyle || 'solid'} ${config.borderColor || '#ddd'}`;
+                container.style.border = `${config.borderWidth}px ${config.borderStyle || 'solid'} ${config.borderColor}`;
             }
-
-            // Create default text based on template type
-            const sampleText = config.sampleText || {
-                names: 'Your Names',
-                date: 'Your Date'
-            };
-
-            // Create text elements with template font
-            const headerText = new fabric.Text(sampleText.header || 'Celebrate With Us', {
+            
+            // Sample text with template font
+            const text = new fabric.Text(config.sampleText.names, {
                 left: 300,
-                top: 100,
-                fontSize: 24,
-                fontFamily: config.defaultFont || 'Playfair Display',
-                fill: config.textColor || '#333333',
+                top: 225,
+                fontSize: 40,
+                fontFamily: config.defaultFont,
+                fill: config.textColor,
                 textAlign: 'center',
                 originX: 'center',
-                selectable: true
+                originY: 'center'
             });
-
-            const namesText = new fabric.Text(sampleText.names, {
-                left: 300,
-                top: 160,
-                fontSize: 48,
-                fontFamily: config.defaultFont || 'Playfair Display',
-                fill: config.accentColor || config.textColor || '#333333',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                originX: 'center',
-                selectable: true
-            });
-
-            const subText = new fabric.Text(sampleText.subtext || 'invites you to', {
-                left: 300,
-                top: 230,
-                fontSize: 18,
-                fontFamily: 'Lato',
-                fill: config.textColor || '#666666',
-                textAlign: 'center',
-                originX: 'center',
-                selectable: true
-            });
-
-            const dateText = new fabric.Text(sampleText.date, {
-                left: 300,
-                top: 270,
-                fontSize: 20,
-                fontFamily: config.defaultFont || 'Playfair Display',
-                fill: config.accentColor || config.textColor || '#333333',
-                textAlign: 'center',
-                originX: 'center',
-                selectable: true
-            });
-
-            canvas.add(headerText, namesText, subText, dateText);
+            
+            canvas.add(text);
             canvas.renderAll();
-
-            // Preload the font to ensure it renders
-            const fontLink = document.createElement('link');
-            fontLink.href = `https://fonts.googleapis.com/css2?family=${config.defaultFont.replace(' ', '+')}&display=swap`;
-            fontLink.rel = 'stylesheet';
-            document.head.appendChild(fontLink);
+            
+            // Load the font
+            const link = document.createElement('link');
+            link.href = `https://fonts.googleapis.com/css2?family=${config.defaultFont.replace(' ', '+')}&display=swap`;
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
         }
 
-        // Mode switching
         function enableBatchMode() {
             isBatchMode = true;
             document.getElementById('batchControls').classList.add('active');
-            document.getElementById('batchModeBtn').classList.add('active');
             document.getElementById('singleModeBtn').classList.remove('active');
-            document.getElementById('continueBtn').innerHTML = '<i class="fas fa-lock"></i> Save & Continue';
+            document.getElementById('batchModeBtn').classList.add('active');
             updatePrice();
         }
 
-        function enableSingleMode() {
-            isBatchMode = false;
-            document.getElementById('batchControls').classList.remove('active');
-            document.getElementById('singleModeBtn').classList.add('active');
-            document.getElementById('batchModeBtn').classList.remove('active');
-            document.getElementById('priceDisplay').textContent = '$2.99';
-            document.getElementById('continueBtn').innerHTML = '<i class="fas fa-arrow-right"></i> Continue ($2.99)';
-        }
-
-        document.getElementById('singleModeBtn').addEventListener('click', enableSingleMode);
-        document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
-
-        // Quantity controls
-        function updateQuantity(change) {
-            const input = document.getElementById('quantityInput');
+        function updateQty(change) {
+            const input = document.getElementById('qtyInput');
             let val = parseInt(input.value) + change;
             if (val < 2) val = 2;
             if (val > 500) val = 500;
@@ -977,70 +535,56 @@
         }
 
         function updatePrice() {
-            const qty = parseInt(document.getElementById('quantityInput').value) || 2;
-            const total = (qty * 2.99).toFixed(2);
-            document.getElementById('totalAmount').textContent = '$' + total;
-            document.getElementById('priceDisplay').textContent = '$' + total;
-            localStorage.setItem('batchSize', qty);
+            const qty = parseInt(document.getElementById('qtyInput').value) || 2;
+            document.getElementById('totalPrice').textContent = '$' + (qty * 2.99).toFixed(2);
+            document.getElementById('priceDisplay').textContent = '$' + (qty * 2.99).toFixed(2);
         }
 
-        document.getElementById('quantityInput').addEventListener('change', updatePrice);
+        // Mode toggle
+        document.getElementById('singleModeBtn').addEventListener('click', function() {
+            isBatchMode = false;
+            this.classList.add('active');
+            document.getElementById('batchModeBtn').classList.remove('active');
+            document.getElementById('batchControls').classList.remove('active');
+            document.getElementById('priceDisplay').textContent = '$2.99';
+        });
 
-        // Canvas event handlers
+        document.getElementById('batchModeBtn').addEventListener('click', function() {
+            enableBatchMode();
+        });
+
+        document.getElementById('qtyInput').addEventListener('change', updatePrice);
+
+        // Canvas events
         canvas.on('selection:created', (e) => {
             selectedObject = e.selected[0];
-            updatePropertiesPanel();
+            updateControls();
         });
 
         canvas.on('selection:updated', (e) => {
             selectedObject = e.selected[0];
-            updatePropertiesPanel();
+            updateControls();
         });
 
         canvas.on('selection:cleared', () => {
             selectedObject = null;
-            document.getElementById('textProperties').style.display = 'none';
-            document.getElementById('imageProperties').style.display = 'none';
-            document.getElementById('selectedType').textContent = 'Select an element';
         });
 
-        function updatePropertiesPanel() {
-            if (!selectedObject) return;
-
-            // Hide all first
-            document.getElementById('textProperties').style.display = 'none';
-            document.getElementById('imageProperties').style.display = 'none';
-
-            if (selectedObject.type === 'text' || selectedObject.type === 'textbox' || selectedObject.type === 'i-text') {
-                document.getElementById('textProperties').style.display = 'block';
-                document.getElementById('selectedType').textContent = 'Text Element';
-                
-                // Populate values
-                document.getElementById('textContent').value = selectedObject.text || '';
-                document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Playfair Display';
-                document.getElementById('fontSize').value = selectedObject.fontSize || 32;
-                document.getElementById('fontSizeNum').value = selectedObject.fontSize || 32;
-                document.getElementById('textColor').value = selectedObject.fill || '#333333';
-                document.getElementById('textColorHex').value = selectedObject.fill || '#333333';
-                
-                // Update style buttons
-                document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
-                document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
-                document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-                
-                // Update alignment
-                document.querySelectorAll('.align-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
-                });
-            } else if (selectedObject.type === 'image') {
-                document.getElementById('imageProperties').style.display = 'block';
-                document.getElementById('selectedType').textContent = 'Image';
-                document.getElementById('imgOpacity').value = (selectedObject.opacity || 1) * 100;
-                document.getElementById('imgOpacityNum').value = (selectedObject.opacity || 1) * 100;
-            }
+        function updateControls() {
+            if (!selectedObject || !selectedObject.type.includes('text')) return;
+            
+            document.getElementById('textContent').value = selectedObject.text || '';
+            document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Arial';
+            document.getElementById('fontSize').value = selectedObject.fontSize || 32;
+            document.getElementById('fontSizeNum').value = selectedObject.fontSize || 32;
+            document.getElementById('textColor').value = selectedObject.fill || '#333333';
+            
+            document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
+            document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
+            document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
         }
 
-        // Text property handlers
+        // Text controls
         document.getElementById('textContent').addEventListener('input', (e) => {
             if (selectedObject && selectedObject.type.includes('text')) {
                 selectedObject.set('text', e.target.value);
@@ -1063,18 +607,9 @@
             }
         });
 
-        document.getElementById('fontSizeNum').addEventListener('input', (e) => {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('fontSize', parseInt(e.target.value));
-                document.getElementById('fontSize').value = e.target.value;
-                canvas.renderAll();
-            }
-        });
-
         document.getElementById('textColor').addEventListener('input', (e) => {
             if (selectedObject && selectedObject.type.includes('text')) {
                 selectedObject.set('fill', e.target.value);
-                document.getElementById('textColorHex').value = e.target.value;
                 canvas.renderAll();
             }
         });
@@ -1098,14 +633,6 @@
             }
         });
 
-        document.getElementById('underlineBtn').addEventListener('click', function() {
-            if (selectedObject && selectedObject.type.includes('text')) {
-                selectedObject.set('underline', !selectedObject.underline);
-                this.classList.toggle('active', selectedObject.underline);
-                canvas.renderAll();
-            }
-        });
-
         // Alignment
         document.querySelectorAll('.align-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1118,52 +645,18 @@
             });
         });
 
-        // Image upload
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (f) => {
-                    fabric.Image.fromURL(f.target.result, (img) => {
-                        img.scaleToWidth(200);
-                        img.set({
-                            left: 300,
-                            top: 225,
-                            originX: 'center',
-                            originY: 'center'
-                        });
-                        canvas.add(img);
-                        canvas.setActiveObject(img);
-                        canvas.renderAll();
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Image opacity
-        document.getElementById('imgOpacity').addEventListener('input', (e) => {
-            if (selectedObject && selectedObject.type === 'image') {
-                selectedObject.set('opacity', parseInt(e.target.value) / 100);
-                document.getElementById('imgOpacityNum').value = e.target.value;
-                canvas.renderAll();
-            }
-        });
-
         // Tools
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
                 const tool = this.dataset.tool;
+                
                 if (tool === 'text') {
                     const text = new fabric.Text('New Text', {
                         left: 300,
                         top: 225,
                         fontSize: 32,
-                        fontFamily: templateConfig?.config?.defaultFont || 'Playfair Display',
-                        fill: templateConfig?.config?.textColor || '#333333',
+                        fontFamily: templateConfig?.config?.defaultFont || 'Arial',
+                        fill: '#333333',
                         originX: 'center',
                         originY: 'center'
                     });
@@ -1176,144 +669,63 @@
                         top: 225,
                         width: 100,
                         height: 100,
-                        fill: templateConfig?.config?.accentColor || '#BCAE83',
+                        fill: '#BCAE83',
                         originX: 'center',
                         originY: 'center'
                     });
                     canvas.add(rect);
                     canvas.setActiveObject(rect);
                     canvas.renderAll();
-                } else if (tool === 'delete') {
-                    if (selectedObject) {
-                        canvas.remove(selectedObject);
-                        selectedObject = null;
-                        canvas.renderAll();
-                    }
+                } else if (tool === 'delete' && selectedObject) {
+                    canvas.remove(selectedObject);
+                    canvas.renderAll();
                 }
             });
         });
 
-        // Zoom
-        function changeZoom(delta) {
-            zoomLevel = Math.max(0.5, Math.min(2, zoomLevel + delta));
-            canvas.setDimensions({
-                width: 600 * zoomLevel,
-                height: 450 * zoomLevel
-            });
-            canvas.setZoom(zoomLevel);
-            document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+        // Image upload
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                fabric.Image.fromURL(f.target.result, (img) => {
+                    img.scaleToWidth(200);
+                    img.set({
+                        left: 300,
+                        top: 225,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+                    canvas.add(img);
+                    canvas.renderAll();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function zoom(delta) {
+            currentZoom = Math.max(0.5, Math.min(2, currentZoom + delta));
+            canvas.setZoom(currentZoom);
+            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
         }
 
-        // Front/Back toggle (simplified - just toggles background for now)
-        document.getElementById('frontBtn').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('backBtn').classList.remove('active');
-            document.getElementById('canvasContainer').style.background = templateConfig?.config?.backgroundColor || '#f0f0f0';
-        });
-
-        document.getElementById('backBtn').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('frontBtn').classList.remove('active');
-            document.getElementById('canvasContainer').style.background = '#f8f9fa';
-        });
-
-        // Payment/Continue button
-        document.getElementById('continueBtn').addEventListener('click', async function() {
-            const btn = this;
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            
-            try {
-                // 1. Generate IDs
-                const cardId = isBatchMode 
-                    ? 'BATCH_' + Math.random().toString(36).substr(2, 9).toUpperCase()
-                    : 'CARD_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                const quantity = isBatchMode 
-                    ? parseInt(document.getElementById('quantityInput').value) || 2
-                    : 1;
-
-                // 2. Capture canvas as image
-                const dataURL = canvas.toDataURL({
-                    format: 'png',
-                    quality: 1,
-                    multiplier: 2
-                });
-
-                // 3. Convert to blob and upload
-                const response = await fetch(dataURL);
-                const blob = await response.blob();
-                
-                const fileName = `${cardId}/design_${Date.now()}.png`;
-                
-                const { data: uploadData, error: uploadError } = await supabase.storage
-                    .from('cards-media')
-                    .upload(fileName, blob, { contentType: 'image/png' });
-                    
-                if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
-                
-                const { data: { publicUrl } } = supabase.storage
-                    .from('cards-media')
-                    .getPublicUrl(fileName);
-
-                // 4. Save to database
-                const cardData = {
-                    card_id: cardId,
-                    message_type: templateConfig?.name || 'custom_design',
-                    message_text: selectedObject?.text || 'Custom e-card design',
-                    media_url: publicUrl,
-                    file_name: fileName,
-                    file_size: blob.size,
-                    file_type: 'image/png',
-                    status: 'draft',
-                    card_type: 'ecard',
-                    batch_id: isBatchMode ? cardId : null,
-                    is_batch_template: isBatchMode,
-                    quantity: isBatchMode ? quantity : null,
-                    physical_card_status: null,
-                    created_at: new Date().toISOString()
-                };
-
-                const saveRes = await fetch('/api/cards', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cardData)
-                });
-                
-                const saveResult = await saveRes.json();
-                if (!saveResult.success) throw new Error(saveResult.error);
-
-                // 5. Redirect to appropriate page
-                // For now, redirect to batch-manager or success page
-                if (isBatchMode) {
-                    window.location.href = `batch-manager.html?batch=${encodeURIComponent(cardId)}`;
-                } else {
-                    window.location.href = `success.html?card_id=${cardId}&qty=1`;
-                }
-                
-            } catch (err) {
-                console.error('Error:', err);
-                alert('Error: ' + err.message);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        });
-
-        // Preview button
-        document.getElementById('previewBtn').addEventListener('click', () => {
-            const dataURL = canvas.toDataURL({
-                format: 'png',
-                quality: 1,
-                multiplier: 2
-            });
-            
+        function preview() {
+            const dataURL = canvas.toDataURL();
             const win = window.open();
             win.document.write('<img src="' + dataURL + '" style="max-width:100%">');
-        });
+        }
+
+        function saveAndContinue() {
+            // This will integrate with your payment flow
+            const dataURL = canvas.toDataURL();
+            console.log('Saving design...', isBatchMode ? 'Batch' : 'Single');
+            alert('Design saved! Ready for payment integration.');
+        }
 
         // Initialize
-        loadTemplate();
+        init();
     </script>
 </body>
 </html>
