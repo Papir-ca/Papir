@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Your Template | Papir E-Cards</title>
+    <title>Choose Your Design | Papir E-Cards</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -44,6 +45,35 @@
             color: #f0f0f0;
         }
         
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px;
+            border-radius: 50px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px 25px;
+            border: none;
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            color: #764ba2;
+        }
+        
         .filter-bar {
             display: flex;
             justify-content: center;
@@ -72,133 +102,760 @@
         
         .template-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 30px;
             margin-top: 30px;
         }
         
         .template-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
+            position: relative;
         }
         
         .template-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
         
-        .template-preview {
-            height: 200px;
-            background-size: cover;
-            background-position: center;
+        /* Category-specific preview styles – original + new */
+        .preview-container {
+            height: 220px;
             position: relative;
+            overflow: hidden;
         }
         
-        /* Template-specific preview backgrounds */
-        .preview-wedding-lace {
+        /* Wedding Templates (existing + new) */
+        .preview-wedding-elegant {
             background: linear-gradient(135deg, #FFF9F0 0%, #F5E6D3 100%);
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
-        .preview-wedding-lace::after {
-            content: "♡";
-            font-size: 60px;
+        .preview-wedding-elegant::before {
+            content: "";
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 2px solid #D4AF37;
+            opacity: 0.5;
+        }
+        .preview-wedding-elegant h3 {
+            font-family: 'Playfair Display', serif;
             color: #D4AF37;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.3;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .preview-wedding-elegant p {
+            font-family: 'Cormorant Garamond', serif;
+            color: #666;
+            font-style: italic;
         }
         
-        .preview-wedding-geometric {
-            background: linear-gradient(45deg, #FFFFFF 25%, #F5F5F5 25%, #F5F5F5 50%, #FFFFFF 50%, #FFFFFF 75%, #F5F5F5 75%);
-            background-size: 20px 20px;
+        .preview-wedding-modern {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .preview-wedding-modern h3 {
+            color: #2C3E50;
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .preview-wedding-modern .line {
+            width: 60px;
+            height: 2px;
+            background: #E74C3C;
+            margin: 15px 0;
         }
         
-        .preview-wedding-botanical {
-            background: linear-gradient(135deg, #F5F0E6 0%, #E8DCCC 100%);
+        .preview-wedding-floral {
+            background: linear-gradient(135deg, #F5F0E6 0%, #E8E0D5 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
             position: relative;
         }
-        .preview-wedding-botanical::after {
-            content: "🌿";
-            font-size: 50px;
+        .preview-wedding-floral::after {
+            content: "❀";
+            position: absolute;
+            font-size: 100px;
             color: #7C9D8E;
-            position: absolute;
+            opacity: 0.15;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            opacity: 0.4;
+        }
+        .preview-wedding-floral h3 {
+            font-family: 'Parisienne', cursive;
+            color: #5D7B6F;
+            font-size: 2.2rem;
+            z-index: 1;
         }
         
-        .preview-romantic {
+        .preview-wedding-rustic {
+            background: #F4F1EA;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #5D4037;
+            border: 2px dashed #8B4513;
+            font-family: 'Dancing Script', cursive;
+        }
+        .preview-wedding-rustic h3 { font-size: 1.6rem; }
+        
+        .preview-wedding-beach {
+            background: linear-gradient(135deg, #F0F8FF 0%, #87CEEB 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2F4F4F;
+        }
+        .preview-wedding-beach::before {
+            content: "🐚";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Birthday Templates (existing + new) */
+        .preview-birthday-fun {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-birthday-fun h3 {
+            font-family: 'Pacifico', cursive;
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .preview-birthday-fun .balloons {
+            font-size: 3rem;
+            margin-top: 10px;
+        }
+        
+        .preview-birthday-elegant {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-birthday-elegant h3 {
+            font-family: 'Cinzel', serif;
+            color: #F39C12;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
+        
+        .preview-birthday-kids {
+            background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-birthday-kids h3 {
+            font-family: 'Comic Sans MS', cursive;
+            color: white;
+            font-size: 2rem;
+        }
+        .preview-birthday-kids .stars {
+            color: #FFD166;
+            font-size: 2rem;
+            letter-spacing: 5px;
+        }
+        
+        .preview-birthday-female {
+            background: linear-gradient(135deg, #FFF0F5 0%, #FFC0CB 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #DB7093;
+        }
+        .preview-birthday-female::before {
+            content: "💅";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-birthday-masculine {
+            background: linear-gradient(135deg, #3E2723 0%, #5D4037 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #D7CCC8;
+            font-family: 'Cinzel', serif;
+        }
+        .preview-birthday-masculine::before {
+            content: "🥃";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Save the Date (existing + new) */
+        .preview-savethedate-romantic {
             background: linear-gradient(135deg, #FCE4EC 0%, #F8BBD9 100%);
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
-        .preview-romantic::after {
-            content: "❤️";
-            font-size: 50px;
+        .preview-savethedate-romantic h3 {
+            font-family: 'Great Vibes', cursive;
             color: #880E4F;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.3;
+            font-size: 2.5rem;
         }
         
-        .preview-modern {
-            background: linear-gradient(135deg, #F5F5F5 0%, #E0E0E0 100%);
+        .preview-savethedate-minimal {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            border: 3px solid #000;
+        }
+        .preview-savethedate-minimal h3 {
+            font-family: 'Helvetica Neue', sans-serif;
+            color: #000;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+        }
+        
+        .preview-savethedate-photo {
+            background: #FAFAFA;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #1F2937;
             position: relative;
         }
-        .preview-modern::after {
-            content: "◆";
-            font-size: 60px;
+        .preview-savethedate-photo::before {
+            content: "📷";
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+        
+        .preview-savethedate-calendar {
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
             color: #333;
+            border: 1px solid #E0E0E0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .preview-savethedate-calendar::before {
+            content: "📅";
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Thank You (existing + new) */
+        .preview-thankyou-classic {
+            background: linear-gradient(135deg, #FDFBF7 0%, #F5F0E6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-thankyou-classic h3 {
+            font-family: 'Alex Brush', cursive;
+            color: #8B7355;
+            font-size: 2.5rem;
+        }
+        
+        .preview-thankyou-floral {
+            background: linear-gradient(135deg, #F8F9FA 0%, #FFF5F5 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #495057;
+            position: relative;
+        }
+        .preview-thankyou-floral::after {
+            content: "🌸";
             position: absolute;
+            font-size: 80px;
+            opacity: 0.1;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            opacity: 0.2;
+        }
+        
+        .preview-thankyou-business {
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2C3E50;
+            border: 2px solid #2C3E50;
+            font-family: 'Lato', sans-serif;
+        }
+        
+        .preview-thankyou-baby {
+            background: linear-gradient(135deg, #E6F3FF 0%, #F0F8FF 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #5D8AA8;
+        }
+        
+        /* Anniversary (existing + new) */
+        .preview-anniversary-gold {
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-anniversary-gold h3 {
+            font-family: 'Cinzel', serif;
+            color: #D4AF37;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+        }
+        .preview-anniversary-gold .years {
+            color: #FFF;
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-top: 10px;
+        }
+        
+        .preview-anniversary-silver {
+            background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #71797E;
+            border: 3px double #C0C0C0;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .preview-anniversary-vow {
+            background: linear-gradient(135deg, #FFF5F8 0%, #FCE7F3 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #C71585;
+            font-family: 'Parisienne', cursive;
+        }
+        
+        .preview-anniversary-casual {
+            background: #FFF8DC;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #8B4513;
+            border: 2px dashed #DEB887;
+            font-family: 'Dancing Script', cursive;
+        }
+        
+        /* Graduation */
+        .preview-graduation-classic {
+            background: linear-gradient(135deg, #1E3A8A 0%, #FFD700 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-family: 'Cinzel', serif;
+        }
+        .preview-graduation-classic h3 { color: #FFD700; font-size: 2rem; }
+        .preview-graduation-classic::before {
+            content: "🎓";
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-graduation-modern {
+            background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .preview-graduation-modern h3 { font-size: 1.8rem; font-weight: 700; letter-spacing: 2px; }
+        
+        .preview-graduation-photo {
+            background: #F3F4F6;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            border: 3px solid #374151;
+        }
+        .preview-graduation-photo h3 { color: #1F2937; font-family: 'Lato', sans-serif; }
+        
+        .preview-graduation-kids {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #92400E;
+        }
+        .preview-graduation-kids::before {
+            content: "🌟";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Baby */
+        .preview-baby-shower-neutral {
+            background: linear-gradient(135deg, #F0FFF4 0%, #F6FFFE 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2F855A;
+            border: 2px dashed #9AE6B4;
+        }
+        .preview-baby-shower-neutral::before {
+            content: "🍼";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-baby-shower-pink {
+            background: linear-gradient(135deg, #FFF5F7 0%, #FED7E2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #B83280;
+        }
+        .preview-baby-shower-pink::before {
+            content: "👑";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-baby-shower-blue {
+            background: linear-gradient(135deg, #EBF8FF 0%, #BEE3F8 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2B6CB0;
+        }
+        .preview-baby-shower-blue::before {
+            content: "🧸";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-baby-announcement {
+            background: #FFFBF0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #744210;
+            border: 1px solid #D69E2E;
+        }
+        
+        /* Holiday */
+        .preview-holiday-christmas {
+            background: linear-gradient(135deg, #742A2A 0%, #276749 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #FBD38D;
+            font-family: 'Playfair Display', serif;
+        }
+        .preview-holiday-christmas::before {
+            content: "🎄";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-holiday-newyear {
+            background: linear-gradient(135deg, #1A202C 0%, #2D3748 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #F6E05E;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .preview-holiday-newyear::before {
+            content: "🎉";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-holiday-thanksgiving {
+            background: linear-gradient(135deg, #7B341E 0%, #C05621 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #FBD38D;
+        }
+        .preview-holiday-thanksgiving::before {
+            content: "🦃";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-holiday-generic {
+            background: linear-gradient(135deg, #EBF8FF 0%, #90CDF4 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2C5282;
+        }
+        .preview-holiday-generic::before {
+            content: "❄️";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Congratulations */
+        .preview-congrats-promotion {
+            background: linear-gradient(135deg, #2C5282 0%, #2A4365 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #F6E05E;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .preview-congrats-achievement {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-family: 'Pacifico', cursive;
+        }
+        
+        .preview-congrats-retirement {
+            background: #F7FAFC;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #744210;
+            border: 3px double #D69E2E;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .preview-congrats-newhome {
+            background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #2F855A;
+        }
+        .preview-congrats-newhome::before {
+            content: "🏡";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Get Well / Sympathy */
+        .preview-getwell-soon {
+            background: linear-gradient(135deg, #FFF5F5 0%, #FED7D7 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #C53030;
+        }
+        .preview-getwell-soon::before {
+            content: "💐";
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .preview-sympathy-elegant {
+            background: #F7FAFC;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #4A5568;
+            border: 1px solid #A0AEC0;
+            font-family: 'Cormorant Garamond', serif;
+        }
+        
+        .preview-encouragement {
+            background: linear-gradient(135deg, #FFFAF0 0%, #FEEBC8 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #C05621;
+        }
+        .preview-encouragement::before {
+            content: "💪";
+            font-size: 3rem;
+            margin-bottom: 10px;
         }
         
         .template-info {
-            padding: 20px;
+            padding: 25px;
+        }
+        
+        .template-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
         .template-category {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #764ba2;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+        
+        .template-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #06D6A0;
         }
         
         .template-name {
             font-size: 1.4rem;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .template-description {
             color: #666;
             font-size: 0.95rem;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             line-height: 1.5;
         }
         
-        .template-price {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #06D6A0;
-            margin-bottom: 15px;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
         }
         
-        .customize-btn {
-            width: 100%;
+        .btn-use {
+            flex: 1;
             padding: 12px;
             background: linear-gradient(to right, #667eea, #764ba2);
             color: white;
@@ -210,8 +867,45 @@
             transition: opacity 0.3s;
         }
         
-        .customize-btn:hover {
+        .btn-use:hover {
             opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-preview {
+            padding: 12px 15px;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-preview:hover {
+            background: #e0e0e0;
+        }
+        
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        
+        .badge-popular {
+            background: #FF6B6B;
+            color: white;
+        }
+        
+        .badge-new {
+            background: #06D6A0;
+            color: #1a1a2e;
         }
         
         .back-button {
@@ -234,166 +928,1173 @@
             background: rgba(255, 255, 255, 0.2);
         }
         
-        /* CSP‑safe button styles */
-        .use-template-btn, .preview-btn {
-            cursor: pointer;
-        }
-        
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .template-grid { grid-template-columns: 1fr; }
+            .mode-toggle { flex-direction: column; border-radius: 15px; }
         }
     </style>
 </head>
 <body>
     <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Home
+        <i class="fas fa-arrow-left"></i> Back
     </a>
     
     <div class="container">
         <header>
-            <h1>✨ Choose Your Template</h1>
-            <p class="subtitle">Select a beautiful design to personalize for your special occasion</p>
+            <h1>🎨 Choose Your Design</h1>
+            <p class="subtitle">Select a style, personalize it, and send instantly</p>
         </header>
         
+        <!-- Mode Toggle: Single vs Batch -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="singleModeBtn">
+                <i class="fas fa-heart"></i> Single Card ($2.99)
+            </button>
+            <button class="mode-btn" id="batchModeBtn">
+                <i class="fas fa-layer-group"></i> Batch (2-500) <span id="batchPricePreview"></span>
+            </button>
+        </div>
+        
         <div class="filter-bar">
-            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn active" data-filter="all">All Designs</button>
             <button class="filter-btn" data-filter="wedding">Wedding</button>
-            <button class="filter-btn" data-filter="save-the-date">Save the Date</button>
             <button class="filter-btn" data-filter="birthday">Birthday</button>
+            <button class="filter-btn" data-filter="savethedate">Save the Date</button>
+            <button class="filter-btn" data-filter="thankyou">Thank You</button>
             <button class="filter-btn" data-filter="anniversary">Anniversary</button>
+            <button class="filter-btn" data-filter="graduation">Graduation</button>
+            <button class="filter-btn" data-filter="baby">Baby</button>
+            <button class="filter-btn" data-filter="holiday">Holiday</button>
+            <button class="filter-btn" data-filter="congratulations">Congrats</button>
+            <button class="filter-btn" data-filter="getwell">Get Well</button>
         </div>
         
         <div class="template-grid" id="templateGrid">
-            <!-- Templates will be loaded here via JavaScript -->
-            <div class="loading">Loading templates...</div>
+            <!-- Templates injected via JS -->
         </div>
     </div>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600&family=Parisienne&family=Pacifico&family=Cinzel:wght@400;700&family=Great+Vibes&family=Alex+Brush&family=Dancing+Script:wght@400;700&family=Quicksand:wght@300;400;600&family=Lato:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     
     <script>
-        const SUPABASE_URL = 'https://elmhkhvryjzljxskbfps.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbWhraHZyeWp6bGp4c2tiZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDc3NjMsImV4cCI6MjA4NDAyMzc2M30.Orrh2Pejnt3KPJMTUTmRRkhCwtZVfjUreKvX546bOcw';
-        
-        // Global state
-        let templates = [];
-        let currentFilter = 'all';
-        let currentFlow = 'single'; // 'single' or 'batch'
-        
-        async function loadTemplates() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/templates?select=*&is_active=eq.true`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
+        // Template database with actual design configurations – EXPANDED VERSION (48 templates)
+        const templates = [
+            // ==================== WEDDING (5 templates) ====================
+            {
+                id: 'wedding-elegant',
+                category: 'wedding',
+                categoryDisplay: 'Wedding',
+                name: 'Classic Gold',
+                description: 'Timeless gold accents with serif elegance for traditional celebrations.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-wedding-elegant',
+                config: {
+                    backgroundColor: '#FFF9F0',
+                    borderColor: '#D4AF37',
+                    borderWidth: 3,
+                    borderStyle: 'double',
+                    defaultFont: 'Playfair Display',
+                    textColor: '#2C3E50',
+                    accentColor: '#D4AF37',
+                    layout: 'classic-names',
+                    sampleText: {
+                        header: 'Together with their families',
+                        names: 'Alexandra & Michael',
+                        subtext: 'request the pleasure of your company',
+                        date: 'June 15, 2026'
                     }
-                });
-                
-                templates = await response.json();
-                renderTemplates();
-            } catch (error) {
-                console.error('Error loading templates:', error);
-                document.getElementById('templateGrid').innerHTML = '<p>Error loading templates</p>';
+                }
+            },
+            {
+                id: 'wedding-modern',
+                category: 'wedding',
+                categoryDisplay: 'Wedding',
+                name: 'Modern Minimal',
+                description: 'Clean typography with contemporary sans-serif and bold geometry.',
+                price: 299,
+                previewClass: 'preview-wedding-modern',
+                config: {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    defaultFont: 'Montserrat',
+                    textColor: '#2C3E50',
+                    accentColor: '#E74C3C',
+                    layout: 'modern-centered',
+                    sampleText: {
+                        header: 'WE INVITE YOU',
+                        names: 'JESSICA + DAVID',
+                        subtext: 'are getting married',
+                        date: 'SEPTEMBER 12, 2026'
+                    }
+                }
+            },
+            {
+                id: 'wedding-floral',
+                category: 'wedding',
+                categoryDisplay: 'Wedding',
+                name: 'Botanical Garden',
+                description: 'Soft sage greens with flowing script and natural elements.',
+                price: 299,
+                isNew: true,
+                previewClass: 'preview-wedding-floral',
+                config: {
+                    backgroundColor: '#F5F0E6',
+                    borderColor: '#7C9D8E',
+                    borderWidth: 2,
+                    borderStyle: 'solid',
+                    defaultFont: 'Parisienne',
+                    textColor: '#5D7B6F',
+                    accentColor: '#7C9D8E',
+                    layout: 'floral-script',
+                    sampleText: {
+                        header: 'love is blooming',
+                        names: 'Emma & Oliver',
+                        subtext: 'request the pleasure of your company',
+                        date: 'May 20, 2026'
+                    }
+                }
+            },
+            {
+                id: 'wedding-rustic',
+                category: 'wedding',
+                categoryDisplay: 'Wedding',
+                name: 'Rustic Barn',
+                description: 'Kraft paper textures with handwritten charm and twine accents.',
+                price: 299,
+                previewClass: 'preview-wedding-rustic',
+                config: {
+                    backgroundColor: '#F4F1EA',
+                    borderColor: '#8B4513',
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    defaultFont: 'Dancing Script',
+                    textColor: '#5D4037',
+                    accentColor: '#8B4513',
+                    layout: 'rustic-handwritten',
+                    sampleText: {
+                        header: 'We\'re tying the knot!',
+                        names: 'Hannah & Jake',
+                        subtext: 'join us for a barn celebration',
+                        date: 'October 3, 2026'
+                    }
+                }
+            },
+            {
+                id: 'wedding-beach',
+                category: 'wedding',
+                categoryDisplay: 'Wedding',
+                name: 'Coastal Breeze',
+                description: 'Ocean blues and sandy neutrals for destination weddings.',
+                price: 299,
+                previewClass: 'preview-wedding-beach',
+                config: {
+                    backgroundColor: '#F0F8FF',
+                    borderColor: '#4682B4',
+                    borderWidth: 0,
+                    defaultFont: 'Quicksand',
+                    textColor: '#2F4F4F',
+                    accentColor: '#4682B4',
+                    layout: 'coastal-watercolor',
+                    sampleText: {
+                        header: 'Mermaids & Mariners',
+                        names: 'Sandy & Reef',
+                        subtext: 'invite you to their beach wedding',
+                        date: 'July 8, 2026'
+                    }
+                }
+            },
+
+            // ==================== BIRTHDAY (5 templates) ====================
+            {
+                id: 'birthday-fun',
+                category: 'birthday',
+                categoryDisplay: 'Birthday',
+                name: 'Party Popper',
+                description: 'Vibrant coral and yellow gradient with playful balloon accents.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-birthday-fun',
+                config: {
+                    backgroundColor: '#FF6B6B',
+                    gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%)',
+                    borderColor: '#FFF',
+                    borderWidth: 0,
+                    defaultFont: 'Pacifico',
+                    textColor: '#FFFFFF',
+                    accentColor: '#FFD166',
+                    layout: 'fun-celebration',
+                    sampleText: {
+                        header: 'Let\'s Celebrate!',
+                        names: 'Happy Birthday',
+                        subtext: 'Join us for a party',
+                        date: 'Saturday, March 15th'
+                    }
+                }
+            },
+            {
+                id: 'birthday-elegant',
+                category: 'birthday',
+                categoryDisplay: 'Birthday',
+                name: 'Milestone Gold',
+                description: 'Sophisticated navy with gold foil for milestone celebrations.',
+                price: 299,
+                previewClass: 'preview-birthday-elegant',
+                config: {
+                    backgroundColor: '#2C3E50',
+                    borderColor: '#F39C12',
+                    borderWidth: 2,
+                    defaultFont: 'Cinzel',
+                    textColor: '#F39C12',
+                    accentColor: '#FFF',
+                    layout: 'milestone',
+                    sampleText: {
+                        header: 'CELEBRATING',
+                        names: '50 YEARS',
+                        subtext: 'You are cordially invited',
+                        date: 'November 8, 2026'
+                    }
+                }
+            },
+            {
+                id: 'birthday-kids',
+                category: 'birthday',
+                categoryDisplay: 'Birthday',
+                name: 'Superhero Kids',
+                description: 'Bold primary colors perfect for little heroes ages 3-10.',
+                price: 299,
+                isNew: true,
+                previewClass: 'preview-birthday-kids',
+                config: {
+                    backgroundColor: '#06D6A0',
+                    gradient: 'linear-gradient(135deg, #06D6A0 0%, #118AB2 100%)',
+                    borderColor: '#FFD166',
+                    borderWidth: 3,
+                    borderStyle: 'dashed',
+                    defaultFont: 'Comic Sans MS',
+                    textColor: '#FFFFFF',
+                    accentColor: '#FFD166',
+                    layout: 'kids-party',
+                    sampleText: {
+                        header: 'Calling All Heroes!',
+                        names: 'Tyler is Turning 5!',
+                        subtext: 'Cake, games & fun!',
+                        date: 'April 22, 2026'
+                    }
+                }
+            },
+            {
+                id: 'birthday-female',
+                category: 'birthday',
+                categoryDisplay: 'Birthday',
+                name: 'Chic & Fabulous',
+                description: 'Rose gold and blush for her special day.',
+                price: 299,
+                previewClass: 'preview-birthday-female',
+                config: {
+                    backgroundColor: '#FFF0F5',
+                    borderColor: '#FFB6C1',
+                    borderWidth: 2,
+                    defaultFont: 'Great Vibes',
+                    textColor: '#DB7093',
+                    accentColor: '#FF69B4',
+                    layout: 'feminine-elegant',
+                    sampleText: {
+                        header: 'Cheers to Another Year',
+                        names: 'Sarah\'s 30th',
+                        subtext: 'Join us for cocktails & cake',
+                        date: 'Friday, August 14th'
+                    }
+                }
+            },
+            {
+                id: 'birthday-masculine',
+                category: 'birthday',
+                categoryDisplay: 'Birthday',
+                name: 'Vintage Whiskey',
+                description: 'Leather textures and amber tones for the distinguished gentleman.',
+                price: 299,
+                previewClass: 'preview-birthday-masculine',
+                config: {
+                    backgroundColor: '#3E2723',
+                    borderColor: '#D7CCC8',
+                    borderWidth: 1,
+                    defaultFont: 'Cinzel',
+                    textColor: '#D7CCC8',
+                    accentColor: '#FFECB3',
+                    layout: 'vintage-masculine',
+                    sampleText: {
+                        header: 'Aged to Perfection',
+                        names: 'Robert\'s 60th',
+                        subtext: 'Cigars & spirits celebration',
+                        date: 'Saturday, June 20th'
+                    }
+                }
+            },
+
+            // ==================== SAVE THE DATE (4 templates) ====================
+            {
+                id: 'savethedate-romantic',
+                category: 'savethedate',
+                categoryDisplay: 'Save the Date',
+                name: 'Rose Garden',
+                description: 'Soft blush pinks with flowing romantic script typography.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-savethedate-romantic',
+                config: {
+                    backgroundColor: '#FCE4EC',
+                    borderColor: '#F48FB1',
+                    borderWidth: 1,
+                    defaultFont: 'Great Vibes',
+                    textColor: '#880E4F',
+                    accentColor: '#AD1457',
+                    layout: 'savethedate-classic',
+                    sampleText: {
+                        header: 'Save the Date',
+                        names: 'Sarah & James',
+                        subtext: 'are tying the knot',
+                        date: 'August 14, 2026'
+                    }
+                }
+            },
+            {
+                id: 'savethedate-minimal',
+                category: 'savethedate',
+                categoryDisplay: 'Save the Date',
+                name: 'Bold Modern',
+                description: 'High contrast black and white for contemporary couples.',
+                price: 299,
+                previewClass: 'preview-savethedate-minimal',
+                config: {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#000000',
+                    borderWidth: 3,
+                    defaultFont: 'Helvetica Neue',
+                    textColor: '#000000',
+                    accentColor: '#666666',
+                    layout: 'minimal-bold',
+                    sampleText: {
+                        header: 'SAVE THE DATE',
+                        names: 'MIA & ETHAN',
+                        subtext: 'more details coming soon',
+                        date: '10.24.2026'
+                    }
+                }
+            },
+            {
+                id: 'savethedate-photo',
+                category: 'savethedate',
+                categoryDisplay: 'Save the Date',
+                name: 'Photo Ready',
+                description: 'Clean layout designed to showcase your engagement photo.',
+                price: 299,
+                previewClass: 'preview-savethedate-photo',
+                config: {
+                    backgroundColor: '#FAFAFA',
+                    borderColor: '#333',
+                    borderWidth: 0,
+                    defaultFont: 'Montserrat',
+                    textColor: '#FFFFFF',
+                    accentColor: '#FFFFFF',
+                    layout: 'photo-overlay',
+                    sampleText: {
+                        header: 'WE\'RE ENGAGED',
+                        names: 'Lisa & Mark',
+                        subtext: 'Save the Date',
+                        date: 'June 12, 2026'
+                    }
+                }
+            },
+            {
+                id: 'savethedate-calendar',
+                category: 'savethedate',
+                categoryDisplay: 'Save the Date',
+                name: 'Calendar Card',
+                description: 'Calendar graphic design highlighting your special date.',
+                price: 299,
+                isNew: true,
+                previewClass: 'preview-savethedate-calendar',
+                config: {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E0E0E0',
+                    borderWidth: 1,
+                    defaultFont: 'Roboto',
+                    textColor: '#333333',
+                    accentColor: '#E74C3C',
+                    layout: 'calendar-graphic',
+                    sampleText: {
+                        header: 'MARK YOUR CALENDAR',
+                        names: 'JUN 12',
+                        subtext: 'Emma & Noah',
+                        date: 'Saturday, 2026'
+                    }
+                }
+            },
+
+            // ==================== THANK YOU (4 templates) ====================
+            {
+                id: 'thankyou-classic',
+                category: 'thankyou',
+                categoryDisplay: 'Thank You',
+                name: 'Classic Script',
+                description: 'Elegant handwritten style with cream parchment look.',
+                price: 299,
+                previewClass: 'preview-thankyou-classic',
+                config: {
+                    backgroundColor: '#FDFBF7',
+                    borderColor: '#D4AF37',
+                    borderWidth: 1,
+                    defaultFont: 'Alex Brush',
+                    textColor: '#8B7355',
+                    accentColor: '#5D4E37',
+                    layout: 'thankyou-vertical',
+                    sampleText: {
+                        header: 'Thank You',
+                        names: 'from the bottom of our hearts',
+                        subtext: 'Your generosity means the world',
+                        date: 'With gratitude, The Johnsons'
+                    }
+                }
+            },
+            {
+                id: 'thankyou-floral',
+                category: 'thankyou',
+                categoryDisplay: 'Thank You',
+                name: 'Floral Gratitude',
+                description: 'Watercolor florals with modern calligraphy.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-thankyou-floral',
+                config: {
+                    backgroundColor: '#F8F9FA',
+                    borderColor: '#E9ECEF',
+                    borderWidth: 0,
+                    defaultFont: 'Allura',
+                    textColor: '#495057',
+                    accentColor: '#F4A261',
+                    layout: 'floral-watercolor',
+                    sampleText: {
+                        header: 'Thank You',
+                        names: 'for your kindness',
+                        subtext: 'Your thoughtfulness brightened our day',
+                        date: 'Gratefully, Marie & Tom'
+                    }
+                }
+            },
+            {
+                id: 'thankyou-business',
+                category: 'thankyou',
+                categoryDisplay: 'Thank You',
+                name: 'Professional',
+                description: 'Clean corporate style for business appreciation.',
+                price: 299,
+                previewClass: 'preview-thankyou-business',
+                config: {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#2C3E50',
+                    borderWidth: 2,
+                    defaultFont: 'Lato',
+                    textColor: '#2C3E50',
+                    accentColor: '#3498DB',
+                    layout: 'corporate-clean',
+                    sampleText: {
+                        header: 'THANK YOU',
+                        names: 'For Your Business',
+                        subtext: 'We appreciate your partnership',
+                        date: 'Best regards, Acme Corp'
+                    }
+                }
+            },
+            {
+                id: 'thankyou-baby',
+                category: 'thankyou',
+                categoryDisplay: 'Thank You',
+                name: 'Baby Thanks',
+                description: 'Soft pastels perfect for post-baby shower gratitude.',
+                price: 299,
+                previewClass: 'preview-thankyou-baby',
+                config: {
+                    backgroundColor: '#E6F3FF',
+                    borderColor: '#B8D4E3',
+                    borderWidth: 2,
+                    defaultFont: 'Quicksand',
+                    textColor: '#5D8AA8',
+                    accentColor: '#FF69B4',
+                    layout: 'baby-soft',
+                    sampleText: {
+                        header: 'Thank You',
+                        names: 'for the sweet gifts',
+                        subtext: 'Baby Emma is already spoiled!',
+                        date: 'Love, The Andersons'
+                    }
+                }
+            },
+
+            // ==================== ANNIVERSARY (4 templates) ====================
+            {
+                id: 'anniversary-gold',
+                category: 'anniversary',
+                categoryDisplay: 'Anniversary',
+                name: 'Golden Years',
+                description: 'Navy and gold celebration for milestone anniversaries.',
+                price: 299,
+                previewClass: 'preview-anniversary-gold',
+                config: {
+                    backgroundColor: '#1A1A2E',
+                    borderColor: '#D4AF37',
+                    borderWidth: 2,
+                    defaultFont: 'Cinzel',
+                    textColor: '#D4AF37',
+                    accentColor: '#FFFFFF',
+                    layout: 'anniversary-milestone',
+                    sampleText: {
+                        header: 'Celebrating',
+                        names: '25 Years',
+                        subtext: 'of love & laughter',
+                        date: 'June 15, 2026'
+                    }
+                }
+            },
+            {
+                id: 'anniversary-silver',
+                category: 'anniversary',
+                categoryDisplay: 'Anniversary',
+                name: 'Silver Romance',
+                description: 'Elegant silver and white for 25th anniversary.',
+                price: 299,
+                previewClass: 'preview-anniversary-silver',
+                config: {
+                    backgroundColor: '#F5F5F5',
+                    borderColor: '#C0C0C0',
+                    borderWidth: 3,
+                    borderStyle: 'double',
+                    defaultFont: 'Playfair Display',
+                    textColor: '#71797E',
+                    accentColor: '#A9A9A9',
+                    layout: 'silver-elegant',
+                    sampleText: {
+                        header: '25 Wonderful Years',
+                        names: 'Mary & John',
+                        subtext: 'Silver Anniversary Celebration',
+                        date: 'February 14, 2026'
+                    }
+                }
+            },
+            {
+                id: 'anniversary-vow',
+                category: 'anniversary',
+                categoryDisplay: 'Anniversary',
+                name: 'Vow Renewal',
+                description: 'Romantic design for couples renewing their vows.',
+                price: 299,
+                isNew: true,
+                previewClass: 'preview-anniversary-vow',
+                config: {
+                    backgroundColor: '#FFF5F8',
+                    borderColor: '#FFB7C5',
+                    borderWidth: 1,
+                    defaultFont: 'Parisienne',
+                    textColor: '#C71585',
+                    accentColor: '#FF1493',
+                    layout: 'vow-renewal',
+                    sampleText: {
+                        header: 'We Still Do',
+                        names: 'Jennifer & Michael',
+                        subtext: 'Vow Renewal Ceremony',
+                        date: 'July 20, 2026'
+                    }
+                }
+            },
+            {
+                id: 'anniversary-casual',
+                category: 'anniversary',
+                categoryDisplay: 'Anniversary',
+                name: 'Casual BBQ',
+                description: 'Relaxed style for casual anniversary gatherings.',
+                price: 299,
+                previewClass: 'preview-anniversary-casual',
+                config: {
+                    backgroundColor: '#FFF8DC',
+                    borderColor: '#DEB887',
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    defaultFont: 'Dancing Script',
+                    textColor: '#8B4513',
+                    accentColor: '#D2691E',
+                    layout: 'casual-party',
+                    sampleText: {
+                        header: '10 Years & Counting',
+                        names: 'Amy & Dave\'s BBQ',
+                        subtext: 'Food, friends & celebration',
+                        date: 'August 1, 2026'
+                    }
+                }
+            },
+
+            // ==================== GRADUATION (4 templates) ====================
+            {
+                id: 'graduation-classic',
+                category: 'graduation',
+                categoryDisplay: 'Graduation',
+                name: 'Cap & Gown',
+                description: 'Traditional academic style with school colors.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-graduation-classic',
+                config: {
+                    backgroundColor: '#1E3A8A',
+                    borderColor: '#FFD700',
+                    borderWidth: 3,
+                    defaultFont: 'Cinzel',
+                    textColor: '#FFD700',
+                    accentColor: '#FFFFFF',
+                    layout: 'academic-traditional',
+                    sampleText: {
+                        header: 'Class of 2026',
+                        names: 'Graduation Celebration',
+                        subtext: 'honoring Jessica Chen',
+                        date: 'May 15, 2026'
+                    }
+                }
+            },
+            {
+                id: 'graduation-modern',
+                category: 'graduation',
+                categoryDisplay: 'Graduation',
+                name: 'Future Forward',
+                description: 'Contemporary design for the next generation.',
+                price: 299,
+                previewClass: 'preview-graduation-modern',
+                config: {
+                    backgroundColor: '#10B981',
+                    gradient: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    defaultFont: 'Montserrat',
+                    textColor: '#FFFFFF',
+                    accentColor: '#FCD34D',
+                    layout: 'modern-grad',
+                    sampleText: {
+                        header: 'THE FUTURE IS BRIGHT',
+                        names: 'Marcus 2026',
+                        subtext: 'Grad Party',
+                        date: 'June 5th'
+                    }
+                }
+            },
+            {
+                id: 'graduation-photo',
+                category: 'graduation',
+                categoryDisplay: 'Graduation',
+                name: 'Photo Announcement',
+                description: 'Showcase the grad with clean photo layout.',
+                price: 299,
+                previewClass: 'preview-graduation-photo',
+                config: {
+                    backgroundColor: '#F3F4F6',
+                    borderColor: '#374151',
+                    borderWidth: 0,
+                    defaultFont: 'Lato',
+                    textColor: '#1F2937',
+                    accentColor: '#DC2626',
+                    layout: 'photo-announcement',
+                    sampleText: {
+                        header: 'GRADUATE',
+                        names: 'Emily Rodriguez',
+                        subtext: 'BS in Computer Science',
+                        date: 'Join us May 20th'
+                    }
+                }
+            },
+            {
+                id: 'graduation-kids',
+                category: 'graduation',
+                categoryDisplay: 'Graduation',
+                name: 'Little Graduate',
+                description: 'Cute design for kindergarten or elementary graduation.',
+                price: 299,
+                previewClass: 'preview-graduation-kids',
+                config: {
+                    backgroundColor: '#FEF3C7',
+                    borderColor: '#F59E0B',
+                    borderWidth: 2,
+                    borderStyle: 'dotted',
+                    defaultFont: 'Comic Sans MS',
+                    textColor: '#92400E',
+                    accentColor: '#F59E0B',
+                    layout: 'kids-graduation',
+                    sampleText: {
+                        header: 'I\'m a Graduate!',
+                        names: 'Tommy\'s Kindergarten',
+                        subtext: 'Moving up to First Grade',
+                        date: 'June 10, 2026'
+                    }
+                }
+            },
+
+            // ==================== BABY (4 templates) ====================
+            {
+                id: 'baby-shower-neutral',
+                category: 'baby',
+                categoryDisplay: 'Baby',
+                name: 'Gender Reveal',
+                description: 'Soft mint and yellow for surprise gender showers.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-baby-shower-neutral',
+                config: {
+                    backgroundColor: '#F0FFF4',
+                    borderColor: '#9AE6B4',
+                    borderWidth: 2,
+                    defaultFont: 'Quicksand',
+                    textColor: '#2F855A',
+                    accentColor: '#F6E05E',
+                    layout: 'baby-neutral',
+                    sampleText: {
+                        header: 'Baby Shower',
+                        names: 'Boy or Girl?',
+                        subtext: 'Help us celebrate',
+                        date: 'April 18, 2026'
+                    }
+                }
+            },
+            {
+                id: 'baby-shower-pink',
+                category: 'baby',
+                categoryDisplay: 'Baby',
+                name: 'Pretty in Pink',
+                description: 'Blush and rose gold for baby girl celebrations.',
+                price: 299,
+                previewClass: 'preview-baby-shower-pink',
+                config: {
+                    backgroundColor: '#FFF5F7',
+                    borderColor: '#F687B3',
+                    borderWidth: 2,
+                    defaultFont: 'Great Vibes',
+                    textColor: '#B83280',
+                    accentColor: '#F687B3',
+                    layout: 'baby-girl',
+                    sampleText: {
+                        header: 'A Little Princess',
+                        names: 'is on the way',
+                        subtext: 'Baby Shower for Jessica',
+                        date: 'March 22, 2026'
+                    }
+                }
+            },
+            {
+                id: 'baby-shower-blue',
+                category: 'baby',
+                categoryDisplay: 'Baby',
+                name: 'Baby Boy Blue',
+                description: 'Classic powder blue with silver accents.',
+                price: 299,
+                previewClass: 'preview-baby-shower-blue',
+                config: {
+                    backgroundColor: '#EBF8FF',
+                    borderColor: '#63B3ED',
+                    borderWidth: 2,
+                    defaultFont: 'Pacifico',
+                    textColor: '#2B6CB0',
+                    accentColor: '#90CDF4',
+                    layout: 'baby-boy',
+                    sampleText: {
+                        header: 'Oh Boy!',
+                        names: 'A Baby is Brewing',
+                        subtext: 'Shower for Amanda',
+                        date: 'May 3, 2026'
+                    }
+                }
+            },
+            {
+                id: 'baby-announcement',
+                category: 'baby',
+                categoryDisplay: 'Baby',
+                name: 'Birth Announcement',
+                description: 'Classic announcement style for new arrivals.',
+                price: 299,
+                previewClass: 'preview-baby-announcement',
+                config: {
+                    backgroundColor: '#FFFBF0',
+                    borderColor: '#D69E2E',
+                    borderWidth: 1,
+                    defaultFont: 'Cinzel',
+                    textColor: '#744210',
+                    accentColor: '#D69E2E',
+                    layout: 'announcement-classic',
+                    sampleText: {
+                        header: 'Introducing',
+                        names: 'Baby Olivia',
+                        subtext: 'Born March 1, 2026',
+                        date: '7 lbs 3 oz of joy'
+                    }
+                }
+            },
+
+            // ==================== HOLIDAY (4 templates) ====================
+            {
+                id: 'holiday-christmas',
+                category: 'holiday',
+                categoryDisplay: 'Holiday',
+                name: 'Classic Christmas',
+                description: 'Traditional red and green with gold accents.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-holiday-christmas',
+                config: {
+                    backgroundColor: '#742A2A',
+                    borderColor: '#FBD38D',
+                    borderWidth: 3,
+                    defaultFont: 'Playfair Display',
+                    textColor: '#FBD38D',
+                    accentColor: '#FFFFFF',
+                    layout: 'christmas-traditional',
+                    sampleText: {
+                        header: 'Merry Christmas',
+                        names: 'From the Wilsons',
+                        subtext: 'Wishing you joy this season',
+                        date: 'December 2026'
+                    }
+                }
+            },
+            {
+                id: 'holiday-newyear',
+                category: 'holiday',
+                categoryDisplay: 'Holiday',
+                name: 'New Year Bash',
+                description: 'Gold confetti and champagne celebration.',
+                price: 299,
+                previewClass: 'preview-holiday-newyear',
+                config: {
+                    backgroundColor: '#1A202C',
+                    borderColor: '#F6E05E',
+                    borderWidth: 2,
+                    defaultFont: 'Montserrat',
+                    textColor: '#F6E05E',
+                    accentColor: '#FFFFFF',
+                    layout: 'nye-party',
+                    sampleText: {
+                        header: 'Happy 2026!',
+                        names: 'New Year\'s Eve Party',
+                        subtext: 'Champagne & Countdown',
+                        date: 'December 31st'
+                    }
+                }
+            },
+            {
+                id: 'holiday-thanksgiving',
+                category: 'holiday',
+                categoryDisplay: 'Holiday',
+                name: 'Give Thanks',
+                description: 'Autumn colors and harvest theme.',
+                price: 299,
+                previewClass: 'preview-holiday-thanksgiving',
+                config: {
+                    backgroundColor: '#7B341E',
+                    borderColor: '#F6AD55',
+                    borderWidth: 2,
+                    defaultFont: 'Dancing Script',
+                    textColor: '#FBD38D',
+                    accentColor: '#C05621',
+                    layout: 'thanksgiving-autumn',
+                    sampleText: {
+                        header: 'Gather Together',
+                        names: 'Thanksgiving Dinner',
+                        subtext: 'Gratitude & Good Food',
+                        date: 'November 26, 2026'
+                    }
+                }
+            },
+            {
+                id: 'holiday-generic',
+                category: 'holiday',
+                categoryDisplay: 'Holiday',
+                name: 'Season\'s Greetings',
+                description: 'Winter wonderland design for any holiday.',
+                price: 299,
+                previewClass: 'preview-holiday-generic',
+                config: {
+                    backgroundColor: '#EBF8FF',
+                    borderColor: '#90CDF4',
+                    borderWidth: 2,
+                    defaultFont: 'Great Vibes',
+                    textColor: '#2C5282',
+                    accentColor: '#63B3ED',
+                    layout: 'winter-wonderland',
+                    sampleText: {
+                        header: 'Warm Wishes',
+                        names: 'This Holiday Season',
+                        subtext: 'From our home to yours',
+                        date: 'Winter 2026'
+                    }
+                }
+            },
+
+            // ==================== CONGRATULATIONS (4 templates) ====================
+            {
+                id: 'congrats-promotion',
+                category: 'congratulations',
+                categoryDisplay: 'Congratulations',
+                name: 'Career Success',
+                description: 'Professional design for job promotions and achievements.',
+                price: 299,
+                previewClass: 'preview-congrats-promotion',
+                config: {
+                    backgroundColor: '#2C5282',
+                    borderColor: '#F6E05E',
+                    borderWidth: 2,
+                    defaultFont: 'Cinzel',
+                    textColor: '#FFFFFF',
+                    accentColor: '#F6E05E',
+                    layout: 'professional-success',
+                    sampleText: {
+                        header: 'Congratulations',
+                        names: 'On Your Promotion',
+                        subtext: 'VP of Marketing',
+                        date: 'Well deserved!'
+                    }
+                }
+            },
+            {
+                id: 'congrats-achievement',
+                category: 'congratulations',
+                categoryDisplay: 'Congratulations',
+                name: 'You Did It!',
+                description: 'Bright and celebratory for any achievement.',
+                price: 299,
+                popular: true,
+                previewClass: 'preview-congrats-achievement',
+                config: {
+                    backgroundColor: '#FF6B6B',
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderColor: '#FFD700',
+                    borderWidth: 0,
+                    defaultFont: 'Pacifico',
+                    textColor: '#FFFFFF',
+                    accentColor: '#FFD700',
+                    layout: 'celebration-bright',
+                    sampleText: {
+                        header: 'You Did It!',
+                        names: 'Amazing Achievement',
+                        subtext: 'So proud of you',
+                        date: 'March 2026'
+                    }
+                }
+            },
+            {
+                id: 'congrats-retirement',
+                category: 'congratulations',
+                categoryDisplay: 'Congratulations',
+                name: 'Happy Retirement',
+                description: 'Elegant gold watch style for retirement celebrations.',
+                price: 299,
+                previewClass: 'preview-congrats-retirement',
+                config: {
+                    backgroundColor: '#F7FAFC',
+                    borderColor: '#D69E2E',
+                    borderWidth: 3,
+                    defaultFont: 'Playfair Display',
+                    textColor: '#744210',
+                    accentColor: '#D69E2E',
+                    layout: 'retirement-elegant',
+                    sampleText: {
+                        header: 'The Legend',
+                        names: 'Has Retired',
+                        subtext: '40 Years of Excellence',
+                        date: 'Congratulations, Bob!'
+                    }
+                }
+            },
+            {
+                id: 'congrats-newhome',
+                category: 'congratulations',
+                categoryDisplay: 'Congratulations',
+                name: 'New Home',
+                description: 'Housewarming invitation or congratulations.',
+                price: 299,
+                previewClass: 'preview-congrats-newhome',
+                config: {
+                    backgroundColor: '#F0FFF4',
+                    borderColor: '#48BB78',
+                    borderWidth: 2,
+                    defaultFont: 'Quicksand',
+                    textColor: '#2F855A',
+                    accentColor: '#48BB78',
+                    layout: 'housewarming',
+                    sampleText: {
+                        header: 'Home Sweet Home',
+                        names: 'The Martinez Family',
+                        subtext: 'Housewarming Party',
+                        date: 'April 12, 2026'
+                    }
+                }
+            },
+
+            // ==================== GET WELL / SYMPATHY (3 templates) ====================
+            {
+                id: 'getwell-soon',
+                category: 'getwell',
+                categoryDisplay: 'Get Well Soon',
+                name: 'Speedy Recovery',
+                description: 'Cheerful and uplifting for hospital or illness recovery.',
+                price: 299,
+                previewClass: 'preview-getwell-soon',
+                config: {
+                    backgroundColor: '#FFF5F5',
+                    borderColor: '#FC8181',
+                    borderWidth: 2,
+                    defaultFont: 'Dancing Script',
+                    textColor: '#C53030',
+                    accentColor: '#FC8181',
+                    layout: 'getwell-cheerful',
+                    sampleText: {
+                        header: 'Get Well Soon',
+                        names: 'Thinking of You',
+                        subtext: 'Wishing you a speedy recovery',
+                        date: 'With love, Family'
+                    }
+                }
+            },
+            {
+                id: 'sympathy-elegant',
+                category: 'getwell',
+                categoryDisplay: 'Sympathy',
+                name: 'With Sympathy',
+                description: 'Dignified and respectful condolence e-card.',
+                price: 299,
+                previewClass: 'preview-sympathy-elegant',
+                config: {
+                    backgroundColor: '#F7FAFC',
+                    borderColor: '#A0AEC0',
+                    borderWidth: 1,
+                    defaultFont: 'Cormorant Garamond',
+                    textColor: '#4A5568',
+                    accentColor: '#718096',
+                    layout: 'sympathy-dignified',
+                    sampleText: {
+                        header: 'With Deepest Sympathy',
+                        names: 'In Loving Memory',
+                        subtext: 'Our thoughts are with you',
+                        date: 'With heartfelt condolences'
+                    }
+                }
+            },
+            {
+                id: 'encouragement',
+                category: 'getwell',
+                categoryDisplay: 'Encouragement',
+                name: 'Thinking of You',
+                description: 'Supportive design for difficult times.',
+                price: 299,
+                previewClass: 'preview-encouragement',
+                config: {
+                    backgroundColor: '#FFFAF0',
+                    borderColor: '#ED8936',
+                    borderWidth: 2,
+                    defaultFont: 'Great Vibes',
+                    textColor: '#C05621',
+                    accentColor: '#ED8936',
+                    layout: 'encouragement-warm',
+                    sampleText: {
+                        header: 'Sending Love',
+                        names: 'You\'re in Our Thoughts',
+                        subtext: 'Stay strong',
+                        date: 'Here if you need us'
+                    }
+                }
             }
-        }
-        
+        ];
+
+        let currentFilter = 'all';
+        let isBatchMode = false;
+
         function renderTemplates() {
             const grid = document.getElementById('templateGrid');
-            if (!templates.length) {
-                grid.innerHTML = '<p>No templates available</p>';
-                return;
-            }
-            
-            // Filter templates
+            grid.innerHTML = '';
+
             let filtered = currentFilter === 'all' 
                 ? templates 
                 : templates.filter(t => t.category === currentFilter);
-            
-            if (currentFlow === 'batch') {
-                filtered = filtered.filter(t => t.supportsBatch);
-            }
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = '<p>No templates match your selection.</p>';
-                return;
-            }
-            
-            grid.innerHTML = '';
-            
+
             filtered.forEach(template => {
-                const previewClass = getPreviewClass(template.css_class);
-                const isBatch = currentFlow === 'batch';
-                const badgeHtml = `
-                    ${template.popular ? '<span class="badge badge-popular">Popular</span>' : ''}
-                    ${template.isNew ? '<span class="badge badge-new">New</span>' : ''}
-                    ${isBatch && template.supportsBatch ? '<span class="badge badge-batch">Batch Ready</span>' : ''}
-                `;
-                
                 const card = document.createElement('div');
                 card.className = 'template-card';
-                card.dataset.templateId = template.id;
+                
+                const badges = [];
+                if (template.popular) badges.push('<span class="badge badge-popular">Popular</span>');
+                if (template.isNew) badges.push('<span class="badge badge-new">New</span>');
+                
                 card.innerHTML = `
-                    <div class="badges">${badgeHtml}</div>
-                    <div class="template-preview ${previewClass}"></div>
+                    ${badges.join('')}
+                    <div class="preview-container ${template.previewClass}">
+                        ${getPreviewContent(template)}
+                    </div>
                     <div class="template-info">
                         <div class="template-meta">
-                            <span class="template-category">${template.category_display || template.category}</span>
+                            <span class="template-category">${template.categoryDisplay}</span>
                             <span class="template-price">$${(template.price / 100).toFixed(2)}</span>
                         </div>
-                        <h3 class="template-name">${template.name}</h3>
-                        <p class="template-description">${template.description || 'Elegant design for your special occasion'}</p>
+                        <div class="template-name">${template.name}</div>
+                        <p class="template-description">${template.description}</p>
                         <div class="action-buttons">
-                            <button class="customize-btn use-template-btn" data-template-id="${template.id}" data-is-batch="${isBatch}">
-                                <i class="fas fa-${isBatch ? 'layer-group' : 'paint-brush'}"></i> 
-                                ${isBatch ? 'Use for Batch' : 'Customize & Send'}
+                            <button class="btn-use" onclick="selectTemplate('${template.id}')">
+                                <i class="fas fa-paint-brush"></i> Use This Design
                             </button>
-                            ${isBatch ? `
-                            <button class="customize-btn preview-btn" data-template-id="${template.id}" style="margin-top: 8px; background: linear-gradient(to right, #06D6A0, #118AB2);">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>` : ''}
+                            <button class="btn-preview" onclick="previewTemplate('${template.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
                 `;
+                
                 grid.appendChild(card);
             });
+        }
+
+        function getPreviewContent(template) {
+            const config = template.config;
+            // Basic sample content – you can extend per template if needed
+            return `
+                <h3>${config.sampleText.names || 'Sample Text'}</h3>
+                <p>${config.sampleText.date || ''}</p>
+                ${template.previewClass.includes('birthday-fun') ? '<div class="balloons">🎈🎂🎈</div>' : ''}
+                ${template.previewClass.includes('birthday-kids') ? '<div class="stars">⭐⭐⭐</div>' : ''}
+                ${template.previewClass.includes('anniversary') ? '<div class="years">♡</div>' : ''}
+                ${template.previewClass.includes('wedding-modern') ? '<div class="line"></div>' : ''}
+            `;
+        }
+
+        function selectTemplate(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) return;
             
-            // Attach CSP‑safe event listeners
-            document.querySelectorAll('.use-template-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const templateId = this.dataset.templateId;
-                    const isBatch = this.dataset.isBatch === 'true';
-                    selectTemplate(templateId, isBatch);
-                });
+            // Store full config in localStorage so customize.html can load it
+            localStorage.setItem('selectedTemplateConfig', JSON.stringify({
+                ...template,
+                isBatchMode: isBatchMode,
+                batchSize: isBatchMode ? Math.max(2, parseInt(localStorage.getItem('batchSize') || '10')) : 1
+            }));
+            
+            // Redirect to customize page
+            const params = new URLSearchParams({
+                template: templateId,
+                mode: isBatchMode ? 'batch' : 'single',
+                ...(isBatchMode && { qty: localStorage.getItem('batchSize') || '10' })
             });
             
-            document.querySelectorAll('.preview-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const templateId = this.dataset.templateId;
-                    selectTemplate(templateId, false); // preview = single mode
-                });
-            });
+            window.location.href = `customize.html?${params.toString()}`;
         }
-        
-        function getPreviewClass(cssClass) {
-            const classMap = {
-                'wedding-lace': 'preview-wedding-lace',
-                'wedding-geometric': 'preview-wedding-geometric',
-                'wedding-botanical': 'preview-wedding-botanical',
-                'save-date-romantic': 'preview-romantic',
-                'save-date-modern': 'preview-modern'
-            };
-            return classMap[cssClass] || 'preview-modern';
+
+        function previewTemplate(templateId) {
+            // Optional: open modal with larger preview
+            console.log('Previewing template:', templateId);
+            // Could also redirect to a preview page: window.location.href = `preview.html?template=${templateId}`;
         }
-        
-        function selectTemplate(templateId, isBatch) {
-            const url = isBatch 
-                ? `/customize.html?template=${templateId}&mode=batch&batch_id=BATCH_${Date.now()}`
-                : `/customize.html?template=${templateId}`;
-            window.location.href = url;
-        }
-        
-        // Filter functionality
+
+        // Filter buttons
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -402,14 +2103,37 @@
                 renderTemplates();
             });
         });
+
+        // Mode toggle
+        const singleBtn = document.getElementById('singleModeBtn');
+        const batchBtn = document.getElementById('batchModeBtn');
         
-        // Detect flow from URL? (optional, can be removed)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('mode') === 'batch') {
-            currentFlow = 'batch';
+        singleBtn.addEventListener('click', () => {
+            isBatchMode = false;
+            singleBtn.classList.add('active');
+            batchBtn.classList.remove('active');
+            updatePriceDisplay();
+        });
+        
+        batchBtn.addEventListener('click', () => {
+            isBatchMode = true;
+            batchBtn.classList.add('active');
+            singleBtn.classList.remove('active');
+            updatePriceDisplay();
+        });
+
+        function updatePriceDisplay() {
+            if (isBatchMode) {
+                const qty = Math.max(2, parseInt(localStorage.getItem('batchSize') || '10'));
+                document.getElementById('batchPricePreview').textContent = `($${(qty * 2.99).toFixed(0)})`;
+            } else {
+                document.getElementById('batchPricePreview').textContent = '';
+            }
         }
-        
-        loadTemplates();
+
+        // Initialize
+        renderTemplates();
+        updatePriceDisplay();
     </script>
 </body>
 </html>
