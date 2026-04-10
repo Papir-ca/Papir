@@ -321,7 +321,7 @@
                 
                 <div class="button-container">
                     <button class="btn btn-success" id="saveBtn">
-                        <i class="fas fa-save"></i> <span id="btnText">Save Card</span>
+                        <i class="fas fa-lock"></i> <span id="btnText">Pay and Create Card ($2.99)</span>
                     </button>
                 </div>
                 
@@ -340,7 +340,7 @@
                     </div>
                 </div>
                 <div class="preview-instructions">
-                    <i class="fas fa-info-circle"></i> This is how your card will look. Click Save to proceed to checkout.
+                    <i class="fas fa-info-circle"></i> This is how your card will look. Click Pay to proceed to checkout.
                 </div>
             </div>
         </div>
@@ -480,6 +480,16 @@
                 findEmailInput: document.getElementById('findEmailInput')
             };
 
+            // Helper: Convert blob to base64
+            function blobToBase64(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
             // Generate random card ID
             function generateCardId() {
                 return 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -507,7 +517,7 @@
                     elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.2)';
                     elements.batchModeLabel.style.borderColor = 'transparent';
                     elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.1)';
-                    elements.btnText.textContent = 'Save Card';
+                    elements.btnText.textContent = 'Pay and Create Card ($2.99)';
                     isCardActivated = true;
                     elements.saveBtn.disabled = false;
                 } else {
@@ -519,7 +529,9 @@
                     elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.2)';
                     elements.singleModeLabel.style.borderColor = 'transparent';
                     elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.1)';
-                    elements.btnText.textContent = 'Save Batch';
+                    const qty = parseInt(elements.batchSizeInput.value) || 2;
+                    const total = (qty * 2.99).toFixed(2);
+                    elements.btnText.textContent = `Pay and Create Batch ($${total})`;
                     updateBatchPrice();
                     isCardActivated = true;
                     elements.saveBtn.disabled = false;
@@ -530,6 +542,9 @@
                 const qty = parseInt(elements.batchSizeInput.value) || 2;
                 const total = (qty * 2.99).toFixed(2);
                 elements.batchPrice.textContent = `Total: $${total} (${qty} cards)`;
+                if (currentMode === 'batch') {
+                    elements.btnText.textContent = `Pay and Create Batch ($${total})`;
+                }
             }
 
             elements.singleModeRadio.addEventListener('change', toggleMode);
@@ -565,7 +580,8 @@
 
             elements.contentTypeSelect.addEventListener('change', updateMediaVisibility);
 
-            // Handle file uploads
+            // ========== UPDATED FILE UPLOAD HANDLER ==========
+            // Handle file uploads - Use blob URLs for video/audio to comply with CSP
             function handleFileUpload(file, type) {
                 if (!file) return;
                 
@@ -576,41 +592,51 @@
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const data = e.target.result;
-                    currentMedia[type] = { url: data, name: file.name, type: file.type };
-                    if (type === 'image') {
+                // For video/audio, use blob URL (CSP compliant). For images, use data URL.
+                if (type === 'image') {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const data = e.target.result;
+                        currentMedia[type] = { url: data, name: file.name, type: file.type, isBlob: false };
                         elements.previewImage.src = data;
                         elements.imageFilename.textContent = file.name;
                         elements.imagePreview.classList.add('active');
                         document.getElementById('imageUploadArea').style.display = 'none';
-                    } else if (type === 'video') {
-                        elements.previewVideo.src = data;
+                        updatePreview();
+                        showNotification('Image uploaded successfully!');
+                    };
+                    reader.onerror = () => {
+                        showNotification('Error reading image. Please try again.', 'error');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // VIDEO or AUDIO - Use blob URL for CSP compliance
+                    const blobUrl = URL.createObjectURL(file);
+                    currentMedia[type] = { url: blobUrl, name: file.name, type: file.type, isBlob: true, file: file };
+                    
+                    if (type === 'video') {
+                        elements.previewVideo.src = blobUrl;
                         elements.videoFilename.textContent = file.name;
                         elements.videoPreview.classList.add('active');
                         document.getElementById('videoUploadArea').style.display = 'none';
-                        // Force load the video
                         elements.previewVideo.load();
                     } else if (type === 'audio') {
-                        elements.previewAudio.src = data;
+                        elements.previewAudio.src = blobUrl;
                         elements.audioFilename.textContent = file.name;
                         elements.audioPreview.classList.add('active');
                         document.getElementById('audioUploadArea').style.display = 'none';
-                        // Force load the audio
                         elements.previewAudio.load();
                     }
                     updatePreview();
                     showNotification(`${type} uploaded successfully!`);
-                };
-                reader.readAsDataURL(file);
+                }
             }
 
             elements.imageInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'image'));
             elements.videoInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'video'));
             elements.audioInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'audio'));
 
-            // Remove media
+            // ========== UPDATED REMOVE HANDLERS (Revoke blob URLs) ==========
             elements.removeImageBtn.addEventListener('click', () => {
                 currentMedia.image = null;
                 elements.imageInput.value = '';
@@ -621,6 +647,9 @@
             });
 
             elements.removeVideoBtn.addEventListener('click', () => {
+                if (currentMedia.video && currentMedia.video.isBlob) {
+                    URL.revokeObjectURL(currentMedia.video.url); // Free memory
+                }
                 currentMedia.video = null;
                 elements.videoInput.value = '';
                 elements.videoPreview.classList.remove('active');
@@ -630,6 +659,9 @@
             });
 
             elements.removeAudioBtn.addEventListener('click', () => {
+                if (currentMedia.audio && currentMedia.audio.isBlob) {
+                    URL.revokeObjectURL(currentMedia.audio.url); // Free memory
+                }
                 currentMedia.audio = null;
                 elements.audioInput.value = '';
                 elements.audioPreview.classList.remove('active');
@@ -650,11 +682,9 @@
                     html = `<img src="${currentMedia.image.url}" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 10px;">
                             <div class="content-type-display"><i class="fas fa-image"></i> Image</div>`;
                 } else if (type === 'video' && currentMedia.video) {
-                    // SHOW PLAYABLE VIDEO IN PREVIEW
                     html = `<video controls playsinline src="${currentMedia.video.url}" style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 10px;"></video>
                             <div class="content-type-display"><i class="fas fa-video"></i> Video</div>`;
                 } else if (type === 'audio' && currentMedia.audio) {
-                    // SHOW PLAYABLE AUDIO IN PREVIEW
                     html = `<audio controls src="${currentMedia.audio.url}" style="width: 100%; margin-bottom: 10px;"></audio>
                             <div class="content-type-display"><i class="fas fa-music"></i> Audio</div>`;
                 } else {
@@ -697,10 +727,10 @@
             });
             */
 
-            // Save card - RESTORED ORIGINAL WORKING API STRUCTURE
+            // ========== UPDATED SAVE FUNCTION (handles blob conversion) ==========
             async function saveCard() {
                 const btn = elements.saveBtn;
-                btn.innerHTML = '<span class="loading"></span> Saving...';
+                btn.innerHTML = '<span class="loading"></span> Processing...';
                 btn.disabled = true;
 
                 try {
@@ -723,11 +753,20 @@
                     const mediaType = elements.contentTypeSelect.value;
                     if (mediaType !== 'text' && currentMedia[mediaType]) {
                         showNotification('Uploading media...', 'info');
+                        
+                        let mediaDataUrl;
+                        if (currentMedia[mediaType].isBlob) {
+                            // Convert blob (video/audio) to base64 for upload
+                            mediaDataUrl = await blobToBase64(currentMedia[mediaType].file);
+                        } else {
+                            mediaDataUrl = currentMedia[mediaType].url; // already base64 for images
+                        }
+                        
                         const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                fileData: currentMedia[mediaType].url,
+                                fileData: mediaDataUrl,
                                 fileName: currentMedia[mediaType].name,
                                 fileType: currentMedia[mediaType].type,
                                 cardId: cardData.card_id
@@ -739,6 +778,8 @@
                             cardData.file_name = uploadData.file_name;
                             cardData.file_size = uploadData.file_size;
                             cardData.file_type = uploadData.file_type;
+                        } else {
+                            throw new Error(uploadData.error || 'Media upload failed');
                         }
                     }
 
@@ -766,7 +807,7 @@
                 } catch (error) {
                     console.error('Save error:', error);
                     showNotification(error.message, 'error');
-                    btn.innerHTML = '<i class="fas fa-save"></i> <span id="btnText">' + (currentMode === 'batch' ? 'Save Batch' : 'Save Card') + '</span>';
+                    btn.innerHTML = '<i class="fas fa-lock"></i> <span id="btnText">' + (currentMode === 'batch' ? elements.btnText.textContent : 'Pay and Create Card ($2.99)') + '</span>';
                     btn.disabled = false;
                 }
             }
@@ -802,7 +843,7 @@
             // Initial setup
             updateMediaVisibility();
             updatePreview();
-            toggleMode();
+            toggleMode(); // sets correct button text
 
             console.log('Maker page initialized - Save-first flow active, Physical cards dormant');
         });
