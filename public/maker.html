@@ -313,8 +313,8 @@
                 </div>
                 
                 <div class="button-container">
-                    <button class="btn btn-success" id="checkoutBtn">
-                        <i class="fas fa-lock"></i> <span id="btnText">Pay & Create Card</span>
+                    <button class="btn btn-success" id="saveBtn">
+                        <i class="fas fa-save"></i> <span id="btnText">Save Card</span>
                     </button>
                 </div>
                 
@@ -333,7 +333,7 @@
                     </div>
                 </div>
                 <div class="preview-instructions">
-                    <i class="fas fa-info-circle"></i> This is how your card will look. Complete payment to create your card(s) and get the sharing link.
+                    <i class="fas fa-info-circle"></i> This is how your card will look. Click Save to proceed to checkout.
                 </div>
             </div>
         </div>
@@ -367,7 +367,6 @@
 
     <script>
         const BACKEND_URL = 'https://papir.ca';
-        const PRICE_PER_CARD = 2.99;
 
         // ========== MODAL FUNCTIONS ==========
         function searchBatchesSimple() {
@@ -419,23 +418,29 @@
 
         // ========== MAIN APP LOGIC ==========
         document.addEventListener('DOMContentLoaded', function() {
+            let currentMode = 'single';
+            let currentMedia = { image: null, video: null, audio: null };
+            let isCardActivated = true; // Default to true for e-cards (activation at checkout)
+
             // Elements
             const elements = {
-                cardId: document.getElementById('cardId'),
+                cardIdInput: document.getElementById('cardId'),
                 cardIdGroup: document.getElementById('cardIdGroup'),
-                contentType: document.getElementById('contentType'),
-                message: document.getElementById('message'),
-                checkoutBtn: document.getElementById('checkoutBtn'),
+                contentTypeSelect: document.getElementById('contentType'),
+                messageInput: document.getElementById('message'),
+                saveBtn: document.getElementById('saveBtn'),
                 btnText: document.getElementById('btnText'),
                 cardPreview: document.getElementById('cardPreview'),
                 notification: document.getElementById('notification'),
-                singleMode: document.querySelector('input[name="cardMode"][value="single"]'),
-                batchMode: document.querySelector('input[name="cardMode"][value="batch"]'),
+                singleModeRadio: document.querySelector('input[name="cardMode"][value="single"]'),
+                batchModeRadio: document.querySelector('input[name="cardMode"][value="batch"]'),
                 batchSection: document.getElementById('batchSection'),
-                batchId: document.getElementById('batchId'),
-                batchSize: document.getElementById('batchSize'),
+                batchIdInput: document.getElementById('batchId'),
+                batchSizeInput: document.getElementById('batchSize'),
                 batchPrice: document.getElementById('batchPrice'),
                 singlePrice: document.getElementById('singlePrice'),
+                singleModeLabel: document.getElementById('singleModeLabel'),
+                batchModeLabel: document.getElementById('batchModeLabel'),
                 textMessageContainer: document.getElementById('textMessageContainer'),
                 imageUploadContainer: document.getElementById('imageUploadContainer'),
                 videoUploadContainer: document.getElementById('videoUploadContainer'),
@@ -455,14 +460,11 @@
                 removeImageBtn: document.getElementById('removeImageBtn'),
                 removeVideoBtn: document.getElementById('removeVideoBtn'),
                 removeAudioBtn: document.getElementById('removeAudioBtn'),
-                singleModeLabel: document.getElementById('singleModeLabel'),
-                batchModeLabel: document.getElementById('batchModeLabel'),
-                // DORMANT: Physical card elements
-                physicalOption: document.getElementById('physicalOption'),
+                // DORMANT: Activation elements
                 activationSection: document.getElementById('activationSection'),
                 activationCheckbox: document.getElementById('activationTermsCheckbox'),
                 activateBtn: document.getElementById('activateFromMakerBtn'),
-                // Modal elements
+                // Modal
                 myBatchesBtn: document.getElementById('myBatchesBtn'),
                 findBatchesModal: document.getElementById('findBatchesModal'),
                 closeModalBtn: document.getElementById('closeModalBtn'),
@@ -471,187 +473,190 @@
                 findEmailInput: document.getElementById('findEmailInput')
             };
 
-            let currentMode = 'single';
-            let selectedFiles = {
-                image: null,
-                video: null,
-                audio: null
-            };
-            
-            // DORMANT: Physical card state
-            let isPhysicalCard = false;
-            let isCardActivated = false;
-
             // Generate random card ID
-            elements.cardId.value = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            function generateCardId() {
+                return 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            }
 
-            // Show notification helper
-            function showNotification(msg, type = 'success') {
-                elements.notification.textContent = msg;
-                elements.notification.className = 'notification ' + type;
+            // Initialize
+            elements.cardIdInput.value = generateCardId();
+
+            // Show notification
+            function showNotification(message, type = 'success') {
+                elements.notification.textContent = message;
+                elements.notification.className = `notification ${type}`;
                 elements.notification.classList.add('show');
                 setTimeout(() => elements.notification.classList.remove('show'), 3000);
             }
 
-            // Update UI based on single/batch mode
-            function updateMode() {
-                if (elements.batchMode.checked) {
-                    currentMode = 'batch';
-                    elements.batchSection.style.display = 'block';
-                    elements.cardIdGroup.style.display = 'none'; // Hide card ID in batch mode
-                    elements.singlePrice.style.display = 'none';
-                    elements.batchModeLabel.style.borderColor = '#f39c12';
-                    elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.2)';
-                    elements.singleModeLabel.style.borderColor = 'transparent';
-                    elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.1)';
-                    elements.btnText.textContent = 'Pay & Create Batch';
-                    updateBatchPrice();
-                } else {
+            // Toggle mode (single vs batch)
+            function toggleMode() {
+                if (elements.singleModeRadio.checked) {
                     currentMode = 'single';
                     elements.batchSection.style.display = 'none';
-                    elements.cardIdGroup.style.display = 'block'; // Show card ID in single mode
+                    elements.cardIdGroup.style.display = 'block';
                     elements.singlePrice.style.display = 'block';
                     elements.singleModeLabel.style.borderColor = '#06D6A0';
                     elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.2)';
                     elements.batchModeLabel.style.borderColor = 'transparent';
                     elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.1)';
-                    elements.btnText.textContent = 'Pay & Create Card ($2.99)';
+                    elements.btnText.textContent = 'Save Card';
+                    isCardActivated = true;
+                    elements.saveBtn.disabled = false;
+                } else {
+                    currentMode = 'batch';
+                    elements.batchSection.style.display = 'block';
+                    elements.cardIdGroup.style.display = 'none';
+                    elements.singlePrice.style.display = 'none';
+                    elements.batchModeLabel.style.borderColor = '#f39c12';
+                    elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.2)';
+                    elements.singleModeLabel.style.borderColor = 'transparent';
+                    elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.1)';
+                    elements.btnText.textContent = 'Save Batch';
+                    updateBatchPrice();
+                    isCardActivated = true;
+                    elements.saveBtn.disabled = false;
                 }
             }
 
             function updateBatchPrice() {
-                const qty = parseInt(elements.batchSize.value) || 2;
-                const total = (qty * PRICE_PER_CARD).toFixed(2);
+                const qty = parseInt(elements.batchSizeInput.value) || 2;
+                const total = (qty * 2.99).toFixed(2);
                 elements.batchPrice.textContent = `Total: $${total} (${qty} cards)`;
             }
 
-            // Mode toggle listeners
-            elements.singleMode.addEventListener('change', updateMode);
-            elements.batchMode.addEventListener('change', updateMode);
-            elements.batchSize.addEventListener('input', updateBatchPrice);
+            elements.singleModeRadio.addEventListener('change', toggleMode);
+            elements.batchModeRadio.addEventListener('change', toggleMode);
+            elements.batchSizeInput.addEventListener('input', updateBatchPrice);
 
-            // Content type change
-            elements.contentType.addEventListener('change', function() {
-                const type = this.value;
-                elements.textMessageContainer.style.display = type === 'text' ? 'block' : 'none';
-                elements.imageUploadContainer.classList.toggle('active', type === 'image');
-                elements.videoUploadContainer.classList.toggle('active', type === 'video');
-                elements.audioUploadContainer.classList.toggle('active', type === 'audio');
-                updatePreview();
+            // Prevent batch size below 2 or above 5000
+            elements.batchSizeInput.addEventListener('change', function() {
+                if (this.value < 2) this.value = 2;
+                if (this.value > 5000) this.value = 5000;
+                updateBatchPrice();
             });
 
-            // File handling with FileReader
-            function handleFile(input, type) {
-                const file = input.files[0];
-                if (!file) return;
+            // Update media visibility based on content type
+            function updateMediaVisibility() {
+                const type = elements.contentTypeSelect.value;
+                elements.imageUploadContainer.classList.remove('active');
+                elements.videoUploadContainer.classList.remove('active');
+                elements.audioUploadContainer.classList.remove('active');
+                elements.textMessageContainer.style.display = 'none';
 
-                // Validate file size
+                if (type === 'text') {
+                    elements.textMessageContainer.style.display = 'block';
+                } else if (type === 'image') {
+                    elements.imageUploadContainer.classList.add('active');
+                } else if (type === 'video') {
+                    elements.videoUploadContainer.classList.add('active');
+                } else if (type === 'audio') {
+                    elements.audioUploadContainer.classList.add('active');
+                }
+                updatePreview();
+            }
+
+            elements.contentTypeSelect.addEventListener('change', updateMediaVisibility);
+
+            // Handle file uploads
+            function handleFileUpload(file, type) {
+                if (!file) return;
+                
+                // File size validation
                 const maxSizes = { image: 5 * 1024 * 1024, video: 40 * 1024 * 1024, audio: 10 * 1024 * 1024 };
                 if (file.size > maxSizes[type]) {
                     showNotification(`File too large. Max ${maxSizes[type]/1024/1024}MB allowed.`, 'error');
-                    input.value = '';
                     return;
                 }
 
-                selectedFiles[type] = file;
                 const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const url = e.target.result;
-                    
+                reader.onload = (e) => {
+                    const data = e.target.result;
+                    currentMedia[type] = { url: data, name: file.name, type: file.type };
                     if (type === 'image') {
-                        elements.previewImage.src = url;
+                        elements.previewImage.src = data;
                         elements.imageFilename.textContent = file.name;
                         elements.imagePreview.classList.add('active');
-                        elements.imageUploadArea.style.display = 'none';
+                        document.getElementById('imageUploadArea').style.display = 'none';
                     } else if (type === 'video') {
-                        elements.previewVideo.src = url;
+                        elements.previewVideo.src = data;
                         elements.videoFilename.textContent = file.name;
                         elements.videoPreview.classList.add('active');
-                        elements.videoUploadArea.style.display = 'none';
+                        document.getElementById('videoUploadArea').style.display = 'none';
                     } else if (type === 'audio') {
-                        elements.previewAudio.src = url;
+                        elements.previewAudio.src = data;
                         elements.audioFilename.textContent = file.name;
                         elements.audioPreview.classList.add('active');
-                        elements.audioUploadArea.style.display = 'none';
+                        document.getElementById('audioUploadArea').style.display = 'none';
                     }
-                    
                     updatePreview();
-                    showNotification(type.charAt(0).toUpperCase() + type.slice(1) + ' uploaded successfully!');
+                    showNotification(`${type} uploaded successfully!`);
                 };
-                
-                reader.onerror = function() {
-                    showNotification('Error reading file. Please try again.', 'error');
-                };
-                
                 reader.readAsDataURL(file);
             }
 
-            // File input listeners
-            elements.imageInput.addEventListener('change', () => handleFile(elements.imageInput, 'image'));
-            elements.videoInput.addEventListener('change', () => handleFile(elements.videoInput, 'video'));
-            elements.audioInput.addEventListener('change', () => handleFile(elements.audioInput, 'audio'));
+            elements.imageInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'image'));
+            elements.videoInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'video'));
+            elements.audioInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0], 'audio'));
 
-            // Remove file handlers
+            // Remove media
             elements.removeImageBtn.addEventListener('click', () => {
-                selectedFiles.image = null;
+                currentMedia.image = null;
                 elements.imageInput.value = '';
-                elements.previewImage.src = '';
                 elements.imagePreview.classList.remove('active');
-                elements.imageUploadArea.style.display = 'block';
+                document.getElementById('imageUploadArea').style.display = 'block';
+                elements.previewImage.src = '';
                 updatePreview();
             });
 
             elements.removeVideoBtn.addEventListener('click', () => {
-                selectedFiles.video = null;
+                currentMedia.video = null;
                 elements.videoInput.value = '';
-                elements.previewVideo.src = '';
                 elements.videoPreview.classList.remove('active');
-                elements.videoUploadArea.style.display = 'block';
+                document.getElementById('videoUploadArea').style.display = 'block';
+                elements.previewVideo.src = '';
                 updatePreview();
             });
 
             elements.removeAudioBtn.addEventListener('click', () => {
-                selectedFiles.audio = null;
+                currentMedia.audio = null;
                 elements.audioInput.value = '';
-                elements.previewAudio.src = '';
                 elements.audioPreview.classList.remove('active');
-                elements.audioUploadArea.style.display = 'block';
+                document.getElementById('audioUploadArea').style.display = 'block';
+                elements.previewAudio.src = '';
                 updatePreview();
             });
 
             // Update preview
             function updatePreview() {
-                const type = elements.contentType.value;
-                const message = elements.message.value;
+                const type = elements.contentTypeSelect.value;
+                const message = elements.messageInput.value;
                 let html = '';
-
                 if (type === 'text') {
                     html = `<div class="text-content">${message || 'Your message will appear here...'}</div>`;
-                } else if (type === 'image' && selectedFiles.image) {
-                    html = `<img src="${elements.previewImage.src}" style="max-width: 100%; max-height: 300px; border-radius: 10px;"><div class="content-type-display"><i class="fas fa-image"></i> Image</div>`;
-                } else if (type === 'video' && selectedFiles.video) {
+                } else if (type === 'image' && currentMedia.image) {
+                    html = `<img src="${currentMedia.image.url}" style="max-width: 100%; max-height: 300px; border-radius: 10px;"><div class="content-type-display"><i class="fas fa-image"></i> Image</div>`;
+                } else if (type === 'video' && currentMedia.video) {
                     html = `<div style="color: #06D6A0; font-size: 4rem;"><i class="fas fa-video"></i></div><div style="color: #a0aec0; margin-top: 10px;">Video ready for upload</div><div class="content-type-display"><i class="fas fa-video"></i> Video</div>`;
-                } else if (type === 'audio' && selectedFiles.audio) {
+                } else if (type === 'audio' && currentMedia.audio) {
                     html = `<div style="color: #06D6A0; font-size: 4rem;"><i class="fas fa-music"></i></div><div style="color: #a0aec0; margin-top: 10px;">Audio ready for upload</div><div class="content-type-display"><i class="fas fa-music"></i> Audio</div>`;
                 } else {
                     html = `<div class="empty-preview">Select ${type} to see preview</div>`;
                 }
-
                 elements.cardPreview.innerHTML = html;
             }
 
-            elements.message.addEventListener('input', updatePreview);
+            elements.messageInput.addEventListener('input', updatePreview);
 
-            /* DORMANT: Physical card activation handlers
+            /* DORMANT: Physical card activation handlers - Uncomment when launching physical cards
             function togglePhysicalCard() {
                 isPhysicalCard = document.querySelector('input[name="cardType"]:checked').value === 'physical';
                 if (isPhysicalCard) {
                     elements.activationSection.style.display = 'block';
-                    elements.checkoutBtn.disabled = !isCardActivated;
+                    elements.saveBtn.disabled = !isCardActivated;
                 } else {
                     elements.activationSection.style.display = 'none';
-                    elements.checkoutBtn.disabled = false;
+                    elements.saveBtn.disabled = false;
                 }
             }
             
@@ -662,7 +667,7 @@
             elements.activateBtn.addEventListener('click', function() {
                 if (elements.activationCheckbox.checked) {
                     isCardActivated = true;
-                    elements.checkoutBtn.disabled = false;
+                    elements.saveBtn.disabled = false;
                     showNotification('Card activated! You can now proceed.', 'success');
                     this.innerHTML = '<i class="fas fa-check"></i> Activated';
                     this.style.background = '#27ae60';
@@ -674,85 +679,81 @@
             });
             */
 
-            // ========== CHECKOUT (Unified Stripe Flow) ==========
-            elements.checkoutBtn.addEventListener('click', async function() {
-                const btn = elements.checkoutBtn;
+            // Save card - RESTORED ORIGINAL WORKING API STRUCTURE
+            async function saveCard() {
+                const btn = elements.saveBtn;
+                btn.innerHTML = '<span class="loading"></span> Saving...';
                 btn.disabled = true;
-                btn.innerHTML = '<span class="loading"></span> Processing...';
 
                 try {
-                    const type = elements.contentType.value;
-                    const message = elements.message.value.trim();
-                    
-                    // Validation
-                    if (type === 'text' && !message) {
-                        throw new Error('Please enter a message');
-                    }
-                    if (type === 'image' && !selectedFiles.image) {
-                        throw new Error('Please select an image');
-                    }
-                    if (type === 'video' && !selectedFiles.video) {
-                        throw new Error('Please select a video');
-                    }
-                    if (type === 'audio' && !selectedFiles.audio) {
-                        throw new Error('Please select an audio file');
+                    const cardData = {
+                        card_id: elements.cardIdInput.value,
+                        message_type: elements.contentTypeSelect.value,
+                        message_text: elements.contentTypeSelect.value === 'text' ? elements.messageInput.value : '',
+                        status: 'draft',
+                        card_type: 'ecard'
+                    };
+
+                    if (currentMode === 'batch') {
+                        cardData.batch_id = elements.batchIdInput.value.trim() || 'BATCH-' + Date.now();
+                        cardData.batch_order = 1;
+                        cardData.is_batch_template = true;
+                        cardData.quantity = parseInt(elements.batchSizeInput.value) || 2;
                     }
 
-                    /* DORMANT: Physical card validation
-                    if (isPhysicalCard && !isCardActivated) {
-                        throw new Error('Please activate the physical card first');
-                    }
-                    */
-
-                    // Prepare media data (base64 for immediate Stripe session)
-                    let mediaUrl = '';
-                    let mediaType = type;
-                    
-                    if (type !== 'text') {
-                        showNotification('Preparing media...', 'info');
-                        const file = selectedFiles[type];
-                        const reader = new FileReader();
-                        
-                        mediaUrl = await new Promise((resolve, reject) => {
-                            reader.onload = (e) => resolve(e.target.result);
-                            reader.onerror = () => reject(new Error('Failed to read file'));
-                            reader.readAsDataURL(file);
+                    // Upload media if present
+                    const mediaType = elements.contentTypeSelect.value;
+                    if (mediaType !== 'text' && currentMedia[mediaType]) {
+                        showNotification('Uploading media...', 'info');
+                        const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fileData: currentMedia[mediaType].url,
+                                fileName: currentMedia[mediaType].name,
+                                fileType: currentMedia[mediaType].type,
+                                cardId: cardData.card_id
+                            })
                         });
+                        const uploadData = await uploadRes.json();
+                        if (uploadData.success) {
+                            cardData.media_url = uploadData.url;
+                            cardData.file_name = uploadData.file_name;
+                            cardData.file_size = uploadData.file_size;
+                            cardData.file_type = uploadData.file_type;
+                        }
                     }
 
-                    // Create checkout session
-                    const quantity = currentMode === 'batch' ? parseInt(elements.batchSize.value) || 2 : 1;
-                    const batchId = currentMode === 'batch' ? (elements.batchId.value.trim() || null) : null;
-                    
-                    const response = await fetch(BACKEND_URL + '/api/create-checkout-session', {
+                    // Save to database (ORIGINAL WORKING ENDPOINT)
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            quantity: quantity,
-                            is_batch: currentMode === 'batch',
-                            batch_id: batchId, // Custom batch ID if provided
-                            card_type: 'digital', // DORMANT: isPhysicalCard ? 'physical' : 'digital'
-                            message_text: type === 'text' ? message : '',
-                            media_url: mediaUrl,
-                            media_type: mediaType
-                        })
+                        body: JSON.stringify(cardData)
                     });
 
-                    const data = await response.json();
-                    
-                    if (data.error) throw new Error(data.error);
-                    if (!data.url) throw new Error('No checkout URL received');
+                    const result = await response.json();
 
-                    // Redirect to Stripe
-                    window.location.href = data.url;
-
-                } catch (err) {
-                    console.error('Checkout error:', err);
-                    showNotification(err.message, 'error');
+                    if (result.success) {
+                        showNotification('Card saved! Redirecting to checkout...');
+                        setTimeout(() => {
+                            if (currentMode === 'batch') {
+                                window.location.href = `/checkout.html?batch_id=${encodeURIComponent(cardData.batch_id)}&qty=${cardData.quantity}&mode=batch`;
+                            } else {
+                                window.location.href = `/checkout.html?card_id=${cardData.card_id}&qty=1`;
+                            }
+                        }, 1000);
+                    } else {
+                        throw new Error(result.error || 'Save failed');
+                    }
+                } catch (error) {
+                    console.error('Save error:', error);
+                    showNotification(error.message, 'error');
+                    btn.innerHTML = '<i class="fas fa-save"></i> <span id="btnText">' + (currentMode === 'batch' ? 'Save Batch' : 'Save Card') + '</span>';
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock"></i> <span id="btnText">' + (currentMode === 'batch' ? 'Pay & Create Batch' : 'Pay & Create Card ($2.99)') + '</span>';
                 }
-            });
+            }
+
+            elements.saveBtn.addEventListener('click', saveCard);
 
             // ========== MODAL EVENT LISTENERS ==========
             elements.myBatchesBtn.addEventListener('click', function() {
@@ -780,10 +781,12 @@
                 if (e.key === 'Enter') searchBatchesSimple();
             });
 
-            // Initialize
-            updateMode();
+            // Initial setup
+            updateMediaVisibility();
             updatePreview();
-            console.log('Maker page initialized - Unified Stripe flow active, Physical cards dormant');
+            toggleMode();
+
+            console.log('Maker page initialized - Save-first flow active, Physical cards dormant');
         });
     </script>
 </body>
