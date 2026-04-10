@@ -961,22 +961,26 @@
             const template = templates.find(t => t.id === templateId);
             if (!template) return;
 
-            localStorage.setItem('selectedTemplateConfig', JSON.stringify({
+            // Save template config with mode information
+            const config = {
                 ...template,
                 isBatchMode: isBatchMode,
-                batchSize: isBatchMode ? 10 : 1
-            }));
+                batchSize: isBatchMode ? 10 : 1,
+                mode: isBatchMode ? 'batch' : 'single'
+            };
+            localStorage.setItem('selectedTemplateConfig', JSON.stringify(config));
 
+            // Build URL with mode and quantity parameters
             const params = new URLSearchParams({
                 template: templateId,
-                mode: isBatchMode ? 'batch' : 'single'
+                mode: isBatchMode ? 'batch' : 'single',
+                qty: isBatchMode ? '10' : '1'
             });
-
-            if (isBatchMode) params.append('qty', '10');
 
             window.location.href = 'customize.html?' + params.toString();
         }
 
+        // Filter buttons
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -986,6 +990,7 @@
             });
         });
 
+        // Mode toggle buttons
         const singleBtn = document.getElementById('singleModeBtn');
         const batchBtn = document.getElementById('batchModeBtn');
 
@@ -1001,6 +1006,7 @@
             singleBtn.classList.remove('active');
         });
 
+        // Initial render
         renderTemplates();
     </script>
 </body>
