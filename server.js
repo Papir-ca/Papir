@@ -379,237 +379,139 @@ async function getGeolocationFromIp(ip) {
   }
 }
 
-// 🎨 Save a Magic Card - UPDATED for E-Cards and Dormant Physical Cards
-// FIXED: Batch creation now creates batch row and all cards immediately
+// ============================================
+// 🎨 SAVE CARD - BULLETPROOF VERSION
+// ============================================
 app.post('/api/cards', async (req, res) => {
-  try {
-    const { 
-      card_id, 
-      message_type, 
-      message_text, 
-      media_url, 
-      file_name, 
-      file_size, 
-      file_type, 
-      batch_id, 
-      batch_order,
-      card_type = 'ecard',
-      delivery_method,
-      recipient_contact
-    } = req.body;
-    
-    console.log(`📨 Saving card: ${card_id}, Type: ${message_type}, Card Type: ${card_type}`);
-    const clientIp = getClientIp(req);
-    
-    if (!card_id || !message_type) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Missing required fields',
-        required: ['card_id', 'message_type']
-      });
-    }
-    if (!supabaseAdmin) {
-      return res.status(503).json({ 
-        success: false,
-        error: 'Database service temporarily unavailable'
-      });
-    }
-    
-    // ========== BATCH TEMPLATE CREATION - FIXED VERSION ==========
-    // If this is a batch template, we create the batch row and all cards NOW
-    if (batch_id && req.body.is_batch_template === true) {
-      const quantity = parseInt(req.body.quantity) || 2;
-      console.log(`🎯 Creating batch: ${batch_id} with ${quantity} cards (immediate creation)`);
-      
-      // 1. Create the batch row (if it doesn't exist)
-      const { data: existingBatch } = await supabaseAdmin
-        .from('batches')
-        .select('batch_id')
-        .eq('batch_id', batch_id)
-        .maybeSingle();
-      
-      if (!existingBatch) {
-        await supabaseAdmin.from('batches').insert({
-          batch_id: batch_id,
-          batch_type: 'ecard',
-          total_cards_purchased: quantity,
-          cards_created: 0,
-          max_cards_allowed: quantity,
-          created_by_ip: clientIp,
-          created_at: new Date().toISOString()
-        });
-        console.log(`✅ Created batch row: ${batch_id}`);
-      }
-      
-      // 2. Create ALL cards for this batch (including the "first" one)
-      const cardsToCreate = [];
-      for (let i = 0; i < quantity; i++) {
-        const cardNumber = i + 1;
-        const newCardId = `CARD${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+    try {
+        const cardData = req.body;
         
-        cardsToCreate.push({
-          card_id: newCardId,
-          batch_id: batch_id,
-          batch_order: cardNumber,
-          message_type: message_type.trim(),
-          message_text: message_text ? message_text.trim() : null,
-          media_url: media_url || null,
-          file_name: file_name || null,
-          file_size: file_size || null,
-          file_type: file_type || null,
-          status: 'active', // e‑cards are active immediately
-          card_type: 'ecard',
-          is_batch_template: false,
-          terms_accepted: true,
-          physical_card_status: null,
-          created_by_ip: clientIp,
-          created_at: new Date().toISOString()
-        });
-      }
-      
-      if (cardsToCreate.length > 0) {
-        const { error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate);
-        if (insertError) throw insertError;
-      }
-      
-      // 3. Update the batch with the final card count
-      await supabaseAdmin
-        .from('batches')
-        .update({ 
-          cards_created: quantity,
-          total_cards_purchased: quantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq('batch_id', batch_id);
-      
-      // 4. Log each card activation (optional but keeps consistency)
-      for (const card of cardsToCreate) {
-        await supabaseAdmin.from('card_activations').insert({
-          card_id: card.card_id,
-          batch_id: batch_id,
-          activated_at: new Date().toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          terms_accepted_ip: clientIp,
-          user_agent: req.headers['user-agent'] || 'unknown',
-          activation_source: 'batch_save',
-          metadata: { batch_order: card.batch_order, total: quantity }
-        }).catch(e => console.error('Activation log error:', e));
-      }
-      
-      console.log(`✅ Created ${cardsToCreate.length} cards for batch ${batch_id}`);
-      
-      // Return success without creating a separate template card
-      const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${cardsToCreate[0].card_id}`;
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
-      
-      return res.status(201).json({ 
-        success: true, 
-        message: `Batch created with ${quantity} e‑cards`,
-        batch_id: batch_id,
-        cards_created: quantity,
-        is_batch: true,
-        urls: {
-          viewer: viewerUrl,
-          qrCode: qrCodeUrl
+        // Validate required fields
+        if (!cardData.card_id) {
+            return res.status(400).json({ error: 'Card ID required' });
         }
-      });
+
+        console.log('📨 Saving card:', cardData.card_id, 'Type:', cardData.message_type || 'text');
+        
+        // 1. SAVE THE TEMPLATE CARD (or single card)
+        const { data: savedCard, error: saveError } = await supabaseAdmin
+            .from('cards')
+            .insert({
+                card_id: cardData.card_id,
+                message_type: cardData.message_type || 'text',
+                message_text: cardData.message_text || '',
+                media_url: cardData.media_url || null,
+                file_name: cardData.file_name || null,
+                file_size: cardData.file_size || null,
+                file_type: cardData.file_type || null,
+                status: cardData.status || 'draft',
+                card_type: cardData.card_type || 'ecard',
+                batch_id: cardData.batch_id || null,
+                batch_order: cardData.batch_order || null,
+                is_batch_template: cardData.is_batch_template || false,
+                terms_accepted: cardData.terms_accepted || false,
+                created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (saveError) {
+            console.error('❌ Card save error:', saveError);
+            return res.status(500).json({ error: saveError.message });
+        }
+
+        console.log('✅ Card saved:', savedCard.card_id);
+
+        // 2. BATCH HANDLING (only if this is a batch template)
+        if (cardData.is_batch_template && cardData.batch_id && cardData.quantity > 1) {
+            const quantity = parseInt(cardData.quantity) || 2;
+            const batchId = cardData.batch_id;
+            
+            console.log(`🔄 Creating batch: ${batchId} with ${quantity} cards`);
+
+            try {
+                // Check if batch row exists
+                const { data: existingBatch } = await supabaseAdmin
+                    .from('batches')
+                    .select('batch_id')
+                    .eq('batch_id', batchId)
+                    .maybeSingle();
+
+                // Create batch row if missing
+                if (!existingBatch) {
+                    const { error: batchCreateError } = await supabaseAdmin
+                        .from('batches')
+                        .insert({
+                            batch_id: batchId,
+                            batch_name: batchId,
+                            max_cards_allowed: quantity,
+                            cards_created: quantity,
+                            status: 'active',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        });
+                    
+                    if (batchCreateError) {
+                        console.error('Batch creation error:', batchCreateError);
+                    } else {
+                        console.log(`✅ Created batch row: ${batchId}`);
+                    }
+                }
+
+                // Create individual batch cards (skip the template card)
+                for (let i = 0; i < quantity; i++) {
+                    const orderNum = i + 1;
+                    const newCardId = `${batchId}-${String(orderNum).padStart(4, '0')}`;
+                    
+                    // Skip if this is the template card ID
+                    if (newCardId === cardData.card_id) continue;
+                    
+                    await supabaseAdmin.from('cards').insert({
+                        card_id: newCardId,
+                        batch_id: batchId,
+                        batch_order: orderNum,
+                        message_type: cardData.message_type || 'text',
+                        message_text: cardData.message_text || '',
+                        media_url: cardData.media_url || null,
+                        status: 'active',
+                        card_type: 'ecard',
+                        is_batch_template: false,
+                        created_at: new Date().toISOString()
+                    });
+                }
+
+                // Log to card_activations if table exists
+                try {
+                    for (let i = 0; i < quantity; i++) {
+                        const orderNum = i + 1;
+                        const cardId = `${batchId}-${String(orderNum).padStart(4, '0')}`;
+                        await supabaseAdmin.from('card_activations').insert({
+                            card_id: cardId,
+                            batch_id: batchId,
+                            activated_at: new Date().toISOString(),
+                            metadata: { batch_order: orderNum, source: 'batch_creation' }
+                        }).catch(() => {}); // Ignore if table doesn't exist or duplicate
+                    }
+                } catch (e) {
+                    // card_activations might not exist, that's ok
+                }
+
+                console.log(`✅ Created ${quantity} batch cards for ${batchId}`);
+
+            } catch (batchError) {
+                console.error('❌ Batch creation error:', batchError);
+                // Don't fail the whole request if batch creation fails
+                // The template card was already saved successfully
+            }
+        }
+
+        // Return response matching your frontend expectation
+        res.json({ success: true, card: savedCard });
+
+    } catch (error) {
+        console.error('❌ Server error:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
-    
-    // ========== SINGLE CARD OR NON‑TEMPLATE BATCH CARD ==========
-    // (existing code, unchanged)
-    const { data: existingCard } = await supabaseAdmin
-      .from('cards')
-      .select('card_id, card_type')
-      .eq('card_id', card_id)
-      .maybeSingle();
-    
-    let result;
-    if (existingCard) {
-      console.log(`🔄 Updating existing card: ${card_id}`);
-      const updateData = {
-        message_type: message_type.trim(),
-        message_text: message_text ? message_text.trim() : null,
-        media_url: media_url || null,
-        file_name: file_name || null,
-        file_size: file_size || null,
-        file_type: file_type || null,
-        updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
-      };
-      if (batch_id) updateData.batch_id = batch_id;
-      if (batch_order) updateData.batch_order = batch_order;
-      if (existingCard.card_type === 'ecard' || card_type === 'ecard') {
-        updateData.card_type = 'ecard';
-        if (delivery_method) updateData.delivery_method = delivery_method;
-        if (recipient_contact) updateData.recipient_contact = recipient_contact;
-      }
-      const { data, error } = await supabaseAdmin
-        .from('cards')
-        .update(updateData)
-        .eq('card_id', card_id)
-        .select()
-        .single();
-      if (error) throw error;
-      result = data;
-    } else {
-      console.log(`🆕 Creating new ${card_type} card: ${card_id}`);
-      const deadline = new Date();
-      deadline.setFullYear(deadline.getFullYear() + 1);
-      const cardRecord = {
-        card_id: card_id.trim(),
-        message_type: message_type.trim(),
-        message_text: message_text ? message_text.trim() : null,
-        media_url: media_url || null,
-        file_name: file_name || null,
-        file_size: file_size || null,
-        file_type: file_type || null,
-        scan_count: 0,
-        status: req.body.status || (card_type === 'ecard' ? 'active' : 'pending'),
-        card_type: card_type,
-        is_batch_template: req.body.is_batch_template || false,
-        quantity: req.body.quantity || null,
-        physical_card_status: card_type === 'physical' ? 'dormant' : null,
-        activation_deadline: card_type === 'physical' ? deadline.toISOString() : null,
-        delivery_method: card_type === 'ecard' ? delivery_method : null,
-        recipient_contact: card_type === 'ecard' ? recipient_contact : null,
-        delivery_status: card_type === 'ecard' ? 'pending' : null,
-        created_by_ip: clientIp,
-        updated_by_ip: clientIp,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      if (batch_id) cardRecord.batch_id = batch_id;
-      if (batch_order) cardRecord.batch_order = batch_order;
-      const { data, error } = await supabaseAdmin
-        .from('cards')
-        .insert([cardRecord])
-        .select()
-        .single();
-      if (error) throw error;
-      result = data;
-    }
-    
-    console.log(`✅ Card saved: ${card_id} (Type: ${result.card_type})`);
-    const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${card_id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
-    res.status(201).json({ 
-      success: true, 
-      message: card_type === 'ecard' ? 'E-Card saved and ready to send!' : 'Physical card saved (dormant until manufactured)',
-      card: result,
-      urls: {
-        viewer: viewerUrl,
-        qrCode: qrCodeUrl
-      }
-    });
-  } catch (error) {
-    console.error('💥 Unexpected error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Internal server error',
-      message: 'Please try again later'
-    });
-  }
 });
 
 // 🖼️ Upload Media Files to Supabase Storage - WITH FILE TYPE VALIDATION
