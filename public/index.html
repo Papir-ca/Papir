@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papir - Physical Cards, Digital Magic</title>
+    <title>Papir - Digital Cards, Personal Magic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===== YOUR EXISTING CSS – UNCHANGED ===== */
@@ -164,50 +164,19 @@
             transform: translateY(-3px);
         }
 
-        /* Floating Demo QR */
-        .demo-float {
-            text-align: center;
-            margin: 20px 0 40px;
-        }
-
-        .floating-qr {
-            width: 120px;
-            height: 120px;
-            background: var(--white);
-            border-radius: 20px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: var(--dark);
-            cursor: pointer;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-            animation: float 3s ease-in-out infinite;
-            border: 2px solid var(--gold);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .floating-qr:hover {
-            animation: none;
-            transform: scale(1.05);
-        }
-
-        .demo-text {
-            margin-top: 15px;
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        .demo-text a {
-            color: var(--gold);
-            text-decoration: none;
-            font-weight: 600;
-        }
+        /* 
+        DORMANT: Physical Card QR Demo Styles
+        Preserved for future physical card activation
+        --
+        .demo-float { text-align: center; margin: 20px 0 40px; }
+        .floating-qr { width: 120px; height: 120px; background: var(--white); border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--dark); cursor: pointer; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); animation: float 3s ease-in-out infinite; border: 2px solid var(--gold); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .floating-qr:hover { animation: none; transform: scale(1.05); }
+        .demo-text { margin-top: 15px; color: #4a5568; font-size: 0.9rem; }
+        .demo-text a { color: var(--gold); text-decoration: none; font-weight: 600; }
+        --
+        End Dormant Styles
+        */
 
         /* Features - Compact Grid */
         .features {
@@ -445,6 +414,7 @@
                 </div>
             </a>
             <nav class="nav-links">
+                <a href="templates.html">Templates</a>
                 <a href="#process">How It Works</a>
                 <a href="#features">What You Add</a>
                 <a href="#use-cases">Uses</a>
@@ -458,19 +428,22 @@
 
     <!-- Hero -->
     <section class="hero">
-        <h1>Physical Cards with <span>Digital Magic</span></h1>
-        <p>Create personalized cards that come alive with video, audio, images, or text when scanned. No app required.</p>
+        <h1>Digital Cards with <span>Personal Magic</span></h1>
+        <p>Create personalized e-cards that come alive with video, audio, images, or text. Share instantly via link for $2.99. No app required.</p>
         
         <div class="hero-buttons">
-            <a href="maker.html" class="btn-primary">
-                <i class="fas fa-plus-circle"></i> Create Your Card
+            <a href="templates.html" class="btn-primary">
+                <i class="fas fa-palette"></i> Browse Templates
             </a>
-            <a href="#demo" class="btn-secondary">
-                <i class="fas fa-play-circle"></i> Watch Demo
+            <a href="maker.html" class="btn-secondary">
+                <i class="fas fa-bolt"></i> Quick Create
             </a>
         </div>
 
-        <!-- Floating QR Demo -->
+        <!-- 
+        DORMANT: Physical Card QR Demo Section
+        Preserved for future physical card activation
+        --
         <div class="demo-float" id="demo">
             <div class="floating-qr" onclick="window.location.href='viewer.html?card=demo'">
                 <i class="fas fa-qrcode"></i>
@@ -479,6 +452,9 @@
                 <p>Scan to see a live demo | <a href="viewer.html?card=demo">View in Browser</a></p>
             </div>
         </div>
+        --
+        End Dormant Section
+        -->
     </section>
 
     <!-- What You Can Add -->
@@ -490,7 +466,7 @@
             <div class="feature-item">
                 <div class="feature-icon"><i class="fas fa-video"></i></div>
                 <h4>Video</h4>
-                <p>Uploadd a personal video message</p>
+                <p>Upload a personal video message</p>
             </div>
             <div class="feature-item">
                 <div class="feature-icon"><i class="fas fa-music"></i></div>
@@ -517,6 +493,28 @@
         <div class="process-grid">
             <div class="process-step">
                 <div class="step-number">1</div>
+                <h3>Choose Design</h3>
+                <p>Browse 44+ templates or start with a blank canvas</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <h3>Personalize</h3>
+                <p>Add your video, audio, photos, and message</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <h3>Send Link</h3>
+                <p>Share the unique link instantly. Recipients view in any browser—no app needed</p>
+            </div>
+        </div>
+
+        <!-- 
+        DORMANT: Physical Card Process Steps (Original)
+        Preserved for future physical card activation
+        --
+        <div class="process-grid">
+            <div class="process-step">
+                <div class="step-number">1</div>
                 <h3>Activate</h3>
                 <p>Scan the QR code on your card and accept terms</p>
             </div>
@@ -531,6 +529,9 @@
                 <p>Give the card - the receiver scans the QR code and see your magic</p>
             </div>
         </div>
+        --
+        End Dormant Process
+        -->
     </section>
 
     <!-- Perfect For -->
@@ -566,13 +567,13 @@
         <div class="footer-grid">
             <div class="footer-column">
                 <h4>Papir</h4>
-                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Physical cards that come alive with digital magic.</p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Digital cards that come alive with personal magic.</p>
             </div>
             <div class="footer-column">
                 <h4>Product</h4>
                 <ul class="footer-links">
-                    <li><a href="maker.html">Create Card</a></li>
-                    <li><a href="#demo">View Demo</a></li>
+                    <li><a href="templates.html">Browse Templates</a></li>
+                    <li><a href="maker.html">Quick Create</a></li>
                     <li><a href="#process">How It Works</a></li>
                 </ul>
             </div>
@@ -647,7 +648,7 @@
                                 '<span style="background: #06D6A0; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">' + batch.cards_created + ' cards</span></div>' +
                                 '<p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">' + date + '</p>' +
                                 '<a href="/batch-manager?batch=' + encodeURIComponent(batch.batch_id) + '" ' +
-                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">Add More Cards →</a>' +
+                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">Manage Batch →</a>' +
                                 '</div>';
                     });
                     resultsDiv.innerHTML = html;
@@ -736,6 +737,17 @@
                 header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
             }
         });
+
+        /*
+        DORMANT: Physical Card QR Demo Handler
+        Preserved for future physical card activation
+        --
+        function openDemo() {
+            window.location.href = 'viewer.html?card=demo';
+        }
+        --
+        End Dormant Handler
+        */
     </script>
 </body>
 </html>
