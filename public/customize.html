@@ -1780,10 +1780,7 @@
                 if (!response.ok) throw new Error('Checkout failed');
 
                 const session = await response.json();
-                const stripeKey = window.location.hostname === 'localhost' 
-                    ? 'pk_test_51T4RZE77QLXWkYn3IDeLAuNrwGhuZ58qQ7za8qBcEPjHyqwrtOWKo7rz3c8GG82BraRi4B43Odqi6I8reBkyG4U800RBdWcIIj'
-                    : 'pk_live_YOUR_LIVE_KEY';
-                    
+                const stripeKey =  'pk_test_51T4RZE77QLXWkYn3IDeLAuNrwGhuZ58qQ7za8qBcEPjHyqwrtOWKo7rz3c8GG82BraRi4B43Odqi6I8reBkyG4U800RBdWcIIj'
                 const stripe = Stripe(stripeKey);
                 const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
                 
