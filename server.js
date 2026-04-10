@@ -380,6 +380,7 @@ async function getGeolocationFromIp(ip) {
 }
 
 // 🎨 Save a Magic Card - UPDATED for E-Cards and Dormant Physical Cards
+// FIXED: Batch creation now creates batch row and all cards immediately
 app.post('/api/cards', async (req, res) => {
   try {
     const { 
@@ -414,6 +415,109 @@ app.post('/api/cards', async (req, res) => {
       });
     }
     
+    // ========== BATCH TEMPLATE CREATION - FIXED VERSION ==========
+    // If this is a batch template, we create the batch row and all cards NOW
+    if (batch_id && req.body.is_batch_template === true) {
+      const quantity = parseInt(req.body.quantity) || 2;
+      console.log(`🎯 Creating batch: ${batch_id} with ${quantity} cards (immediate creation)`);
+      
+      // 1. Create the batch row (if it doesn't exist)
+      const { data: existingBatch } = await supabaseAdmin
+        .from('batches')
+        .select('batch_id')
+        .eq('batch_id', batch_id)
+        .maybeSingle();
+      
+      if (!existingBatch) {
+        await supabaseAdmin.from('batches').insert({
+          batch_id: batch_id,
+          batch_type: 'ecard',
+          total_cards_purchased: quantity,
+          cards_created: 0,
+          max_cards_allowed: quantity,
+          created_by_ip: clientIp,
+          created_at: new Date().toISOString()
+        });
+        console.log(`✅ Created batch row: ${batch_id}`);
+      }
+      
+      // 2. Create ALL cards for this batch (including the "first" one)
+      const cardsToCreate = [];
+      for (let i = 0; i < quantity; i++) {
+        const cardNumber = i + 1;
+        const newCardId = `CARD${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+        
+        cardsToCreate.push({
+          card_id: newCardId,
+          batch_id: batch_id,
+          batch_order: cardNumber,
+          message_type: message_type.trim(),
+          message_text: message_text ? message_text.trim() : null,
+          media_url: media_url || null,
+          file_name: file_name || null,
+          file_size: file_size || null,
+          file_type: file_type || null,
+          status: 'active', // e‑cards are active immediately
+          card_type: 'ecard',
+          is_batch_template: false,
+          terms_accepted: true,
+          physical_card_status: null,
+          created_by_ip: clientIp,
+          created_at: new Date().toISOString()
+        });
+      }
+      
+      if (cardsToCreate.length > 0) {
+        const { error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate);
+        if (insertError) throw insertError;
+      }
+      
+      // 3. Update the batch with the final card count
+      await supabaseAdmin
+        .from('batches')
+        .update({ 
+          cards_created: quantity,
+          total_cards_purchased: quantity,
+          updated_at: new Date().toISOString()
+        })
+        .eq('batch_id', batch_id);
+      
+      // 4. Log each card activation (optional but keeps consistency)
+      for (const card of cardsToCreate) {
+        await supabaseAdmin.from('card_activations').insert({
+          card_id: card.card_id,
+          batch_id: batch_id,
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_ip: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          activation_source: 'batch_save',
+          metadata: { batch_order: card.batch_order, total: quantity }
+        }).catch(e => console.error('Activation log error:', e));
+      }
+      
+      console.log(`✅ Created ${cardsToCreate.length} cards for batch ${batch_id}`);
+      
+      // Return success without creating a separate template card
+      const viewerUrl = `${req.protocol}://${req.get('host')}/viewer.html?card=${cardsToCreate[0].card_id}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(viewerUrl)}&format=png&margin=10`;
+      
+      return res.status(201).json({ 
+        success: true, 
+        message: `Batch created with ${quantity} e‑cards`,
+        batch_id: batch_id,
+        cards_created: quantity,
+        is_batch: true,
+        urls: {
+          viewer: viewerUrl,
+          qrCode: qrCodeUrl
+        }
+      });
+    }
+    
+    // ========== SINGLE CARD OR NON‑TEMPLATE BATCH CARD ==========
+    // (existing code, unchanged)
     const { data: existingCard } = await supabaseAdmin
       .from('cards')
       .select('card_id, card_type')
@@ -1140,7 +1244,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
       }
     }
     
-    // OLD FLOW: Direct activation (from maker.html) - YOUR EXISTING CODE
+    // OLD FLOW: Direct activation (from maker.html) - KEPT FOR COMPATIBILITY
     else if (card_id || batch_id) {
       console.log('🟡 Old flow: Direct activation', { card_id, batch_id });
       
@@ -1162,13 +1266,15 @@ app.post('/api/activate-after-payment', async (req, res) => {
         }
 
         const quantity = template.quantity || 2;
+        console.log(`🎯 Creating batch ${batch_id} with ${quantity} cards (old flow)`);
+        
         const cardsToCreate = [];
         
-        for (let i = 2; i <= quantity; i++) {
+        for (let i = 0; i < quantity; i++) {
           cardsToCreate.push({
             card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
             batch_id: batch_id,
-            batch_order: i,
+            batch_order: i + 1,
             message_type: template.message_type,
             message_text: template.message_text,
             media_url: template.media_url,
@@ -1207,6 +1313,26 @@ app.post('/api/activate-after-payment', async (req, res) => {
             created_by_ip: clientIp,
             created_at: new Date().toISOString()
           });
+        } else {
+          await supabaseAdmin
+            .from('batches')
+            .update({
+              cards_created: quantity,
+              total_cards_purchased: quantity,
+              max_cards_allowed: quantity,
+              updated_at: new Date().toISOString()
+            })
+            .eq('batch_id', batch_id);
+        }
+        
+        const { count, error: countError } = await supabaseAdmin
+          .from('cards')
+          .select('*', { count: 'exact', head: true })
+          .eq('batch_id', batch_id);
+          
+        console.log(`📊 Cards created for batch ${batch_id}: ${count}, Expected: ${quantity}`);
+        if (count !== quantity) {
+          console.error(`❌ MISMATCH! Created ${count} but expected ${quantity}`);
         }
 
         return res.json({ 
