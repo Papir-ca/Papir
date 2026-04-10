@@ -36,6 +36,7 @@ app.use(helmet({
         "'self'",
         "https://cdnjs.cloudflare.com",
         "https://unpkg.com",
+        "https://fonts.googleapis.com",
         "'unsafe-inline'"
       ],
       imgSrc: [
@@ -62,6 +63,7 @@ app.use(helmet({
       fontSrc: [
         "'self'",
         "https://cdnjs.cloudflare.com",
+        "https://fonts.gstatic.com",
         "data:"
       ],
       objectSrc: ["'none'"],
