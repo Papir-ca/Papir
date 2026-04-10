@@ -976,7 +976,7 @@ app.get('/api/admin/activity', async (req, res) => {
 });
 
 // ============================================
-// NEW: Stripe Checkout Session (for customize.html)
+// NEW: Stripe Checkout Session for customize.html
 // ============================================
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) {
@@ -999,7 +999,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
             name: item.name,
             description: item.description,
           },
-          unit_amount: item.amount, // amount in cents ($2.99 = 299)
+          unit_amount: item.amount,
         },
         quantity: item.quantity || 1,
       })),
@@ -1017,7 +1017,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================
-// FIXED: Activate after payment (handles BOTH flows)
+// UPDATED: Activate after payment (supports BOTH flows)
 // ============================================
 app.post('/api/activate-after-payment', async (req, res) => {
   try {
@@ -1027,6 +1027,13 @@ app.post('/api/activate-after-payment', async (req, res) => {
     // NEW FLOW: Stripe Checkout Session (from customize.html)
     if (session_id) {
       console.log('🔵 New flow: Stripe session', session_id);
+      
+      if (!stripe) {
+        return res.status(503).json({ error: 'Stripe not configured' });
+      }
+      if (!supabaseAdmin) {
+        return res.status(503).json({ error: 'Database not configured' });
+      }
       
       // Verify with Stripe
       const session = await stripe.checkout.sessions.retrieve(session_id);
@@ -1071,7 +1078,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
             card_type: 'ecard',
             design_data: design_data?.canvasData || {},
             preview_image_url: imageUrl,
-            sender_email: session.customer_email,
+            sender_email: session.customer_email || session.customer_details?.email,
             amount_paid: i === 0 ? session.amount_total : 0,
             currency: session.currency,
             stripe_session_id: session_id,
@@ -1083,8 +1090,14 @@ app.post('/api/activate-after-payment', async (req, res) => {
           });
         }
         
-        const { data: createdCards } = await supabaseAdmin.from('cards').insert(cardsToCreate).select();
-        await supabaseAdmin.from('batches').insert({
+        const { data: createdCards, error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate).select();
+        
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          return res.status(500).json({ error: 'Failed to create cards: ' + insertError.message });
+        }
+        
+        const { error: batchError } = await supabaseAdmin.from('batches').insert({
           batch_id: batchId,
           batch_type: 'ecard',
           cards_created: quantity,
@@ -1093,17 +1106,21 @@ app.post('/api/activate-after-payment', async (req, res) => {
           created_by_ip: clientIp,
           created_at: new Date().toISOString()
         });
+        
+        if (batchError) {
+          console.error('Batch insert error:', batchError);
+        }
 
         return res.json({ success: true, batch_id: batchId, cards_created: quantity, is_batch: true });
       } else {
         // Single card
-        const { data: card } = await supabaseAdmin.from('cards').insert({
+        const { data: card, error: cardError } = await supabaseAdmin.from('cards').insert({
           card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
           status: 'active',
           template_id: templateId,
           design_data: design_data?.canvasData || {},
           preview_image_url: imageUrl,
-          sender_email: session.customer_email,
+          sender_email: session.customer_email || session.customer_details?.email,
           amount_paid: session.amount_total,
           currency: session.currency,
           stripe_session_id: session_id,
@@ -1113,22 +1130,25 @@ app.post('/api/activate-after-payment', async (req, res) => {
           created_by_ip: clientIp,
           created_at: new Date().toISOString()
         }).select().single();
+        
+        if (cardError || !card) {
+          console.error('Card insert error:', cardError);
+          return res.status(500).json({ error: 'Failed to create card' });
+        }
 
         return res.json({ success: true, card_id: card.card_id, is_batch: false });
       }
     }
     
-    // OLD FLOW: Direct activation (from maker.html)
+    // OLD FLOW: Direct activation (from maker.html) - YOUR EXISTING CODE
     else if (card_id || batch_id) {
       console.log('🟡 Old flow: Direct activation', { card_id, batch_id });
       
-      if (!terms_accepted) {
-        return res.status(400).json({ error: 'Terms must be accepted' });
+      if (!supabaseAdmin) {
+        return res.status(503).json({ error: 'Database not configured' });
       }
-
-      // Handle batch activation
+      
       if (batch_id) {
-        // Get template card
         const { data: template } = await supabaseAdmin
           .from('cards')
           .select('*')
@@ -1138,7 +1158,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
           .single();
 
         if (!template) {
-          return res.status(404).json({ error: 'Batch template not found or already activated' });
+          return res.status(404).json({ error: 'Template not found' });
         }
 
         const quantity = template.quantity || 2;
@@ -1165,13 +1185,12 @@ app.post('/api/activate-after-payment', async (req, res) => {
         }
 
         if (cardsToCreate.length > 0) {
-          await supabaseAdmin.from('cards').insert(cardsToCreate);
+          const { error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate);
+          if (insertError) throw insertError;
         }
 
-        // Delete template
         await supabaseAdmin.from('cards').delete().eq('card_id', template.card_id);
         
-        // Update or create batch record
         const { data: existingBatch } = await supabaseAdmin
           .from('batches')
           .select('batch_id')
@@ -1199,7 +1218,6 @@ app.post('/api/activate-after-payment', async (req, res) => {
         });
       }
       
-      // Handle single card activation
       else if (card_id) {
         const { error } = await supabaseAdmin
           .from('cards')
