@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* ===== YOUR EXACT DARK THEME CSS - UNCHANGED ===== */
+        /* ===== EXACT CSS FROM YOUR WORKING VERSION ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
@@ -54,16 +54,15 @@
         .remove-media-btn { background-color: #ff416c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; transition: all 0.3s; }
         .remove-media-btn:hover { background-color: #ff2b5e; }
         
-        /* DORMANT: Activation Section Styles - Preserved for physical cards */
+        /* DORMANT: Activation Section Styles */
         .activation-section { 
             background: rgba(243, 156, 18, 0.1); 
             border-left: 3px solid #f39c12; 
             border-radius: 6px; 
             padding: 12px; 
             margin-bottom: 20px; 
-            display: none; /* DORMANT: Hidden for e-cards only */
+            display: none; 
         }
-        .activation-section.active { display: block; }
         .activation-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .activation-header i { color: #f39c12; font-size: 1rem; }
         .activation-header span { color: #f39c12; font-weight: 600; font-size: 0.9rem; }
@@ -160,7 +159,8 @@
                     <i class="fas fa-edit"></i> Card Details
                 </div>
                 
-                <div class="form-group">
+                <!-- Card ID (Hidden in batch mode) -->
+                <div class="form-group" id="cardIdGroup">
                     <label for="cardId">Card ID:</label>
                     <div class="card-id-container">
                         <div class="card-id-prefix">CARD</div>
@@ -190,6 +190,14 @@
                 <div class="form-group" id="batchSection" style="display: none;">
                     <div style="background: rgba(243, 156, 18, 0.1); border-left: 4px solid #f39c12; padding: 15px; border-radius: 8px;">
                         <h4 style="color: #f39c12; margin-bottom: 15px;"><i class="fas fa-layer-group"></i> Batch Creation</h4>
+                        
+                        <!-- RESTORED: Custom Batch ID -->
+                        <div style="margin-bottom: 15px;">
+                            <label for="batchId">Batch ID (Optional):</label>
+                            <input type="text" id="batchId" class="content-type-dropdown" placeholder="e.g., WEDDING-2024" style="background: rgba(255,255,255,0.1); margin-top: 8px;">
+                            <div style="font-size: 0.8rem; color: #a0aec0; margin-top: 5px;">Leave blank for auto-generated ID</div>
+                        </div>
+                        
                         <div style="margin-bottom: 15px;">
                             <label>Number of Cards:</label>
                             <input type="number" id="batchSize" class="content-type-dropdown" min="2" max="5000" value="2" style="background: rgba(255,255,255,0.1); margin-top: 8px;">
@@ -287,7 +295,7 @@
                     </div>
                 </div>
                 
-                <!-- DORMANT: Activation Section - Hidden for e-cards, shown only for physical when activated -->
+                <!-- DORMANT: Activation Section - Hidden for e-cards -->
                 <div class="activation-section" id="activationSection">
                     <div class="activation-header">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -361,7 +369,7 @@
         const BACKEND_URL = 'https://papir.ca';
         const PRICE_PER_CARD = 2.99;
 
-        // ========== CSP-COMPLIANT MODAL FUNCTIONS ==========
+        // ========== MODAL FUNCTIONS ==========
         function searchBatchesSimple() {
             const email = document.getElementById('findEmailInput').value.trim().toLowerCase();
             if (!email || !email.includes('@')) {
@@ -414,6 +422,7 @@
             // Elements
             const elements = {
                 cardId: document.getElementById('cardId'),
+                cardIdGroup: document.getElementById('cardIdGroup'),
                 contentType: document.getElementById('contentType'),
                 message: document.getElementById('message'),
                 checkoutBtn: document.getElementById('checkoutBtn'),
@@ -423,6 +432,7 @@
                 singleMode: document.querySelector('input[name="cardMode"][value="single"]'),
                 batchMode: document.querySelector('input[name="cardMode"][value="batch"]'),
                 batchSection: document.getElementById('batchSection'),
+                batchId: document.getElementById('batchId'),
                 batchSize: document.getElementById('batchSize'),
                 batchPrice: document.getElementById('batchPrice'),
                 singlePrice: document.getElementById('singlePrice'),
@@ -447,7 +457,7 @@
                 removeAudioBtn: document.getElementById('removeAudioBtn'),
                 singleModeLabel: document.getElementById('singleModeLabel'),
                 batchModeLabel: document.getElementById('batchModeLabel'),
-                // DORMANT: Physical card elements preserved
+                // DORMANT: Physical card elements
                 physicalOption: document.getElementById('physicalOption'),
                 activationSection: document.getElementById('activationSection'),
                 activationCheckbox: document.getElementById('activationTermsCheckbox'),
@@ -488,6 +498,7 @@
                 if (elements.batchMode.checked) {
                     currentMode = 'batch';
                     elements.batchSection.style.display = 'block';
+                    elements.cardIdGroup.style.display = 'none'; // Hide card ID in batch mode
                     elements.singlePrice.style.display = 'none';
                     elements.batchModeLabel.style.borderColor = '#f39c12';
                     elements.batchModeLabel.style.background = 'rgba(243, 156, 18, 0.2)';
@@ -498,6 +509,7 @@
                 } else {
                     currentMode = 'single';
                     elements.batchSection.style.display = 'none';
+                    elements.cardIdGroup.style.display = 'block'; // Show card ID in single mode
                     elements.singlePrice.style.display = 'block';
                     elements.singleModeLabel.style.borderColor = '#06D6A0';
                     elements.singleModeLabel.style.background = 'rgba(6, 214, 160, 0.2)';
@@ -533,6 +545,14 @@
                 const file = input.files[0];
                 if (!file) return;
 
+                // Validate file size
+                const maxSizes = { image: 5 * 1024 * 1024, video: 40 * 1024 * 1024, audio: 10 * 1024 * 1024 };
+                if (file.size > maxSizes[type]) {
+                    showNotification(`File too large. Max ${maxSizes[type]/1024/1024}MB allowed.`, 'error');
+                    input.value = '';
+                    return;
+                }
+
                 selectedFiles[type] = file;
                 const reader = new FileReader();
                 
@@ -558,6 +578,10 @@
                     
                     updatePreview();
                     showNotification(type.charAt(0).toUpperCase() + type.slice(1) + ' uploaded successfully!');
+                };
+                
+                reader.onerror = function() {
+                    showNotification('Error reading file. Please try again.', 'error');
                 };
                 
                 reader.readAsDataURL(file);
@@ -619,15 +643,14 @@
 
             elements.message.addEventListener('input', updatePreview);
 
-            /* DORMANT: Physical card activation handlers - Preserved for future use
+            /* DORMANT: Physical card activation handlers
             function togglePhysicalCard() {
                 isPhysicalCard = document.querySelector('input[name="cardType"]:checked').value === 'physical';
                 if (isPhysicalCard) {
-                    elements.activationSection.classList.add('active');
+                    elements.activationSection.style.display = 'block';
                     elements.checkoutBtn.disabled = !isCardActivated;
-                    // For physical, we don't auto-activate at checkout
                 } else {
-                    elements.activationSection.classList.remove('active');
+                    elements.activationSection.style.display = 'none';
                     elements.checkoutBtn.disabled = false;
                 }
             }
@@ -646,13 +669,12 @@
                 }
             });
             
-            // Listen for card type changes
             document.querySelectorAll('input[name="cardType"]').forEach(radio => {
                 radio.addEventListener('change', togglePhysicalCard);
             });
             */
 
-            // ========== CHECKOUT (Unified Flow) ==========
+            // ========== CHECKOUT (Unified Stripe Flow) ==========
             elements.checkoutBtn.addEventListener('click', async function() {
                 const btn = elements.checkoutBtn;
                 btn.disabled = true;
@@ -682,7 +704,7 @@
                     }
                     */
 
-                    // Prepare media data
+                    // Prepare media data (base64 for immediate Stripe session)
                     let mediaUrl = '';
                     let mediaType = type;
                     
@@ -700,6 +722,7 @@
 
                     // Create checkout session
                     const quantity = currentMode === 'batch' ? parseInt(elements.batchSize.value) || 2 : 1;
+                    const batchId = currentMode === 'batch' ? (elements.batchId.value.trim() || null) : null;
                     
                     const response = await fetch(BACKEND_URL + '/api/create-checkout-session', {
                         method: 'POST',
@@ -707,6 +730,7 @@
                         body: JSON.stringify({
                             quantity: quantity,
                             is_batch: currentMode === 'batch',
+                            batch_id: batchId, // Custom batch ID if provided
                             card_type: 'digital', // DORMANT: isPhysicalCard ? 'physical' : 'digital'
                             message_text: type === 'text' ? message : '',
                             media_url: mediaUrl,
@@ -759,7 +783,7 @@
             // Initialize
             updateMode();
             updatePreview();
-            console.log('Maker page initialized - Physical card features dormant but preserved');
+            console.log('Maker page initialized - Unified Stripe flow active, Physical cards dormant');
         });
     </script>
 </body>
