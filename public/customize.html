@@ -109,15 +109,8 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* Video alternative styles */
-        .video-alternative { margin-top: 20px; background: linear-gradient(135deg, rgba(6,214,160,0.1) 0%, rgba(17,138,178,0.1) 100%); border: 2px dashed var(--primary-teal); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
-        .video-alternative:hover { background: rgba(6,214,160,0.15); border-color: var(--primary-teal); transform: scale(1.02); }
-        .video-preview-box { margin-top: 15px; display: none; border: 2px solid var(--primary-teal); border-radius: 8px; padding: 15px; background: rgba(0,0,0,0.3); }
-        .video-preview-box.active { display: block; }
-        .video-preview-box video { width: 100%; max-height: 200px; border-radius: 8px; background: black; }
-
-        /* New: Video upload on canvas section */
-        #videoCanvasUploadSection .upload-area { border-color: var(--primary-teal); }
+        /* New: Video upload section (hidden initially) */
+        #videoUploadSection .upload-area { border-color: var(--primary-teal); }
     </style>
 <base target="_blank">
 </head>
@@ -205,19 +198,6 @@
                     <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
-                <!-- Video Alternative Section -->
-                <div class="video-alternative" id="videoAltBox" onclick="document.getElementById('videoUpload').click()">
-                    <i class="fas fa-video" style="font-size: 2rem; color: var(--primary-teal); margin-bottom: 10px;"></i>
-                    <h4 style="color: var(--primary-teal); margin-bottom: 5px;">Or Upload a Video Instead</h4>
-                    <p style="color: #a0aec0; font-size: 0.9rem;">Skip the design and upload a video message (MP4, up to 40MB)</p>
-                    <input type="file" id="videoUpload" accept="video/*" style="display: none;">
-                </div>
-                <div class="video-preview-box" id="videoPreviewBox">
-                    <video controls style="width: 100%; max-height: 200px; border-radius: 8px;" id="videoPreview"></video>
-                    <button class="btn-icon" style="margin-top: 10px; width: 100%;" onclick="removeVideo()">
-                        <i class="fas fa-trash"></i> Remove Video
-                    </button>
-                </div>
             </div>
 
             <div class="properties-panel">
@@ -256,17 +236,39 @@
                             </div>
                         </div>
 
-                        <!-- New: Add Video to Canvas Section -->
-                        <div class="property-section" id="videoCanvasUploadSection" style="display: none;">
-                            <h4><i class="fas fa-film"></i> Add Video to Canvas</h4>
-                            <div class="upload-area" id="videoCanvasUploadArea">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop video</div>
-                                <div style="font-size: 0.7rem; opacity: 0.6;">MP4, WebM up to 40MB</div>
+                        <!-- NEW: Add Media Section (Image/Video toggle) -->
+                        <div class="property-section" id="mediaControls">
+                            <h4><i class="fas fa-image"></i> Add Media</h4>
+                            <div class="btn-group" style="margin-bottom: 10px;">
+                                <button class="btn-icon active" id="addImageMode" onclick="switchMediaMode('image')">
+                                    <i class="fas fa-image"></i> Image
+                                </button>
+                                <button class="btn-icon" id="addVideoMode" onclick="switchMediaMode('video')">
+                                    <i class="fas fa-video"></i> Video
+                                </button>
                             </div>
-                            <input type="file" id="videoCanvasInput" accept="video/*" style="display: none;">
-                            <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;">
-                                <i class="fas fa-info-circle"></i> Video plays in viewer, shows as poster on canvas
+                            
+                            <!-- Image Upload -->
+                            <div id="imageUploadSection">
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            </div>
+                            
+                            <!-- Video Upload (Hidden by default) -->
+                            <div id="videoUploadSection" style="display: none;">
+                                <div class="upload-area" id="videoUploadArea">
+                                    <i class="fas fa-video"></i>
+                                    <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop video</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.6;">MP4, WebM up to 40MB</div>
+                                </div>
+                                <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                                <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;">
+                                    <i class="fas fa-info-circle"></i> Video shows as thumbnail on canvas, plays in final card
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -532,16 +534,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="property-section">
-                            <h4><i class="fas fa-image"></i> Add Image</h4>
-                            <div class="upload-area" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div>
-                                <div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div>
-                            </div>
-                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                        </div>
                     </div>
                 </div>
 
@@ -649,15 +641,11 @@
         let snapToGrid = false;
         let gridSize = 20;
         let showGrid = false;
-        let uploadedVideo = null;  // For video alternative (separate from canvas)
 
         // Helper: show notification (simple alert or custom toast)
         function showNotification(message, type = 'info') {
-            // Simple alert for now – you can replace with your toast system
             console.log(`[${type}] ${message}`);
-            // Uncomment if you have a toast element:
-            // const toast = document.getElementById('notification');
-            // if (toast) { toast.textContent = message; toast.className = `notification ${type} show`; setTimeout(() => toast.classList.remove('show'), 3000); }
+            // You can replace with a proper toast later
         }
 
         async function init() {
@@ -704,8 +692,8 @@
             setupZoomControls();
             setupArrangeControls();
             setupModeSwitch();
-            checkForSavedProgress();      // NEW: check for autosave
-            startAutoSave();              // NEW: auto-save every 2 min
+            checkForSavedProgress();
+            startAutoSave();
         }
 
         async function loadTemplateDesign() {
@@ -860,12 +848,11 @@
             setupTransformControls();
             setupEffectsControls();
 
+            // Image upload (existing)
             const fileInput = document.getElementById('fileInput');
             const uploadArea = document.getElementById('uploadArea');
-            
             uploadArea.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', handleImageUpload);
-
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadArea.style.borderColor = 'var(--primary-gold)';
@@ -883,15 +870,87 @@
                 }
             });
 
+            // NEW: Video upload (canvas)
+            document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
+            document.getElementById('videoUploadArea').addEventListener('click', () => {
+                document.getElementById('videoInput').click();
+            });
+
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
+        }
 
-            // New: video canvas upload
-            document.getElementById('videoCanvasInput').addEventListener('change', handleVideoCanvasUpload);
-            document.getElementById('videoCanvasUploadArea').addEventListener('click', () => {
-                document.getElementById('videoCanvasInput').click();
-            });
+        // Media mode switcher
+        function switchMediaMode(mode) {
+            document.getElementById('addImageMode').classList.toggle('active', mode === 'image');
+            document.getElementById('addVideoMode').classList.toggle('active', mode === 'video');
+            document.getElementById('imageUploadSection').style.display = mode === 'image' ? 'block' : 'none';
+            document.getElementById('videoUploadSection').style.display = mode === 'video' ? 'block' : 'none';
+        }
+
+        // Handle video upload to canvas
+        function handleVideoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 40 * 1024 * 1024) {
+                alert('Video must be under 40MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                const videoData = f.target.result;
+                
+                // Create video element to get first frame as thumbnail
+                const video = document.createElement('video');
+                video.src = videoData;
+                video.crossOrigin = "anonymous";
+                
+                video.onloadeddata = () => {
+                    // Create thumbnail canvas
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = video.videoWidth || 640;
+                    tempCanvas.height = video.videoHeight || 480;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    const posterUrl = tempCanvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // Add to Fabric canvas as image with video data attached
+                    fabric.Image.fromURL(posterUrl, (img) => {
+                        const scale = Math.min(300 / img.width, 200 / img.height);
+                        img.set({
+                            left: 300,
+                            top: 225,
+                            scaleX: scale,
+                            scaleY: scale,
+                            originX: 'center',
+                            originY: 'center'
+                        });
+                        
+                        // Store video data for later upload
+                        img.isVideo = true;
+                        img.videoData = videoData;
+                        img.videoFileName = file.name;
+                        img.videoType = file.type;
+                        img.videoSize = file.size;
+                        
+                        canvas.add(img);
+                        canvas.setActiveObject(img);
+                        canvas.renderAll();
+                        saveState();
+                        
+                        showNotification('Video added to canvas! Thumbnail shown, full video plays in final card.');
+                    });
+                };
+                
+                video.onerror = () => {
+                    alert('Error loading video. Please try another file.');
+                };
+            };
+            reader.readAsDataURL(file);
         }
 
         function handleSelection(e) {
@@ -929,7 +988,7 @@
                 case 'triangle': addShape('triangle'); break;
                 case 'line': addLine(); break;
                 case 'image': document.getElementById('fileInput').click(); break;
-                case 'video': addVideoToCanvas(); break;   // NEW
+                case 'video': switchMediaMode('video'); document.getElementById('videoInput').click(); break;
                 case 'delete': deleteSelected(); break;
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
@@ -1639,68 +1698,6 @@
             reader.readAsDataURL(file);
         }
 
-        // NEW: Add video to canvas (via tool)
-        function addVideoToCanvas() {
-            document.getElementById('videoCanvasInput').click();
-        }
-
-        // NEW: Handle video upload to canvas
-        function handleVideoCanvasUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            if (file.size > 40 * 1024 * 1024) {
-                alert('Video must be under 40MB');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = async (f) => {
-                const videoData = f.target.result;
-                
-                // Create a video element to extract first frame as poster
-                const video = document.createElement('video');
-                video.src = videoData;
-                video.crossOrigin = "anonymous";
-                
-                video.onloadeddata = () => {
-                    // Draw first frame to canvas for poster
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = video.videoWidth;
-                    tempCanvas.height = video.videoHeight;
-                    const ctx = tempCanvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0);
-                    const posterUrl = tempCanvas.toDataURL('image/jpeg');
-                    
-                    // Create Fabric image with poster
-                    fabric.Image.fromURL(posterUrl, (img) => {
-                        const scale = Math.min(300 / img.width, 200 / img.height);
-                        img.set({
-                            left: 300,
-                            top: 225,
-                            scaleX: scale,
-                            scaleY: scale,
-                            originX: 'center',
-                            originY: 'center'
-                        });
-                        // Attach video data to the object
-                        img.videoData = videoData;
-                        img.videoFileName = file.name;
-                        img.isVideo = true;
-                        img.videoType = file.type;
-                        
-                        canvas.add(img);
-                        canvas.setActiveObject(img);
-                        canvas.renderAll();
-                        saveState();
-                        
-                        showNotification('Video added! Shows as poster in editor, plays in final card.');
-                    });
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
         function zoom(delta) {
             currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
             canvas.setZoom(currentZoom);
@@ -1858,45 +1855,6 @@
             document.getElementById('checkoutTotal').textContent = '$' + total;
         }
 
-        // Video alternative handlers (full video card)
-        function handleVideoUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            if (file.size > 40 * 1024 * 1024) {
-                alert('Video must be under 40MB');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                uploadedVideo = {
-                    data: e.target.result,
-                    name: file.name,
-                    type: file.type
-                };
-                
-                const videoEl = document.getElementById('videoPreview');
-                videoEl.src = e.target.result;
-                document.getElementById('videoPreviewBox').classList.add('active');
-                document.getElementById('videoAltBox').style.display = 'none';
-                
-                canvas.clear();
-                canvas.setBackgroundColor('#1a1a2e', canvas.renderAll.bind(canvas));
-                alert('Video uploaded! This will be used instead of your canvas design.');
-            };
-            reader.readAsDataURL(file);
-            input.value = '';
-        }
-
-        function removeVideo() {
-            uploadedVideo = null;
-            document.getElementById('videoPreview').src = '';
-            document.getElementById('videoPreviewBox').classList.remove('active');
-            document.getElementById('videoAltBox').style.display = 'block';
-            canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-        }
-
         // ========== SAVE / LOAD PROGRESS ==========
         function checkForSavedProgress() {
             const saved = localStorage.getItem('papirDesignAutosave');
@@ -1923,7 +1881,6 @@
                     canvas: canvas.toJSON(),
                     templateConfig: templateConfig,
                     backgroundColor: canvas.backgroundColor,
-                    uploadedVideo: uploadedVideo,
                     timestamp: Date.now(),
                     version: '1.0'
                 };
@@ -1962,9 +1919,6 @@
                     document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                     document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                 }
-                if (data.uploadedVideo) {
-                    uploadedVideo = data.uploadedVideo;
-                }
                 showNotification('Design loaded! Continue where you left off.', 'success');
                 document.getElementById('loadProgressBtn').style.display = 'none';
             } catch (error) {
@@ -1992,69 +1946,57 @@
                 const BACKEND_URL = ''; // Relative path
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 10 : 1;
                 
+                let messageText = templateConfig?.name || 'Custom designed card';
                 let mediaUrl = '';
                 let mediaType = 'image';
-                let messageText = templateConfig?.name || 'Custom designed card';
-                let previewImage = null;
 
-                // If video alternative (full card video) is used, prioritize that
-                if (uploadedVideo) {
-                    mediaUrl = uploadedVideo.data;
-                    mediaType = 'video';
-                    messageText = 'Video message card';
-                } else {
-                    // Export canvas as PNG for preview
-                    previewImage = canvas.toDataURL({
-                        format: 'png',
-                        quality: 1,
-                        multiplier: 2
+                // Check for videos on canvas
+                const canvasObjects = canvas.getObjects();
+                const videoObjects = canvasObjects.filter(obj => obj.isVideo);
+                
+                if (videoObjects.length > 0) {
+                    // Upload video first
+                    showNotification('Uploading video...', 'info');
+                    const video = videoObjects[0];
+                    
+                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fileData: video.videoData,
+                            fileName: video.videoFileName,
+                            fileType: video.videoType,
+                            cardId: 'TEMP-' + Date.now()
+                        })
                     });
-                    mediaType = 'image';
-                    mediaUrl = ''; // Will be uploaded later or stored in localStorage
+                    
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        mediaUrl = uploadData.url;
+                        mediaType = 'video';
+                        messageText = 'Video message card';
+                        
+                        // Replace video data with URL to save space
+                        video.videoData = null; // Clear base64
+                        video.setSrc(uploadData.url); // Update object
+                    }
                 }
 
-                // Store full design data in localStorage for success.html
+                // Store design data for success.html
                 const pendingOrder = {
                     template: templateConfig,
                     canvasData: canvas.toJSON(),
-                    previewImage: previewImage,
-                    uploadedVideo: uploadedVideo,
+                    previewImage: mediaType === 'video' ? null : canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }),
+                    videoUrl: mediaUrl,
+                    mediaType: mediaType,
                     quantity: qty,
                     isBatch: qty > 1,
                     messageText: messageText,
-                    mediaType: mediaType,
                     timestamp: Date.now()
                 };
+                
                 localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
                 console.log('Design saved to localStorage for post-payment activation');
-
-                // Check if there are video objects on canvas that need uploading now
-                const canvasObjects = canvas.getObjects();
-                const videoObjects = canvasObjects.filter(obj => obj.isVideo);
-                if (videoObjects.length > 0) {
-                    // Upload first video (simplify: one video per card for now)
-                    const video = videoObjects[0];
-                    if (video.videoData) {
-                        const uploadRes = await fetch(BACKEND_URL + '/api/upload-media', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                fileData: video.videoData,
-                                fileName: video.videoFileName,
-                                fileType: video.videoType,
-                                cardId: 'TEMP-' + Date.now()
-                            })
-                        });
-                        const uploadData = await uploadRes.json();
-                        if (uploadData.success) {
-                            pendingOrder.videoUrl = uploadData.url;
-                            // Remove video data from canvas JSON to reduce size
-                            video.videoData = null;
-                            video.setSrc(uploadData.url);
-                            localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
-                        }
-                    }
-                }
 
                 // Create Stripe Checkout session
                 const response = await fetch(BACKEND_URL + '/api/create-checkout-session', {
@@ -2065,12 +2007,11 @@
                         is_batch: qty > 1,
                         card_type: 'digital',
                         message_text: messageText,
-                        media_url: mediaUrl, // may be empty if canvas design
+                        media_url: mediaUrl,
                         media_type: mediaType,
                         source: 'customize',
-                        is_template_design: !uploadedVideo && !!templateConfig,
-                        template_id: templateConfig?.id || null,
-                        customer_email: null
+                        is_template_design: !!templateConfig,
+                        template_id: templateConfig?.id || null
                     })
                 });
 
@@ -2089,10 +2030,7 @@
             }
         }
 
-        // Attach event listeners for video alternative and save/load buttons
-        document.getElementById('videoUpload').addEventListener('change', function(e) {
-            handleVideoUpload(e.target);
-        });
+        // Attach save/load buttons
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
 
