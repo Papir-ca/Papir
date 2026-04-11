@@ -279,6 +279,9 @@
         // Clear pending order
         localStorage.removeItem('pendingOrder');
         
+        localStorage.removeItem('papirDesignAutosave');
+        localStorage.removeItem('pendingOrder'); // Redundant but ensures cleanup
+        
         // Show success UI
         showSuccessState({
             isBatch: result.is_batch,

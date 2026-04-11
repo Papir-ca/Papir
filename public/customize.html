@@ -115,6 +115,9 @@
         .video-preview-box { margin-top: 15px; display: none; border: 2px solid var(--primary-teal); border-radius: 8px; padding: 15px; background: rgba(0,0,0,0.3); }
         .video-preview-box.active { display: block; }
         .video-preview-box video { width: 100%; max-height: 200px; border-radius: 8px; background: black; }
+
+        /* New: Video upload on canvas section */
+        #videoCanvasUploadSection .upload-area { border-color: var(--primary-teal); }
     </style>
 <base target="_blank">
 </head>
@@ -130,6 +133,14 @@
                 <div class="mode-switch">
                     <button class="mode-option active" id="singleModeBtn" data-mode="single">Single</button>
                     <button class="mode-option" id="batchModeBtn" data-mode="batch">Batch</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-icon" id="saveProgressBtn" title="Save Progress">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design">
+                        <i class="fas fa-folder-open"></i> Resume
+                    </button>
                 </div>
                 <div class="price-display" id="priceDisplay">$2.99</div>
             </div>
@@ -160,6 +171,7 @@
                 <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
                 <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
                 <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
+                <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
                 <div class="tool-divider"></div>
                 <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="far fa-square"></i></button>
                 <button class="tool-btn" data-tool="circle" title="Circle (C)"><i class="far fa-circle"></i></button>
@@ -241,6 +253,20 @@
                             <div class="color-picker-wrapper" style="margin-top: 10px;">
                                 <input type="color" id="bgColorPicker" value="#ffffff">
                                 <span style="font-size: 0.85rem;">Custom Color</span>
+                            </div>
+                        </div>
+
+                        <!-- New: Add Video to Canvas Section -->
+                        <div class="property-section" id="videoCanvasUploadSection" style="display: none;">
+                            <h4><i class="fas fa-film"></i> Add Video to Canvas</h4>
+                            <div class="upload-area" id="videoCanvasUploadArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop video</div>
+                                <div style="font-size: 0.7rem; opacity: 0.6;">MP4, WebM up to 40MB</div>
+                            </div>
+                            <input type="file" id="videoCanvasInput" accept="video/*" style="display: none;">
+                            <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;">
+                                <i class="fas fa-info-circle"></i> Video plays in viewer, shows as poster on canvas
                             </div>
                         </div>
                     </div>
@@ -623,7 +649,16 @@
         let snapToGrid = false;
         let gridSize = 20;
         let showGrid = false;
-        let uploadedVideo = null;  // For video upload
+        let uploadedVideo = null;  // For video alternative (separate from canvas)
+
+        // Helper: show notification (simple alert or custom toast)
+        function showNotification(message, type = 'info') {
+            // Simple alert for now – you can replace with your toast system
+            console.log(`[${type}] ${message}`);
+            // Uncomment if you have a toast element:
+            // const toast = document.getElementById('notification');
+            // if (toast) { toast.textContent = message; toast.className = `notification ${type} show`; setTimeout(() => toast.classList.remove('show'), 3000); }
+        }
 
         async function init() {
             if (document.fonts) {
@@ -669,6 +704,8 @@
             setupZoomControls();
             setupArrangeControls();
             setupModeSwitch();
+            checkForSavedProgress();      // NEW: check for autosave
+            startAutoSave();              // NEW: auto-save every 2 min
         }
 
         async function loadTemplateDesign() {
@@ -849,6 +886,12 @@
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
+
+            // New: video canvas upload
+            document.getElementById('videoCanvasInput').addEventListener('change', handleVideoCanvasUpload);
+            document.getElementById('videoCanvasUploadArea').addEventListener('click', () => {
+                document.getElementById('videoCanvasInput').click();
+            });
         }
 
         function handleSelection(e) {
@@ -886,6 +929,7 @@
                 case 'triangle': addShape('triangle'); break;
                 case 'line': addLine(); break;
                 case 'image': document.getElementById('fileInput').click(); break;
+                case 'video': addVideoToCanvas(); break;   // NEW
                 case 'delete': deleteSelected(); break;
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
@@ -1595,6 +1639,68 @@
             reader.readAsDataURL(file);
         }
 
+        // NEW: Add video to canvas (via tool)
+        function addVideoToCanvas() {
+            document.getElementById('videoCanvasInput').click();
+        }
+
+        // NEW: Handle video upload to canvas
+        function handleVideoCanvasUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 40 * 1024 * 1024) {
+                alert('Video must be under 40MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async (f) => {
+                const videoData = f.target.result;
+                
+                // Create a video element to extract first frame as poster
+                const video = document.createElement('video');
+                video.src = videoData;
+                video.crossOrigin = "anonymous";
+                
+                video.onloadeddata = () => {
+                    // Draw first frame to canvas for poster
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = video.videoWidth;
+                    tempCanvas.height = video.videoHeight;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    const posterUrl = tempCanvas.toDataURL('image/jpeg');
+                    
+                    // Create Fabric image with poster
+                    fabric.Image.fromURL(posterUrl, (img) => {
+                        const scale = Math.min(300 / img.width, 200 / img.height);
+                        img.set({
+                            left: 300,
+                            top: 225,
+                            scaleX: scale,
+                            scaleY: scale,
+                            originX: 'center',
+                            originY: 'center'
+                        });
+                        // Attach video data to the object
+                        img.videoData = videoData;
+                        img.videoFileName = file.name;
+                        img.isVideo = true;
+                        img.videoType = file.type;
+                        
+                        canvas.add(img);
+                        canvas.setActiveObject(img);
+                        canvas.renderAll();
+                        saveState();
+                        
+                        showNotification('Video added! Shows as poster in editor, plays in final card.');
+                    });
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
         function zoom(delta) {
             currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
             canvas.setZoom(currentZoom);
@@ -1752,7 +1858,7 @@
             document.getElementById('checkoutTotal').textContent = '$' + total;
         }
 
-        // Video upload handlers
+        // Video alternative handlers (full video card)
         function handleVideoUpload(input) {
             const file = input.files[0];
             if (!file) return;
@@ -1770,16 +1876,13 @@
                     type: file.type
                 };
                 
-                // Show preview
                 const videoEl = document.getElementById('videoPreview');
                 videoEl.src = e.target.result;
                 document.getElementById('videoPreviewBox').classList.add('active');
                 document.getElementById('videoAltBox').style.display = 'none';
                 
-                // Clear canvas since we're using video
                 canvas.clear();
                 canvas.setBackgroundColor('#1a1a2e', canvas.renderAll.bind(canvas));
-                
                 alert('Video uploaded! This will be used instead of your canvas design.');
             };
             reader.readAsDataURL(file);
@@ -1794,7 +1897,91 @@
             canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
         }
 
-        // Updated proceedToCheckout function
+        // ========== SAVE / LOAD PROGRESS ==========
+        function checkForSavedProgress() {
+            const saved = localStorage.getItem('papirDesignAutosave');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    const age = Date.now() - data.timestamp;
+                    const hoursAgo = Math.floor(age / (1000 * 60 * 60));
+                    if (hoursAgo < 24) {
+                        document.getElementById('loadProgressBtn').style.display = 'block';
+                        showNotification(`Found design from ${hoursAgo} hours ago. Click Resume to continue.`, 'info');
+                    } else {
+                        localStorage.removeItem('papirDesignAutosave');
+                    }
+                } catch(e) {
+                    console.error('Error checking saved progress:', e);
+                }
+            }
+        }
+
+        function saveProgress() {
+            try {
+                const designData = {
+                    canvas: canvas.toJSON(),
+                    templateConfig: templateConfig,
+                    backgroundColor: canvas.backgroundColor,
+                    uploadedVideo: uploadedVideo,
+                    timestamp: Date.now(),
+                    version: '1.0'
+                };
+                localStorage.setItem('papirDesignAutosave', JSON.stringify(designData));
+                showNotification('Design saved! You can resume anytime within 24 hours.', 'success');
+                const btn = document.getElementById('saveProgressBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }, 2000);
+            } catch (error) {
+                console.error('Save error:', error);
+                showNotification('Could not save design (too large?). Try exporting instead.', 'error');
+            }
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('papirDesignAutosave');
+            if (!saved) {
+                showNotification('No saved design found', 'error');
+                return;
+            }
+            if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
+            try {
+                const data = JSON.parse(saved);
+                canvas.loadFromJSON(data.canvas, () => {
+                    canvas.renderAll();
+                    saveState();
+                });
+                if (data.backgroundColor) {
+                    canvas.backgroundColor = data.backgroundColor;
+                    canvas.renderAll();
+                }
+                if (data.templateConfig) {
+                    templateConfig = data.templateConfig;
+                    document.getElementById('templateName').textContent = templateConfig.name || 'Design';
+                    document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
+                }
+                if (data.uploadedVideo) {
+                    uploadedVideo = data.uploadedVideo;
+                }
+                showNotification('Design loaded! Continue where you left off.', 'success');
+                document.getElementById('loadProgressBtn').style.display = 'none';
+            } catch (error) {
+                console.error('Load error:', error);
+                showNotification('Could not load saved design', 'error');
+            }
+        }
+
+        function startAutoSave() {
+            setInterval(() => {
+                if (canvas.getObjects().length > 0) {
+                    saveProgress();
+                }
+            }, 120000); // 2 minutes
+        }
+
+        // ========== UPDATED PROCEED TO CHECKOUT ==========
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -1802,29 +1989,74 @@
             btn.disabled = true;
 
             try {
-                const BACKEND_URL = ''; // Leave empty to use relative path, or set to 'https://papir.ca'
+                const BACKEND_URL = ''; // Relative path
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 10 : 1;
                 
                 let mediaUrl = '';
                 let mediaType = 'image';
                 let messageText = templateConfig?.name || 'Custom designed card';
+                let previewImage = null;
 
-                // If video uploaded, use that (priority)
+                // If video alternative (full card video) is used, prioritize that
                 if (uploadedVideo) {
                     mediaUrl = uploadedVideo.data;
                     mediaType = 'video';
                     messageText = 'Video message card';
                 } else {
-                    // Export canvas as PNG
-                    mediaUrl = canvas.toDataURL({
+                    // Export canvas as PNG for preview
+                    previewImage = canvas.toDataURL({
                         format: 'png',
                         quality: 1,
                         multiplier: 2
                     });
                     mediaType = 'image';
+                    mediaUrl = ''; // Will be uploaded later or stored in localStorage
                 }
 
-                // UNIFIED CHECKOUT - Same as maker.html
+                // Store full design data in localStorage for success.html
+                const pendingOrder = {
+                    template: templateConfig,
+                    canvasData: canvas.toJSON(),
+                    previewImage: previewImage,
+                    uploadedVideo: uploadedVideo,
+                    quantity: qty,
+                    isBatch: qty > 1,
+                    messageText: messageText,
+                    mediaType: mediaType,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
+                console.log('Design saved to localStorage for post-payment activation');
+
+                // Check if there are video objects on canvas that need uploading now
+                const canvasObjects = canvas.getObjects();
+                const videoObjects = canvasObjects.filter(obj => obj.isVideo);
+                if (videoObjects.length > 0) {
+                    // Upload first video (simplify: one video per card for now)
+                    const video = videoObjects[0];
+                    if (video.videoData) {
+                        const uploadRes = await fetch(BACKEND_URL + '/api/upload-media', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fileData: video.videoData,
+                                fileName: video.videoFileName,
+                                fileType: video.videoType,
+                                cardId: 'TEMP-' + Date.now()
+                            })
+                        });
+                        const uploadData = await uploadRes.json();
+                        if (uploadData.success) {
+                            pendingOrder.videoUrl = uploadData.url;
+                            // Remove video data from canvas JSON to reduce size
+                            video.videoData = null;
+                            video.setSrc(uploadData.url);
+                            localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
+                        }
+                    }
+                }
+
+                // Create Stripe Checkout session
                 const response = await fetch(BACKEND_URL + '/api/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1833,16 +2065,16 @@
                         is_batch: qty > 1,
                         card_type: 'digital',
                         message_text: messageText,
-                        media_url: mediaUrl,
+                        media_url: mediaUrl, // may be empty if canvas design
                         media_type: mediaType,
                         source: 'customize',
                         is_template_design: !uploadedVideo && !!templateConfig,
-                        template_id: templateConfig?.id || null
+                        template_id: templateConfig?.id || null,
+                        customer_email: null
                     })
                 });
 
                 const data = await response.json();
-                
                 if (data.error) throw new Error(data.error);
                 if (!data.url) throw new Error('No checkout URL received');
 
@@ -1857,10 +2089,12 @@
             }
         }
 
-        // Attach video event listeners after DOM is ready
+        // Attach event listeners for video alternative and save/load buttons
         document.getElementById('videoUpload').addEventListener('change', function(e) {
             handleVideoUpload(e.target);
         });
+        document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
+        document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
 
         init();
     </script>
