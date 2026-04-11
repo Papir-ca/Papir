@@ -1011,7 +1011,8 @@ app.get('/api/admin/activity', async (req, res) => {
 });
 
 // ============================================
-// NEW: Stripe Checkout Session for customize.html
+// UPDATED: Stripe Checkout Session 
+// Handles BOTH customize.html flat format AND standard items array
 // ============================================
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) {
@@ -1019,15 +1020,52 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
   
   try {
-    const { items, metadata } = req.body;
+    const body = req.body;
+    let line_items = [];
+    let metadata = {};
+    let successUrl = `${req.protocol}://${req.get('host')}/success.html`;
+    let cancelUrl = `${req.protocol}://${req.get('host')}/customize.html`;
     
-    if (!items || !items.length) {
-      return res.status(400).json({ error: 'No items provided' });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: items.map(item => ({
+    // NEW FLOW: From customize.html / maker.html (flat object format)
+    if (body.quantity && !body.items) {
+      const qty = parseInt(body.quantity) || 1;
+      const isBatch = body.is_batch === true || qty > 1;
+      const unitAmount = 299; // $2.99 in cents
+      
+      line_items = [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: isBatch ? `Batch of ${qty} E-Cards` : 'Single E-Card',
+            description: body.message_text ? body.message_text.substring(0, 100) : 'Custom Papir Card',
+          },
+          unit_amount: unitAmount,
+        },
+        quantity: qty,
+      }];
+      
+      // Limit metadata size - Stripe has 500 char limit per value
+      // If media_url is base64 (huge), don't store in metadata, handle in activation via design_data
+      let safeMediaUrl = body.media_url || '';
+      if (safeMediaUrl && safeMediaUrl.length > 400) {
+        safeMediaUrl = ''; // Too big for metadata, will use design_data from localStorage
+      }
+      
+      metadata = {
+        quantity: qty.toString(),
+        is_batch: isBatch ? 'true' : 'false',
+        template_id: body.template_id || body.template?.id || 'custom',
+        message_text: body.message_text ? body.message_text.substring(0, 500) : '',
+        media_url: safeMediaUrl, // Only if small enough (text URLs)
+        media_type: body.media_type || 'image',
+        source: body.source || 'customize',
+        is_template_design: body.is_template_design ? 'true' : 'false',
+        card_type: 'ecard' // Explicitly e-card
+      };
+    } 
+    // STANDARD FLOW: With items array (if used elsewhere)
+    else if (body.items && Array.isArray(body.items)) {
+      line_items = body.items.map(item => ({
         price_data: {
           currency: item.currency || 'usd',
           product_data: {
@@ -1037,14 +1075,34 @@ app.post('/api/create-checkout-session', async (req, res) => {
           unit_amount: item.amount,
         },
         quantity: item.quantity || 1,
-      })),
+      }));
+      metadata = body.metadata || {};
+      if (body.success_url) successUrl = body.success_url;
+      if (body.cancel_url) cancelUrl = body.cancel_url;
+    } 
+    else {
+      return res.status(400).json({ 
+        error: 'Invalid request format. Provide quantity (number) or items array.',
+        received: Object.keys(body)
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: line_items,
       mode: 'payment',
-      success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin}/customize.html`,
-      metadata: metadata || {},
+      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl,
+      metadata: metadata,
+      // Store customer email if provided (for receipt)
+      customer_email: body.customer_email || null,
     });
 
-    res.json({ id: session.id });
+    res.json({ 
+      id: session.id,
+      url: session.url 
+    });
+    
   } catch (error) {
     console.error('Stripe session error:', error);
     res.status(500).json({ error: error.message });
@@ -1052,25 +1110,31 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================
-// UPDATED: Activate after payment (supports BOTH flows)
+// UPDATED: Activate after payment (UNIFIED FLOW)
+// Handles BOTH customize.html (session_id) AND maker.html (card_id/batch_id)
 // ============================================
 app.post('/api/activate-after-payment', async (req, res) => {
   try {
     const { session_id, card_id, batch_id, terms_accepted, design_data } = req.body;
     const clientIp = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
     
-    // NEW FLOW: Stripe Checkout Session (from customize.html)
+    // Validate that we have at least one identifier
+    if (!session_id && !card_id && !batch_id) {
+      return res.status(400).json({ 
+        error: 'No session_id, card_id, or batch_id provided',
+        hint: 'For customize.html flow: provide session_id. For maker.html flow: provide card_id or batch_id.'
+      });
+    }
+    
+    // NEW FLOW: From customize.html via Stripe Checkout
     if (session_id) {
-      console.log('🔵 New flow: Stripe session', session_id);
+      console.log('🔵 Processing Stripe session:', session_id);
       
-      if (!stripe) {
-        return res.status(503).json({ error: 'Stripe not configured' });
-      }
-      if (!supabaseAdmin) {
-        return res.status(503).json({ error: 'Database not configured' });
-      }
+      if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
+      if (!supabaseAdmin) return res.status(503).json({ error: 'Database not configured' });
       
-      // Verify with Stripe
+      // Verify payment with Stripe
       const session = await stripe.checkout.sessions.retrieve(session_id);
       if (session.payment_status !== 'paid') {
         return res.status(400).json({ error: 'Payment not completed' });
@@ -1079,131 +1143,240 @@ app.post('/api/activate-after-payment', async (req, res) => {
       const quantity = parseInt(session.metadata?.quantity || '1');
       const isBatch = session.metadata?.is_batch === 'true';
       const templateId = session.metadata?.template_id || 'custom';
+      const messageText = session.metadata?.message_text || '';
+      const mediaUrlFromStripe = session.metadata?.media_url || '';
+      const mediaType = session.metadata?.media_type || 'image';
+      const source = session.metadata?.source || 'customize';
       
-      // Upload image if provided
-      let imageUrl = null;
-      if (design_data?.previewImage) {
-        try {
-          const base64Data = design_data.previewImage.replace(/^data:image\/\w+;base64,/, '');
-          const buffer = Buffer.from(base64Data, 'base64');
-          const filename = `card-designs/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-          
-          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-            .from('cards-media')
-            .upload(filename, buffer, { contentType: 'image/png', upsert: false });
+      // Handle design data from localStorage (passed from success.html)
+      // This contains the base64 image if it was too big for Stripe metadata
+      let finalMediaUrl = mediaUrlFromStripe;
+      let designData = {};
+      
+      if (design_data) {
+        // If design_data has the previewImage (base64 canvas), upload it now
+        if (design_data.previewImage && design_data.previewImage.startsWith('data:')) {
+          try {
+            const base64Data = design_data.previewImage.replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+            const filename = `card-designs/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+            
+            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+              .from('cards-media')
+              .upload(filename, buffer, { contentType: 'image/png', upsert: false });
 
-          if (!uploadError) {
-            const { data: urlData } = supabaseAdmin.storage.from('cards-media').getPublicUrl(filename);
-            imageUrl = urlData.publicUrl;
+            if (!uploadError) {
+              const { data: urlData } = supabaseAdmin.storage.from('cards-media').getPublicUrl(filename);
+              finalMediaUrl = urlData.publicUrl;
+              console.log('✅ Design uploaded:', finalMediaUrl);
+            } else {
+              console.error('Upload error:', uploadError);
+            }
+          } catch (e) { 
+            console.error('Design upload error:', e); 
           }
-        } catch (e) { console.error('Upload error:', e); }
+        }
+        
+        // Also check for video in design_data
+        if (design_data.video && design_data.video.data) {
+          // Video was uploaded separately via /api/upload-media in customize.html
+          // The URL should already be in design_data.video.url or mediaUrlFromStripe
+          if (design_data.video.url && !finalMediaUrl) {
+            finalMediaUrl = design_data.video.url;
+          }
+        }
+        
+        designData = design_data.canvasData || {};
       }
-
-      if (isBatch && quantity > 1) {
-        // Create batch
-        const batchId = `batch_${Date.now()}`;
-        const cardsToCreate = [];
-        for (let i = 0; i < quantity; i++) {
-          cardsToCreate.push({
-            card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-            batch_id: batchId,
-            batch_order: i + 1,
-            status: 'active',
-            template_id: templateId,
-            card_type: 'ecard',
-            design_data: design_data?.canvasData || {},
-            preview_image_url: imageUrl,
-            sender_email: session.customer_email || session.customer_details?.email,
-            amount_paid: i === 0 ? session.amount_total : 0,
-            currency: session.currency,
-            stripe_session_id: session_id,
-            payment_intent_id: session.payment_intent,
-            physical_card_status: null,
-            terms_accepted: true,
-            created_by_ip: clientIp,
-            created_at: new Date().toISOString()
-          });
+      
+      // Generate batch ID if needed
+      const finalBatchId = isBatch ? `batch_${Date.now()}_${Math.random().toString(36).substr(2, 6)}` : null;
+      
+      // Create cards
+      const cardsToCreate = [];
+      const now = new Date();
+      const deadline = new Date();
+      deadline.setFullYear(deadline.getFullYear() + 1);
+      
+      for (let i = 0; i < quantity; i++) {
+        const cardRecord = {
+          card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+          status: 'active', // Active immediately for e-cards
+          card_type: 'ecard',
+          template_id: templateId,
+          message_type: mediaType === 'video' ? 'video' : (finalMediaUrl ? 'image' : 'text'),
+          message_text: messageText || 'Custom designed card',
+          media_url: finalMediaUrl || null,
+          design_data: designData,
+          preview_image_url: finalMediaUrl || null,
+          sender_email: session.customer_email || session.customer_details?.email || null,
+          amount_paid: i === 0 ? session.amount_total : 0, // First card gets full amount
+          currency: session.currency,
+          stripe_session_id: session_id,
+          payment_intent_id: session.payment_intent,
+          terms_accepted: true,
+          physical_card_status: null, // NULL for e-cards (dormant only for physical)
+          created_by_ip: clientIp,
+          updated_by_ip: clientIp,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+          activation_deadline: deadline.toISOString()
+        };
+        
+        if (isBatch) {
+          cardRecord.batch_id = finalBatchId;
+          cardRecord.batch_order = i + 1;
+          cardRecord.is_batch_template = false;
         }
         
-        const { data: createdCards, error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate).select();
-        
-        if (insertError) {
-          console.error('Insert error:', insertError);
-          return res.status(500).json({ error: 'Failed to create cards: ' + insertError.message });
-        }
-        
+        cardsToCreate.push(cardRecord);
+      }
+      
+      // Bulk insert cards
+      const { data: createdCards, error: insertError } = await supabaseAdmin
+        .from('cards')
+        .insert(cardsToCreate)
+        .select();
+      
+      if (insertError) {
+        console.error('Card insert error:', insertError);
+        return res.status(500).json({ error: 'Failed to create cards: ' + insertError.message });
+      }
+      
+      console.log(`✅ Created ${createdCards.length} cards`);
+      
+      // Create batch record if batch
+      if (isBatch && finalBatchId) {
         const { error: batchError } = await supabaseAdmin.from('batches').insert({
-          batch_id: batchId,
+          batch_id: finalBatchId,
           batch_type: 'ecard',
           cards_created: quantity,
           total_cards_purchased: quantity,
           max_cards_allowed: quantity,
           created_by_ip: clientIp,
-          created_at: new Date().toISOString()
+          created_at: now.toISOString(),
+          updated_at: now.toISOString()
         });
         
         if (batchError) {
           console.error('Batch insert error:', batchError);
+          // Don't fail if batch insert fails, cards are already created
         }
-
-        return res.json({ success: true, batch_id: batchId, cards_created: quantity, is_batch: true });
-      } else {
-        // Single card
-        const { data: card, error: cardError } = await supabaseAdmin.from('cards').insert({
-          card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-          status: 'active',
-          template_id: templateId,
-          design_data: design_data?.canvasData || {},
-          preview_image_url: imageUrl,
-          sender_email: session.customer_email || session.customer_details?.email,
-          amount_paid: session.amount_total,
-          currency: session.currency,
+        
+        // Log batch events
+        await supabaseAdmin.from('batch_events').insert({
+          batch_id: finalBatchId,
+          event_type: 'batch_paid_and_created',
+          quantity: quantity,
+          timestamp: now.toISOString(),
+          ip_address: clientIp,
+          user_agent: userAgent,
+          metadata: { 
+            stripe_session_id: session_id,
+            template_id: templateId,
+            source: source,
+            cards: createdCards.map(c => c.card_id)
+          }
+        });
+      }
+      
+      // Log activations to card_activations table
+      const activationRecords = createdCards.map(card => ({
+        card_id: card.card_id,
+        activated_at: now.toISOString(),
+        activated_by_ip: clientIp,
+        terms_accepted_at: now.toISOString(),
+        terms_accepted_ip: clientIp,
+        user_agent: userAgent,
+        activation_source: source === 'customize' ? 'customize_checkout' : 'stripe_checkout',
+        location_data: null, // Could add geolocation here if desired
+        metadata: { 
+          batch_id: card.batch_id,
+          batch_order: card.batch_order,
           stripe_session_id: session_id,
           payment_intent_id: session.payment_intent,
-          physical_card_status: null,
-          terms_accepted: true,
-          created_by_ip: clientIp,
-          created_at: new Date().toISOString()
-        }).select().single();
-        
-        if (cardError || !card) {
-          console.error('Card insert error:', cardError);
-          return res.status(500).json({ error: 'Failed to create card' });
+          template_id: templateId
         }
-
-        return res.json({ success: true, card_id: card.card_id, is_batch: false });
+      }));
+      
+      const { error: actError } = await supabaseAdmin.from('card_activations').insert(activationRecords);
+      if (actError) console.error('Activation logging error:', actError);
+      
+      // Return appropriate response for success.html
+      if (isBatch) {
+        return res.json({ 
+          success: true, 
+          batch_id: finalBatchId,
+          cards_created: quantity,
+          is_batch: true,
+          template_name: templateId,
+          card_ids: createdCards.map(c => c.card_id) // Optional: return all IDs
+        });
+      } else {
+        return res.json({ 
+          success: true, 
+          card_id: createdCards[0].card_id,
+          is_batch: false,
+          template_name: templateId
+        });
       }
     }
     
-    // OLD FLOW: Direct activation (from maker.html checkout)
+    // OLD FLOW: From maker.html (direct card_id/batch_id activation)
     else if (card_id || batch_id) {
-      console.log('🟡 Old flow: Direct activation', { card_id, batch_id });
+      console.log('🟡 Old flow activation:', { card_id, batch_id });
       
-      if (!supabaseAdmin) {
-        return res.status(503).json({ error: 'Database not configured' });
-      }
+      if (!supabaseAdmin) return res.status(503).json({ error: 'Database not configured' });
       
-      if (batch_id) {
-        // CHECK IF ALREADY PROCESSED - Prevent duplicates!
-        const { data: existingCards, count } = await supabaseAdmin
+      // Single card activation (draft -> active)
+      if (card_id) {
+        const { data: existingCard, error: checkError } = await supabaseAdmin
           .from('cards')
-          .select('*', { count: 'exact', head: true })
-          .eq('batch_id', batch_id)
-          .eq('status', 'active');
+          .select('status, batch_id')
+          .eq('card_id', card_id)
+          .single();
           
-        if (count > 0) {
-          console.log(`⚠️ Batch ${batch_id} already has ${count} active cards, skipping creation`);
-          return res.json({ 
-            success: true, 
-            message: `Batch already activated with ${count} cards`,
-            batch_id: batch_id,
-            cards_created: count,
-            already_complete: true
-          });
+        if (checkError) return res.status(404).json({ error: 'Card not found' });
+        if (existingCard.status === 'active') {
+          return res.json({ success: true, already_active: true, card_id });
         }
         
-        // Get template (should be draft status)
-        const { data: template } = await supabaseAdmin
+        const { error } = await supabaseAdmin
+          .from('cards')
+          .update({ 
+            status: 'active', 
+            terms_accepted: true, 
+            physical_card_status: null,
+            updated_by_ip: clientIp,
+            updated_at: new Date().toISOString()
+          })
+          .eq('card_id', card_id)
+          .eq('status', 'draft');
+
+        if (error) throw error;
+        
+        // Log activation
+        await supabaseAdmin.from('card_activations').insert({
+          card_id: card_id,
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          activation_source: 'maker_old_flow',
+          metadata: { direct_activation: true, source: 'maker.html' }
+        });
+
+        return res.json({ 
+          success: true, 
+          message: `Activated card ${card_id}`,
+          card_id: card_id,
+          is_batch: false 
+        });
+      }
+      
+      // Batch activation (Hallmark style - template exists, clone it)
+      else if (batch_id) {
+        // Get template card (the one saved as draft with is_batch_template=true)
+        const { data: template, error: templateError } = await supabaseAdmin
           .from('cards')
           .select('*')
           .eq('batch_id', batch_id)
@@ -1211,22 +1384,37 @@ app.post('/api/activate-after-payment', async (req, res) => {
           .eq('status', 'draft')
           .single();
 
-        if (!template) {
-          return res.status(404).json({ error: 'Template not found or already processed' });
+        if (templateError || !template) {
+          // Check if batch already activated
+          const { data: existingCards } = await supabaseAdmin
+            .from('cards')
+            .select('card_id')
+            .eq('batch_id', batch_id)
+            .eq('status', 'active')
+            .limit(1);
+            
+          if (existingCards && existingCards.length > 0) {
+            return res.json({ 
+              success: true, 
+              already_active: true, 
+              batch_id: batch_id,
+              cards_created: existingCards.length 
+            });
+          }
+          
+          return res.status(404).json({ error: 'Template not found or batch already processed' });
         }
 
-        const quantity = parseInt(template.quantity) || 2;
-        console.log(`🎯 Creating batch ${batch_id} with ${quantity} cards`);
-        
-        // Create all cards including template (batch_order 1)
+        const quantity = template.quantity || 2;
         const cardsToCreate = [];
+        const now = new Date();
         
-        for (let i = 0; i < quantity; i++) {
-          const orderNum = i + 1;
+        // Create remaining cards (template becomes card #1, so create 2..n)
+        for (let i = 2; i <= quantity; i++) {
           cardsToCreate.push({
-            card_id: orderNum === 1 ? template.card_id : `${batch_id}-${String(orderNum).padStart(4, '0')}`,
+            card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
             batch_id: batch_id,
-            batch_order: orderNum,
+            batch_order: i,
             message_type: template.message_type,
             message_text: template.message_text,
             media_url: template.media_url,
@@ -1235,28 +1423,34 @@ app.post('/api/activate-after-payment', async (req, res) => {
             file_type: template.file_type,
             status: 'active',
             card_type: 'ecard',
-            is_batch_template: orderNum === 1, // First card is template
             terms_accepted: true,
-            physical_card_status: null,
+            physical_card_status: null, // E-card = null
             created_by_ip: clientIp,
-            created_at: new Date().toISOString()
+            updated_by_ip: clientIp,
+            created_at: now.toISOString(),
+            updated_at: now.toISOString()
           });
         }
 
-        // Insert all cards
-        const { error: insertError } = await supabaseAdmin.from('cards').insert(cardsToCreate);
-        if (insertError) {
-          console.error('Insert error:', insertError);
-          throw insertError;
+        if (cardsToCreate.length > 0) {
+          const { error: insertErr } = await supabaseAdmin.from('cards').insert(cardsToCreate);
+          if (insertErr) throw insertErr;
         }
 
-        // Update template to active (it was already inserted above)
+        // Activate the template card itself (convert from template to active card #1)
         await supabaseAdmin
           .from('cards')
-          .update({ status: 'active', terms_accepted: true, updated_by_ip: clientIp })
+          .update({ 
+            status: 'active', 
+            is_batch_template: false, 
+            terms_accepted: true,
+            batch_order: 1,
+            physical_card_status: null,
+            updated_by_ip: clientIp 
+          })
           .eq('card_id', template.card_id);
 
-        // Update batch row (FIXED COLUMNS - no batch_name, no status)
+        // Ensure batch record exists (might not if created before batch table existed)
         const { data: existingBatch } = await supabaseAdmin
           .from('batches')
           .select('batch_id')
@@ -1266,55 +1460,31 @@ app.post('/api/activate-after-payment', async (req, res) => {
         if (!existingBatch) {
           await supabaseAdmin.from('batches').insert({
             batch_id: batch_id,
-            max_cards_allowed: quantity,
-            cards_created: quantity,
             batch_type: 'ecard',
+            cards_created: quantity,
+            total_cards_purchased: quantity,
+            max_cards_allowed: quantity,
             created_by_ip: clientIp,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: now.toISOString(),
+            updated_at: now.toISOString()
           });
-        } else {
-          await supabaseAdmin
-            .from('batches')
-            .update({
-              cards_created: quantity,
-              max_cards_allowed: quantity,
-              updated_at: new Date().toISOString()
-            })
-            .eq('batch_id', batch_id);
         }
-        
-        console.log(`✅ Created ${quantity} cards for batch ${batch_id}`);
-        
+
+        // Log activation events
+        await supabaseAdmin.from('card_activations').insert({
+          card_id: template.card_id,
+          activated_at: now.toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: now.toISOString(),
+          activation_source: 'maker_batch_activation',
+          metadata: { batch_id: batch_id, quantity: quantity, was_template: true }
+        });
+
         return res.json({ 
           success: true, 
-          message: `Created ${quantity} cards`,
           batch_id: batch_id,
           cards_created: quantity,
           is_batch: true 
-        });
-      }
-      
-      else if (card_id) {
-        // Single card activation
-        const { error } = await supabaseAdmin
-          .from('cards')
-          .update({ 
-            status: 'active', 
-            terms_accepted: true, 
-            updated_by_ip: clientIp,
-            updated_at: new Date().toISOString()
-          })
-          .eq('card_id', card_id)
-          .eq('status', 'draft');
-
-        if (error) throw error;
-
-        return res.json({ 
-          success: true, 
-          message: `Activated card ${card_id}`,
-          card_id: card_id,
-          is_batch: false 
         });
       }
     }
@@ -1325,7 +1495,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
 
   } catch (error) {
     console.error('Activation error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
 
