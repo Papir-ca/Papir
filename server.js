@@ -1087,16 +1087,22 @@ app.post('/api/create-checkout-session', async (req, res) => {
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // Build session config
+    const sessionConfig = {
       payment_method_types: ['card'],
       line_items: line_items,
       mode: 'payment',
       success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
-      metadata: metadata,
-      // Store customer email if provided (for receipt)
-      customer_email: body.customer_email || null,
-    });
+      metadata: metadata
+    };
+
+    // Only add email if provided and valid (FIX 1)
+    if (body.customer_email && body.customer_email.includes('@')) {
+      sessionConfig.customer_email = body.customer_email;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.json({ 
       id: session.id,
@@ -1140,6 +1146,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
         return res.status(400).json({ error: 'Payment not completed' });
       }
 
+      // Ensure quantity is integer (FIX 2)
       const quantity = parseInt(session.metadata?.quantity || '1');
       const isBatch = session.metadata?.is_batch === 'true';
       const templateId = session.metadata?.template_id || 'custom';
@@ -1245,29 +1252,31 @@ app.post('/api/activate-after-payment', async (req, res) => {
       
       console.log(`✅ Created ${createdCards.length} cards`);
       
-      // Create batch record if batch
+      // Create batch record if batch (with integer values - FIX 2)
       if (isBatch && finalBatchId) {
         const { error: batchError } = await supabaseAdmin.from('batches').insert({
           batch_id: finalBatchId,
           batch_type: 'ecard',
-          cards_created: quantity,
-          total_cards_purchased: quantity,
-          max_cards_allowed: quantity,
+          cards_created: parseInt(quantity),        // Ensure integer
+          total_cards_purchased: parseInt(quantity), // Ensure integer
+          max_cards_allowed: parseInt(quantity),    // Ensure integer
           created_by_ip: clientIp,
           created_at: now.toISOString(),
           updated_at: now.toISOString()
         });
         
         if (batchError) {
-          console.error('Batch insert error:', batchError);
+          console.error('🔴 Batch insert error:', batchError);
           // Don't fail if batch insert fails, cards are already created
+        } else {
+          console.log('✅ Batch record created:', finalBatchId, 'with', quantity, 'cards');
         }
         
         // Log batch events
         await supabaseAdmin.from('batch_events').insert({
           batch_id: finalBatchId,
           event_type: 'batch_paid_and_created',
-          quantity: quantity,
+          quantity: parseInt(quantity),
           timestamp: now.toISOString(),
           ip_address: clientIp,
           user_agent: userAgent,
@@ -1277,7 +1286,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
             source: source,
             cards: createdCards.map(c => c.card_id)
           }
-        });
+        }).catch(e => console.error('Batch event error:', e));
       }
       
       // Log activations to card_activations table
@@ -1310,7 +1319,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
           cards_created: quantity,
           is_batch: true,
           template_name: templateId,
-          card_ids: createdCards.map(c => c.card_id) // Optional: return all IDs
+          card_ids: createdCards.map(c => c.card_id)
         });
       } else {
         return res.json({ 
@@ -1461,9 +1470,9 @@ app.post('/api/activate-after-payment', async (req, res) => {
           await supabaseAdmin.from('batches').insert({
             batch_id: batch_id,
             batch_type: 'ecard',
-            cards_created: quantity,
-            total_cards_purchased: quantity,
-            max_cards_allowed: quantity,
+            cards_created: parseInt(quantity),
+            total_cards_purchased: parseInt(quantity),
+            max_cards_allowed: parseInt(quantity),
             created_by_ip: clientIp,
             created_at: now.toISOString(),
             updated_at: now.toISOString()
@@ -1996,9 +2005,9 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             await supabaseAdmin.from('batches').insert({
                 batch_id: batch_id,
                 batch_type: 'ecard',
-                cards_created: quantity,
-                total_cards_purchased: quantity,
-                max_cards_allowed: quantity,
+                cards_created: parseInt(quantity),
+                total_cards_purchased: parseInt(quantity),
+                max_cards_allowed: parseInt(quantity),
                 content_locked: true,
                 created_by_ip: clientIp,
                 created_at: new Date().toISOString(),
@@ -2008,8 +2017,8 @@ app.post('/api/batch/create-from-template', async (req, res) => {
             await supabaseAdmin
                 .from('batches')
                 .update({
-                    cards_created: quantity,
-                    total_cards_purchased: quantity,
+                    cards_created: parseInt(quantity),
+                    total_cards_purchased: parseInt(quantity),
                     content_locked: true,
                     updated_at: new Date().toISOString()
                 })
@@ -2018,7 +2027,7 @@ app.post('/api/batch/create-from-template', async (req, res) => {
         await supabaseAdmin.from('batch_events').insert({
             batch_id: batch_id,
             event_type: 'batch_paid_and_created',
-            quantity: quantity,
+            quantity: parseInt(quantity),
             card_id: template.card_id,
             timestamp: new Date().toISOString(),
             ip_address: clientIp,
