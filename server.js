@@ -1146,7 +1146,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
         return res.status(400).json({ error: 'Payment not completed' });
       }
 
-      // Ensure quantity is integer (FIX 2)
+      // Ensure quantity is integer
       const quantity = parseInt(session.metadata?.quantity || '1');
       const isBatch = session.metadata?.is_batch === 'true';
       const templateId = session.metadata?.template_id || 'custom';
@@ -1206,6 +1206,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
       deadline.setFullYear(deadline.getFullYear() + 1);
       
       for (let i = 0; i < quantity; i++) {
+        // UPDATED: Removed amount_paid and currency fields
         const cardRecord = {
           card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
           status: 'active', // Active immediately for e-cards
@@ -1216,13 +1217,11 @@ app.post('/api/activate-after-payment', async (req, res) => {
           media_url: finalMediaUrl || null,
           design_data: designData,
           preview_image_url: finalMediaUrl || null,
-          sender_email: session.customer_email || session.customer_details?.email || null,
-          amount_paid: i === 0 ? session.amount_total : 0, // First card gets full amount
-          currency: session.currency,
+          sender_email: session.customer_email || null,
           stripe_session_id: session_id,
           payment_intent_id: session.payment_intent,
           terms_accepted: true,
-          physical_card_status: null, // NULL for e-cards (dormant only for physical)
+          physical_card_status: null,
           created_by_ip: clientIp,
           updated_by_ip: clientIp,
           created_at: now.toISOString(),
@@ -1252,24 +1251,32 @@ app.post('/api/activate-after-payment', async (req, res) => {
       
       console.log(`✅ Created ${createdCards.length} cards`);
       
-      // Create batch record if batch (with integer values - FIX 2)
+      // Create batch record if batch (with integer values and enhanced logging)
       if (isBatch && finalBatchId) {
-        const { error: batchError } = await supabaseAdmin.from('batches').insert({
+        console.log('🔵 Creating batch:', finalBatchId, 'qty:', quantity, 'type:', typeof quantity);
+        
+        const batchRecord = {
           batch_id: finalBatchId,
           batch_type: 'ecard',
-          cards_created: parseInt(quantity),        // Ensure integer
-          total_cards_purchased: parseInt(quantity), // Ensure integer
-          max_cards_allowed: parseInt(quantity),    // Ensure integer
+          cards_created: parseInt(quantity),
+          total_cards_purchased: parseInt(quantity),
+          max_cards_allowed: parseInt(quantity),
           created_by_ip: clientIp,
           created_at: now.toISOString(),
           updated_at: now.toISOString()
-        });
+        };
+        
+        console.log('🔵 Batch record:', batchRecord);
+        
+        const { data: batchData, error: batchError } = await supabaseAdmin
+          .from('batches')
+          .insert(batchRecord)
+          .select();
         
         if (batchError) {
           console.error('🔴 Batch insert error:', batchError);
-          // Don't fail if batch insert fails, cards are already created
         } else {
-          console.log('✅ Batch record created:', finalBatchId, 'with', quantity, 'cards');
+          console.log('✅ Batch created:', batchData);
         }
         
         // Log batch events
