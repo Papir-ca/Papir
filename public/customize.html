@@ -109,8 +109,23 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* New: Video upload section (hidden initially) */
+        /* Video upload section */
         #videoUploadSection .upload-area { border-color: var(--primary-teal); }
+        .canvas-video-indicator::after {
+            content: '\f04b';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            font-size: 20px;
+        }
     </style>
 <base target="_blank">
 </head>
@@ -146,16 +161,22 @@
                     <div style="font-size: 0.75rem; opacity: 0.7;">Perfect for events & invitations</div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 1.4rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$29.90</div>
-                    <div style="font-size: 0.75rem;">$2.99 × <span id="qtyDisplay">10</span> cards</div>
+                    <div style="font-size: 1.4rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$5.98</div>
+                    <div style="font-size: 0.75rem;">$2.99 × <span id="qtyDisplay">2</span> cards</div>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
                 <span style="font-size: 0.85rem;">Quantity:</span>
                 <button class="qty-btn" id="qtyMinus" data-change="-1"><i class="fas fa-minus"></i></button>
-                <input type="number" id="qtyInput" value="10" min="2" max="500" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
+                <input type="number" id="qtyInput" value="2" min="2" max="2000" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
                 <button class="qty-btn" id="qtyPlus" data-change="1"><i class="fas fa-plus"></i></button>
-                <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 500</span>
+                <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 2000</span>
+            </div>
+            <!-- Custom Batch ID Input -->
+            <div style="margin-top: 10px;">
+                <label style="font-size: 0.85rem; display: block; margin-bottom: 5px;">Batch ID (Optional):</label>
+                <input type="text" id="customBatchId" class="text-input" placeholder="e.g., WEDDING-2024" style="font-size: 0.85rem;">
+                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 4px;">Leave blank for auto-generated ID</div>
             </div>
         </div>
 
@@ -236,7 +257,7 @@
                             </div>
                         </div>
 
-                        <!-- NEW: Add Media Section (Image/Video toggle) -->
+                        <!-- Add Media Section (Image/Video toggle) -->
                         <div class="property-section" id="mediaControls">
                             <h4><i class="fas fa-image"></i> Add Media</h4>
                             <div class="btn-group" style="margin-bottom: 10px;">
@@ -645,7 +666,6 @@
         // Helper: show notification (simple alert or custom toast)
         function showNotification(message, type = 'info') {
             console.log(`[${type}] ${message}`);
-            // You can replace with a proper toast later
         }
 
         async function init() {
@@ -848,7 +868,7 @@
             setupTransformControls();
             setupEffectsControls();
 
-            // Image upload (existing)
+            // Image upload
             const fileInput = document.getElementById('fileInput');
             const uploadArea = document.getElementById('uploadArea');
             uploadArea.addEventListener('click', () => fileInput.click());
@@ -870,7 +890,7 @@
                 }
             });
 
-            // NEW: Video upload (canvas)
+            // Video upload
             document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
             document.getElementById('videoUploadArea').addEventListener('click', () => {
                 document.getElementById('videoInput').click();
@@ -899,58 +919,61 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                const videoData = f.target.result;
+            const blobUrl = URL.createObjectURL(file);
+            const videoEl = document.createElement('video');
+            videoEl.src = blobUrl;
+            videoEl.crossOrigin = "anonymous";
+            videoEl.muted = true;
+            videoEl.loop = true;
+            videoEl.playsInline = true;
+            
+            videoEl.onloadeddata = () => {
+                videoEl.play().catch(e => console.log('Autoplay prevented:', e));
                 
-                // Create video element to get first frame as thumbnail
-                const video = document.createElement('video');
-                video.src = videoData;
-                video.crossOrigin = "anonymous";
+                const width = videoEl.videoWidth || 640;
+                const height = videoEl.videoHeight || 480;
+                const scale = Math.min(300 / width, 200 / height);
                 
-                video.onloadeddata = () => {
-                    // Create thumbnail canvas
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = video.videoWidth || 640;
-                    tempCanvas.height = video.videoHeight || 480;
-                    const ctx = tempCanvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-                    
-                    const posterUrl = tempCanvas.toDataURL('image/jpeg', 0.7);
-                    
-                    // Add to Fabric canvas as image with video data attached
-                    fabric.Image.fromURL(posterUrl, (img) => {
-                        const scale = Math.min(300 / img.width, 200 / img.height);
-                        img.set({
-                            left: 300,
-                            top: 225,
-                            scaleX: scale,
-                            scaleY: scale,
-                            originX: 'center',
-                            originY: 'center'
-                        });
-                        
-                        // Store video data for later upload
-                        img.isVideo = true;
-                        img.videoData = videoData;
-                        img.videoFileName = file.name;
-                        img.videoType = file.type;
-                        img.videoSize = file.size;
-                        
-                        canvas.add(img);
-                        canvas.setActiveObject(img);
-                        canvas.renderAll();
-                        saveState();
-                        
-                        showNotification('Video added to canvas! Thumbnail shown, full video plays in final card.');
-                    });
+                const fabricVideo = new fabric.Image(videoEl, {
+                    left: 300,
+                    top: 225,
+                    scaleX: scale,
+                    scaleY: scale,
+                    originX: 'center',
+                    originY: 'center'
+                });
+                
+                fabricVideo.isVideo = true;
+                fabricVideo.videoFile = file;
+                fabricVideo.videoBlobUrl = blobUrl;
+                fabricVideo.videoType = file.type;
+                
+                canvas.add(fabricVideo);
+                canvas.setActiveObject(fabricVideo);
+                canvas.renderAll();
+                saveState();
+                
+                const animate = () => {
+                    if (fabricVideo.canvas && videoEl.readyState >= 2) {
+                        fabricVideo.dirty = true;
+                        canvas.requestRenderAll();
+                    }
+                    fabricVideo._videoFrame = requestAnimationFrame(animate);
                 };
+                fabricVideo._videoFrame = requestAnimationFrame(animate);
                 
-                video.onerror = () => {
-                    alert('Error loading video. Please try another file.');
-                };
+                fabricVideo.on('removed', function() {
+                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
+                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
+                });
+                
+                showNotification('Video added! Drag to move, resize like an image.');
             };
-            reader.readAsDataURL(file);
+            
+            videoEl.onerror = () => {
+                alert('Error loading video');
+                URL.revokeObjectURL(blobUrl);
+            };
         }
 
         function handleSelection(e) {
@@ -988,7 +1011,7 @@
                 case 'triangle': addShape('triangle'); break;
                 case 'line': addLine(); break;
                 case 'image': document.getElementById('fileInput').click(); break;
-                case 'video': switchMediaMode('video'); document.getElementById('videoInput').click(); break;
+                case 'video': document.getElementById('videoInput').click(); break;
                 case 'delete': deleteSelected(); break;
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
@@ -1575,6 +1598,9 @@
                 } else if (obj.type === 'line') {
                     icon = 'fa-minus';
                     name = 'Line';
+                } else if (obj.isVideo) {
+                    icon = 'fa-video';
+                    name = 'Video';
                 }
 
                 item.innerHTML = `
@@ -1835,7 +1861,7 @@
             const input = document.getElementById('qtyInput');
             let val = parseInt(input.value) + change;
             if (val < 2) val = 2;
-            if (val > 500) val = 500;
+            if (val > 2000) val = 2000;
             input.value = val;
             document.getElementById('qtyDisplay').textContent = val;
             updatePrice();
@@ -1935,96 +1961,127 @@
             }, 120000); // 2 minutes
         }
 
-        // ========== UPDATED PROCEED TO CHECKOUT ==========
+        // ========== PROCEED TO CHECKOUT (with custom batch ID) ==========
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner"></span> Processing...';
+            btn.innerHTML = '<span class="spinner"></span> Saving...';
             btn.disabled = true;
 
             try {
                 const BACKEND_URL = ''; // Relative path
-                const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 10 : 1;
+                const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
                 
                 let messageText = templateConfig?.name || 'Custom designed card';
                 let mediaUrl = '';
                 let mediaType = 'image';
 
-                // Check for videos on canvas
-                const canvasObjects = canvas.getObjects();
-                const videoObjects = canvasObjects.filter(obj => obj.isVideo);
+                // Handle video upload if present on canvas
+                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 
                 if (videoObjects.length > 0) {
-                    // Upload video first
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
+                    const file = video.videoFile;
+                    
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
                     
                     const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            fileData: video.videoData,
-                            fileName: video.videoFileName,
-                            fileType: video.videoType,
+                            fileData: base64,
+                            fileName: file.name,
+                            fileType: file.type,
                             cardId: 'TEMP-' + Date.now()
                         })
                     });
                     
                     const uploadData = await uploadRes.json();
-                    if (uploadData.success) {
-                        mediaUrl = uploadData.url;
-                        mediaType = 'video';
-                        messageText = 'Video message card';
-                        
-                        // Replace video data with URL to save space
-                        video.videoData = null; // Clear base64
-                        video.setSrc(uploadData.url); // Update object
-                    }
+                    if (!uploadData.success) throw new Error('Video upload failed');
+                    mediaUrl = uploadData.url;
+                    mediaType = 'video';
+                    messageText = 'Video message card';
+                } else {
+                    // Export canvas as image
+                    showNotification('Uploading design...', 'info');
+                    const canvasData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+                    
+                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fileData: canvasData,
+                            fileName: 'card-design.png',
+                            fileType: 'image/png',
+                            cardId: 'TEMP-' + Date.now()
+                        })
+                    });
+                    
+                    const uploadData = await uploadRes.json();
+                    if (!uploadData.success) throw new Error('Upload failed');
+                    mediaUrl = uploadData.url;
                 }
 
-                // Store design data for success.html
-                const pendingOrder = {
-                    template: templateConfig,
-                    canvasData: canvas.toJSON(),
-                    previewImage: mediaType === 'video' ? null : canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }),
-                    videoUrl: mediaUrl,
-                    mediaType: mediaType,
-                    quantity: qty,
-                    isBatch: qty > 1,
-                    messageText: messageText,
-                    timestamp: Date.now()
-                };
+                // SINGLE CARD FLOW
+                if (qty === 1) {
+                    const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            card_id: cardId,
+                            message_type: mediaType,
+                            message_text: messageText,
+                            media_url: mediaUrl,
+                            status: 'draft',
+                            card_type: 'ecard'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error);
+                    
+                    window.location.href = `checkout.html?card_id=${encodeURIComponent(cardId)}&qty=1`;
+                }
                 
-                localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
-                console.log('Design saved to localStorage for post-payment activation');
-
-                // Create Stripe Checkout session
-                const response = await fetch(BACKEND_URL + '/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        quantity: qty,
-                        is_batch: qty > 1,
-                        card_type: 'digital',
-                        message_text: messageText,
-                        media_url: mediaUrl,
-                        media_type: mediaType,
-                        source: 'customize',
-                        is_template_design: !!templateConfig,
-                        template_id: templateConfig?.id || null
-                    })
-                });
-
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                if (!data.url) throw new Error('No checkout URL received');
-
-                // Redirect to Stripe
-                window.location.href = data.url;
+                // BATCH FLOW (with custom batch ID)
+                else {
+                    const customBatchId = document.getElementById('customBatchId').value.trim();
+                    const batchId = customBatchId || 'BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+                    const templateCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            card_id: templateCardId,
+                            batch_id: batchId,
+                            batch_order: 1,
+                            message_type: mediaType,
+                            message_text: messageText,
+                            media_url: mediaUrl,
+                            status: 'draft',
+                            card_type: 'ecard',
+                            is_batch_template: true,
+                            quantity: qty
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error);
+                    
+                    window.location.href = `checkout.html?batch_id=${encodeURIComponent(batchId)}&qty=${qty}&mode=batch`;
+                }
 
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert('Checkout failed: ' + error.message);
+                alert('Failed to save: ' + error.message);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
