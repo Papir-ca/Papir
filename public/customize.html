@@ -666,6 +666,7 @@
         // Helper: show notification (simple alert or custom toast)
         function showNotification(message, type = 'info') {
             console.log(`[${type}] ${message}`);
+            // You can replace with a proper toast later
         }
 
         async function init() {
@@ -909,8 +910,8 @@
             document.getElementById('videoUploadSection').style.display = mode === 'video' ? 'block' : 'none';
         }
 
-        // Handle video upload to canvas
-        function handleVideoUpload(e) {
+        // ========== FIXED VIDEO UPLOAD HANDLER ==========
+        async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
             
@@ -920,48 +921,56 @@
             }
 
             const blobUrl = URL.createObjectURL(file);
+            
+            // Create video element
             const videoEl = document.createElement('video');
             videoEl.src = blobUrl;
             videoEl.crossOrigin = "anonymous";
             videoEl.muted = true;
             videoEl.loop = true;
             videoEl.playsInline = true;
+            videoEl.autoplay = true;
             
+            // Wait for video to be ready
             videoEl.onloadeddata = () => {
                 videoEl.play().catch(e => console.log('Autoplay prevented:', e));
                 
-                const width = videoEl.videoWidth || 640;
-                const height = videoEl.videoHeight || 480;
-                const scale = Math.min(300 / width, 200 / height);
-                
+                // Create Fabric image from video element
                 const fabricVideo = new fabric.Image(videoEl, {
-                    left: 300,
-                    top: 225,
-                    scaleX: scale,
-                    scaleY: scale,
+                    left: canvas.width / 2,
+                    top: canvas.height / 2,
+                    scaleX: 0.5,
+                    scaleY: 0.5,
                     originX: 'center',
                     originY: 'center'
                 });
                 
+                // Store metadata
                 fabricVideo.isVideo = true;
                 fabricVideo.videoFile = file;
                 fabricVideo.videoBlobUrl = blobUrl;
                 fabricVideo.videoType = file.type;
                 
+                // Add to canvas
                 canvas.add(fabricVideo);
                 canvas.setActiveObject(fabricVideo);
-                canvas.renderAll();
+                
+                // Force render
+                canvas.requestRenderAll();
                 saveState();
                 
-                const animate = () => {
+                // Animation loop for video playback
+                const renderVideo = () => {
                     if (fabricVideo.canvas && videoEl.readyState >= 2) {
-                        fabricVideo.dirty = true;
                         canvas.requestRenderAll();
                     }
-                    fabricVideo._videoFrame = requestAnimationFrame(animate);
+                    if (fabricVideo.canvas) {
+                        fabricVideo._videoFrame = requestAnimationFrame(renderVideo);
+                    }
                 };
-                fabricVideo._videoFrame = requestAnimationFrame(animate);
+                fabricVideo._videoFrame = requestAnimationFrame(renderVideo);
                 
+                // Cleanup when removed
                 fabricVideo.on('removed', function() {
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
@@ -1783,7 +1792,13 @@
             });
         }
 
+        // ========== UPDATED handleKeyboard with input guard ==========
         function handleKeyboard(e) {
+            // ADD THIS - Don't run shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return;
+            }
+            
             if (!e.ctrlKey && !e.metaKey && !e.altKey) {
                 switch(e.key.toLowerCase()) {
                     case 'v': handleToolClick('select'); break;
