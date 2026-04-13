@@ -910,7 +910,7 @@
             document.getElementById('videoUploadSection').style.display = mode === 'video' ? 'block' : 'none';
         }
 
-        // ========== FIXED VIDEO UPLOAD HANDLER ==========
+        // ========== FIXED VIDEO UPLOAD HANDLER (canvas-based) ==========
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -921,22 +921,26 @@
             }
 
             const blobUrl = URL.createObjectURL(file);
-            
-            // Create video element
             const videoEl = document.createElement('video');
             videoEl.src = blobUrl;
             videoEl.crossOrigin = "anonymous";
             videoEl.muted = true;
             videoEl.loop = true;
             videoEl.playsInline = true;
-            videoEl.autoplay = true;
+            videoEl.style.display = 'none';
+            document.body.appendChild(videoEl); // Must be in DOM for some browsers
             
-            // Wait for video to be ready
-            videoEl.onloadeddata = () => {
+            videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(e => console.log('Autoplay prevented:', e));
                 
-                // Create Fabric image from video element
-                const fabricVideo = new fabric.Image(videoEl, {
+                // Create a canvas to draw video frames (RELIABLE METHOD)
+                const videoCanvas = document.createElement('canvas');
+                videoCanvas.width = videoEl.videoWidth || 640;
+                videoCanvas.height = videoEl.videoHeight || 480;
+                const ctx = videoCanvas.getContext('2d');
+                
+                // Create Fabric image from the canvas (not directly from video)
+                const fabricVideo = new fabric.Image(videoCanvas, {
                     left: canvas.width / 2,
                     top: canvas.height / 2,
                     scaleX: 0.5,
@@ -950,33 +954,41 @@
                 fabricVideo.videoFile = file;
                 fabricVideo.videoBlobUrl = blobUrl;
                 fabricVideo.videoType = file.type;
+                fabricVideo.videoElement = videoEl;
+                fabricVideo.videoCanvas = videoCanvas;
+                fabricVideo.videoContext = ctx;
                 
                 // Add to canvas
                 canvas.add(fabricVideo);
                 canvas.setActiveObject(fabricVideo);
-                
-                // Force render
-                canvas.requestRenderAll();
+                canvas.renderAll();
                 saveState();
                 
-                // Animation loop for video playback
-                const renderVideo = () => {
-                    if (fabricVideo.canvas && videoEl.readyState >= 2) {
-                        canvas.requestRenderAll();
-                    }
-                    if (fabricVideo.canvas) {
-                        fabricVideo._videoFrame = requestAnimationFrame(renderVideo);
+                // Animation loop: draw video to canvas, then update Fabric
+                const renderLoop = () => {
+                    if (fabricVideo.canvas && !fabricVideo.isDeleted) {
+                        if (videoEl.readyState >= 2) {
+                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
+                            fabricVideo.dirty = true;
+                            canvas.requestRenderAll();
+                        }
+                        fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
                     }
                 };
-                fabricVideo._videoFrame = requestAnimationFrame(renderVideo);
+                fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
                 
-                // Cleanup when removed
+                // Cleanup
                 fabricVideo.on('removed', function() {
+                    this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
+                    if (this.videoElement) {
+                        this.videoElement.pause();
+                        this.videoElement.remove();
+                    }
                 });
                 
-                showNotification('Video added! Drag to move, resize like an image.');
+                showNotification('Video added! Resize and position like an image.');
             };
             
             videoEl.onerror = () => {
@@ -1792,10 +1804,21 @@
             });
         }
 
-        // ========== UPDATED handleKeyboard with input guard ==========
+        // ========== UPDATED handleKeyboard (with Fabric text editing guard) ==========
         function handleKeyboard(e) {
-            // ADD THIS - Don't run shortcuts when typing in inputs
+            // Check if typing in any HTML input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return;
+            }
+            
+            // Check if editing text on Fabric canvas (THIS WAS MISSING)
+            if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) {
+                return;
+            }
+            
+            // Also check if any object is in editing mode
+            const activeObject = canvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text' && activeObject.isEditing) {
                 return;
             }
             
