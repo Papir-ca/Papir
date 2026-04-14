@@ -263,13 +263,13 @@
                         <div class="property-section" id="mediaControls">
                             <h4><i class="fas fa-photo-video"></i> Add Media</h4>
                             <div class="btn-group" style="margin-bottom: 10px;">
-                                <button class="btn-icon" id="addImageMode" onclick="document.getElementById('fileInput').click()">
+                                <button class="btn-icon" id="addImageMode" data-mediatype="image">
                                     <i class="fas fa-image"></i> Image
                                 </button>
-                                <button class="btn-icon" id="addVideoMode" onclick="document.getElementById('videoInput').click()">
+                                <button class="btn-icon" id="addVideoMode" data-mediatype="video">
                                     <i class="fas fa-video"></i> Video
                                 </button>
-                                <button class="btn-icon" id="addAudioMode" onclick="document.getElementById('audioInput').click()">
+                                <button class="btn-icon" id="addAudioMode" data-mediatype="audio">
                                     <i class="fas fa-music"></i> Audio
                                 </button>
                             </div>
@@ -922,6 +922,17 @@
                 document.getElementById('audioInput').click();
             });
             document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
+
+            // ========== Media buttons - CSP compliant event listeners ==========
+            document.getElementById('addImageMode').addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+            document.getElementById('addVideoMode').addEventListener('click', () => {
+                document.getElementById('videoInput').click();
+            });
+            document.getElementById('addAudioMode').addEventListener('click', () => {
+                document.getElementById('audioInput').click();
+            });
 
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
