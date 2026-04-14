@@ -263,19 +263,19 @@
                         <div class="property-section" id="mediaControls">
                             <h4><i class="fas fa-photo-video"></i> Add Media</h4>
                             <div class="btn-group" style="margin-bottom: 10px;">
-                                <button class="btn-icon active" id="addImageMode" onclick="switchMediaMode('image')">
+                                <button class="btn-icon" id="addImageMode" onclick="document.getElementById('fileInput').click()">
                                     <i class="fas fa-image"></i> Image
                                 </button>
-                                <button class="btn-icon" id="addVideoMode" onclick="switchMediaMode('video')">
+                                <button class="btn-icon" id="addVideoMode" onclick="document.getElementById('videoInput').click()">
                                     <i class="fas fa-video"></i> Video
                                 </button>
-                                <button class="btn-icon" id="addAudioMode" onclick="switchMediaMode('audio')">
+                                <button class="btn-icon" id="addAudioMode" onclick="document.getElementById('audioInput').click()">
                                     <i class="fas fa-music"></i> Audio
                                 </button>
                             </div>
                             
                             <!-- Image Upload -->
-                            <div id="imageUploadSection">
+                            <div id="imageUploadSection" style="display: none;">
                                 <div class="upload-area" id="uploadArea">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div>
@@ -926,19 +926,6 @@
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
-        }
-
-        // Media mode switcher
-        function switchMediaMode(mode) {
-            // Update button states
-            document.getElementById('addImageMode').classList.toggle('active', mode === 'image');
-            document.getElementById('addVideoMode').classList.toggle('active', mode === 'video');
-            document.getElementById('addAudioMode').classList.toggle('active', mode === 'audio');
-            
-            // Show/hide appropriate sections
-            document.getElementById('imageUploadSection').style.display = mode === 'image' ? 'block' : 'none';
-            document.getElementById('videoUploadSection').style.display = mode === 'video' ? 'block' : 'none';
-            document.getElementById('audioUploadSection').style.display = mode === 'audio' ? 'block' : 'none';
         }
 
         // ========== VIDEO UPLOAD HANDLER (with sound, resizable, opacity 0.5) ==========
