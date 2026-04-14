@@ -109,7 +109,7 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* Video upload section */
+        /* Video & audio upload sections */
         #videoUploadSection .upload-area { border-color: var(--primary-teal); }
         .canvas-video-indicator::after {
             content: '\f04b';
@@ -186,6 +186,7 @@
                 <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
                 <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
                 <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
+                <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
                 <div class="tool-divider"></div>
                 <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="far fa-square"></i></button>
                 <button class="tool-btn" data-tool="circle" title="Circle (C)"><i class="far fa-circle"></i></button>
@@ -643,6 +644,9 @@
         </div>
     </div>
 
+    <!-- Hidden audio input -->
+    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
     <script>
@@ -897,6 +901,12 @@
                 document.getElementById('videoInput').click();
             });
 
+            // Audio upload
+            document.querySelector('[data-tool="audio"]').addEventListener('click', () => {
+                document.getElementById('audioInput').click();
+            });
+            document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
+
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
@@ -910,7 +920,7 @@
             document.getElementById('videoUploadSection').style.display = mode === 'video' ? 'block' : 'none';
         }
 
-        // ========== FIXED VIDEO UPLOAD HANDLER (canvas-based) ==========
+        // ========== VIDEO UPLOAD HANDLER (with sound, resizable, opacity 0.5) ==========
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -924,29 +934,55 @@
             const videoEl = document.createElement('video');
             videoEl.src = blobUrl;
             videoEl.crossOrigin = "anonymous";
-            videoEl.muted = true;
+            // REMOVED: videoEl.muted = true;  // Allow sound
             videoEl.loop = true;
             videoEl.playsInline = true;
+            videoEl.autoplay = true;  // This might fail due to browser policy, that's OK
             videoEl.style.display = 'none';
-            document.body.appendChild(videoEl); // Must be in DOM for some browsers
+            document.body.appendChild(videoEl);
             
             videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(e => console.log('Autoplay prevented:', e));
+                // Try to play with sound (browsers may block until interaction)
+                videoEl.play().catch(e => {
+                    console.log('Autoplay with sound blocked - user must click to hear audio');
+                    showNotification('Video added! Click to enable audio if needed.', 'info');
+                });
                 
-                // Create a canvas to draw video frames (RELIABLE METHOD)
+                // Create canvas for video frames
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = videoEl.videoWidth || 640;
                 videoCanvas.height = videoEl.videoHeight || 480;
                 const ctx = videoCanvas.getContext('2d');
                 
-                // Create Fabric image from the canvas (not directly from video)
+                // Create Fabric image with explicit resize controls and opacity 0.5
                 const fabricVideo = new fabric.Image(videoCanvas, {
                     left: canvas.width / 2,
                     top: canvas.height / 2,
                     scaleX: 0.5,
                     scaleY: 0.5,
                     originX: 'center',
-                    originY: 'center'
+                    originY: 'center',
+                    opacity: 0.5,  // Start at 50% opacity
+                    hasControls: true,
+                    hasBorders: true,
+                    lockScalingX: false,
+                    lockScalingY: false,
+                    lockRotation: false,
+                    lockMovementX: false,
+                    lockMovementY: false,
+                    hasRotatingPoint: true,
+                    transparentCorners: false,
+                    cornerColor: '#06D6A0',
+                    cornerStrokeColor: '#fff',
+                    cornerSize: 12,
+                    borderColor: '#06D6A0',
+                    borderScaleFactor: 2
+                });
+                
+                // Enable corner resize handles
+                fabricVideo.setControlsVisibility({
+                    mt: true, mb: true, ml: true, mr: true,
+                    bl: true, br: true, tl: true, tr: true, mtr: true
                 });
                 
                 // Store metadata
@@ -964,7 +1000,7 @@
                 canvas.renderAll();
                 saveState();
                 
-                // Animation loop: draw video to canvas, then update Fabric
+                // Animation loop
                 const renderLoop = () => {
                     if (fabricVideo.canvas && !fabricVideo.isDeleted) {
                         if (videoEl.readyState >= 2) {
@@ -988,12 +1024,72 @@
                     }
                 });
                 
-                showNotification('Video added! Resize and position like an image.');
+                showNotification('Video added! Drag corners to resize, edges to rotate.');
             };
             
             videoEl.onerror = () => {
                 alert('Error loading video');
                 URL.revokeObjectURL(blobUrl);
+            };
+        }
+
+        // ========== AUDIO UPLOAD HANDLER ==========
+        function handleAudioUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 40 * 1024 * 1024) {
+                alert('Audio must be under 40MB');
+                return;
+            }
+
+            const blobUrl = URL.createObjectURL(file);
+            const audioEl = document.createElement('audio');
+            audioEl.src = blobUrl;
+            audioEl.crossOrigin = "anonymous";
+            audioEl.loop = true;
+            
+            audioEl.onloadedmetadata = () => {
+                // Create a visual audio indicator on canvas (speaker icon)
+                fabric.Image.fromURL('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=', (img) => {
+                    img.set({
+                        left: canvas.width / 2,
+                        top: canvas.height / 2,
+                        scaleX: 1,
+                        scaleY: 1,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+                    
+                    img.isAudio = true;
+                    img.audioFile = file;
+                    img.audioBlobUrl = blobUrl;
+                    img.audioElement = audioEl;
+                    img.audioType = file.type;
+                    
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    canvas.renderAll();
+                    saveState();
+                    
+                    // Auto-play audio (browser may block until interaction)
+                    audioEl.play().catch(e => {
+                        console.log('Audio autoplay blocked');
+                    });
+                    
+                    img.on('selected', () => {
+                        audioEl.play().catch(() => {});
+                    });
+                    
+                    img.on('removed', function() {
+                        if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
+                        if (this.audioElement) {
+                            this.audioElement.pause();
+                        }
+                    });
+                    
+                    showNotification('Audio added! Will play when card is viewed.');
+                });
             };
         }
 
@@ -1033,6 +1129,7 @@
                 case 'line': addLine(); break;
                 case 'image': document.getElementById('fileInput').click(); break;
                 case 'video': document.getElementById('videoInput').click(); break;
+                case 'audio': document.getElementById('audioInput').click(); break;
                 case 'delete': deleteSelected(); break;
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
@@ -1622,6 +1719,9 @@
                 } else if (obj.isVideo) {
                     icon = 'fa-video';
                     name = 'Video';
+                } else if (obj.isAudio) {
+                    icon = 'fa-music';
+                    name = 'Audio';
                 }
 
                 item.innerHTML = `
@@ -1811,7 +1911,7 @@
                 return;
             }
             
-            // Check if editing text on Fabric canvas (THIS WAS MISSING)
+            // Check if editing text on Fabric canvas
             if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) {
                 return;
             }
@@ -1999,7 +2099,7 @@
             }, 120000); // 2 minutes
         }
 
-        // ========== PROCEED TO CHECKOUT (with custom batch ID) ==========
+        // ========== PROCEED TO CHECKOUT (handles video, audio, and images) ==========
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -2040,12 +2140,48 @@
                     });
                     
                     const uploadData = await uploadRes.json();
-                    if (!uploadData.success) throw new Error('Video upload failed');
-                    mediaUrl = uploadData.url;
-                    mediaType = 'video';
-                    messageText = 'Video message card';
-                } else {
-                    // Export canvas as image
+                    if (uploadData.success) {
+                        mediaUrl = uploadData.url;
+                        mediaType = 'video';
+                        messageText = 'Video message card';
+                    }
+                }
+                
+                // Handle audio upload if present on canvas
+                const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
+                
+                if (audioObjects.length > 0) {
+                    showNotification('Uploading audio...', 'info');
+                    const audio = audioObjects[0];
+                    const file = audio.audioFile;
+                    
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fileData: base64,
+                            fileName: file.name,
+                            fileType: file.type,
+                            cardId: 'TEMP-' + Date.now()
+                        })
+                    });
+                    
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        mediaUrl = uploadData.url;
+                        mediaType = 'audio';
+                        messageText = 'Audio message card';
+                    }
+                }
+
+                // If no video/audio, export canvas as image
+                if (!mediaUrl) {
                     showNotification('Uploading design...', 'info');
                     const canvasData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     
