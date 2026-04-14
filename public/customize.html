@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Customize Your Card | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -127,6 +127,215 @@
             pointer-events: none;
             font-size: 20px;
         }
+
+        /* ============================================
+           RESPONSIVE DESIGN - MOBILE FRIENDLY
+           ============================================ */
+
+        /* Tablet breakpoint (1024px and below) */
+        @media (max-width: 1024px) {
+            .app-container { padding: 10px; }
+            .properties-panel { width: 320px; }
+        }
+
+        /* Mobile breakpoint (768px and below) */
+        @media (max-width: 768px) {
+            body { overflow-x: hidden; }
+            
+            .app-container { padding: 8px; height: auto; min-height: 100vh; }
+            
+            /* Header - Stack vertically */
+            .design-header { 
+                flex-direction: column; 
+                gap: 10px; 
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+            .header-left { width: 100%; justify-content: space-between; }
+            .design-header h1 { font-size: 1.1rem; }
+            .template-badge { font-size: 0.7rem; }
+            
+            /* Price and mode switch row */
+            .design-header > div:last-child {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            /* Batch controls - more compact */
+            .batch-controls { padding: 10px; }
+            .batch-controls > div:first-child { flex-direction: column; gap: 8px; }
+            .batch-controls > div:first-child > div:last-child {
+                text-align: left;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            /* Main layout - Stack vertically */
+            .design-layout {
+                flex-direction: column;
+                height: auto;
+                gap: 10px;
+            }
+            
+            /* Tools panel - Horizontal scroll on mobile */
+            .tools-panel {
+                width: 100%;
+                flex-direction: row;
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 8px;
+                gap: 6px;
+                order: 2;
+                min-height: 60px;
+            }
+            .tools-panel::-webkit-scrollbar { height: 4px; }
+            .tools-panel::-webkit-scrollbar-thumb { background: var(--primary-gold); border-radius: 2px; }
+            
+            .tool-btn { 
+                width: 48px; 
+                height: 48px; 
+                flex-shrink: 0;
+                font-size: 1.2rem;
+            }
+            .tool-divider { 
+                width: 1px; 
+                height: 70%; 
+                margin: 0 3px;
+            }
+            
+            /* Canvas area */
+            .canvas-area {
+                order: 1;
+                min-height: 400px;
+                height: 50vh;
+            }
+            .canvas-container {
+                padding: 10px;
+            }
+            #designCanvas {
+                max-width: 100%;
+                height: auto !important;
+            }
+            
+            /* Properties panel - Full width, collapsible feel */
+            .properties-panel {
+                width: 100%;
+                order: 3;
+                max-height: none;
+                padding: 12px;
+            }
+            
+            /* Touch-friendly controls */
+            .btn-icon, .tab, .qty-btn {
+                min-height: 44px;
+                padding: 12px;
+            }
+            
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            
+            /* Checkout section sticky at bottom */
+            .checkout-section {
+                position: sticky;
+                bottom: 0;
+                margin-top: 15px;
+                background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95));
+                backdrop-filter: blur(10px);
+            }
+            .checkout-btn {
+                padding: 16px;
+                font-size: 1.1rem;
+            }
+            
+            /* Layer list - better touch targets */
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            
+            /* Upload areas - larger touch targets */
+            .upload-area { padding: 25px 15px; }
+            
+            /* Better spacing for inputs */
+            .text-input, select, input[type="number"] {
+                padding: 12px;
+                font-size: 16px; /* Prevents iOS zoom on focus */
+            }
+        }
+
+        /* Small mobile (480px and below) */
+        @media (max-width: 480px) {
+            .design-header h1 { display: none; } /* Hide title, keep logo */
+            .header-left { justify-content: flex-start; gap: 10px; }
+            
+            .mode-switch { transform: scale(0.9); }
+            .price-display { font-size: 0.8rem; padding: 6px 12px; }
+            
+            .canvas-area { min-height: 350px; height: 45vh; }
+            
+            .btn-group { gap: 8px; }
+            .btn-icon { 
+                padding: 10px 8px; 
+                font-size: 0.8rem;
+            }
+            
+            .tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .tab { white-space: nowrap; padding: 10px 14px; }
+            
+            /* Make color pickers bigger for touch */
+            input[type="color"] { 
+                width: 50px; 
+                height: 44px; 
+            }
+            
+            .color-preset { width: 36px; height: 36px; }
+            
+            /* Simplify batch controls */
+            .batch-controls input[type="number"] { width: 50px; }
+            .qty-btn { width: 36px; height: 36px; }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .design-layout { flex-direction: row; }
+            .tools-panel { 
+                width: 60px; 
+                flex-direction: column;
+                order: 1;
+            }
+            .canvas-area { order: 2; height: 80vh; }
+            .properties-panel { 
+                width: 280px; 
+                order: 3;
+                max-height: 80vh;
+            }
+            .design-header { display: none; } /* Hide header for more space */
+        }
+
+        /* Prevent text selection on UI elements (better touch feel) */
+        .tool-btn, .btn-icon, .tab, .layer-item, .bg-option {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Touch feedback */
+        .tool-btn:active, .btn-icon:active, .tab:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        /* Ensure canvas doesn't overflow on any device */
+        #designCanvas {
+            max-width: 100%;
+            height: auto;
+            touch-action: none; /* Prevent browser zooming while drawing */
+        }
+
+        /* Fix for iOS Safari 100vh issue */
+        @supports (-webkit-touch-callout: none) {
+            .app-container { min-height: -webkit-fill-available; }
+        }
     </style>
 <base target="_blank">
 </head>
@@ -217,7 +426,7 @@
                         <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
-                <div class="canvas-container" id="canvasContainer">
+                <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
                     <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
@@ -923,7 +1132,7 @@
             });
             document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
 
-            // ========== Media buttons - CSP compliant event listeners ==========
+            // Media buttons - CSP compliant event listeners
             document.getElementById('addImageMode').addEventListener('click', () => {
                 document.getElementById('fileInput').click();
             });
@@ -937,6 +1146,22 @@
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
+
+            // ========== Mobile touch enhancements ==========
+            // Prevent double-tap zoom on UI elements
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            // Better touch handling for canvas - prevent scrolling while drawing
+            canvas.upperCanvasEl.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling while drawing
+            }, { passive: false });
         }
 
         // ========== VIDEO UPLOAD HANDLER (with sound, resizable, opacity 0.5) ==========
