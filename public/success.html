@@ -1,8 +1,9 @@
+<!-- success.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Payment Successful | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -147,6 +148,46 @@
             font-family: monospace;
             font-size: 0.9rem;
         }
+
+        /* Mobile responsive additions */
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+                min-height: 100vh;
+                justify-content: center;
+            }
+            .success-container {
+                padding: 20px;
+                border-radius: 16px;
+            }
+            .success-icon {
+                font-size: 4rem;
+                margin-bottom: 15px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .details {
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .btn {
+                padding: 14px 20px;
+                width: 100%;
+                margin: 8px 0;
+            }
+            .share-input {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Universal helpers */
+        * { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
+        input, select, textarea, button { font-size: 16px; min-height: 44px; }
     </style>
 </head>
 <body>
@@ -231,20 +272,17 @@
     const urlParams = new URLSearchParams(window.location.search);
     
     // Check which flow we're handling
-    const sessionId = urlParams.get('session_id');  // NEW: Stripe Checkout (from customize.html)
-    const cardId = urlParams.get('card_id');        // OLD: Single card (from maker.html)
-    const batchId = urlParams.get('batch_id');      // OLD: Batch (from maker.html)
+    const sessionId = urlParams.get('session_id');  // Stripe Checkout
+    const cardId = urlParams.get('card_id');        // Single card
+    const batchId = urlParams.get('batch_id');      // Batch
     const qty = parseInt(urlParams.get('qty')) || 1;
     
     async function handlePaymentSuccess() {
         try {
-            // Determine which flow to use
             if (sessionId) {
-                // NEW FLOW: Stripe Checkout Session (from customize.html)
                 document.getElementById('loadingText').textContent = 'Activating your design...';
                 await handleStripeSession(sessionId);
             } else if (cardId || batchId) {
-                // OLD FLOW: Direct activation (from maker.html or other pages)
                 document.getElementById('loadingText').textContent = 'Activating your cards...';
                 await handleDirectActivation(cardId, batchId, qty);
             } else {
@@ -256,33 +294,32 @@
         }
     }
     
-    // NEW FLOW: Handle Stripe Checkout Session
     async function handleStripeSession(sessionId) {
-        // Get design data from localStorage (saved by customize.html)
         const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || '{}');
+        
+        // Fetch session details to get payment_intent_id
+        const sessionRes = await fetch(`${BACKEND_URL}/api/get-session?session_id=${sessionId}`);
+        const sessionData = await sessionRes.json();
+        const paymentIntentId = sessionData.payment_intent_id;
+        const customerEmail = sessionData.customer_email || '';
         
         const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 session_id: sessionId,
+                payment_intent_id: paymentIntentId,
+                customer_email: customerEmail,
                 design_data: pendingOrder
             })
         });
         
         const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Activation failed');
         
-        if (!response.ok) {
-            throw new Error(result.error || 'Activation failed');
-        }
-        
-        // Clear pending order
         localStorage.removeItem('pendingOrder');
-        
         localStorage.removeItem('papirDesignAutosave');
-        localStorage.removeItem('pendingOrder'); // Redundant but ensures cleanup
         
-        // Show success UI
         showSuccessState({
             isBatch: result.is_batch,
             batchId: result.batch_id,
@@ -292,7 +329,6 @@
         });
     }
     
-    // OLD FLOW: Handle direct card/batch activation (backward compatibility)
     async function handleDirectActivation(cardId, batchId, qty) {
         const response = await fetch(`${BACKEND_URL}/api/activate-after-payment`, {
             method: 'POST',
@@ -305,18 +341,14 @@
         });
         
         const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Activation failed');
         
-        if (!response.ok) {
-            throw new Error(result.error || 'Activation failed');
-        }
-        
-        // Show success UI with old flow data
         showSuccessState({
             isBatch: !!batchId,
             batchId: batchId,
             cardId: cardId,
             quantity: qty,
-            templateName: 'Custom Card' // Old flow doesn't pass template name in URL
+            templateName: 'Custom Card'
         });
     }
     
@@ -324,11 +356,9 @@
         document.getElementById('loadingState').classList.add('hidden');
         document.getElementById('successState').classList.remove('hidden');
         
-        // Fill details
         document.getElementById('templateName').textContent = data.templateName;
         document.getElementById('cardQuantity').textContent = data.quantity;
         
-        // Show appropriate ID
         if (data.isBatch && data.batchId) {
             document.getElementById('batchIdRow').style.display = 'flex';
             document.getElementById('batchIdDisplay').textContent = data.batchId;
@@ -341,8 +371,6 @@
             document.getElementById('actionBtn').href = `viewer.html?card=${data.cardId}`;
             document.getElementById('actionBtn').innerHTML = '<i class="fas fa-eye"></i> View Card';
             document.getElementById('successSubtitle').textContent = 'Your card is ready to send.';
-            
-            // Show share section for single cards
             document.getElementById('shareSection').style.display = 'block';
             document.getElementById('shareUrl').value = `${BACKEND_URL}/viewer.html?card=${data.cardId}`;
         }
@@ -354,7 +382,6 @@
         document.getElementById('errorMessage').textContent = message;
     }
     
-    // Copy button handler
     document.getElementById('copyBtn')?.addEventListener('click', async function() {
         const input = document.getElementById('shareUrl');
         try {
@@ -369,9 +396,28 @@
         }
     });
     
-    // Start the process
     handlePaymentSuccess();
 </script>
-
+<!-- Universal mobile helpers -->
+<script>
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) e.preventDefault();
+        lastTouchEnd = now;
+    }, { passive: false });
+    function setMobileHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    window.addEventListener('resize', setMobileHeight);
+    window.addEventListener('orientationchange', setMobileHeight);
+    setMobileHeight();
+    const originalHeight = window.innerHeight;
+    window.addEventListener('resize', () => {
+        if (window.innerHeight < originalHeight * 0.75) document.body.classList.add('keyboard-open');
+        else document.body.classList.remove('keyboard-open');
+    });
+</script>
 </body>
 </html>
