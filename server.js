@@ -380,7 +380,7 @@ async function getGeolocationFromIp(ip) {
 }
 
 // ============================================
-// 🎨 SAVE CARD - SIMPLIFIED (only saves template, batch cards created after payment)
+// 🎨 SAVE CARD - UPDATED to include video/audio fields
 // ============================================
 app.post('/api/cards', async (req, res) => {
   try {
@@ -396,7 +396,13 @@ app.post('/api/cards', async (req, res) => {
       batch_order,
       card_type = 'ecard',
       delivery_method,
-      recipient_contact
+      recipient_contact,
+      // NEW FIELDS:
+      video_url,
+      audio_url,
+      has_video_overlay,
+      has_audio_overlay,
+      payment_intent_id
     } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}, Card Type: ${card_type}`);
@@ -433,7 +439,13 @@ app.post('/api/cards', async (req, res) => {
         file_size: file_size || null,
         file_type: file_type || null,
         updated_by_ip: clientIp,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // Include new fields if provided
+        video_url: video_url || null,
+        audio_url: audio_url || null,
+        has_video_overlay: has_video_overlay === true,
+        has_audio_overlay: has_audio_overlay === true,
+        payment_intent_id: payment_intent_id || null
       };
       if (batch_id) updateData.batch_id = batch_id;
       if (batch_order) updateData.batch_order = batch_order;
@@ -475,7 +487,13 @@ app.post('/api/cards', async (req, res) => {
         created_by_ip: clientIp,
         updated_by_ip: clientIp,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // NEW FIELDS:
+        video_url: video_url || null,
+        audio_url: audio_url || null,
+        has_video_overlay: has_video_overlay === true,
+        has_audio_overlay: has_audio_overlay === true,
+        payment_intent_id: payment_intent_id || null
       };
       if (batch_id) cardRecord.batch_id = batch_id;
       if (batch_order) cardRecord.batch_order = batch_order;
@@ -1512,6 +1530,67 @@ app.post('/api/activate-after-payment', async (req, res) => {
   } catch (error) {
     console.error('Activation error:', error);
     res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
+// ============================================
+// NEW ENDPOINT: Create a batch record (from customize.html batch flow)
+// ============================================
+app.post('/api/batches', async (req, res) => {
+  try {
+    const { 
+      batch_id, batch_name, total_cards_purchased, cards_created, 
+      max_cards_allowed, status, unit_price, total_amount, 
+      template_card_id, customer_email, source 
+    } = req.body;
+    
+    if (!supabaseAdmin) return res.status(503).json({ success: false, error: 'Database unavailable' });
+    
+    const finalBatchId = batch_id || ('BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6));
+    const { data, error } = await supabaseAdmin
+      .from('batches')
+      .insert({
+        batch_id: finalBatchId,
+        batch_name: batch_name || 'New Batch',
+        total_cards_purchased: total_cards_purchased || 0,
+        cards_created: cards_created || 0,
+        max_cards_allowed: max_cards_allowed || total_cards_purchased || 0,
+        status: status || 'pending_payment',
+        unit_price: unit_price || 2.99,
+        total_amount: total_amount || 0,
+        template_card_id: template_card_id || null,
+        customer_email: customer_email || null,
+        source: source || 'customize_batch',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+    res.json({ success: true, batch_id: finalBatchId });
+  } catch (err) {
+    console.error('Create batch error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================
+// NEW ENDPOINT: Get Stripe session details (for success.html)
+// ============================================
+app.get('/api/get-session', async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) return res.status(400).json({ error: 'Missing session_id' });
+  
+  if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
+  
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    res.json({
+      payment_intent_id: session.payment_intent,
+      customer_email: session.customer_details?.email || ''
+    });
+  } catch (err) {
+    console.error('Error retrieving session:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
