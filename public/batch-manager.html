@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Batch Manager | Papir</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -562,6 +562,13 @@
                 margin-left: 10px;
             }
         }
+
+        /* ===== ADDED GLOBAL MOBILE RESET ===== */
+        * { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
+        input, select, textarea, button { font-size: 16px; min-height: 44px; }
+        html, body { overflow-x: hidden; max-width: 100vw; }
+        img { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -1100,6 +1107,37 @@
             console.log('Auto-loading batch from URL:', urlBatchId);
             loadBatchById(urlBatchId);
         }
+    </script>
+    
+    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
+    <script>
+        (function() {
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            function setMobileHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            window.addEventListener('resize', setMobileHeight);
+            window.addEventListener('orientationchange', setMobileHeight);
+            setMobileHeight();
+
+            const originalHeight = window.innerHeight;
+            window.addEventListener('resize', () => {
+                if (window.innerHeight < originalHeight * 0.75) {
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        })();
     </script>
 </body>
 </html>

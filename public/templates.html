@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Choose Your Design | Papir E-Cards</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -39,824 +39,143 @@
         .back-button { position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); transition: all 0.3s; }
         .back-button:hover { background: rgba(255, 255, 255, 0.2); }
 
-        /* Specific template preview styles */
+        /* Specific template preview styles (unchanged - keep all your existing preview styles) */
+        .preview-wedding-elegant { background: #FFF9F0; color: #2C3E50; border-bottom: 3px solid #D4AF37; }
+        .preview-wedding-elegant .main-text { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: normal; color: #2C3E50; margin: 8px 0; }
+        .preview-wedding-elegant .sub-text { font-size: 0.85rem; color: #D4AF37; margin-top: 8px; }
+        .preview-wedding-modern { background: #FFFFFF; color: #2C3E50; border-bottom: 3px solid #2C3E50; }
+        .preview-wedding-modern .main-text { font-family: 'Montserrat', serif; font-size: 1.6rem; font-weight: normal; color: #2C3E50; margin: 8px 0; }
+        .preview-wedding-modern .sub-text { font-size: 0.85rem; color: #E74C3C; margin-top: 8px; }
+        .preview-wedding-floral { background: #F5F0E6; color: #5D7B6F; border-bottom: 3px solid #7C9D8E; }
+        .preview-wedding-floral .main-text { font-family: 'Parisienne', serif; font-size: 1.6rem; font-weight: normal; color: #5D7B6F; margin: 8px 0; }
+        .preview-wedding-floral .sub-text { font-size: 0.85rem; color: #7C9D8E; margin-top: 8px; }
+        .preview-wedding-rustic { background: #F4E4C1; color: #5D4037; border-bottom: 3px solid #8B4513; }
+        .preview-wedding-rustic .main-text { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: normal; color: #5D4037; margin: 8px 0; }
+        .preview-wedding-rustic .sub-text { font-size: 0.85rem; color: #8B4513; margin-top: 8px; }
+        .preview-wedding-beach { background: #E0F7FA; color: #006064; border-bottom: 3px solid #00ACC1; }
+        .preview-wedding-beach .main-text { font-family: 'Dancing Script', serif; font-size: 1.6rem; font-weight: normal; color: #006064; margin: 8px 0; }
+        .preview-wedding-beach .sub-text { font-size: 0.85rem; color: #00ACC1; margin-top: 8px; }
+        .preview-wedding-vintage { background: #FFFAF0; color: #8B4513; border-bottom: 3px solid #BC8F8F; }
+        .preview-wedding-vintage .main-text { font-family: 'Great Vibes', serif; font-size: 1.6rem; font-weight: normal; color: #8B4513; margin: 8px 0; }
+        .preview-wedding-vintage .sub-text { font-size: 0.85rem; color: #BC8F8F; margin-top: 8px; }
+        .preview-birthday-fun { background: linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%); color: #FFFFFF; border-bottom: 3px solid #DDD; }
+        .preview-birthday-fun .main-text { font-family: 'Pacifico', serif; font-size: 1.6rem; font-weight: normal; color: #FFFFFF; margin: 8px 0; }
+        .preview-birthday-fun .sub-text { font-size: 0.85rem; color: #FFD166; margin-top: 8px; }
+        .preview-birthday-elegant { background: #2C3E50; color: #F39C12; border-bottom: 3px solid #F39C12; }
+        .preview-birthday-elegant .main-text { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: normal; color: #F39C12; margin: 8px 0; }
+        .preview-birthday-elegant .sub-text { font-size: 0.85rem; color: #FFF; margin-top: 8px; }
+        .preview-birthday-kids { background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%); color: #FFFFFF; border-bottom: 3px solid #FFFFFF; }
+        .preview-birthday-kids .main-text { font-family: 'Fredoka One', serif; font-size: 1.6rem; font-weight: normal; color: #FFFFFF; margin: 8px 0; }
+        .preview-birthday-kids .sub-text { font-size: 0.85rem; color: #FFD166; margin-top: 8px; }
+        .preview-birthday-floral { background: #F8BBD9; color: #880E4F; border-bottom: 3px solid #EC407A; }
+        .preview-birthday-floral .main-text { font-family: 'Sacramento', serif; font-size: 1.6rem; font-weight: normal; color: #880E4F; margin: 8px 0; }
+        .preview-birthday-floral .sub-text { font-size: 0.85rem; color: #EC407A; margin-top: 8px; }
+        .preview-birthday-retro { background: #1A1A2E; color: #FF006E; border-bottom: 3px solid #FF006E; }
+        .preview-birthday-retro .main-text { font-family: 'Lobster', serif; font-size: 1.6rem; font-weight: normal; color: #FF006E; margin: 8px 0; }
+        .preview-birthday-retro .sub-text { font-size: 0.85rem; color: #FB5607; margin-top: 8px; }
+        .preview-birthday-masculine { background: #3E2723; color: #D7CCC8; border-bottom: 3px solid #D7CCC8; }
+        .preview-birthday-masculine .main-text { font-family: 'Abril Fatface', serif; font-size: 1.6rem; font-weight: normal; color: #D7CCC8; margin: 8px 0; }
+        .preview-birthday-masculine .sub-text { font-size: 0.85rem; color: #8D6E63; margin-top: 8px; }
+        .preview-savethedate-romantic { background: #FCE4EC; color: #880E4F; border-bottom: 3px solid #F48FB1; }
+        .preview-savethedate-romantic .main-text { font-family: 'Great Vibes', serif; font-size: 1.6rem; font-weight: normal; color: #880E4F; margin: 8px 0; }
+        .preview-savethedate-romantic .sub-text { font-size: 0.85rem; color: #AD1457; margin-top: 8px; }
+        .preview-savethedate-minimal { background: #FFFFFF; color: #000000; border-bottom: 3px solid #000000; }
+        .preview-savethedate-minimal .main-text { font-family: 'Montserrat', serif; font-size: 1.6rem; font-weight: bold; color: #000000; margin: 8px 0; }
+        .preview-savethedate-minimal .sub-text { font-size: 0.85rem; color: #666666; margin-top: 8px; }
+        .preview-savethedate-photo { background: #FAFAFA; color: #212121; border-bottom: 3px solid #E0E0E0; }
+        .preview-savethedate-photo .main-text { font-family: 'Oswald', serif; font-size: 1.6rem; font-weight: normal; color: #212121; margin: 8px 0; }
+        .preview-savethedate-photo .sub-text { font-size: 0.85rem; color: #757575; margin-top: 8px; }
+        .preview-savethedate-calendar { background: #FFF3E0; color: #E65100; border-bottom: 3px solid #FF9800; }
+        .preview-savethedate-calendar .main-text { font-family: 'Roboto Slab', serif; font-size: 1.6rem; font-weight: normal; color: #E65100; margin: 8px 0; }
+        .preview-savethedate-calendar .sub-text { font-size: 0.85rem; color: #FF9800; margin-top: 8px; }
+        .preview-thankyou-classic { background: #FDFBF7; color: #8B7355; border-bottom: 3px solid #D4AF37; }
+        .preview-thankyou-classic .main-text { font-family: 'Alex Brush', serif; font-size: 1.6rem; font-weight: normal; color: #8B7355; margin: 8px 0; }
+        .preview-thankyou-classic .sub-text { font-size: 0.85rem; color: #5D4E37; margin-top: 8px; }
+        .preview-thankyou-modern { background: #FFFFFF; color: #424242; border-bottom: 3px solid #BDBDBD; }
+        .preview-thankyou-modern .main-text { font-family: 'Raleway', serif; font-size: 1.6rem; font-weight: normal; color: #424242; margin: 8px 0; }
+        .preview-thankyou-modern .sub-text { font-size: 0.85rem; color: #757575; margin-top: 8px; }
+        .preview-thankyou-floral { background: #E8F5E9; color: #1B5E20; border-bottom: 3px solid #4CAF50; }
+        .preview-thankyou-floral .main-text { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: normal; color: #1B5E20; margin: 8px 0; }
+        .preview-thankyou-floral .sub-text { font-size: 0.85rem; color: #4CAF50; margin-top: 8px; }
+        .preview-thankyou-photo { background: #FFFFFF; color: #212121; border-bottom: 3px solid #EEEEEE; }
+        .preview-thankyou-photo .main-text { font-family: 'Open Sans', serif; font-size: 1.6rem; font-weight: normal; color: #212121; margin: 8px 0; }
+        .preview-thankyou-photo .sub-text { font-size: 0.85rem; color: #9E9E9E; margin-top: 8px; }
+        .preview-anniversary-gold { background: #1A1A2E; color: #D4AF37; border-bottom: 3px solid #D4AF37; }
+        .preview-anniversary-gold .main-text { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: normal; color: #D4AF37; margin: 8px 0; }
+        .preview-anniversary-gold .sub-text { font-size: 0.85rem; color: #FFFFFF; margin-top: 8px; }
+        .preview-anniversary-silver { background: #F5F5F5; color: #616161; border-bottom: 3px solid #9E9E9E; }
+        .preview-anniversary-silver .main-text { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: normal; color: #616161; margin: 8px 0; }
+        .preview-anniversary-silver .sub-text { font-size: 0.85rem; color: #9E9E9E; margin-top: 8px; }
+        .preview-anniversary-ruby { background: #FFEBEE; color: #B71C1C; border-bottom: 3px solid #C62828; }
+        .preview-anniversary-ruby .main-text { font-family: 'Great Vibes', serif; font-size: 1.6rem; font-weight: normal; color: #B71C1C; margin: 8px 0; }
+        .preview-anniversary-ruby .sub-text { font-size: 0.85rem; color: #EF5350; margin-top: 8px; }
+        .preview-graduation-classic { background: #2C3E50; color: #FFFFFF; border-bottom: 3px solid #F1C40F; }
+        .preview-graduation-classic .main-text { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: normal; color: #FFFFFF; margin: 8px 0; }
+        .preview-graduation-classic .sub-text { font-size: 0.85rem; color: #F1C40F; margin-top: 8px; }
+        .preview-graduation-modern { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #212121; border-bottom: 3px solid #DDD; }
+        .preview-graduation-modern .main-text { font-family: 'Bebas Neue', serif; font-size: 1.6rem; font-weight: normal; color: #212121; margin: 8px 0; }
+        .preview-graduation-modern .sub-text { font-size: 0.85rem; color: #424242; margin-top: 8px; }
+        .preview-graduation-medical { background: #FFFFFF; color: #2E7D32; border-bottom: 3px solid #4CAF50; }
+        .preview-graduation-medical .main-text { font-family: 'Merriweather', serif; font-size: 1.6rem; font-weight: normal; color: #2E7D32; margin: 8px 0; }
+        .preview-graduation-medical .sub-text { font-size: 0.85rem; color: #4CAF50; margin-top: 8px; }
+        .preview-baby-neutral { background: #F5F5DC; color: #8B7355; border-bottom: 3px solid #D2B48C; }
+        .preview-baby-neutral .main-text { font-family: 'Pacifico', serif; font-size: 1.6rem; font-weight: normal; color: #8B7355; margin: 8px 0; }
+        .preview-baby-neutral .sub-text { font-size: 0.85rem; color: #A0826D; margin-top: 8px; }
+        .preview-baby-boy { background: #E3F2FD; color: #1565C0; border-bottom: 3px solid #2196F3; }
+        .preview-baby-boy .main-text { font-family: 'Comfortaa', serif; font-size: 1.6rem; font-weight: normal; color: #1565C0; margin: 8px 0; }
+        .preview-baby-boy .sub-text { font-size: 0.85rem; color: #64B5F6; margin-top: 8px; }
+        .preview-baby-girl { background: #FCE4EC; color: #C2185B; border-bottom: 3px solid #E91E63; }
+        .preview-baby-girl .main-text { font-family: 'Satisfy', serif; font-size: 1.6rem; font-weight: normal; color: #C2185B; margin: 8px 0; }
+        .preview-baby-girl .sub-text { font-size: 0.85rem; color: #F06292; margin-top: 8px; }
+        .preview-holiday-christmas { background: #165B33; color: #FFFFFF; border-bottom: 3px solid #C9A227; }
+        .preview-holiday-christmas .main-text { font-family: 'Great Vibes', serif; font-size: 1.6rem; font-weight: normal; color: #FFFFFF; margin: 8px 0; }
+        .preview-holiday-christmas .sub-text { font-size: 0.85rem; color: #C9A227; margin-top: 8px; }
+        .preview-holiday-hanukkah { background: #0D47A1; color: #FFFFFF; border-bottom: 3px solid #FFD700; }
+        .preview-holiday-hanukkah .main-text { font-family: 'David Libre', serif; font-size: 1.6rem; font-weight: normal; color: #FFFFFF; margin: 8px 0; }
+        .preview-holiday-hanukkah .sub-text { font-size: 0.85rem; color: #FFD700; margin-top: 8px; }
+        .preview-holiday-newyear { background: #212121; color: #FFC107; border-bottom: 3px solid #FFC107; }
+        .preview-holiday-newyear .main-text { font-family: 'Monoton', serif; font-size: 1.6rem; font-weight: normal; color: #FFC107; margin: 8px 0; }
+        .preview-holiday-newyear .sub-text { font-size: 0.85rem; color: #FFD54F; margin-top: 8px; }
+        .preview-holiday-thanksgiving { background: #FFF3E0; color: #BF360C; border-bottom: 3px solid #E65100; }
+        .preview-holiday-thanksgiving .main-text { font-family: 'Amatic SC', serif; font-size: 1.6rem; font-weight: normal; color: #BF360C; margin: 8px 0; }
+        .preview-holiday-thanksgiving .sub-text { font-size: 0.85rem; color: #EF6C00; margin-top: 8px; }
+        .preview-congrats-modern { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #2C3E50; border-bottom: 3px solid #DDD; }
+        .preview-congrats-modern .main-text { font-family: 'Montserrat', serif; font-size: 1.6rem; font-weight: normal; color: #2C3E50; margin: 8px 0; }
+        .preview-congrats-modern .sub-text { font-size: 0.85rem; color: #2C3E50; margin-top: 8px; }
+        .preview-congrats-promotion { background: #E8EAF6; color: #1A237E; border-bottom: 3px solid #3F51B5; }
+        .preview-congrats-promotion .main-text { font-family: 'Roboto', serif; font-size: 1.6rem; font-weight: normal; color: #1A237E; margin: 8px 0; }
+        .preview-congrats-promotion .sub-text { font-size: 0.85rem; color: #5C6BC0; margin-top: 8px; }
+        .preview-congrats-engagement { background: #F3E5F5; color: #4A148C; border-bottom: 3px solid #9C27B0; }
+        .preview-congrats-engagement .main-text { font-family: 'Tangerine', serif; font-size: 1.6rem; font-weight: normal; color: #4A148C; margin: 8px 0; }
+        .preview-congrats-engagement .sub-text { font-size: 0.85rem; color: #BA68C8; margin-top: 8px; }
+        .preview-getwell-soothing { background: #E0F7FA; color: #00838F; border-bottom: 3px solid #4DD0E1; }
+        .preview-getwell-soothing .main-text { font-family: 'Alex Brush', serif; font-size: 1.6rem; font-weight: normal; color: #00838F; margin: 8px 0; }
+        .preview-getwell-soothing .sub-text { font-size: 0.85rem; color: #00ACC1; margin-top: 8px; }
+        .preview-getwell-floral { background: #F1F8E9; color: #33691E; border-bottom: 3px solid #7CB342; }
+        .preview-getwell-floral .main-text { font-family: 'Petit Formal Script', serif; font-size: 1.6rem; font-weight: normal; color: #33691E; margin: 8px 0; }
+        .preview-getwell-floral .sub-text { font-size: 0.85rem; color: #558B2F; margin-top: 8px; }
+        .preview-getwell-humor { background: #FFFDE7; color: #F57F17; border-bottom: 3px solid #FBC02D; }
+        .preview-getwell-humor .main-text { font-family: 'Bangers', serif; font-size: 1.6rem; font-weight: normal; color: #F57F17; margin: 8px 0; }
+        .preview-getwell-humor .sub-text { font-size: 0.85rem; color: #F9A825; margin-top: 8px; }
+        .preview-sympathy-elegant { background: #FAFAFA; color: #424242; border-bottom: 3px solid #9E9E9E; }
+        .preview-sympathy-elegant .main-text { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: normal; color: #424242; margin: 8px 0; }
+        .preview-sympathy-elegant .sub-text { font-size: 0.85rem; color: #757575; margin-top: 8px; }
+        .preview-sympathy-peace { background: #ECEFF1; color: #37474F; border-bottom: 3px solid #607D8B; }
+        .preview-sympathy-peace .main-text { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: normal; color: #37474F; margin: 8px 0; }
+        .preview-sympathy-peace .sub-text { font-size: 0.85rem; color: #78909C; margin-top: 8px; }
+        .preview-friendship-thinking { background: #E8F5E9; color: #2E7D32; border-bottom: 3px solid #66BB6A; }
+        .preview-friendship-thinking .main-text { font-family: 'Kalam', serif; font-size: 1.6rem; font-weight: normal; color: #2E7D32; margin: 8px 0; }
+        .preview-friendship-thinking .sub-text { font-size: 0.85rem; color: #43A047; margin-top: 8px; }
+        .preview-friendship-love { background: #FCE4EC; color: #C2185B; border-bottom: 3px solid #F06292; }
+        .preview-friendship-love .main-text { font-family: 'Sue Ellen Francisco', serif; font-size: 1.6rem; font-weight: normal; color: #C2185B; margin: 8px 0; }
+        .preview-friendship-love .sub-text { font-size: 0.85rem; color: #F48FB1; margin-top: 8px; }
 
-        .preview-wedding-elegant {
-            background: #FFF9F0;
-            color: #2C3E50;
-            border-bottom: 3px solid #D4AF37;
-        }
-        .preview-wedding-elegant .main-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #2C3E50;
-            margin: 8px 0;
-        }
-        .preview-wedding-elegant .sub-text {
-            font-size: 0.85rem;
-            color: #D4AF37;
-            margin-top: 8px;
-        }
-    
-
-        .preview-wedding-modern {
-            background: #FFFFFF;
-            color: #2C3E50;
-            border-bottom: 3px solid #2C3E50;
-        }
-        .preview-wedding-modern .main-text {
-            font-family: 'Montserrat', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #2C3E50;
-            margin: 8px 0;
-        }
-        .preview-wedding-modern .sub-text {
-            font-size: 0.85rem;
-            color: #E74C3C;
-            margin-top: 8px;
-        }
-    
-
-        .preview-wedding-floral {
-            background: #F5F0E6;
-            color: #5D7B6F;
-            border-bottom: 3px solid #7C9D8E;
-        }
-        .preview-wedding-floral .main-text {
-            font-family: 'Parisienne', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #5D7B6F;
-            margin: 8px 0;
-        }
-        .preview-wedding-floral .sub-text {
-            font-size: 0.85rem;
-            color: #7C9D8E;
-            margin-top: 8px;
-        }
-    
-
-        .preview-wedding-rustic {
-            background: #F4E4C1;
-            color: #5D4037;
-            border-bottom: 3px solid #8B4513;
-        }
-        .preview-wedding-rustic .main-text {
-            font-family: 'Cinzel', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #5D4037;
-            margin: 8px 0;
-        }
-        .preview-wedding-rustic .sub-text {
-            font-size: 0.85rem;
-            color: #8B4513;
-            margin-top: 8px;
-        }
-    
-
-        .preview-wedding-beach {
-            background: #E0F7FA;
-            color: #006064;
-            border-bottom: 3px solid #00ACC1;
-        }
-        .preview-wedding-beach .main-text {
-            font-family: 'Dancing Script', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #006064;
-            margin: 8px 0;
-        }
-        .preview-wedding-beach .sub-text {
-            font-size: 0.85rem;
-            color: #00ACC1;
-            margin-top: 8px;
-        }
-    
-
-        .preview-wedding-vintage {
-            background: #FFFAF0;
-            color: #8B4513;
-            border-bottom: 3px solid #BC8F8F;
-        }
-        .preview-wedding-vintage .main-text {
-            font-family: 'Great Vibes', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #8B4513;
-            margin: 8px 0;
-        }
-        .preview-wedding-vintage .sub-text {
-            font-size: 0.85rem;
-            color: #BC8F8F;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-fun {
-            background: linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%);
-            color: #FFFFFF;
-            border-bottom: 3px solid #DDD;
-        }
-        .preview-birthday-fun .main-text {
-            font-family: 'Pacifico', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFFFFF;
-            margin: 8px 0;
-        }
-        .preview-birthday-fun .sub-text {
-            font-size: 0.85rem;
-            color: #FFD166;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-elegant {
-            background: #2C3E50;
-            color: #F39C12;
-            border-bottom: 3px solid #F39C12;
-        }
-        .preview-birthday-elegant .main-text {
-            font-family: 'Cinzel', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #F39C12;
-            margin: 8px 0;
-        }
-        .preview-birthday-elegant .sub-text {
-            font-size: 0.85rem;
-            color: #FFF;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-kids {
-            background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%);
-            color: #FFFFFF;
-            border-bottom: 3px solid #FFFFFF;
-        }
-        .preview-birthday-kids .main-text {
-            font-family: 'Fredoka One', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFFFFF;
-            margin: 8px 0;
-        }
-        .preview-birthday-kids .sub-text {
-            font-size: 0.85rem;
-            color: #FFD166;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-floral {
-            background: #F8BBD9;
-            color: #880E4F;
-            border-bottom: 3px solid #EC407A;
-        }
-        .preview-birthday-floral .main-text {
-            font-family: 'Sacramento', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #880E4F;
-            margin: 8px 0;
-        }
-        .preview-birthday-floral .sub-text {
-            font-size: 0.85rem;
-            color: #EC407A;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-retro {
-            background: #1A1A2E;
-            color: #FF006E;
-            border-bottom: 3px solid #FF006E;
-        }
-        .preview-birthday-retro .main-text {
-            font-family: 'Lobster', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FF006E;
-            margin: 8px 0;
-        }
-        .preview-birthday-retro .sub-text {
-            font-size: 0.85rem;
-            color: #FB5607;
-            margin-top: 8px;
-        }
-    
-
-        .preview-birthday-masculine {
-            background: #3E2723;
-            color: #D7CCC8;
-            border-bottom: 3px solid #D7CCC8;
-        }
-        .preview-birthday-masculine .main-text {
-            font-family: 'Abril Fatface', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #D7CCC8;
-            margin: 8px 0;
-        }
-        .preview-birthday-masculine .sub-text {
-            font-size: 0.85rem;
-            color: #8D6E63;
-            margin-top: 8px;
-        }
-    
-
-        .preview-savethedate-romantic {
-            background: #FCE4EC;
-            color: #880E4F;
-            border-bottom: 3px solid #F48FB1;
-        }
-        .preview-savethedate-romantic .main-text {
-            font-family: 'Great Vibes', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #880E4F;
-            margin: 8px 0;
-        }
-        .preview-savethedate-romantic .sub-text {
-            font-size: 0.85rem;
-            color: #AD1457;
-            margin-top: 8px;
-        }
-    
-
-        .preview-savethedate-minimal {
-            background: #FFFFFF;
-            color: #000000;
-            border-bottom: 3px solid #000000;
-        }
-        .preview-savethedate-minimal .main-text {
-            font-family: 'Montserrat', serif;
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #000000;
-            margin: 8px 0;
-        }
-        .preview-savethedate-minimal .sub-text {
-            font-size: 0.85rem;
-            color: #666666;
-            margin-top: 8px;
-        }
-    
-
-        .preview-savethedate-photo {
-            background: #FAFAFA;
-            color: #212121;
-            border-bottom: 3px solid #E0E0E0;
-        }
-        .preview-savethedate-photo .main-text {
-            font-family: 'Oswald', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #212121;
-            margin: 8px 0;
-        }
-        .preview-savethedate-photo .sub-text {
-            font-size: 0.85rem;
-            color: #757575;
-            margin-top: 8px;
-        }
-    
-
-        .preview-savethedate-calendar {
-            background: #FFF3E0;
-            color: #E65100;
-            border-bottom: 3px solid #FF9800;
-        }
-        .preview-savethedate-calendar .main-text {
-            font-family: 'Roboto Slab', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #E65100;
-            margin: 8px 0;
-        }
-        .preview-savethedate-calendar .sub-text {
-            font-size: 0.85rem;
-            color: #FF9800;
-            margin-top: 8px;
-        }
-    
-
-        .preview-thankyou-classic {
-            background: #FDFBF7;
-            color: #8B7355;
-            border-bottom: 3px solid #D4AF37;
-        }
-        .preview-thankyou-classic .main-text {
-            font-family: 'Alex Brush', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #8B7355;
-            margin: 8px 0;
-        }
-        .preview-thankyou-classic .sub-text {
-            font-size: 0.85rem;
-            color: #5D4E37;
-            margin-top: 8px;
-        }
-    
-
-        .preview-thankyou-modern {
-            background: #FFFFFF;
-            color: #424242;
-            border-bottom: 3px solid #BDBDBD;
-        }
-        .preview-thankyou-modern .main-text {
-            font-family: 'Raleway', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #424242;
-            margin: 8px 0;
-        }
-        .preview-thankyou-modern .sub-text {
-            font-size: 0.85rem;
-            color: #757575;
-            margin-top: 8px;
-        }
-    
-
-        .preview-thankyou-floral {
-            background: #E8F5E9;
-            color: #1B5E20;
-            border-bottom: 3px solid #4CAF50;
-        }
-        .preview-thankyou-floral .main-text {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #1B5E20;
-            margin: 8px 0;
-        }
-        .preview-thankyou-floral .sub-text {
-            font-size: 0.85rem;
-            color: #4CAF50;
-            margin-top: 8px;
-        }
-    
-
-        .preview-thankyou-photo {
-            background: #FFFFFF;
-            color: #212121;
-            border-bottom: 3px solid #EEEEEE;
-        }
-        .preview-thankyou-photo .main-text {
-            font-family: 'Open Sans', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #212121;
-            margin: 8px 0;
-        }
-        .preview-thankyou-photo .sub-text {
-            font-size: 0.85rem;
-            color: #9E9E9E;
-            margin-top: 8px;
-        }
-    
-
-        .preview-anniversary-gold {
-            background: #1A1A2E;
-            color: #D4AF37;
-            border-bottom: 3px solid #D4AF37;
-        }
-        .preview-anniversary-gold .main-text {
-            font-family: 'Cinzel', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #D4AF37;
-            margin: 8px 0;
-        }
-        .preview-anniversary-gold .sub-text {
-            font-size: 0.85rem;
-            color: #FFFFFF;
-            margin-top: 8px;
-        }
-    
-
-        .preview-anniversary-silver {
-            background: #F5F5F5;
-            color: #616161;
-            border-bottom: 3px solid #9E9E9E;
-        }
-        .preview-anniversary-silver .main-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #616161;
-            margin: 8px 0;
-        }
-        .preview-anniversary-silver .sub-text {
-            font-size: 0.85rem;
-            color: #9E9E9E;
-            margin-top: 8px;
-        }
-    
-
-        .preview-anniversary-ruby {
-            background: #FFEBEE;
-            color: #B71C1C;
-            border-bottom: 3px solid #C62828;
-        }
-        .preview-anniversary-ruby .main-text {
-            font-family: 'Great Vibes', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #B71C1C;
-            margin: 8px 0;
-        }
-        .preview-anniversary-ruby .sub-text {
-            font-size: 0.85rem;
-            color: #EF5350;
-            margin-top: 8px;
-        }
-    
-
-        .preview-graduation-classic {
-            background: #2C3E50;
-            color: #FFFFFF;
-            border-bottom: 3px solid #F1C40F;
-        }
-        .preview-graduation-classic .main-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFFFFF;
-            margin: 8px 0;
-        }
-        .preview-graduation-classic .sub-text {
-            font-size: 0.85rem;
-            color: #F1C40F;
-            margin-top: 8px;
-        }
-    
-
-        .preview-graduation-modern {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            color: #212121;
-            border-bottom: 3px solid #DDD;
-        }
-        .preview-graduation-modern .main-text {
-            font-family: 'Bebas Neue', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #212121;
-            margin: 8px 0;
-        }
-        .preview-graduation-modern .sub-text {
-            font-size: 0.85rem;
-            color: #424242;
-            margin-top: 8px;
-        }
-    
-
-        .preview-graduation-medical {
-            background: #FFFFFF;
-            color: #2E7D32;
-            border-bottom: 3px solid #4CAF50;
-        }
-        .preview-graduation-medical .main-text {
-            font-family: 'Merriweather', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #2E7D32;
-            margin: 8px 0;
-        }
-        .preview-graduation-medical .sub-text {
-            font-size: 0.85rem;
-            color: #4CAF50;
-            margin-top: 8px;
-        }
-    
-
-        .preview-baby-neutral {
-            background: #F5F5DC;
-            color: #8B7355;
-            border-bottom: 3px solid #D2B48C;
-        }
-        .preview-baby-neutral .main-text {
-            font-family: 'Pacifico', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #8B7355;
-            margin: 8px 0;
-        }
-        .preview-baby-neutral .sub-text {
-            font-size: 0.85rem;
-            color: #A0826D;
-            margin-top: 8px;
-        }
-    
-
-        .preview-baby-boy {
-            background: #E3F2FD;
-            color: #1565C0;
-            border-bottom: 3px solid #2196F3;
-        }
-        .preview-baby-boy .main-text {
-            font-family: 'Comfortaa', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #1565C0;
-            margin: 8px 0;
-        }
-        .preview-baby-boy .sub-text {
-            font-size: 0.85rem;
-            color: #64B5F6;
-            margin-top: 8px;
-        }
-    
-
-        .preview-baby-girl {
-            background: #FCE4EC;
-            color: #C2185B;
-            border-bottom: 3px solid #E91E63;
-        }
-        .preview-baby-girl .main-text {
-            font-family: 'Satisfy', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #C2185B;
-            margin: 8px 0;
-        }
-        .preview-baby-girl .sub-text {
-            font-size: 0.85rem;
-            color: #F06292;
-            margin-top: 8px;
-        }
-    
-
-        .preview-holiday-christmas {
-            background: #165B33;
-            color: #FFFFFF;
-            border-bottom: 3px solid #C9A227;
-        }
-        .preview-holiday-christmas .main-text {
-            font-family: 'Great Vibes', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFFFFF;
-            margin: 8px 0;
-        }
-        .preview-holiday-christmas .sub-text {
-            font-size: 0.85rem;
-            color: #C9A227;
-            margin-top: 8px;
-        }
-    
-
-        .preview-holiday-hanukkah {
-            background: #0D47A1;
-            color: #FFFFFF;
-            border-bottom: 3px solid #FFD700;
-        }
-        .preview-holiday-hanukkah .main-text {
-            font-family: 'David Libre', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFFFFF;
-            margin: 8px 0;
-        }
-        .preview-holiday-hanukkah .sub-text {
-            font-size: 0.85rem;
-            color: #FFD700;
-            margin-top: 8px;
-        }
-    
-
-        .preview-holiday-newyear {
-            background: #212121;
-            color: #FFC107;
-            border-bottom: 3px solid #FFC107;
-        }
-        .preview-holiday-newyear .main-text {
-            font-family: 'Monoton', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #FFC107;
-            margin: 8px 0;
-        }
-        .preview-holiday-newyear .sub-text {
-            font-size: 0.85rem;
-            color: #FFD54F;
-            margin-top: 8px;
-        }
-    
-
-        .preview-holiday-thanksgiving {
-            background: #FFF3E0;
-            color: #BF360C;
-            border-bottom: 3px solid #E65100;
-        }
-        .preview-holiday-thanksgiving .main-text {
-            font-family: 'Amatic SC', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #BF360C;
-            margin: 8px 0;
-        }
-        .preview-holiday-thanksgiving .sub-text {
-            font-size: 0.85rem;
-            color: #EF6C00;
-            margin-top: 8px;
-        }
-    
-
-        .preview-congrats-modern {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            color: #2C3E50;
-            border-bottom: 3px solid #DDD;
-        }
-        .preview-congrats-modern .main-text {
-            font-family: 'Montserrat', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #2C3E50;
-            margin: 8px 0;
-        }
-        .preview-congrats-modern .sub-text {
-            font-size: 0.85rem;
-            color: #2C3E50;
-            margin-top: 8px;
-        }
-    
-
-        .preview-congrats-promotion {
-            background: #E8EAF6;
-            color: #1A237E;
-            border-bottom: 3px solid #3F51B5;
-        }
-        .preview-congrats-promotion .main-text {
-            font-family: 'Roboto', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #1A237E;
-            margin: 8px 0;
-        }
-        .preview-congrats-promotion .sub-text {
-            font-size: 0.85rem;
-            color: #5C6BC0;
-            margin-top: 8px;
-        }
-    
-
-        .preview-congrats-engagement {
-            background: #F3E5F5;
-            color: #4A148C;
-            border-bottom: 3px solid #9C27B0;
-        }
-        .preview-congrats-engagement .main-text {
-            font-family: 'Tangerine', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #4A148C;
-            margin: 8px 0;
-        }
-        .preview-congrats-engagement .sub-text {
-            font-size: 0.85rem;
-            color: #BA68C8;
-            margin-top: 8px;
-        }
-    
-
-        .preview-getwell-soothing {
-            background: #E0F7FA;
-            color: #00838F;
-            border-bottom: 3px solid #4DD0E1;
-        }
-        .preview-getwell-soothing .main-text {
-            font-family: 'Alex Brush', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #00838F;
-            margin: 8px 0;
-        }
-        .preview-getwell-soothing .sub-text {
-            font-size: 0.85rem;
-            color: #00ACC1;
-            margin-top: 8px;
-        }
-    
-
-        .preview-getwell-floral {
-            background: #F1F8E9;
-            color: #33691E;
-            border-bottom: 3px solid #7CB342;
-        }
-        .preview-getwell-floral .main-text {
-            font-family: 'Petit Formal Script', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #33691E;
-            margin: 8px 0;
-        }
-        .preview-getwell-floral .sub-text {
-            font-size: 0.85rem;
-            color: #558B2F;
-            margin-top: 8px;
-        }
-    
-
-        .preview-getwell-humor {
-            background: #FFFDE7;
-            color: #F57F17;
-            border-bottom: 3px solid #FBC02D;
-        }
-        .preview-getwell-humor .main-text {
-            font-family: 'Bangers', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #F57F17;
-            margin: 8px 0;
-        }
-        .preview-getwell-humor .sub-text {
-            font-size: 0.85rem;
-            color: #F9A825;
-            margin-top: 8px;
-        }
-    
-
-        .preview-sympathy-elegant {
-            background: #FAFAFA;
-            color: #424242;
-            border-bottom: 3px solid #9E9E9E;
-        }
-        .preview-sympathy-elegant .main-text {
-            font-family: 'Cinzel', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #424242;
-            margin: 8px 0;
-        }
-        .preview-sympathy-elegant .sub-text {
-            font-size: 0.85rem;
-            color: #757575;
-            margin-top: 8px;
-        }
-    
-
-        .preview-sympathy-peace {
-            background: #ECEFF1;
-            color: #37474F;
-            border-bottom: 3px solid #607D8B;
-        }
-        .preview-sympathy-peace .main-text {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #37474F;
-            margin: 8px 0;
-        }
-        .preview-sympathy-peace .sub-text {
-            font-size: 0.85rem;
-            color: #78909C;
-            margin-top: 8px;
-        }
-    
-
-        .preview-friendship-thinking {
-            background: #E8F5E9;
-            color: #2E7D32;
-            border-bottom: 3px solid #66BB6A;
-        }
-        .preview-friendship-thinking .main-text {
-            font-family: 'Kalam', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #2E7D32;
-            margin: 8px 0;
-        }
-        .preview-friendship-thinking .sub-text {
-            font-size: 0.85rem;
-            color: #43A047;
-            margin-top: 8px;
-        }
-    
-
-        .preview-friendship-love {
-            background: #FCE4EC;
-            color: #C2185B;
-            border-bottom: 3px solid #F06292;
-        }
-        .preview-friendship-love .main-text {
-            font-family: 'Sue Ellen Francisco', serif;
-            font-size: 1.6rem;
-            font-weight: normal;
-            color: #C2185B;
-            margin: 8px 0;
-        }
-        .preview-friendship-love .sub-text {
-            font-size: 0.85rem;
-            color: #F48FB1;
-            margin-top: 8px;
-        }
-    
+        /* ===== ADDED GLOBAL MOBILE RESET ===== */
+        * { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
+        input, select, textarea, button { font-size: 16px; min-height: 44px; }
+        html, body { overflow-x: hidden; max-width: 100vw; }
+        img { max-width: 100%; height: auto; }
     </style>
 <base target="_blank">
 </head>
@@ -1008,6 +327,40 @@
 
         // Initial render
         renderTemplates();
+    </script>
+    
+    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
+    <script>
+        (function() {
+            // Prevent double-tap zoom on buttons
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            // Handle iOS Safari 100vh issue
+            function setMobileHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            window.addEventListener('resize', setMobileHeight);
+            window.addEventListener('orientationchange', setMobileHeight);
+            setMobileHeight();
+
+            // Detect keyboard open on mobile
+            const originalHeight = window.innerHeight;
+            window.addEventListener('resize', () => {
+                if (window.innerHeight < originalHeight * 0.75) {
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
