@@ -436,7 +436,7 @@ app.post('/api/cards', async (req, res) => {
         message_type: message_type.trim(),
         message_text: message_text ? message_text.trim() : null,
         media_url: media_url || null,
-        overlay_url: overlay_url || null,   // <-- ADDED
+        overlay_url: overlay_url || null,
         file_name: file_name || null,
         file_size: file_size || null,
         file_type: file_type || null,
@@ -473,7 +473,7 @@ app.post('/api/cards', async (req, res) => {
         message_type: message_type.trim(),
         message_text: message_text ? message_text.trim() : null,
         media_url: media_url || null,
-        overlay_url: overlay_url || null,   // <-- ADDED
+        overlay_url: overlay_url || null,
         file_name: file_name || null,
         file_size: file_size || null,
         file_type: file_type || null,
@@ -1355,24 +1355,40 @@ app.post('/api/activate-after-payment', async (req, res) => {
             message_type: template.message_type,
             message_text: template.message_text,
             media_url: template.media_url,
+            overlay_url: template.overlay_url || null,
+            video_url: template.video_url || null,
+            audio_url: template.audio_url || null,
+            has_video_overlay: template.has_video_overlay || false,
+            has_audio_overlay: template.has_audio_overlay || false,
             file_name: template.file_name,
             file_size: template.file_size,
             file_type: template.file_type,
             status: 'active',
             card_type: 'ecard',
-            terms_accepted: true,
-            physical_card_status: null,
             created_by_ip: clientIp,
-            updated_by_ip: clientIp,
             created_at: now.toISOString(),
             updated_at: now.toISOString()
           });
         }
         if (cardsToCreate.length > 0) await supabaseAdmin.from('cards').insert(cardsToCreate);
         
+        // Update template card to active and preserve media fields
         await supabaseAdmin
           .from('cards')
-          .update({ status: 'active', is_batch_template: false, terms_accepted: true, batch_order: 1, physical_card_status: null, updated_by_ip: clientIp })
+          .update({
+            status: 'active',
+            is_batch_template: false,
+            terms_accepted: true,
+            batch_order: 1,
+            physical_card_status: null,
+            updated_by_ip: clientIp,
+            updated_at: now.toISOString(),
+            overlay_url: template.overlay_url,
+            video_url: template.video_url,
+            audio_url: template.audio_url,
+            has_video_overlay: template.has_video_overlay,
+            has_audio_overlay: template.has_audio_overlay
+          })
           .eq('card_id', template.card_id);
         
         const { data: existingBatch } = await supabaseAdmin
@@ -1415,19 +1431,37 @@ app.post('/api/activate-after-payment', async (req, res) => {
 });
 
 // ============================================
-// ADD NEW ENDPOINT: Create a batch record (from customize.html batch flow)
+// GET Stripe session details (for success.html)
+// ============================================
+app.get('/api/get-session', async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    if (!session_id) return res.status(400).json({ error: 'Missing session_id' });
+    if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
+    
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    res.json({
+      payment_intent_id: session.payment_intent,
+      customer_email: session.customer_details?.email || ''
+    });
+  } catch (err) {
+    console.error('Get session error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// POST Create batch record (from customize.html)
 // ============================================
 app.post('/api/batches', async (req, res) => {
-  const { batch_id, batch_name, total_cards_purchased, cards_created, max_cards_allowed, status, unit_price, total_amount, template_card_id, customer_email } = req.body;
-  
   try {
+    const { batch_id, batch_name, total_cards_purchased, cards_created, max_cards_allowed, status, unit_price, total_amount, template_card_id, customer_email } = req.body;
     if (!supabaseAdmin) return res.status(503).json({ success: false, error: 'Database unavailable' });
     
-    const finalBatchId = batch_id || ('BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6));
     const { data, error } = await supabaseAdmin
       .from('batches')
       .insert({
-        batch_id: finalBatchId,
+        batch_id: batch_id || ('BATCH-' + Date.now()),
         batch_name: batch_name || 'New Batch',
         total_cards_purchased: total_cards_purchased || 0,
         cards_created: cards_created || 0,
@@ -1443,7 +1477,7 @@ app.post('/api/batches', async (req, res) => {
       .select();
     
     if (error) throw error;
-    res.json({ success: true, batch_id: finalBatchId });
+    res.json({ success: true, batch_id: batch_id });
   } catch (err) {
     console.error('Create batch error:', err);
     res.status(500).json({ success: false, error: err.message });
@@ -1519,6 +1553,11 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
         message_type: source.message_type,
         message_text: source.message_text,
         media_url: source.media_url,
+        overlay_url: source.overlay_url || null,
+        video_url: source.video_url || null,
+        audio_url: source.audio_url || null,
+        has_video_overlay: source.has_video_overlay || false,
+        has_audio_overlay: source.has_audio_overlay || false,
         file_name: source.file_name,
         file_size: source.file_size,
         file_type: source.file_type,
@@ -1861,6 +1900,11 @@ app.post('/api/batch/create-from-template', async (req, res) => {
                 message_type: template.message_type,
                 message_text: template.message_text,
                 media_url: template.media_url,
+                overlay_url: template.overlay_url || null,
+                video_url: template.video_url || null,
+                audio_url: template.audio_url || null,
+                has_video_overlay: template.has_video_overlay || false,
+                has_audio_overlay: template.has_audio_overlay || false,
                 file_name: template.file_name,
                 file_size: template.file_size,
                 file_type: template.file_type,
