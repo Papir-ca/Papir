@@ -1,4 +1,3 @@
-<!-- success.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +6,7 @@
     <title>Payment Successful | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS – keep exactly as before */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -280,8 +280,23 @@
     async function handlePaymentSuccess() {
         try {
             if (sessionId) {
-                document.getElementById('loadingText').textContent = 'Activating your design...';
-                await handleStripeSession(sessionId);
+                // Check if we have pending card/batch from customize.html
+                const pendingCardId = localStorage.getItem('pendingCardId');
+                const pendingBatchId = localStorage.getItem('pendingBatchId');
+                const pendingQty = parseInt(localStorage.getItem('pendingQty')) || 1;
+                
+                if (pendingCardId || pendingBatchId) {
+                    // Use direct activation (old flow) for customize.html cards
+                    document.getElementById('loadingText').textContent = 'Activating your cards...';
+                    await handleDirectActivation(pendingCardId || null, pendingBatchId || null, pendingQty);
+                    localStorage.removeItem('pendingCardId');
+                    localStorage.removeItem('pendingBatchId');
+                    localStorage.removeItem('pendingQty');
+                } else {
+                    // Use Stripe session flow for maker.html
+                    document.getElementById('loadingText').textContent = 'Activating your design...';
+                    await handleStripeSession(sessionId);
+                }
             } else if (cardId || batchId) {
                 document.getElementById('loadingText').textContent = 'Activating your cards...';
                 await handleDirectActivation(cardId, batchId, qty);
