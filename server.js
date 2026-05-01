@@ -1391,6 +1391,9 @@ app.post('/api/activate-after-payment', async (req, res) => {
           })
           .eq('card_id', template.card_id);
         
+        // ============================================================
+        // UPDATED BLOCK: Now updates existing batch or creates new one
+        // ============================================================
         const { data: existingBatch } = await supabaseAdmin
           .from('batches')
           .select('batch_id')
@@ -1407,7 +1410,20 @@ app.post('/api/activate-after-payment', async (req, res) => {
             created_at: now.toISOString(),
             updated_at: now.toISOString()
           });
+        } else {
+          await supabaseAdmin
+            .from('batches')
+            .update({
+              cards_created: parseInt(quantity),
+              total_cards_purchased: parseInt(quantity),
+              max_cards_allowed: parseInt(quantity),
+              status: 'active',
+              updated_by_ip: clientIp,
+              updated_at: now.toISOString()
+            })
+            .eq('batch_id', batch_id);
         }
+        // ============================================================
         
         await supabaseAdmin.from('card_activations').insert({
           card_id: template.card_id,
