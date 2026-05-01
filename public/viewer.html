@@ -174,7 +174,7 @@
             } catch(e) { return 'Unknown'; }
         }
 
-        // ========== UPDATED loadCard FUNCTION (supports video+overlay, audio, etc.) ==========
+        // ========== UPDATED loadCard FUNCTION ==========
         async function loadCard(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -228,9 +228,18 @@
                     audioWrapper.style.display = 'none';
                 }
                 
-                // Hide duplicate message text (already baked into canvas/overlay)
+                // ==================== FIX START ====================
+                // Hide duplicate message text only for customize cards (overlay cards)
                 const msgEl = document.getElementById('cardMessage');
-                if (msgEl) msgEl.style.display = 'none';
+                if (msgEl) {
+                    if (card.overlay_url) {
+                        msgEl.style.display = 'none';
+                    } else {
+                        msgEl.style.display = 'block';
+                        msgEl.textContent = card.message_text || '';
+                    }
+                }
+                // ==================== FIX END ====================
                 
                 // Update header
                 document.getElementById('displayCardId').textContent = card.card_id;
@@ -244,8 +253,6 @@
         }
 
         // The rest of the viewer logic (scanner, confirmation, etc.) remains exactly as before.
-        // I'll include a minimal working continuation:
-
         async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -253,7 +260,6 @@
                 if (!result.success || !result.card) throw new Error('Card not found');
                 pendingCardData = result.card;
                 currentCardId = cardId;
-                // Show confirmation modal if card is active and physical? (simplified)
                 document.getElementById('confirmationModal').classList.add('active');
             } catch (error) {
                 showError(error.message);
@@ -302,7 +308,6 @@
             else showError('Please enter a Card ID');
         });
 
-        // Scanner initialization (simplified)
         function startScanner() {
             if (html5QrCode) html5QrCode.stop().catch(()=>{});
             html5QrCode = new Html5Qrcode("reader");
