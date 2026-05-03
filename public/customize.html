@@ -507,8 +507,11 @@
                                     <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
                                     <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
                                 </div>
+                                <div class="btn-group" style="margin-top: 10px;">
+                                    <button class="btn-icon danger" id="mediaDeleteBtn"><i class="fas fa-trash"></i> Remove from Canvas</button>
+                                </div>
                                 <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
-                                    <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute
+                                    <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute | Del: Remove
                                 </div>
                             </div>
                         </div>
@@ -704,7 +707,7 @@
         }
 
         function saveState() {
-            const json = JSON.stringify(canvas.toJSON());
+            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
                 undoStack.push(json);
                 if (undoStack.length > 30) undoStack.shift();
@@ -712,11 +715,103 @@
             }
         }
 
+        function restoreMediaObjects() {
+            canvas.getObjects().forEach(obj => {
+                if (obj.isVideo && obj.videoBlobUrl) {
+                    restoreVideoObject(obj);
+                } else if (obj.isAudio && obj.audioBlobUrl) {
+                    restoreAudioObject(obj);
+                }
+            });
+        }
+
+        function restoreVideoObject(obj) {
+            if (!obj.videoBlobUrl || obj.videoElement) return;
+            
+            const videoEl = document.createElement('video');
+            videoEl.src = obj.videoBlobUrl;
+            videoEl.crossOrigin = "anonymous";
+            videoEl.loop = true;
+            videoEl.playsInline = true;
+            videoEl.autoplay = true;
+            videoEl.style.display = 'none';
+            document.body.appendChild(videoEl);
+            
+            videoEl.onloadedmetadata = () => {
+                videoEl.play().catch(() => {});
+                
+                const videoCanvas = document.createElement('canvas');
+                videoCanvas.width = obj.width || videoEl.videoWidth || 640;
+                videoCanvas.height = obj.height || videoEl.videoHeight || 480;
+                const ctx = videoCanvas.getContext('2d');
+                
+                obj._element = videoCanvas;
+                obj._originalElement = videoCanvas;
+                obj.videoElement = videoEl;
+                obj.videoCanvas = videoCanvas;
+                obj.videoContext = ctx;
+                
+                const renderLoop = () => {
+                    if (obj.canvas && !obj.isDeleted) {
+                        if (videoEl.readyState >= 2) {
+                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
+                            obj.dirty = true;
+                            canvas.requestRenderAll();
+                        }
+                        obj._videoFrame = requestAnimationFrame(renderLoop);
+                    }
+                };
+                obj._videoFrame = requestAnimationFrame(renderLoop);
+                
+                obj.on('removed', function() {
+                    this.isDeleted = true;
+                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
+                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
+                    if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
+                });
+                
+                canvas.requestRenderAll();
+            };
+            
+            videoEl.onerror = () => {
+                console.error('Error restoring video from blob URL');
+            };
+        }
+
+        function restoreAudioObject(obj) {
+            if (!obj.audioBlobUrl || obj.audioElement) return;
+            
+            const audioEl = document.createElement('audio');
+            audioEl.src = obj.audioBlobUrl;
+            audioEl.crossOrigin = "anonymous";
+            audioEl.loop = true;
+            audioEl.style.display = 'none';
+            document.body.appendChild(audioEl);
+            
+            audioEl.onloadedmetadata = () => {
+                audioEl.play().catch(() => {});
+                obj.audioElement = audioEl;
+                
+                obj.on('selected', () => {
+                    if (obj.audioElement) obj.audioElement.play().catch(() => {});
+                });
+                
+                obj.on('removed', function() {
+                    if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
+                    if (this.audioElement) this.audioElement.pause();
+                });
+            };
+        }
+
         function undo() {
             if (undoStack.length > 1) {
                 redoStack.push(undoStack.pop());
                 const prevState = undoStack[undoStack.length - 1];
-                canvas.loadFromJSON(prevState, () => { canvas.renderAll(); updateLayerList(); });
+                canvas.loadFromJSON(prevState, () => { 
+                    restoreMediaObjects();
+                    canvas.renderAll(); 
+                    updateLayerList(); 
+                });
             }
         }
 
@@ -724,7 +819,11 @@
             if (redoStack.length > 0) {
                 const nextState = redoStack.pop();
                 undoStack.push(nextState);
-                canvas.loadFromJSON(nextState, () => { canvas.renderAll(); updateLayerList(); });
+                canvas.loadFromJSON(nextState, () => { 
+                    restoreMediaObjects();
+                    canvas.renderAll(); 
+                    updateLayerList(); 
+                });
             }
         }
 
@@ -808,6 +907,7 @@
             // Media playback button listeners
             document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
             document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
+            document.getElementById('mediaDeleteBtn').addEventListener('click', deleteSelected);
 
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
@@ -821,6 +921,7 @@
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+            e.target.value = '';
             if (file.size > 40 * 1024 * 1024) { alert('Video must be under 40MB'); return; }
             const blobUrl = URL.createObjectURL(file);
             const videoEl = document.createElement('video');
@@ -890,6 +991,7 @@
         function handleAudioUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+            e.target.value = '';
             if (file.size > 40 * 1024 * 1024) { alert('Audio must be under 40MB'); return; }
             const blobUrl = URL.createObjectURL(file);
             const audioEl = document.createElement('audio');
@@ -1520,6 +1622,7 @@
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+            e.target.value = '';
             handleFile(file);
         }
 

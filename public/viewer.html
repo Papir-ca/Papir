@@ -198,38 +198,41 @@
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 
+                // Stop any previously playing media before loading new card
+                video.pause();
+                audio.pause();
+                
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
                 
-                if (videoSrc && hasOverlay) {
+                if (videoSrc) {
                     video.style.display = 'block';
-                    video.querySelector('source').src = videoSrc;
+                    video.src = videoSrc;
                     video.load();
                     video.play().catch(() => {});
-                    overlay.src = card.overlay_url;
-                    overlay.style.display = 'block';
-                    staticImg.style.display = 'none';
-                } else if (videoSrc) {
-                    video.style.display = 'block';
-                    video.querySelector('source').src = videoSrc;
-                    video.load();
-                    video.play().catch(() => {});
-                    overlay.style.display = 'none';
+                    if (hasOverlay) {
+                        overlay.src = card.overlay_url;
+                        overlay.style.display = 'block';
+                    } else {
+                        overlay.style.display = 'none';
+                    }
                     staticImg.style.display = 'none';
                 } else {
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
                     if (card.media_url) staticImg.src = card.media_url;
+                    video.src = '';
                 }
                 
                 if (card.audio_url) {
-                    audio.querySelector('source').src = card.audio_url;
+                    audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
                     audio.load();
                     audio.play().catch(() => {});
                 } else {
                     audioWrapper.style.display = 'none';
+                    audio.src = '';
                 }
                 
                 // NEW: Show collapsible message for ALL card types
