@@ -6,7 +6,6 @@
     <title>Papir Card Viewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Your existing CSS – unchanged (keep everything as before) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
@@ -87,6 +86,13 @@
         #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: #06D6A0; font-size: 0.9rem; margin-bottom: 10px; }
         #cardAudio { width: 100%; }
+        
+        /* NEW: Collapsible message styles */
+        #cardMessageWrapper { margin-top: 15px; }
+        #toggleMessageBtn { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; }
+        #toggleMessageBtn:hover { background: rgba(255,255,255,0.12); }
+        #toggleMessageBtn i { transition: transform 0.2s; }
+        
         * { -webkit-tap-highlight-color: transparent; }
         body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
@@ -132,12 +138,19 @@
             <div class="card-header"><div class="card-id" id="displayCardId"></div><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div>
             <div class="card-content" id="cardContent">
                 <div id="cardMediaContainer">
-                    <video id="bgVideo" autoplay loop playsinline muted><source src="" type="video/mp4"></video>
+                    <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
                     <img id="cardOverlay" src="" alt="">
                     <img id="cardImage" src="" alt="Card">
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
-                <div id="cardMessage" class="text-message" style="display: none;"></div>
+                
+                <!-- NEW: Collapsible message panel -->
+                <div id="cardMessageWrapper" style="display: none;">
+                    <button id="toggleMessageBtn">
+                        <i class="fas fa-comment-alt"></i> <span>Show Message</span> <i class="fas fa-chevron-down" id="toggleMessageIcon"></i>
+                    </button>
+                    <div id="cardMessage" class="text-message" style="display: none;"></div>
+                </div>
             </div>
         </div>
         <div class="empty-state" id="emptyState"><i class="fas fa-qrcode"></i><h3>Ready to Scan</h3><p>Scan a QR code or enter a Card ID above to view content.</p><p style="margin-top: 20px; font-size: 14px; opacity: 0.7;"><i class="fas fa-info-circle"></i> Each card can contain text, images, videos, or audio</p></div>
@@ -145,14 +158,12 @@
     <div class="notification" id="notification"></div>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        // ========== FULL VIEWER SCRIPT (with updated loadCard) ==========
-        const BACKEND_URL = ''; // Set your backend URL if needed
+        const BACKEND_URL = '';
 
         let html5QrCode = null;
         let currentCardId = null;
         let pendingCardData = null;
 
-        // Helper functions
         function showNotification(message, type = 'success') {
             const notif = document.getElementById('notification');
             notif.textContent = message;
@@ -174,7 +185,6 @@
             } catch(e) { return 'Unknown'; }
         }
 
-        // ========== UPDATED loadCard FUNCTION ==========
         async function loadCard(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -188,22 +198,18 @@
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 
-                // Determine video source (customize uses video_url, maker uses media_url)
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
                 
                 if (videoSrc && hasOverlay) {
-                    // Customize video card: video + transparent text overlay
                     video.style.display = 'block';
                     video.querySelector('source').src = videoSrc;
                     video.load();
                     video.play().catch(() => {});
-                    
                     overlay.src = card.overlay_url;
                     overlay.style.display = 'block';
                     staticImg.style.display = 'none';
                 } else if (videoSrc) {
-                    // Maker video card or video without overlay
                     video.style.display = 'block';
                     video.querySelector('source').src = videoSrc;
                     video.load();
@@ -211,14 +217,12 @@
                     overlay.style.display = 'none';
                     staticImg.style.display = 'none';
                 } else {
-                    // Static image card
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
                     if (card.media_url) staticImg.src = card.media_url;
                 }
                 
-                // Audio
                 if (card.audio_url) {
                     audio.querySelector('source').src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -228,20 +232,29 @@
                     audioWrapper.style.display = 'none';
                 }
                 
-                // ==================== FIX START ====================
-                // Hide duplicate message text only for customize cards (overlay cards)
+                // NEW: Show collapsible message for ALL card types
+                const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
-                if (msgEl) {
-                    if (card.overlay_url) {
+                const toggleBtn = document.getElementById('toggleMessageBtn');
+                const toggleIcon = document.getElementById('toggleMessageIcon');
+                const toggleSpan = toggleBtn.querySelector('span');
+                
+                if (msgWrapper && msgEl) {
+                    msgWrapper.style.display = 'block';
+                    msgEl.textContent = card.message_text || '';
+                    
+                    // Default: collapsed for video/audio, expanded for text/image
+                    if (card.video_url || card.audio_url) {
                         msgEl.style.display = 'none';
+                        toggleSpan.textContent = 'Show Message';
+                        toggleIcon.className = 'fas fa-chevron-down';
                     } else {
                         msgEl.style.display = 'block';
-                        msgEl.textContent = card.message_text || '';
+                        toggleSpan.textContent = 'Hide Message';
+                        toggleIcon.className = 'fas fa-chevron-up';
                     }
                 }
-                // ==================== FIX END ====================
                 
-                // Update header
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
@@ -252,7 +265,6 @@
             }
         }
 
-        // The rest of the viewer logic (scanner, confirmation, etc.) remains exactly as before.
         async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -308,6 +320,22 @@
             else showError('Please enter a Card ID');
         });
 
+        // NEW: Toggle message panel
+        document.getElementById('toggleMessageBtn').addEventListener('click', function() {
+            const msgEl = document.getElementById('cardMessage');
+            const icon = document.getElementById('toggleMessageIcon');
+            const span = this.querySelector('span');
+            if (msgEl.style.display === 'none') {
+                msgEl.style.display = 'block';
+                span.textContent = 'Hide Message';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                msgEl.style.display = 'none';
+                span.textContent = 'Show Message';
+                icon.className = 'fas fa-chevron-down';
+            }
+        });
+
         function startScanner() {
             if (html5QrCode) html5QrCode.stop().catch(()=>{});
             html5QrCode = new Html5Qrcode("reader");
@@ -326,10 +354,8 @@
 
         document.getElementById('startScanner').addEventListener('click', startScanner);
         document.getElementById('stopScanner').addEventListener('click', stopScanner);
-        
-        // ======================================================
-        // Auto-load card from direct link (success.html → viewer.html?card=XXX)
-        // ======================================================
+
+        // NEW: Auto-load card from URL
         const viewerUrlParams = new URLSearchParams(window.location.search);
         const urlCardId = viewerUrlParams.get('card');
         if (urlCardId) {

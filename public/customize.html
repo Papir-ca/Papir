@@ -499,6 +499,19 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- NEW: Media Playback Controls -->
+                        <div id="mediaPlaybackControls" style="display: none;">
+                            <div class="property-section">
+                                <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
+                                <div class="btn-group">
+                                    <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
+                                    <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
+                                </div>
+                                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
+                                    <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="tab-content" id="layersTab">
@@ -551,6 +564,8 @@
                             <div><strong>Ctrl+Z</strong> - Undo</div>
                             <div><strong>Ctrl+Y</strong> - Redo</div>
                             <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
+                            <div><strong>Space</strong> - Play/Pause media</div>
+                            <div><strong>M</strong> - Mute/Unmute media</div>
                         </div>
                     </div>
                 </div>
@@ -790,6 +805,10 @@
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
 
+            // Media playback button listeners
+            document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
+            document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
+
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
                 const now = Date.now();
@@ -810,7 +829,6 @@
             videoEl.loop = true;
             videoEl.playsInline = true;
             videoEl.autoplay = true;
-            // 🔄 REMOVED: videoEl.muted = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
             videoEl.onloadedmetadata = () => {
@@ -879,9 +897,7 @@
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.onloadedmetadata = () => {
-                audioEl.play().catch(e => {
-                    console.log('Audio autoplay blocked');
-                });
+                audioEl.play().catch(e => { console.log('Audio autoplay blocked'); });
                 const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
                 fabric.Image.fromURL(svgIcon, (img) => {
                     img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center' });
@@ -1066,7 +1082,56 @@
             } else {
                 document.getElementById('shapeControls').style.display = 'none';
             }
+
+            // Media playback controls
+            const mediaControls = document.getElementById('mediaPlaybackControls');
+            if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
+                mediaControls.style.display = 'block';
+                updateMediaButtons();
+            } else {
+                mediaControls.style.display = 'none';
+            }
+
             updateLockButton();
+        }
+
+        function updateMediaButtons() {
+            if (!selectedObject) return;
+            const playBtn = document.getElementById('mediaPlayPauseBtn');
+            const muteBtn = document.getElementById('mediaMuteBtn');
+            if (selectedObject.isVideo && selectedObject.videoElement) {
+                const video = selectedObject.videoElement;
+                playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
+                muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
+            } else if (selectedObject.isAudio && selectedObject.audioElement) {
+                const audio = selectedObject.audioElement;
+                playBtn.innerHTML = audio.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
+                muteBtn.innerHTML = audio.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
+            }
+        }
+
+        function toggleMediaPlayPause() {
+            if (!selectedObject) return;
+            if (selectedObject.isVideo && selectedObject.videoElement) {
+                const video = selectedObject.videoElement;
+                if (video.paused) video.play().catch(() => {});
+                else video.pause();
+            } else if (selectedObject.isAudio && selectedObject.audioElement) {
+                const audio = selectedObject.audioElement;
+                if (audio.paused) audio.play().catch(() => {});
+                else audio.pause();
+            }
+            setTimeout(updateMediaButtons, 50);
+        }
+
+        function toggleMediaMute() {
+            if (!selectedObject) return;
+            if (selectedObject.isVideo && selectedObject.videoElement) {
+                selectedObject.videoElement.muted = !selectedObject.videoElement.muted;
+            } else if (selectedObject.isAudio && selectedObject.audioElement) {
+                selectedObject.audioElement.muted = !selectedObject.audioElement.muted;
+            }
+            updateMediaButtons();
         }
 
         function setupTextControls() {
@@ -1543,6 +1608,18 @@
                     case 'c': handleToolClick('circle'); break;
                     case 'l': handleToolClick('line'); break;
                     case 'g': handleToolClick('grid'); break;
+                    case ' ':
+                        e.preventDefault();
+                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
+                            toggleMediaPlayPause();
+                        }
+                        break;
+                    case 'm':
+                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
+                            e.preventDefault();
+                            toggleMediaMute();
+                        }
+                        break;
                     case 'delete':
                     case 'backspace':
                         if (selectedObject && selectedObject.type !== 'i-text') deleteSelected();
@@ -1640,7 +1717,6 @@
             }, 300000);
         }
 
-        // ========== UPDATED proceedToCheckout FUNCTION (with video_url support) ==========
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -1650,7 +1726,6 @@
                 const BACKEND_URL = '';
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
                 
-                // ========== UPLOAD VIDEO FILE ==========
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
@@ -1672,7 +1747,6 @@
                     if (uploadData.success) videoUrl = uploadData.url;
                 }
                 
-                // ========== UPLOAD AUDIO FILE ==========
                 let audioUrl = '';
                 const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
                 if (audioObjects.length > 0) {
@@ -1692,7 +1766,6 @@
                     if (uploadData.success) audioUrl = uploadData.url;
                 }
                 
-                // ========== EXPORT OVERLAY + THUMBNAIL ==========
                 let overlayUrl = '';
                 let thumbnailUrl = '';
                 
@@ -1798,7 +1871,6 @@
             }
         }
 
-        // ========== init() MOVED TO BOTTOM so every function above is already defined ==========
         async function init() {
             if (document.fonts) await document.fonts.ready;
             const urlParams = new URLSearchParams(window.location.search);
