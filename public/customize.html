@@ -810,10 +810,14 @@
             videoEl.loop = true;
             videoEl.playsInline = true;
             videoEl.autoplay = true;
-            videoEl.muted = true;
+            // 🔄 REMOVED: videoEl.muted = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
             videoEl.onloadedmetadata = () => {
+                videoEl.play().catch(e => {
+                    console.log('Autoplay with sound blocked - user must click to enable audio');
+                    showNotification('Video added! Click to enable audio if needed.', 'info');
+                });
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = videoEl.videoWidth || 640;
                 videoCanvas.height = videoEl.videoHeight || 480;
@@ -875,6 +879,9 @@
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.onloadedmetadata = () => {
+                audioEl.play().catch(e => {
+                    console.log('Audio autoplay blocked');
+                });
                 const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
                 fabric.Image.fromURL(svgIcon, (img) => {
                     img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center' });
@@ -1633,6 +1640,7 @@
             }, 300000);
         }
 
+        // ========== UPDATED proceedToCheckout FUNCTION (with video_url support) ==========
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -1641,8 +1649,30 @@
             try {
                 const BACKEND_URL = '';
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
-                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo);
+                
+                // ========== UPLOAD VIDEO FILE ==========
+                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
+                let videoUrl = '';
+                
+                if (hasVideo) {
+                    showNotification('Uploading video...', 'info');
+                    const video = videoObjects[0];
+                    const file = video.videoFile;
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) videoUrl = uploadData.url;
+                }
+                
+                // ========== UPLOAD AUDIO FILE ==========
                 let audioUrl = '';
                 const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
                 if (audioObjects.length > 0) {
@@ -1661,8 +1691,11 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) audioUrl = uploadData.url;
                 }
+                
+                // ========== EXPORT OVERLAY + THUMBNAIL ==========
                 let overlayUrl = '';
                 let thumbnailUrl = '';
+                
                 if (hasVideo) {
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
@@ -1674,12 +1707,14 @@
                     canvas.renderAll();
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
+                    
                     const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
                     const overlayData2 = await overlayRes.json();
                     if (overlayData2.success) overlayUrl = overlayData2.url;
+                    
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1696,18 +1731,20 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) thumbnailUrl = uploadData.url;
                 }
+                
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
                 const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
                 let mediaType = 'image';
                 if (hasVideo) mediaType = 'video';
                 else if (audioUrl) mediaType = 'audio';
+                
                 if (qty === 1) {
                     const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             card_id: cardId, message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, audio_url: audioUrl,
+                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
                             has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
                             status: 'draft', card_type: 'ecard'
                         })
@@ -1741,7 +1778,7 @@
                         body: JSON.stringify({
                             card_id: templateCardId, batch_id: batchId, batch_order: 1,
                             message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, audio_url: audioUrl,
+                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
                             has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
                             status: 'draft', card_type: 'ecard', is_batch_template: true, quantity: qty
                         })
