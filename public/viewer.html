@@ -326,6 +326,15 @@
 
         document.getElementById('startScanner').addEventListener('click', startScanner);
         document.getElementById('stopScanner').addEventListener('click', stopScanner);
+        
+        // ======================================================
+        // Auto-load card from direct link (success.html → viewer.html?card=XXX)
+        // ======================================================
+        const viewerUrlParams = new URLSearchParams(window.location.search);
+        const urlCardId = viewerUrlParams.get('card');
+        if (urlCardId) {
+            fetchCardAndConfirm(urlCardId);
+        }
     </script>
 </body>
 </html>
