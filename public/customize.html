@@ -124,6 +124,7 @@
         html { scroll-behavior: smooth; }
         img { max-width: 100%; height: auto; }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -622,6 +623,35 @@
             const config = templateConfig.config;
             canvas.clear();
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
+
+            // Load texture background if available
+            if (config.textureUrl) {
+                await new Promise((resolve) => {
+                    fabric.Image.fromURL(config.textureUrl, (img) => {
+                        if (!img) {
+                            console.warn('Failed to load texture:', config.textureUrl);
+                            resolve();
+                            return;
+                        }
+                        img.set({
+                            left: 0,
+                            top: 0,
+                            scaleX: canvas.width / img.width,
+                            scaleY: canvas.height / img.height,
+                            selectable: false,
+                            evented: false,
+                            originX: 'left',
+                            originY: 'top',
+                            isTexture: true,
+                            hoverCursor: 'default'
+                        });
+                        canvas.add(img);
+                        canvas.sendToBack(img);
+                        resolve();
+                    }, { crossOrigin: 'anonymous' });
+                });
+            }
+
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
@@ -689,6 +719,10 @@
                 opt.addEventListener('click', function() {
                     document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
+                    // Remove any existing texture backgrounds when switching to solid/gradient
+                    canvas.getObjects().forEach(obj => {
+                        if (obj.isTexture) canvas.remove(obj);
+                    });
                     if (this.dataset.gradient) {
                         const colors = this.dataset.colors.split(',');
                         canvas.backgroundColor = colors[0];
@@ -700,6 +734,10 @@
                 });
             });
             document.getElementById('bgColorPicker').addEventListener('input', function() {
+                // Remove any existing texture backgrounds when picking custom color
+                canvas.getObjects().forEach(obj => {
+                    if (obj.isTexture) canvas.remove(obj);
+                });
                 canvas.backgroundColor = this.value;
                 canvas.renderAll();
                 saveState();
@@ -707,7 +745,7 @@
         }
 
         function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType']));
+            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
                 undoStack.push(json);
                 if (undoStack.length > 30) undoStack.shift();
