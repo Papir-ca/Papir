@@ -75,8 +75,53 @@
         .hidden { display: none !important; }
         .header-hidden { opacity: 0; pointer-events: none; }
         .card-type-badge { background: linear-gradient(135deg, #06D6A0, #118AB2); color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
-        @media (max-width: 768px) { /* ... responsive rules ... */ }
-        @media (max-width: 480px) { /* ... */ }
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            header { padding: 15px 0 25px; }
+            .logo { font-size: 32px; }
+            .tagline { font-size: 16px; }
+            .scanner-container { padding: 20px; margin-bottom: 20px; }
+            .scanner-title { font-size: 20px; }
+            #reader { max-width: 100%; }
+            .scanner-controls { flex-direction: column; gap: 10px; }
+            .scanner-controls .btn { width: 100%; justify-content: center; min-height: 48px; }
+            .manual-input { padding: 20px; margin-top: 20px; }
+            .input-group { flex-direction: column; gap: 10px; }
+            .card-input { font-size: 16px; padding: 14px; width: 100%; box-sizing: border-box; }
+            .card-display { padding: 0; }
+            .card-header { flex-direction: column; gap: 12px; align-items: flex-start; padding-bottom: 12px; }
+            .card-meta { flex-wrap: wrap; gap: 8px; }
+            .text-message { font-size: 22px; padding: 15px; margin: 15px 0; }
+            .card-image, .card-video { max-height: 70vh; border-radius: 8px; }
+            #cardMediaContainer { max-width: 100%; border-radius: 8px; }
+            .confirmation-box { padding: 25px 20px; max-width: 95%; width: 95%; }
+            .confirmation-box h3 { font-size: 20px; }
+            .confirmation-buttons { flex-direction: column; gap: 10px; }
+            .btn-confirm, .btn-cancel { width: 100%; justify-content: center; min-height: 48px; }
+            .back-button { position: relative; top: auto; left: auto; margin-bottom: 15px; display: inline-flex; }
+            .notification { right: 10px; left: 10px; top: 10px; transform: translateY(-20px); }
+            .notification.show { transform: translateY(0); }
+            .empty-state { padding: 40px 15px; }
+            .empty-state i { font-size: 48px; }
+            #cardAudioWrapper { padding: 12px; }
+        }
+        @media (max-width: 480px) {
+            .logo { font-size: 26px; }
+            .tagline { font-size: 15px; }
+            .scanner-title { font-size: 18px; }
+            .scanner-instructions { font-size: 14px; }
+            .card-id { font-size: 18px; }
+            .meta-item { font-size: 12px; padding: 4px 10px; }
+            .close-btn { padding: 8px 16px; font-size: 13px; }
+            .text-message { font-size: 18px; padding: 12px; }
+            .btn { padding: 12px 20px; font-size: 15px; }
+            .card-input { padding: 12px; }
+            #toggleMessageBtn { padding: 10px; font-size: 0.9rem; }
+            .empty-state h3 { font-size: 1.2rem; }
+            .confirmation-box { padding: 20px 15px; }
+            .confirmation-box p { font-size: 0.9rem; }
+            .confirmation-list li { font-size: 0.85rem; }
+        }
         .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #06D6A0; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
@@ -98,6 +143,7 @@
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
         img { max-width: 100%; height: auto; }
     </style>
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Home</a>
