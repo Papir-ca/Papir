@@ -127,6 +127,8 @@
         /* ===== MOBILE COLLAPSIBLE UI ADDITIONS ===== */
         .section-content { display: block; }
         .mobile-tools-toggle { display: none; }
+        .mobile-accordion-container { display: none; }
+        .mobile-accordion-header { display: none; }
 
         @media (max-width: 768px) {
             .mobile-tools-toggle {
@@ -169,37 +171,45 @@
                 border: none;
             }
 
-            /* Bottom tabs */
-            .properties-panel {
-                position: relative;
+            /* Mobile accordion for Design/Layers/Settings */
+            .mobile-accordion-container {
+                display: block;
+                margin-top: 8px;
             }
-            .properties-panel .panel-header {
-                order: 1;
-                flex-shrink: 0;
+            .mobile-accordion-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 12px;
+                background: rgba(255,255,255,0.08);
+                border-radius: 10px;
+                margin-bottom: 6px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 0.95rem;
+                border: 1px solid rgba(255,255,255,0.1);
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
             }
-            .properties-panel .tab-content.active {
-                order: 2;
-                flex: 1 1 auto;
+            .mobile-accordion-header:active {
+                opacity: 0.8;
+                transform: scale(0.98);
             }
-            .properties-panel .checkout-section {
-                order: 3;
-                position: static !important;
-                margin-top: 10px !important;
-                flex-shrink: 0;
+            .mobile-accordion-header.active {
+                background: rgba(6, 214, 160, 0.15);
+                border-color: var(--primary-teal);
+                color: var(--primary-teal);
             }
+            .mobile-accordion-header i:first-child {
+                margin-right: 10px;
+            }
+            .accordion-chevron {
+                transition: transform 0.2s;
+            }
+
+            /* Hide desktop tabs on mobile */
             .properties-panel .tabs {
-                order: 999;
-                position: sticky;
-                bottom: 0;
-                background: rgba(26, 26, 46, 0.98);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                z-index: 100;
-                margin-bottom: 0;
-                padding: 10px 0;
-                border-top: 2px solid rgba(255,255,255,0.1);
-                border-bottom: none;
-                flex-shrink: 0;
+                display: none !important;
             }
 
             /* Collapsible property sections */
@@ -235,9 +245,65 @@
             .property-section .section-content {
                 padding-top: 8px;
             }
+
+            /* Canvas visibility fixes for portrait */
+            .canvas-area {
+                min-height: 65vh;
+                height: 65vh;
+                padding: 8px;
+            }
+            .canvas-container {
+                padding: 5px;
+                touch-action: pan-y pan-x !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            #designCanvas {
+                max-width: 100%;
+                height: auto !important;
+                max-height: 100%;
+                touch-action: auto;
+            }
+            .canvas-toolbar {
+                margin-bottom: 4px;
+                padding-bottom: 4px;
+            }
+
+            /* Compact header */
+            .design-header {
+                padding: 8px 10px;
+                margin-bottom: 6px;
+            }
+            .header-left {
+                gap: 8px;
+            }
+            .design-header h1 {
+                font-size: 1rem;
+            }
+            .back-link {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            .mode-switch {
+                transform: scale(0.85);
+            }
+            .batch-controls {
+                padding: 8px;
+                margin-bottom: 6px;
+            }
+            .design-layout {
+                gap: 8px;
+            }
+            .properties-panel {
+                padding: 10px;
+            }
+            .checkout-section {
+                margin-top: 10px;
+            }
         }
         @media (min-width: 769px) {
             .mobile-tools-toggle { display: none !important; }
+            .mobile-accordion-container { display: none !important; }
+            .mobile-accordion-header { display: none !important; }
             .tools-panel.collapsed {
                 max-height: none;
                 opacity: 1;
@@ -248,6 +314,7 @@
             }
         }
     </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -890,7 +957,7 @@
 
         function restoreVideoObject(obj) {
             if (!obj.videoBlobUrl || obj.videoElement) return;
-            
+
             const videoEl = document.createElement('video');
             videoEl.src = obj.videoBlobUrl;
             videoEl.crossOrigin = "anonymous";
@@ -899,21 +966,21 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-            
+
             videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(() => {});
-                
+
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
                 videoCanvas.height = obj.height || videoEl.videoHeight || 480;
                 const ctx = videoCanvas.getContext('2d');
-                
+
                 obj._element = videoCanvas;
                 obj._originalElement = videoCanvas;
                 obj.videoElement = videoEl;
                 obj.videoCanvas = videoCanvas;
                 obj.videoContext = ctx;
-                
+
                 const renderLoop = () => {
                     if (obj.canvas && !obj.isDeleted) {
                         if (videoEl.readyState >= 2) {
@@ -925,17 +992,17 @@
                     }
                 };
                 obj._videoFrame = requestAnimationFrame(renderLoop);
-                
+
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
-                
+
                 canvas.requestRenderAll();
             };
-            
+
             videoEl.onerror = () => {
                 console.error('Error restoring video from blob URL');
             };
@@ -943,22 +1010,22 @@
 
         function restoreAudioObject(obj) {
             if (!obj.audioBlobUrl || obj.audioElement) return;
-            
+
             const audioEl = document.createElement('audio');
             audioEl.src = obj.audioBlobUrl;
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-            
+
             audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
-                
+
                 obj.on('selected', () => {
                     if (obj.audioElement) obj.audioElement.play().catch(() => {});
                 });
-                
+
                 obj.on('removed', function() {
                     if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
@@ -1991,11 +2058,11 @@
             try {
                 const BACKEND_URL = '';
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
-                
+
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
-                
+
                 if (hasVideo) {
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
@@ -2012,7 +2079,7 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) videoUrl = uploadData.url;
                 }
-                
+
                 let audioUrl = '';
                 const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
                 if (audioObjects.length > 0) {
@@ -2031,10 +2098,10 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) audioUrl = uploadData.url;
                 }
-                
+
                 let overlayUrl = '';
                 let thumbnailUrl = '';
-                
+
                 if (hasVideo) {
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
@@ -2046,14 +2113,14 @@
                     canvas.renderAll();
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
-                    
+
                     const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
                     const overlayData2 = await overlayRes.json();
                     if (overlayData2.success) overlayUrl = overlayData2.url;
-                    
+
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2070,13 +2137,13 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) thumbnailUrl = uploadData.url;
                 }
-                
+
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
                 const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
                 let mediaType = 'image';
                 if (hasVideo) mediaType = 'video';
                 else if (audioUrl) mediaType = 'audio';
-                
+
                 if (qty === 1) {
                     const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
@@ -2137,9 +2204,9 @@
             }
         }
 
-        /* ===== MOBILE UI SETUP (collapsible sections & bottom tabs) ===== */
+        /* ===== MOBILE UI SETUP (collapsible sections, accordion, tools toggle) ===== */
         function setupMobileUI() {
-            // 1. Wrap property-section contents so headings can collapse them on mobile
+            // 1. Wrap property-section contents for collapsible headings
             if (!document.querySelector('.section-content')) {
                 document.querySelectorAll('.property-section').forEach(section => {
                     const h4 = section.querySelector('h4');
@@ -2155,7 +2222,7 @@
                 });
             }
 
-            // 2. Tools toggle (appears below canvas on mobile)
+            // 2. Tools toggle below canvas
             const canvasArea = document.querySelector('.canvas-area');
             let toggle = document.getElementById('mobileToolsToggle');
             if (!toggle && canvasArea) {
@@ -2183,24 +2250,140 @@
                 });
             }
 
-            // 3. Resize handler: reset mobile-only states when returning to desktop
+            // 3. Mobile accordion for Design / Layers / Settings
+            let accordion = document.getElementById('mobileAccordionContainer');
+            if (!accordion) {
+                accordion = document.createElement('div');
+                accordion.id = 'mobileAccordionContainer';
+                accordion.className = 'mobile-accordion-container';
+
+                const tabData = [
+                    { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
+                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
+                    { tabId: 'settings', label: 'Settings', icon: 'fa-cog', contentId: 'settingsTab' }
+                ];
+
+                tabData.forEach(tab => {
+                    const header = document.createElement('div');
+                    header.className = 'mobile-accordion-header';
+                    header.dataset.target = tab.contentId;
+                    header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
+
+                    header.addEventListener('click', function() {
+                        if (window.innerWidth > 768) return;
+                        const targetId = this.dataset.target;
+                        const targetContent = document.getElementById(targetId);
+                        const chevron = this.querySelector('.accordion-chevron');
+                        const isActive = this.classList.contains('active');
+
+                        // Close all accordions
+                        document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                            h.classList.remove('active');
+                            const c = h.querySelector('.accordion-chevron');
+                            if (c) c.style.transform = 'rotate(0deg)';
+                        });
+                        document.querySelectorAll('.tab-content').forEach(c => {
+                            if (window.innerWidth <= 768) c.style.display = 'none';
+                        });
+
+                        // Open clicked if it wasn't active
+                        if (!isActive) {
+                            this.classList.add('active');
+                            if (chevron) chevron.style.transform = 'rotate(180deg)';
+                            if (targetContent) targetContent.style.display = 'block';
+                        }
+                    });
+
+                    accordion.appendChild(header);
+                });
+
+                const propertiesPanel = document.querySelector('.properties-panel');
+                const tabs = propertiesPanel.querySelector('.tabs');
+                if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
+            }
+
+            // 4. Resize handler
             function handleResize() {
                 const isMobile = window.innerWidth <= 768;
                 const toolsPanel = document.querySelector('.tools-panel');
                 const toggleEl = document.getElementById('mobileToolsToggle');
+                const tabs = document.querySelector('.tabs');
+                const accordionContainer = document.getElementById('mobileAccordionContainer');
+                const tabContents = document.querySelectorAll('.tab-content');
+
                 if (!isMobile) {
-                    if (toolsPanel) toolsPanel.classList.remove('collapsed');
-                    if (toggleEl) toggleEl.classList.remove('collapsed');
+                    // Desktop: restore everything
+                    if (toolsPanel) {
+                        toolsPanel.classList.remove('collapsed');
+                        toolsPanel.style.maxHeight = '';
+                        toolsPanel.style.opacity = '';
+                        toolsPanel.style.padding = '';
+                        toolsPanel.style.margin = '';
+                        toolsPanel.style.overflow = '';
+                        toolsPanel.style.border = '';
+                    }
+                    if (toggleEl) {
+                        toggleEl.classList.remove('collapsed');
+                        const icon = toggleEl.querySelector('i.fa-chevron-down, i.fa-chevron-up');
+                        if (icon) {
+                            icon.classList.remove('fa-chevron-down');
+                            icon.classList.add('fa-chevron-up');
+                        }
+                    }
+                    if (tabs) tabs.style.display = '';
+                    if (accordionContainer) accordionContainer.style.display = 'none';
+
+                    tabContents.forEach(c => {
+                        c.style.display = ''; // Remove inline override
+                    });
+
+                    // Restore active tab
+                    const activeTab = document.querySelector('.tab.active');
+                    if (activeTab) {
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        const target = document.getElementById(activeTab.dataset.tab + 'Tab');
+                        if (target) target.classList.add('active');
+                    }
+
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+                } else {
+                    // Mobile: setup
+                    if (tabs) tabs.style.display = 'none';
+                    if (accordionContainer) accordionContainer.style.display = 'block';
+
+                    // Collapse tools by default on mobile
+                    if (toolsPanel) toolsPanel.classList.add('collapsed');
+                    if (toggleEl) {
+                        toggleEl.classList.add('collapsed');
+                        const icon = toggleEl.querySelector('i.fa-chevron-up, i.fa-chevron-down');
+                        if (icon) {
+                            icon.classList.remove('fa-chevron-up');
+                            icon.classList.add('fa-chevron-down');
+                        }
+                    }
+
+                    // Collapse all tab contents by default
+                    tabContents.forEach(c => {
+                        c.classList.remove('active');
+                        c.style.display = 'none';
+                    });
+
+                    // Collapse accordion headers
+                    document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                        h.classList.remove('active');
+                        const c = h.querySelector('.accordion-chevron');
+                        if (c) c.style.transform = 'rotate(0deg)';
+                    });
                 }
             }
+
             window.addEventListener('resize', handleResize);
             handleResize();
         }
 
         async function init() {
             if (document.fonts) await document.fonts.ready;
-            setupMobileUI(); // initialize mobile collapsible UI
+            setupMobileUI();
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
