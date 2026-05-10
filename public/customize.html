@@ -154,6 +154,9 @@
                 <span class="template-badge" id="templateName">Design</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="btn-icon" id="simpleModeBtn" style="display: none; background: var(--primary-gold); color: #1a1a2e; font-size: 0.85rem;">
+                    <i class="fas fa-compress"></i> Simple Mode
+                </button>
                 <div class="mode-switch">
                     <button class="mode-option active" id="singleModeBtn" data-mode="single">Single</button>
                     <button class="mode-option" id="batchModeBtn" data-mode="batch">Batch</button>
@@ -233,8 +236,11 @@
             <div class="mobile-form-section">
                 <h4><i class="fas fa-photo-video"></i> Add Media</h4>
                 <button class="mobile-media-btn" id="mobileAddImage"><i class="fas fa-image"></i> Add Image</button>
+                <div class="mobile-media-preview" id="mobileImagePreview"></div>
                 <button class="mobile-media-btn" id="mobileAddVideo"><i class="fas fa-video"></i> Add Video</button>
+                <div class="mobile-media-preview" id="mobileVideoPreview"></div>
                 <button class="mobile-media-btn" id="mobileAddAudio"><i class="fas fa-music"></i> Add Audio</button>
+                <div class="mobile-media-preview" id="mobileAudioPreview"></div>
                 <input type="file" id="mobileImageInput" accept="image/*" style="display: none;">
                 <input type="file" id="mobileVideoInput" accept="video/*" style="display: none;">
                 <input type="file" id="mobileAudioInput" accept="audio/*" style="display: none;">
@@ -254,6 +260,10 @@
                 <div style="font-size: 0.8rem; color: var(--primary-teal); margin-top: 8px;" id="mobileTotalPrice">Total: $5.98</div>
             </div>
 
+            <button class="mobile-checkout-btn" id="mobileAdvancedBtn" style="background: linear-gradient(135deg, rgba(188,174,131,0.8), rgba(118,75,162,0.8));">
+                <i class="fas fa-magic"></i> Advanced Design Mode
+            </button>
+            <div style="text-align: center; font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Full canvas with all tools</div>
             <button class="mobile-checkout-btn" id="mobileCheckoutBtn">
                 <i class="fas fa-lock"></i> Secure Checkout — <span id="mobileCheckoutPrice">$2.99</span>
             </button>
@@ -318,8 +328,9 @@
                         <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.4;"></i>
                         <p style="font-size: 0.95rem; margin-bottom: 8px;">Select an element to edit</p>
                         <p style="font-size: 0.75rem; opacity: 0.6;">Or use tools to add new elements</p>
-                        <div class="property-section" style="margin-top: 20px;">
+                        <div class="property-section expanded" style="margin-top: 20px;">
                             <h4><i class="fas fa-image"></i> Change Background</h4>
+                            <div class="section-content">
                             <div class="bg-options" id="bgOptions">
                                 <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
                                 <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
@@ -334,9 +345,11 @@
                                 <input type="color" id="bgColorPicker" value="#ffffff">
                                 <span style="font-size: 0.85rem;">Custom Color</span>
                             </div>
+                            </div>
                         </div>
                         <div class="property-section" id="mediaControls">
                             <h4><i class="fas fa-photo-video"></i> Add Media</h4>
+                            <div class="section-content">
                             <div class="btn-group" style="margin-bottom: 10px;">
                                 <button class="btn-icon" id="addImageMode" data-mediatype="image"><i class="fas fa-image"></i> Image</button>
                                 <button class="btn-icon" id="addVideoMode" data-mediatype="video"><i class="fas fa-video"></i> Video</button>
@@ -359,12 +372,15 @@
                     </div>
                     <div id="selectionControls" style="display: none;">
                         <div id="textControls">
-                            <div class="property-section">
+                            <div class="property-section expanded">
                                 <h4><i class="fas fa-edit"></i> Text Content</h4>
+                                <div class="section-content">
                                 <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
+                                </div>
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-font"></i> Typography</h4>
+                                <div class="section-content">
                                 <select id="fontFamily" style="margin-bottom: 10px;">
                                     <optgroup label="Serif Fonts">
                                         <option value="Playfair Display">Playfair Display</option>
@@ -446,6 +462,7 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
+                                <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group">
                                         <label>Text Color</label>
@@ -504,6 +521,7 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-bold"></i> Text Style</h4>
+                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
                                     <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
@@ -520,8 +538,9 @@
                             </div>
                         </div>
                         <div id="transformControls">
-                            <div class="property-section">
+                            <div class="property-section expanded">
                                 <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
+                                <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group"><label>X Position</label><input type="number" id="posX" value="300"></div>
                                     <div class="control-group"><label>Y Position</label><input type="number" id="posY" value="200"></div>
@@ -551,6 +570,7 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-layer-group"></i> Arrange</h4>
+                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
                                     <button class="btn-icon" id="bringForwardBtn"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
@@ -560,6 +580,7 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-magic"></i> Effects</h4>
+                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="flipHBtn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
                                     <button class="btn-icon" id="flipVBtn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
@@ -570,6 +591,7 @@
                             <div id="shapeControls" style="display: none;">
                                 <div class="property-section">
                                     <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
+                                    <div class="section-content">
                                     <div class="control-row">
                                         <div class="control-group"><label>Fill Color</label><input type="color" id="shapeFill" value="#BCAE83"></div>
                                         <div class="control-group"><label>Stroke Color</label><input type="color" id="shapeStroke" value="#000000"></div>
@@ -593,6 +615,7 @@
                         <div id="mediaPlaybackControls" style="display: none;">
                             <div class="property-section">
                                 <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
+                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
                                     <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
@@ -600,35 +623,59 @@
                                 <div class="btn-group" style="margin-top: 10px;">
                                     <button class="btn-icon danger" id="mediaDeleteBtn"><i class="fas fa-trash"></i> Remove from Canvas</button>
                                 </div>
+                            </div>
+                        </div>
+                        <!-- NEW: Image Remove Controls -->
+                        <div id="imageRemoveControls" style="display: none;">
+                            <div class="property-section">
+                                <h4><i class="fas fa-image"></i> Image</h4>
+                                <div class="section-content">
+                                <div class="btn-group">
+                                    <button class="btn-icon danger" id="imageDeleteBtn"><i class="fas fa-trash"></i> Remove Image</button>
+                                </div>
+                            </div>
+                        </div>
+                                </div>
                                 <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
                                     <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute | Del: Remove
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="tab-content" id="layersTab">
-                    <div class="property-section">
+                    <div class="property-section expanded">
                         <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
+                        <div class="section-content">
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
+                        </div>
                     </div>
-                    <div class="btn-group" style="margin-top: 10px;">
+                    <div class="property-section">
+                        <h4><i class="fas fa-object-group"></i> Group Actions</h4>
+                        <div class="section-content">
+                        <div class="btn-group" style="margin-top: 10px;">
                         <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
                         <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="tab-content" id="settingsTab">
-                    <div class="property-section">
+                    <div class="property-section expanded">
                         <h4><i class="fas fa-cog"></i> Canvas Settings</h4>
+                        <div class="section-content">
                         <div class="control-row">
                             <div class="control-group"><label>Canvas Width</label><input type="number" id="canvasWidth" value="600" min="200" max="1200"></div>
                             <div class="control-group"><label>Canvas Height</label><input type="number" id="canvasHeight" value="450" min="200" max="900"></div>
                         </div>
                         <button class="btn-icon" id="resizeCanvasBtn" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
+                        </div>
                     </div>
                     <div class="property-section">
                         <h4><i class="fas fa-border-all"></i> Grid & Guides</h4>
+                        <div class="section-content">
                         <div class="effect-toggle" id="snapToggle">
                             <span><i class="fas fa-magnet"></i> Snap to Grid</span>
                             <div class="toggle-switch"></div>
@@ -642,6 +689,7 @@
                     </div>
                     <div class="property-section">
                         <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+                        <div class="section-content">
                         <div style="font-size: 0.8rem; line-height: 1.8; opacity: 0.9;">
                             <div><strong>V</strong> - Select tool</div>
                             <div><strong>T</strong> - Text tool</div>
@@ -659,6 +707,7 @@
                             <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
                             <div><strong>Space</strong> - Play/Pause media</div>
                             <div><strong>M</strong> - Mute/Unmute media</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -689,6 +738,113 @@
             allowTouchScrolling: false,
             perPixelTargetFind: false
         });
+
+        // Mobile touch settings
+        function setupMobileCanvas() {
+            if (window.innerWidth < 768) {
+                // Bigger touch targets
+                fabric.Object.prototype.cornerSize = 24;
+                fabric.Object.prototype.cornerStrokeColor = '#06D6A0';
+                fabric.Object.prototype.cornerColor = '#06D6A0';
+                fabric.Object.prototype.transparentCorners = false;
+                fabric.Object.prototype.borderColor = '#06D6A0';
+                fabric.Object.prototype.borderScaleFactor = 3;
+                fabric.Object.prototype.padding = 10;
+
+                // Enable touch corners on all sides
+                canvas.preserveObjectStacking = true;
+
+                // Pinch-to-zoom on canvas container
+                setupPinchZoom();
+            }
+        }
+
+        // Pinch zoom and pan
+        let initialDistance = 0;
+        let initialZoom = 1;
+        let isPinching = false;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        let isPanning = false;
+
+        function setupPinchZoom() {
+            const container = document.getElementById('canvasContainer');
+
+            container.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 2) {
+                    isPinching = true;
+                    initialDistance = getDistance(e.touches[0], e.touches[1]);
+                    initialZoom = currentZoom;
+                    e.preventDefault();
+                } else if (e.touches.length === 1) {
+                    // Check if touching empty canvas area (not an object)
+                    const touch = e.touches[0];
+                    const rect = container.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
+                    const objects = canvas.getObjects();
+                    let hitObject = false;
+                    for (let i = objects.length - 1; i >= 0; i--) {
+                        if (objects[i].containsPoint(pointer)) {
+                            hitObject = true;
+                            break;
+                        }
+                    }
+                    if (!hitObject && !canvas.getActiveObject()) {
+                        isPanning = true;
+                        lastTouchX = touch.clientX;
+                        lastTouchY = touch.clientY;
+                        container.style.cursor = 'grabbing';
+                    }
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchmove', function(e) {
+                if (isPinching && e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = getDistance(e.touches[0], e.touches[1]);
+                    const scale = dist / initialDistance;
+                    currentZoom = Math.max(0.3, Math.min(3, initialZoom * scale));
+                    canvas.setZoom(currentZoom);
+                    document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
+                } else if (isPanning && e.touches.length === 1) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - lastTouchX;
+                    const dy = touch.clientY - lastTouchY;
+                    const vpt = canvas.viewportTransform;
+                    vpt[4] += dx;
+                    vpt[5] += dy;
+                    canvas.setViewportTransform(vpt);
+                    lastTouchX = touch.clientX;
+                    lastTouchY = touch.clientY;
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchend', function(e) {
+                if (isPinching) {
+                    isPinching = false;
+                    initialDistance = 0;
+                }
+                if (isPanning) {
+                    isPanning = false;
+                    container.style.cursor = 'default';
+                }
+            });
+
+            container.addEventListener('touchcancel', function(e) {
+                isPinching = false;
+                isPanning = false;
+                container.style.cursor = 'default';
+            });
+        }
+
+        function getDistance(t1, t2) {
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
 
         let selectedObject = null;
         let templateConfig = null;
@@ -1035,7 +1191,16 @@
             // Media playback button listeners
             document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
             document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
-            document.getElementById('mediaDeleteBtn').addEventListener('click', deleteSelected);
+            document.getElementById('mediaDeleteBtn').addEventListener('click', function() {
+            deleteSelected();
+            // Reset file inputs so user can re-add media
+            document.getElementById('fileInput').value = '';
+            document.getElementById('videoInput').value = '';
+            document.getElementById('audioInput').value = '';
+            document.getElementById('mobileImageInput').value = '';
+            document.getElementById('mobileVideoInput').value = '';
+            document.getElementById('mobileAudioInput').value = '';
+        });
 
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
@@ -1595,6 +1760,11 @@
         }
 
         function setupArrangeControls() {
+            document.getElementById('imageDeleteBtn').addEventListener('click', function() {
+                deleteSelected();
+                document.getElementById('fileInput').value = '';
+                document.getElementById('mobileImageInput').value = '';
+            });
             document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
             document.getElementById('bringForwardBtn').addEventListener('click', bringForward);
             document.getElementById('sendBackwardBtn').addEventListener('click', sendBackward);
@@ -1816,13 +1986,86 @@
         function setupTabs() {
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+                    const isMobile = window.innerWidth < 768;
+                    const tabContent = document.getElementById(tab.dataset.tab + 'Tab');
+                    const isAlreadyActive = tab.classList.contains('active');
+
+                    if (isMobile) {
+                        // Mobile: toggle accordion
+                        if (isAlreadyActive) {
+                            tab.classList.remove('active');
+                            tabContent.classList.remove('active');
+                        } else {
+                            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                            tab.classList.add('active');
+                            tabContent.classList.add('active');
+                        }
+                    } else {
+                        // Desktop: standard tab switching
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        tab.classList.add('active');
+                        tabContent.classList.add('active');
+                    }
                 });
             });
+
+            // Nested accordion: property sections
+            setupNestedAccordions();
         }
+
+        function setupNestedAccordions() {
+            const isMobile = window.innerWidth < 768;
+            if (!isMobile) {
+                // Desktop: show all section content
+                document.querySelectorAll('.property-section .section-content').forEach(el => {
+                    el.style.display = '';
+                });
+                return;
+            }
+
+            // Mobile: make sections collapsible
+            document.querySelectorAll('.property-section h4').forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function(e) {
+                    if (window.innerWidth >= 768) return; // Only on mobile
+                    const section = this.closest('.property-section');
+                    const isExpanded = section.classList.contains('expanded');
+
+                    // Close all sibling sections in the same tab
+                    const tabContent = section.closest('.tab-content');
+                    if (tabContent) {
+                        tabContent.querySelectorAll('.property-section').forEach(s => {
+                            s.classList.remove('expanded');
+                        });
+                    }
+
+                    // Toggle current
+                    if (!isExpanded) {
+                        section.classList.add('expanded');
+                    }
+                });
+            });
+
+            // Ensure at least one section is expanded per active tab
+            document.querySelectorAll('.tab-content.active').forEach(tab => {
+                const sections = tab.querySelectorAll('.property-section');
+                if (sections.length > 0 && !tab.querySelector('.property-section.expanded')) {
+                    sections[0].classList.add('expanded');
+                }
+            });
+        }
+
+        // Re-run nested accordions on resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768) {
+                setupNestedAccordions();
+            } else {
+                // Desktop: expand all
+                document.querySelectorAll('.property-section').forEach(s => s.classList.add('expanded'));
+            }
+        });
 
         function handleKeyboard(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
@@ -2113,12 +2356,55 @@
             const designLayout = document.querySelector('.design-layout');
             const mobileForm = document.getElementById('mobileForm');
             if (isMobile) {
-                if (designLayout) designLayout.style.display = 'none';
-                if (mobileForm) mobileForm.style.display = 'flex';
+                // Mobile default: show simple form, hide canvas
+                if (designLayout) {
+                    designLayout.style.display = 'none';
+                    designLayout.classList.remove('advanced');
+                }
+                if (mobileForm) {
+                    mobileForm.style.display = 'flex';
+                    mobileForm.classList.remove('hidden');
+                }
             } else {
-                if (designLayout) designLayout.style.display = '';
+                // Desktop: always show canvas, hide mobile form
+                if (designLayout) {
+                    designLayout.style.display = '';
+                    designLayout.classList.remove('advanced');
+                }
                 if (mobileForm) mobileForm.style.display = 'none';
             }
+        }
+
+        function showAdvancedMode() {
+            const designLayout = document.querySelector('.design-layout');
+            const mobileForm = document.getElementById('mobileForm');
+            if (designLayout) {
+                designLayout.style.display = 'flex';
+                designLayout.classList.add('advanced');
+            }
+            if (mobileForm) {
+                mobileForm.style.display = 'none';
+                mobileForm.classList.add('hidden');
+            }
+            // Resize canvas after showing
+            setTimeout(() => {
+                canvas.calcOffset();
+                canvas.renderAll();
+            }, 100);
+        }
+
+        function showSimpleMode() {
+            const designLayout = document.querySelector('.design-layout');
+            const mobileForm = document.getElementById('mobileForm');
+            if (designLayout) {
+                designLayout.style.display = 'none';
+                designLayout.classList.remove('advanced');
+            }
+            if (mobileForm) {
+                mobileForm.style.display = 'flex';
+                mobileForm.classList.remove('hidden');
+            }
+            updateMobilePreview();
         }
 
         function mapMobileTextObjects() {
@@ -2239,7 +2525,7 @@
                         canvas.add(img);
                         canvas.renderAll();
                         updateMobilePreview();
-                        mobileMedia.image = { url: f.target.result, file: file };
+                        mobileMedia.image = { url: f.target.result, file: file, obj: img };
                         showMobileMediaPreview('image', f.target.result, file.name);
                     });
                 };
@@ -2247,18 +2533,40 @@
             });
 
             document.getElementById('mobileVideoInput').addEventListener('change', function(e) {
-                handleVideoUpload(e); // Reuse existing handler
-                setTimeout(updateMobilePreview, 500);
+                const file = e.target.files[0];
+                if (!file) return;
+                handleVideoUpload(e);
+                setTimeout(() => {
+                    const videoObjs = canvas.getObjects().filter(obj => obj.isVideo);
+                    if (videoObjs.length > 0) {
+                        mobileMedia.video = { obj: videoObjs[videoObjs.length - 1], file: file };
+                        showMobileMediaPreview('video', URL.createObjectURL(file), file.name);
+                    }
+                    updateMobilePreview();
+                }, 500);
             });
 
             document.getElementById('mobileAudioInput').addEventListener('change', function(e) {
-                handleAudioUpload(e); // Reuse existing handler
+                const file = e.target.files[0];
+                if (!file) return;
+                handleAudioUpload(e);
+                setTimeout(() => {
+                    const audioObjs = canvas.getObjects().filter(obj => obj.isAudio);
+                    if (audioObjs.length > 0) {
+                        mobileMedia.audio = { obj: audioObjs[audioObjs.length - 1], file: file };
+                        showMobileMediaPreview('audio', URL.createObjectURL(file), file.name);
+                    }
+                }, 500);
             });
 
             // Batch controls
             document.getElementById('mobileQtyMinus').addEventListener('click', () => mobileUpdateQty(-1));
             document.getElementById('mobileQtyPlus').addEventListener('click', () => mobileUpdateQty(1));
             document.getElementById('mobileQtyInput').addEventListener('change', mobileUpdatePrice);
+
+            // Advanced mode toggle
+            document.getElementById('mobileAdvancedBtn').addEventListener('click', showAdvancedMode);
+            document.getElementById('simpleModeBtn').addEventListener('click', showSimpleMode);
 
             // Checkout
             document.getElementById('mobileCheckoutBtn').addEventListener('click', proceedToCheckout);
@@ -2268,11 +2576,64 @@
         }
 
         function showMobileMediaPreview(type, url, name) {
-            const preview = document.getElementById('mobileMediaPreview');
+            let previewId = '';
+            if (type === 'image') previewId = 'mobileImagePreview';
+            else if (type === 'video') previewId = 'mobileVideoPreview';
+            else if (type === 'audio') previewId = 'mobileAudioPreview';
+
+            const preview = document.getElementById(previewId);
+            if (!preview) return;
+
             preview.classList.add('active');
+            preview.style.display = 'block';
+
+            let html = '';
             if (type === 'image') {
-                preview.innerHTML = '<img src="' + url + '" style="max-width:100%;border-radius:8px;"><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
+                html = '<div style="position:relative;display:inline-block;width:100%;"><img src="' + url + '" style="max-width:100%;border-radius:8px;"><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
+            } else if (type === 'video') {
+                html = '<div style="position:relative;display:inline-block;width:100%;"><video src="' + url + '" style="max-width:100%;border-radius:8px;" controls></video><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
+            } else if (type === 'audio') {
+                html = '<div style="position:relative;display:inline-block;width:100%;"><audio src="' + url + '" style="width:100%;" controls></audio><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
             }
+            preview.innerHTML = html;
+        }
+
+        function removeMobileMedia(type) {
+            let previewId = '';
+            if (type === 'image') previewId = 'mobileImagePreview';
+            else if (type === 'video') previewId = 'mobileVideoPreview';
+            else if (type === 'audio') previewId = 'mobileAudioPreview';
+
+            const preview = document.getElementById(previewId);
+            if (preview) {
+                preview.innerHTML = '';
+                preview.style.display = 'none';
+                preview.classList.remove('active');
+            }
+
+            // Remove from canvas
+            if (type === 'image' && mobileMedia.image && mobileMedia.image.obj) {
+                canvas.remove(mobileMedia.image.obj);
+                mobileMedia.image = null;
+            }
+            if (type === 'video') {
+                const videoObjs = canvas.getObjects().filter(obj => obj.isVideo);
+                videoObjs.forEach(obj => canvas.remove(obj));
+                mobileMedia.video = null;
+            }
+            if (type === 'audio') {
+                const audioObjs = canvas.getObjects().filter(obj => obj.isAudio);
+                audioObjs.forEach(obj => canvas.remove(obj));
+                mobileMedia.audio = null;
+            }
+
+            // Reset file input
+            if (type === 'image') document.getElementById('mobileImageInput').value = '';
+            if (type === 'video') document.getElementById('mobileVideoInput').value = '';
+            if (type === 'audio') document.getElementById('mobileAudioInput').value = '';
+
+            canvas.renderAll();
+            updateMobilePreview();
         }
 
         function mobileUpdateQty(change) {
@@ -2336,12 +2697,12 @@
             checkForSavedProgress();
             startAutoSave();
 
-            // Mobile form setup
-            detectMobile();
-            setupMobileForm();
-            mapMobileTextObjects();
-            populateMobileForm();
-            setTimeout(updateMobilePreview, 500);
+            // Mobile canvas setup
+            setupMobileCanvas();
+
+            // Keep mobile form hidden, show full canvas
+            const mobileForm = document.getElementById('mobileForm');
+            if (mobileForm) mobileForm.style.display = 'none';
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
