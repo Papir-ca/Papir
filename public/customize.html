@@ -136,10 +136,10 @@
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                padding: 10px 12px;
+                padding: 8px 12px;
                 background: rgba(255,255,255,0.08);
                 border-radius: 10px;
-                margin-top: 4px;
+                margin-top: 2px;
                 cursor: pointer;
                 font-weight: 600;
                 font-size: 0.95rem;
@@ -175,7 +175,7 @@
             /* Mobile accordion for Design/Layers/Settings */
             .mobile-accordion-container {
                 display: block;
-                margin-top: 4px;
+                margin-top: 2px;
             }
             .mobile-accordion-header {
                 display: flex;
@@ -251,15 +251,17 @@
 
             /* Canvas visibility fixes for portrait */
             .canvas-area {
-                min-height: 68vh;
-                height: 68vh;
-                padding: 6px;
+                min-height: 72vh;
+                height: 72vh;
+                padding: 4px;
+                margin-bottom: 0;
             }
             .canvas-container {
-                padding: 4px;
+                padding: 2px;
                 touch-action: pan-y pan-x !important;
                 -webkit-overflow-scrolling: touch;
                 overflow: auto;
+                margin: 0;
             }
             #designCanvas {
                 max-width: 100%;
@@ -268,8 +270,16 @@
                 touch-action: auto;
             }
             .canvas-toolbar {
-                margin-bottom: 4px;
-                padding-bottom: 4px;
+                margin-bottom: 2px;
+                padding-bottom: 2px;
+                font-size: 0.75rem;
+            }
+            .canvas-toolbar span {
+                font-size: 0.7rem !important;
+            }
+            .canvas-controls .btn-icon.small {
+                padding: 4px 6px;
+                min-height: 32px;
             }
 
             /* Compact header */
@@ -295,7 +305,7 @@
                 margin-bottom: 4px;
             }
             .design-layout {
-                gap: 4px;
+                gap: 2px;
             }
             .properties-panel {
                 padding: 8px;
@@ -2318,6 +2328,30 @@
             }
 
             // 4. Resize handler
+            function lockMobileObjects(lock) {
+                if (!canvas) return;
+                canvas.getObjects().forEach(obj => {
+                    if (lock) {
+                        obj._wasSelectable = obj.selectable;
+                        obj._wasEvented = obj.evented;
+                        obj.set({ selectable: false, evented: false });
+                    } else {
+                        if (obj._wasSelectable !== undefined) {
+                            obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
+                        } else {
+                            obj.set({ selectable: true, evented: true });
+                        }
+                    }
+                });
+                if (lock) {
+                    canvas.selection = false;
+                    canvas.discardActiveObject();
+                } else {
+                    canvas.selection = true;
+                }
+                canvas.renderAll();
+            }
+
             function handleResize() {
                 const isMobile = window.innerWidth <= 768;
                 const toolsPanel = document.querySelector('.tools-panel');
@@ -2361,6 +2395,9 @@
                     }
 
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+
+                    // Unlock objects on desktop
+                    lockMobileObjects(false);
                 } else {
                     // Mobile: setup
                     if (tabs) tabs.style.display = 'none';
@@ -2389,6 +2426,9 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
+
+                    // Lock objects on mobile to prevent accidental moves while scrolling
+                    lockMobileObjects(true);
                 }
             }
 
