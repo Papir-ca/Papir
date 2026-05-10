@@ -113,25 +113,6 @@
         @media (max-width: 768px) { body { overflow-x: hidden; } .app-container { padding: 8px; height: auto; min-height: 100vh; } .design-header { flex-direction: column; gap: 10px; padding: 10px; margin-bottom: 8px; } .header-left { width: 100%; justify-content: space-between; } .design-header h1 { font-size: 1.1rem; } .template-badge { font-size: 0.7rem; } .design-header > div:last-child { width: 100%; justify-content: space-between; } .batch-controls { padding: 10px; } .batch-controls > div:first-child { flex-direction: column; gap: 8px; } .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; } .design-layout { flex-direction: column; height: auto; gap: 10px; } .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; } .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; } .tool-divider { width: 1px; height: 70%; margin: 0 3px; } .canvas-area { order: 1; min-height: 400px; height: 50vh; } .canvas-container { padding: 10px; } #designCanvas { max-width: 100%; height: auto !important; } .properties-panel { width: 100%; order: 3; max-height: none; padding: 12px; } .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; } .control-row { flex-wrap: wrap; } .control-group { min-width: 120px; } .checkout-section { position: sticky; bottom: 0; margin-top: 15px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); } .checkout-btn { padding: 16px; font-size: 1.1rem; } .layer-item { padding: 14px 10px; } .layer-btn { padding: 8px; } .upload-area { padding: 25px 15px; } .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; } }
         @media (max-width: 480px) { .design-header h1 { display: none; } .header-left { justify-content: flex-start; gap: 10px; } .mode-switch { transform: scale(0.9); } .price-display { font-size: 0.8rem; padding: 6px 12px; } .canvas-area { min-height: 350px; height: 45vh; } .btn-group { gap: 8px; } .btn-icon { padding: 10px 8px; font-size: 0.8rem; } .tabs { overflow-x: auto; flex-wrap: nowrap; } .tab { white-space: nowrap; padding: 10px 14px; } input[type="color"] { width: 50px; height: 44px; } .color-preset { width: 36px; height: 36px; } .batch-controls input[type="number"] { width: 50px; } .qty-btn { width: 36px; height: 36px; } }
         @media (max-height: 500px) and (orientation: landscape) { .design-layout { flex-direction: row; } .tools-panel { width: 60px; flex-direction: column; order: 1; } .canvas-area { order: 2; height: 80vh; } .properties-panel { width: 280px; order: 3; max-height: 80vh; } .design-header { display: none; } }
-        .mobile-form { display: none; flex-direction: column; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-top: 10px; }
-        .mobile-form-section { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; border: 1px solid rgba(255,255,255,0.08); }
-        .mobile-form-section h4 { color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .mobile-input { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px; }
-        .mobile-input:focus { outline: none; border-color: var(--primary-teal); background: rgba(255,255,255,0.12); }
-        .mobile-input::placeholder { color: rgba(255,255,255,0.4); }
-        .mobile-label { display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px; }
-        .mobile-preview-box { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed rgba(255,255,255,0.1); }
-        .mobile-preview-box img { max-width: 100%; max-height: 250px; border-radius: 8px; }
-        .mobile-bg-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-        .mobile-bg-option { width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
-        .mobile-bg-option.active { border-color: var(--primary-teal); }
-        .mobile-media-btn { width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
-        .mobile-media-btn:hover { background: rgba(255,255,255,0.12); }
-        .mobile-media-preview { margin-top: 10px; display: none; }
-        .mobile-media-preview.active { display: block; }
-        .mobile-media-preview img, .mobile-media-preview video { max-width: 100%; border-radius: 8px; }
-        .mobile-checkout-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
-        .mobile-checkout-btn:disabled { opacity: 0.6; }
         .tool-btn, .btn-icon, .tab, .layer-item, .bg-option { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
         .tool-btn:active, .btn-icon:active, .tab:active { transform: scale(0.95); opacity: 0.8; }
         #designCanvas { max-width: 100%; height: auto; touch-action: none; }
@@ -194,77 +175,71 @@
             </div>
         </div>
 
-        <!-- MOBILE FORM -->
+        <!-- MOBILE SIMPLE FORM -->
         <div class="mobile-form" id="mobileForm">
             <div class="mobile-form-section">
-                <h4><i class="fas fa-eye"></i> Preview</h4>
-                <div class="mobile-preview-box" id="mobilePreviewBox">
-                    <div style="font-size: 0.9rem; opacity: 0.6;">Your card preview will appear here</div>
+                <h4 style="color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-eye"></i> Preview</h4>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed rgba(255,255,255,0.1);">
+                    <div style="font-size: 0.9rem; opacity: 0.6;" id="mobilePreviewText">Your card preview will appear here</div>
                 </div>
             </div>
 
             <div class="mobile-form-section">
-                <h4><i class="fas fa-font"></i> Card Text</h4>
-                <div id="mobileTextFields">
-                    <label class="mobile-label">Header</label>
-                    <input type="text" class="mobile-input" id="mobileHeader" placeholder="Enter header text...">
+                <h4 style="color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-font"></i> Card Text</h4>
+                <label style="display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px;">Header</label>
+                <input type="text" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px;" id="mobileHeader" placeholder="Enter header text...">
+                <label style="display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px;">Names / Title</label>
+                <input type="text" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px;" id="mobileNames" placeholder="Enter names or title...">
+                <label style="display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px;">Message</label>
+                <textarea style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px;" id="mobileSubtext" rows="2" placeholder="Enter your message..."></textarea>
+                <label style="display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px;">Date / Details</label>
+                <input type="text" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px;" id="mobileDate" placeholder="Enter date or details...">
+            </div>
 
-                    <label class="mobile-label">Names / Title</label>
-                    <input type="text" class="mobile-input" id="mobileNames" placeholder="Enter names or title...">
-
-                    <label class="mobile-label">Message</label>
-                    <textarea class="mobile-input" id="mobileSubtext" rows="2" placeholder="Enter your message..."></textarea>
-
-                    <label class="mobile-label">Date / Details</label>
-                    <input type="text" class="mobile-input" id="mobileDate" placeholder="Enter date or details...">
+            <div class="mobile-form-section">
+                <h4 style="color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-palette"></i> Background</h4>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid #06D6A0; background: #ffffff;" data-color="#FFFFFF"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #F5F5DC;" data-color="#F5F5DC"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="#667eea,#764ba2"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="#f093fb,#f5576c"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="#4facfe,#00f2fe"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-gradient="#43e97b,#38f9d7"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; background: #1a1a2e;" data-color="#1a1a2e"></div>
                 </div>
             </div>
 
             <div class="mobile-form-section">
-                <h4><i class="fas fa-palette"></i> Background</h4>
-                <div class="mobile-bg-options" id="mobileBgOptions">
-                    <div class="mobile-bg-option active" style="background: #ffffff;" data-color="#FFFFFF"></div>
-                    <div class="mobile-bg-option" style="background: #F5F5DC;" data-color="#F5F5DC"></div>
-                    <div class="mobile-bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="#667eea,#764ba2"></div>
-                    <div class="mobile-bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="#f093fb,#f5576c"></div>
-                    <div class="mobile-bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="#4facfe,#00f2fe"></div>
-                    <div class="mobile-bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-gradient="#43e97b,#38f9d7"></div>
-                    <div class="mobile-bg-option" style="background: #1a1a2e;" data-color="#1a1a2e"></div>
-                </div>
-            </div>
-
-            <div class="mobile-form-section">
-                <h4><i class="fas fa-photo-video"></i> Add Media</h4>
-                <button class="mobile-media-btn" id="mobileAddImage"><i class="fas fa-image"></i> Add Image</button>
-                <div class="mobile-media-preview" id="mobileImagePreview"></div>
-                <button class="mobile-media-btn" id="mobileAddVideo"><i class="fas fa-video"></i> Add Video</button>
-                <div class="mobile-media-preview" id="mobileVideoPreview"></div>
-                <button class="mobile-media-btn" id="mobileAddAudio"><i class="fas fa-music"></i> Add Audio</button>
-                <div class="mobile-media-preview" id="mobileAudioPreview"></div>
+                <h4 style="color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-photo-video"></i> Add Media</h4>
+                <button style="width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;" id="mobileAddImage"><i class="fas fa-image"></i> Add Image</button>
+                <div id="mobileImagePreview" style="display: none; margin-top: 10px;"></div>
+                <button style="width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;" id="mobileAddVideo"><i class="fas fa-video"></i> Add Video</button>
+                <div id="mobileVideoPreview" style="display: none; margin-top: 10px;"></div>
+                <button style="width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;" id="mobileAddAudio"><i class="fas fa-music"></i> Add Audio</button>
+                <div id="mobileAudioPreview" style="display: none; margin-top: 10px;"></div>
                 <input type="file" id="mobileImageInput" accept="image/*" style="display: none;">
                 <input type="file" id="mobileVideoInput" accept="video/*" style="display: none;">
                 <input type="file" id="mobileAudioInput" accept="audio/*" style="display: none;">
-                <div class="mobile-media-preview" id="mobileMediaPreview"></div>
             </div>
 
             <div class="mobile-form-section" id="mobileBatchSection" style="display: none;">
-                <h4><i class="fas fa-layer-group"></i> Batch Order</h4>
+                <h4 style="color: var(--primary-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-layer-group"></i> Batch Order</h4>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <span style="font-size: 0.85rem;">Quantity:</span>
                     <button class="qty-btn" id="mobileQtyMinus"><i class="fas fa-minus"></i></button>
                     <input type="number" id="mobileQtyInput" value="2" min="2" max="2000" style="width: 60px; padding: 8px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; font-size: 1rem;">
                     <button class="qty-btn" id="mobileQtyPlus"><i class="fas fa-plus"></i></button>
                 </div>
-                <label class="mobile-label">Batch ID (Optional)</label>
-                <input type="text" class="mobile-input" id="mobileCustomBatchId" placeholder="e.g., WEDDING-2024">
-                <div style="font-size: 0.8rem; color: var(--primary-teal); margin-top: 8px;" id="mobileTotalPrice">Total: $5.98</div>
+                <label style="display: block; font-size: 0.8rem; color: #a0aec0; margin-bottom: 6px;">Batch ID (Optional)</label>
+                <input type="text" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; font-size: 16px; font-family: inherit; margin-bottom: 10px;" id="mobileCustomBatchId" placeholder="e.g., WEDDING-2024">
+                <div style="font-size: 0.8rem; color: #06D6A0; margin-top: 8px;" id="mobileTotalPrice">Total: $5.98</div>
             </div>
 
-            <button class="mobile-checkout-btn" id="mobileAdvancedBtn" style="background: linear-gradient(135deg, rgba(188,174,131,0.8), rgba(118,75,162,0.8));">
+            <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, rgba(188,174,131,0.8), rgba(118,75,162,0.8)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;" id="mobileAdvancedBtn">
                 <i class="fas fa-magic"></i> Advanced Design Mode
             </button>
             <div style="text-align: center; font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Full canvas with all tools</div>
-            <button class="mobile-checkout-btn" id="mobileCheckoutBtn">
+            <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;" id="mobileCheckoutBtn">
                 <i class="fas fa-lock"></i> Secure Checkout — <span id="mobileCheckoutPrice">$2.99</span>
             </button>
             <div style="text-align: center; font-size: 0.7rem; opacity: 0.6;"><i class="fas fa-shield-alt"></i> SSL Secure Payment</div>
@@ -295,7 +270,6 @@
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
-                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
                         <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
                         <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
                     </div>
@@ -328,9 +302,8 @@
                         <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.4;"></i>
                         <p style="font-size: 0.95rem; margin-bottom: 8px;">Select an element to edit</p>
                         <p style="font-size: 0.75rem; opacity: 0.6;">Or use tools to add new elements</p>
-                        <div class="property-section expanded" style="margin-top: 20px;">
+                        <div class="property-section" style="margin-top: 20px;">
                             <h4><i class="fas fa-image"></i> Change Background</h4>
-                            <div class="section-content">
                             <div class="bg-options" id="bgOptions">
                                 <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
                                 <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
@@ -345,11 +318,9 @@
                                 <input type="color" id="bgColorPicker" value="#ffffff">
                                 <span style="font-size: 0.85rem;">Custom Color</span>
                             </div>
-                            </div>
                         </div>
                         <div class="property-section" id="mediaControls">
                             <h4><i class="fas fa-photo-video"></i> Add Media</h4>
-                            <div class="section-content">
                             <div class="btn-group" style="margin-bottom: 10px;">
                                 <button class="btn-icon" id="addImageMode" data-mediatype="image"><i class="fas fa-image"></i> Image</button>
                                 <button class="btn-icon" id="addVideoMode" data-mediatype="video"><i class="fas fa-video"></i> Video</button>
@@ -372,15 +343,12 @@
                     </div>
                     <div id="selectionControls" style="display: none;">
                         <div id="textControls">
-                            <div class="property-section expanded">
+                            <div class="property-section">
                                 <h4><i class="fas fa-edit"></i> Text Content</h4>
-                                <div class="section-content">
                                 <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
-                                </div>
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-font"></i> Typography</h4>
-                                <div class="section-content">
                                 <select id="fontFamily" style="margin-bottom: 10px;">
                                     <optgroup label="Serif Fonts">
                                         <option value="Playfair Display">Playfair Display</option>
@@ -462,7 +430,6 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
-                                <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group">
                                         <label>Text Color</label>
@@ -521,7 +488,6 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-bold"></i> Text Style</h4>
-                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
                                     <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
@@ -538,9 +504,8 @@
                             </div>
                         </div>
                         <div id="transformControls">
-                            <div class="property-section expanded">
+                            <div class="property-section">
                                 <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
-                                <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group"><label>X Position</label><input type="number" id="posX" value="300"></div>
                                     <div class="control-group"><label>Y Position</label><input type="number" id="posY" value="200"></div>
@@ -570,7 +535,6 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-layer-group"></i> Arrange</h4>
-                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
                                     <button class="btn-icon" id="bringForwardBtn"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
@@ -580,7 +544,6 @@
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-magic"></i> Effects</h4>
-                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="flipHBtn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
                                     <button class="btn-icon" id="flipVBtn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
@@ -591,7 +554,6 @@
                             <div id="shapeControls" style="display: none;">
                                 <div class="property-section">
                                     <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
-                                    <div class="section-content">
                                     <div class="control-row">
                                         <div class="control-group"><label>Fill Color</label><input type="color" id="shapeFill" value="#BCAE83"></div>
                                         <div class="control-group"><label>Stroke Color</label><input type="color" id="shapeStroke" value="#000000"></div>
@@ -615,7 +577,6 @@
                         <div id="mediaPlaybackControls" style="display: none;">
                             <div class="property-section">
                                 <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
-                                <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
                                     <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
@@ -623,59 +584,35 @@
                                 <div class="btn-group" style="margin-top: 10px;">
                                     <button class="btn-icon danger" id="mediaDeleteBtn"><i class="fas fa-trash"></i> Remove from Canvas</button>
                                 </div>
-                            </div>
-                        </div>
-                        <!-- NEW: Image Remove Controls -->
-                        <div id="imageRemoveControls" style="display: none;">
-                            <div class="property-section">
-                                <h4><i class="fas fa-image"></i> Image</h4>
-                                <div class="section-content">
-                                <div class="btn-group">
-                                    <button class="btn-icon danger" id="imageDeleteBtn"><i class="fas fa-trash"></i> Remove Image</button>
-                                </div>
-                            </div>
-                        </div>
-                                </div>
                                 <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
                                     <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute | Del: Remove
                                 </div>
-                            </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="tab-content" id="layersTab">
-                    <div class="property-section expanded">
-                        <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
-                        <div class="section-content">
-                        <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
-                        </div>
-                    </div>
                     <div class="property-section">
-                        <h4><i class="fas fa-object-group"></i> Group Actions</h4>
-                        <div class="section-content">
-                        <div class="btn-group" style="margin-top: 10px;">
+                        <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
+                        <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="btn-group" style="margin-top: 10px;">
                         <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
                         <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="tab-content" id="settingsTab">
-                    <div class="property-section expanded">
+                    <div class="property-section">
                         <h4><i class="fas fa-cog"></i> Canvas Settings</h4>
-                        <div class="section-content">
                         <div class="control-row">
                             <div class="control-group"><label>Canvas Width</label><input type="number" id="canvasWidth" value="600" min="200" max="1200"></div>
                             <div class="control-group"><label>Canvas Height</label><input type="number" id="canvasHeight" value="450" min="200" max="900"></div>
                         </div>
                         <button class="btn-icon" id="resizeCanvasBtn" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
-                        </div>
                     </div>
                     <div class="property-section">
                         <h4><i class="fas fa-border-all"></i> Grid & Guides</h4>
-                        <div class="section-content">
                         <div class="effect-toggle" id="snapToggle">
                             <span><i class="fas fa-magnet"></i> Snap to Grid</span>
                             <div class="toggle-switch"></div>
@@ -689,7 +626,6 @@
                     </div>
                     <div class="property-section">
                         <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
-                        <div class="section-content">
                         <div style="font-size: 0.8rem; line-height: 1.8; opacity: 0.9;">
                             <div><strong>V</strong> - Select tool</div>
                             <div><strong>T</strong> - Text tool</div>
@@ -707,7 +643,6 @@
                             <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
                             <div><strong>Space</strong> - Play/Pause media</div>
                             <div><strong>M</strong> - Mute/Unmute media</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -739,113 +674,6 @@
             perPixelTargetFind: false
         });
 
-        // Mobile touch settings
-        function setupMobileCanvas() {
-            if (window.innerWidth < 768) {
-                // Bigger touch targets
-                fabric.Object.prototype.cornerSize = 24;
-                fabric.Object.prototype.cornerStrokeColor = '#06D6A0';
-                fabric.Object.prototype.cornerColor = '#06D6A0';
-                fabric.Object.prototype.transparentCorners = false;
-                fabric.Object.prototype.borderColor = '#06D6A0';
-                fabric.Object.prototype.borderScaleFactor = 3;
-                fabric.Object.prototype.padding = 10;
-
-                // Enable touch corners on all sides
-                canvas.preserveObjectStacking = true;
-
-                // Pinch-to-zoom on canvas container
-                setupPinchZoom();
-            }
-        }
-
-        // Pinch zoom and pan
-        let initialDistance = 0;
-        let initialZoom = 1;
-        let isPinching = false;
-        let lastTouchX = 0;
-        let lastTouchY = 0;
-        let isPanning = false;
-
-        function setupPinchZoom() {
-            const container = document.getElementById('canvasContainer');
-
-            container.addEventListener('touchstart', function(e) {
-                if (e.touches.length === 2) {
-                    isPinching = true;
-                    initialDistance = getDistance(e.touches[0], e.touches[1]);
-                    initialZoom = currentZoom;
-                    e.preventDefault();
-                } else if (e.touches.length === 1) {
-                    // Check if touching empty canvas area (not an object)
-                    const touch = e.touches[0];
-                    const rect = container.getBoundingClientRect();
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
-                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
-                    const objects = canvas.getObjects();
-                    let hitObject = false;
-                    for (let i = objects.length - 1; i >= 0; i--) {
-                        if (objects[i].containsPoint(pointer)) {
-                            hitObject = true;
-                            break;
-                        }
-                    }
-                    if (!hitObject && !canvas.getActiveObject()) {
-                        isPanning = true;
-                        lastTouchX = touch.clientX;
-                        lastTouchY = touch.clientY;
-                        container.style.cursor = 'grabbing';
-                    }
-                }
-            }, { passive: false });
-
-            container.addEventListener('touchmove', function(e) {
-                if (isPinching && e.touches.length === 2) {
-                    e.preventDefault();
-                    const dist = getDistance(e.touches[0], e.touches[1]);
-                    const scale = dist / initialDistance;
-                    currentZoom = Math.max(0.3, Math.min(3, initialZoom * scale));
-                    canvas.setZoom(currentZoom);
-                    document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
-                } else if (isPanning && e.touches.length === 1) {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const dx = touch.clientX - lastTouchX;
-                    const dy = touch.clientY - lastTouchY;
-                    const vpt = canvas.viewportTransform;
-                    vpt[4] += dx;
-                    vpt[5] += dy;
-                    canvas.setViewportTransform(vpt);
-                    lastTouchX = touch.clientX;
-                    lastTouchY = touch.clientY;
-                }
-            }, { passive: false });
-
-            container.addEventListener('touchend', function(e) {
-                if (isPinching) {
-                    isPinching = false;
-                    initialDistance = 0;
-                }
-                if (isPanning) {
-                    isPanning = false;
-                    container.style.cursor = 'default';
-                }
-            });
-
-            container.addEventListener('touchcancel', function(e) {
-                isPinching = false;
-                isPanning = false;
-                container.style.cursor = 'default';
-            });
-        }
-
-        function getDistance(t1, t2) {
-            const dx = t1.clientX - t2.clientX;
-            const dy = t1.clientY - t2.clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
         let selectedObject = null;
         let templateConfig = null;
         let isBatchMode = false;
@@ -868,35 +696,6 @@
             const config = templateConfig.config;
             canvas.clear();
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
-
-            // Load texture background if available
-            if (config.textureUrl) {
-                await new Promise((resolve) => {
-                    fabric.Image.fromURL(config.textureUrl, (img) => {
-                        if (!img) {
-                            console.warn('Failed to load texture:', config.textureUrl);
-                            resolve();
-                            return;
-                        }
-                        img.set({
-                            left: 0,
-                            top: 0,
-                            scaleX: canvas.width / img.width,
-                            scaleY: canvas.height / img.height,
-                            selectable: false,
-                            evented: false,
-                            originX: 'left',
-                            originY: 'top',
-                            isTexture: true,
-                            hoverCursor: 'default'
-                        });
-                        canvas.add(img);
-                        canvas.sendToBack(img);
-                        resolve();
-                    }, { crossOrigin: 'anonymous' });
-                });
-            }
-
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
@@ -964,10 +763,6 @@
                 opt.addEventListener('click', function() {
                     document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
-                    // Remove any existing texture backgrounds when switching to solid/gradient
-                    canvas.getObjects().forEach(obj => {
-                        if (obj.isTexture) canvas.remove(obj);
-                    });
                     if (this.dataset.gradient) {
                         const colors = this.dataset.colors.split(',');
                         canvas.backgroundColor = colors[0];
@@ -979,10 +774,6 @@
                 });
             });
             document.getElementById('bgColorPicker').addEventListener('input', function() {
-                // Remove any existing texture backgrounds when picking custom color
-                canvas.getObjects().forEach(obj => {
-                    if (obj.isTexture) canvas.remove(obj);
-                });
                 canvas.backgroundColor = this.value;
                 canvas.renderAll();
                 saveState();
@@ -990,7 +781,7 @@
         }
 
         function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']));
+            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
                 undoStack.push(json);
                 if (undoStack.length > 30) undoStack.shift();
@@ -1193,7 +984,6 @@
             document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
             document.getElementById('mediaDeleteBtn').addEventListener('click', function() {
             deleteSelected();
-            // Reset file inputs so user can re-add media
             document.getElementById('fileInput').value = '';
             document.getElementById('videoInput').value = '';
             document.getElementById('audioInput').value = '';
@@ -1760,11 +1550,6 @@
         }
 
         function setupArrangeControls() {
-            document.getElementById('imageDeleteBtn').addEventListener('click', function() {
-                deleteSelected();
-                document.getElementById('fileInput').value = '';
-                document.getElementById('mobileImageInput').value = '';
-            });
             document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
             document.getElementById('bringForwardBtn').addEventListener('click', bringForward);
             document.getElementById('sendBackwardBtn').addEventListener('click', sendBackward);
@@ -1989,9 +1774,7 @@
                     const isMobile = window.innerWidth < 768;
                     const tabContent = document.getElementById(tab.dataset.tab + 'Tab');
                     const isAlreadyActive = tab.classList.contains('active');
-
                     if (isMobile) {
-                        // Mobile: toggle accordion
                         if (isAlreadyActive) {
                             tab.classList.remove('active');
                             tabContent.classList.remove('active');
@@ -2000,9 +1783,9 @@
                             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                             tab.classList.add('active');
                             tabContent.classList.add('active');
+                            setupNestedAccordions();
                         }
                     } else {
-                        // Desktop: standard tab switching
                         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                         tab.classList.add('active');
@@ -2010,62 +1793,7 @@
                     }
                 });
             });
-
-            // Nested accordion: property sections
-            setupNestedAccordions();
         }
-
-        function setupNestedAccordions() {
-            const isMobile = window.innerWidth < 768;
-            if (!isMobile) {
-                // Desktop: show all section content
-                document.querySelectorAll('.property-section .section-content').forEach(el => {
-                    el.style.display = '';
-                });
-                return;
-            }
-
-            // Mobile: make sections collapsible
-            document.querySelectorAll('.property-section h4').forEach(header => {
-                header.style.cursor = 'pointer';
-                header.addEventListener('click', function(e) {
-                    if (window.innerWidth >= 768) return; // Only on mobile
-                    const section = this.closest('.property-section');
-                    const isExpanded = section.classList.contains('expanded');
-
-                    // Close all sibling sections in the same tab
-                    const tabContent = section.closest('.tab-content');
-                    if (tabContent) {
-                        tabContent.querySelectorAll('.property-section').forEach(s => {
-                            s.classList.remove('expanded');
-                        });
-                    }
-
-                    // Toggle current
-                    if (!isExpanded) {
-                        section.classList.add('expanded');
-                    }
-                });
-            });
-
-            // Ensure at least one section is expanded per active tab
-            document.querySelectorAll('.tab-content.active').forEach(tab => {
-                const sections = tab.querySelectorAll('.property-section');
-                if (sections.length > 0 && !tab.querySelector('.property-section.expanded')) {
-                    sections[0].classList.add('expanded');
-                }
-            });
-        }
-
-        // Re-run nested accordions on resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth < 768) {
-                setupNestedAccordions();
-            } else {
-                // Desktop: expand all
-                document.querySelectorAll('.property-section').forEach(s => s.classList.add('expanded'));
-            }
-        });
 
         function handleKeyboard(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
@@ -2346,65 +2074,56 @@
         }
 
         
-        // ========== MOBILE FORM FUNCTIONS ==========
+        // ========== MOBILE FORM & ACCORDION FUNCTIONS ==========
         let isMobile = window.innerWidth < 768;
-        let mobileTextMap = {}; // Maps text roles to canvas objects
+        let mobileTextMap = {};
         let mobileMedia = { image: null, video: null, audio: null };
 
         function detectMobile() {
             isMobile = window.innerWidth < 768;
             const designLayout = document.querySelector('.design-layout');
             const mobileForm = document.getElementById('mobileForm');
+            const simpleBtn = document.getElementById('simpleModeBtn');
             if (isMobile) {
-                // Mobile default: show simple form, hide canvas
                 if (designLayout) {
                     designLayout.style.display = 'none';
                     designLayout.classList.remove('advanced');
                 }
-                if (mobileForm) {
-                    mobileForm.style.display = 'flex';
-                    mobileForm.classList.remove('hidden');
-                }
+                if (mobileForm) mobileForm.style.display = 'flex';
+                if (simpleBtn) simpleBtn.style.display = 'none';
             } else {
-                // Desktop: always show canvas, hide mobile form
                 if (designLayout) {
                     designLayout.style.display = '';
                     designLayout.classList.remove('advanced');
                 }
                 if (mobileForm) mobileForm.style.display = 'none';
+                if (simpleBtn) simpleBtn.style.display = 'none';
             }
         }
 
         function showAdvancedMode() {
             const designLayout = document.querySelector('.design-layout');
             const mobileForm = document.getElementById('mobileForm');
+            const simpleBtn = document.getElementById('simpleModeBtn');
             if (designLayout) {
                 designLayout.style.display = 'flex';
                 designLayout.classList.add('advanced');
             }
-            if (mobileForm) {
-                mobileForm.style.display = 'none';
-                mobileForm.classList.add('hidden');
-            }
-            // Resize canvas after showing
-            setTimeout(() => {
-                canvas.calcOffset();
-                canvas.renderAll();
-            }, 100);
+            if (mobileForm) mobileForm.style.display = 'none';
+            if (simpleBtn) simpleBtn.style.display = 'flex';
+            setTimeout(() => { canvas.calcOffset(); canvas.renderAll(); }, 100);
         }
 
         function showSimpleMode() {
             const designLayout = document.querySelector('.design-layout');
             const mobileForm = document.getElementById('mobileForm');
+            const simpleBtn = document.getElementById('simpleModeBtn');
             if (designLayout) {
                 designLayout.style.display = 'none';
                 designLayout.classList.remove('advanced');
             }
-            if (mobileForm) {
-                mobileForm.style.display = 'flex';
-                mobileForm.classList.remove('hidden');
-            }
-            updateMobilePreview();
+            if (mobileForm) mobileForm.style.display = 'flex';
+            if (simpleBtn) simpleBtn.style.display = 'none';
         }
 
         function mapMobileTextObjects() {
@@ -2412,8 +2131,6 @@
             const textObjs = canvas.getObjects().filter(obj => obj.type === 'i-text');
             const config = templateConfig?.config;
             if (!config) return;
-
-            // Map by comparing with sampleText values
             const sample = config.sampleText;
             textObjs.forEach((obj, idx) => {
                 if (sample.header && obj.text === sample.header) mobileTextMap.header = obj;
@@ -2421,7 +2138,6 @@
                 else if (sample.subtext && obj.text === sample.subtext) mobileTextMap.subtext = obj;
                 else if (sample.date && obj.text === sample.date) mobileTextMap.date = obj;
                 else {
-                    // Fallback by position order
                     const roles = ['header', 'names', 'subtext', 'date'];
                     if (idx < roles.length) mobileTextMap[roles[idx]] = obj;
                 }
@@ -2431,209 +2147,59 @@
         function populateMobileForm() {
             const config = templateConfig?.config;
             if (!config) return;
-
             const sample = config.sampleText;
-            document.getElementById('mobileHeader').value = sample.header || '';
-            document.getElementById('mobileNames').value = sample.names || '';
-            document.getElementById('mobileSubtext').value = sample.subtext || '';
-            document.getElementById('mobileDate').value = sample.date || '';
-
-            // Show/hide fields based on template
-            document.getElementById('mobileHeader').parentElement.style.display = sample.header !== undefined ? 'block' : 'none';
-            document.getElementById('mobileNames').parentElement.style.display = sample.names !== undefined ? 'block' : 'none';
-            document.getElementById('mobileSubtext').parentElement.style.display = sample.subtext !== undefined ? 'block' : 'none';
-            document.getElementById('mobileDate').parentElement.style.display = sample.date !== undefined ? 'block' : 'none';
+            const h = document.getElementById('mobileHeader');
+            const n = document.getElementById('mobileNames');
+            const s = document.getElementById('mobileSubtext');
+            const d = document.getElementById('mobileDate');
+            if (h) h.value = sample.header || '';
+            if (n) n.value = sample.names || '';
+            if (s) s.value = sample.subtext || '';
+            if (d) d.value = sample.date || '';
+            if (h) h.parentElement.style.display = sample.header !== undefined ? 'block' : 'none';
+            if (n) n.parentElement.style.display = sample.names !== undefined ? 'block' : 'none';
+            if (s) s.parentElement.style.display = sample.subtext !== undefined ? 'block' : 'none';
+            if (d) d.parentElement.style.display = sample.date !== undefined ? 'block' : 'none';
         }
 
         function syncMobileTextToCanvas() {
-            const headerVal = document.getElementById('mobileHeader').value;
-            const namesVal = document.getElementById('mobileNames').value;
-            const subtextVal = document.getElementById('mobileSubtext').value;
-            const dateVal = document.getElementById('mobileDate').value;
-
-            if (mobileTextMap.header && headerVal !== undefined) {
-                mobileTextMap.header.set('text', headerVal);
-            }
-            if (mobileTextMap.names && namesVal !== undefined) {
-                mobileTextMap.names.set('text', namesVal);
-            }
-            if (mobileTextMap.subtext && subtextVal !== undefined) {
-                mobileTextMap.subtext.set('text', subtextVal);
-            }
-            if (mobileTextMap.date && dateVal !== undefined) {
-                mobileTextMap.date.set('text', dateVal);
-            }
+            const h = document.getElementById('mobileHeader')?.value;
+            const n = document.getElementById('mobileNames')?.value;
+            const s = document.getElementById('mobileSubtext')?.value;
+            const d = document.getElementById('mobileDate')?.value;
+            if (mobileTextMap.header && h !== undefined) mobileTextMap.header.set('text', h);
+            if (mobileTextMap.names && n !== undefined) mobileTextMap.names.set('text', n);
+            if (mobileTextMap.subtext && s !== undefined) mobileTextMap.subtext.set('text', s);
+            if (mobileTextMap.date && d !== undefined) mobileTextMap.date.set('text', d);
             canvas.renderAll();
-            updateMobilePreview();
-        }
-
-        function updateMobilePreview() {
-            // Export canvas thumbnail for preview
-            try {
-                const dataUrl = canvas.toDataURL({ format: 'png', quality: 0.8, multiplier: 0.5 });
-                const previewBox = document.getElementById('mobilePreviewBox');
-                previewBox.innerHTML = '<img src="' + dataUrl + '" style="max-width:100%;max-height:250px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);">';
-            } catch (e) {
-                console.log('Preview not ready yet');
-            }
-        }
-
-        function setupMobileForm() {
-            // Text inputs sync
-            ['mobileHeader', 'mobileNames', 'mobileSubtext', 'mobileDate'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', syncMobileTextToCanvas);
-                }
-            });
-
-            // Background options
-            document.querySelectorAll('.mobile-bg-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    document.querySelectorAll('.mobile-bg-option').forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    if (this.dataset.gradient) {
-                        const colors = this.dataset.gradient.split(',');
-                        canvas.backgroundColor = colors[0];
-                    } else {
-                        canvas.backgroundColor = this.dataset.color;
-                    }
-                    // Remove texture if switching to solid
-                    canvas.getObjects().forEach(obj => {
-                        if (obj.isTexture) canvas.remove(obj);
-                    });
-                    canvas.renderAll();
-                    updateMobilePreview();
-                });
-            });
-
-            // Media uploads
-            document.getElementById('mobileAddImage').addEventListener('click', () => document.getElementById('mobileImageInput').click());
-            document.getElementById('mobileAddVideo').addEventListener('click', () => document.getElementById('mobileVideoInput').click());
-            document.getElementById('mobileAddAudio').addEventListener('click', () => document.getElementById('mobileAudioInput').click());
-
-            document.getElementById('mobileImageInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                this.value = '';
-                if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-                const reader = new FileReader();
-                reader.onload = (f) => {
-                    fabric.Image.fromURL(f.target.result, (img) => {
-                        const scale = Math.min(200 / img.width, 200 / img.height);
-                        img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center' });
-                        canvas.add(img);
-                        canvas.renderAll();
-                        updateMobilePreview();
-                        mobileMedia.image = { url: f.target.result, file: file, obj: img };
-                        showMobileMediaPreview('image', f.target.result, file.name);
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-
-            document.getElementById('mobileVideoInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                handleVideoUpload(e);
-                setTimeout(() => {
-                    const videoObjs = canvas.getObjects().filter(obj => obj.isVideo);
-                    if (videoObjs.length > 0) {
-                        mobileMedia.video = { obj: videoObjs[videoObjs.length - 1], file: file };
-                        showMobileMediaPreview('video', URL.createObjectURL(file), file.name);
-                    }
-                    updateMobilePreview();
-                }, 500);
-            });
-
-            document.getElementById('mobileAudioInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                handleAudioUpload(e);
-                setTimeout(() => {
-                    const audioObjs = canvas.getObjects().filter(obj => obj.isAudio);
-                    if (audioObjs.length > 0) {
-                        mobileMedia.audio = { obj: audioObjs[audioObjs.length - 1], file: file };
-                        showMobileMediaPreview('audio', URL.createObjectURL(file), file.name);
-                    }
-                }, 500);
-            });
-
-            // Batch controls
-            document.getElementById('mobileQtyMinus').addEventListener('click', () => mobileUpdateQty(-1));
-            document.getElementById('mobileQtyPlus').addEventListener('click', () => mobileUpdateQty(1));
-            document.getElementById('mobileQtyInput').addEventListener('change', mobileUpdatePrice);
-
-            // Advanced mode toggle
-            document.getElementById('mobileAdvancedBtn').addEventListener('click', showAdvancedMode);
-            document.getElementById('simpleModeBtn').addEventListener('click', showSimpleMode);
-
-            // Checkout
-            document.getElementById('mobileCheckoutBtn').addEventListener('click', proceedToCheckout);
-
-            // Window resize
-            window.addEventListener('resize', detectMobile);
         }
 
         function showMobileMediaPreview(type, url, name) {
-            let previewId = '';
-            if (type === 'image') previewId = 'mobileImagePreview';
-            else if (type === 'video') previewId = 'mobileVideoPreview';
-            else if (type === 'audio') previewId = 'mobileAudioPreview';
-
+            let previewId = type === 'image' ? 'mobileImagePreview' : type === 'video' ? 'mobileVideoPreview' : 'mobileAudioPreview';
             const preview = document.getElementById(previewId);
             if (!preview) return;
-
-            preview.classList.add('active');
             preview.style.display = 'block';
-
-            let html = '';
-            if (type === 'image') {
-                html = '<div style="position:relative;display:inline-block;width:100%;"><img src="' + url + '" style="max-width:100%;border-radius:8px;"><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
-            } else if (type === 'video') {
-                html = '<div style="position:relative;display:inline-block;width:100%;"><video src="' + url + '" style="max-width:100%;border-radius:8px;" controls></video><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
-            } else if (type === 'audio') {
-                html = '<div style="position:relative;display:inline-block;width:100%;"><audio src="' + url + '" style="width:100%;" controls></audio><button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div><div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
-            }
+            let html = '<div style="position:relative;display:inline-block;width:100%;">';
+            if (type === 'image') html += '<img src="' + url + '" style="max-width:100%;border-radius:8px;">';
+            else if (type === 'video') html += '<video src="' + url + '" style="max-width:100%;border-radius:8px;" controls></video>';
+            else if (type === 'audio') html += '<audio src="' + url + '" style="width:100%;" controls></audio>';
+            html += '<button onclick="removeMobileMedia('' + type + '')" style="position:absolute;top:5px;right:5px;background:#FF6B6B;color:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;z-index:5;"><i class="fas fa-times"></i></button></div>';
+            html += '<div style="font-size:0.8rem;color:#a0aec0;margin-top:5px;">' + name + '</div>';
             preview.innerHTML = html;
         }
 
         function removeMobileMedia(type) {
-            let previewId = '';
-            if (type === 'image') previewId = 'mobileImagePreview';
-            else if (type === 'video') previewId = 'mobileVideoPreview';
-            else if (type === 'audio') previewId = 'mobileAudioPreview';
-
+            let previewId = type === 'image' ? 'mobileImagePreview' : type === 'video' ? 'mobileVideoPreview' : 'mobileAudioPreview';
             const preview = document.getElementById(previewId);
-            if (preview) {
-                preview.innerHTML = '';
-                preview.style.display = 'none';
-                preview.classList.remove('active');
-            }
-
-            // Remove from canvas
-            if (type === 'image' && mobileMedia.image && mobileMedia.image.obj) {
-                canvas.remove(mobileMedia.image.obj);
-                mobileMedia.image = null;
-            }
-            if (type === 'video') {
-                const videoObjs = canvas.getObjects().filter(obj => obj.isVideo);
-                videoObjs.forEach(obj => canvas.remove(obj));
-                mobileMedia.video = null;
-            }
-            if (type === 'audio') {
-                const audioObjs = canvas.getObjects().filter(obj => obj.isAudio);
-                audioObjs.forEach(obj => canvas.remove(obj));
-                mobileMedia.audio = null;
-            }
-
-            // Reset file input
-            if (type === 'image') document.getElementById('mobileImageInput').value = '';
-            if (type === 'video') document.getElementById('mobileVideoInput').value = '';
-            if (type === 'audio') document.getElementById('mobileAudioInput').value = '';
-
+            if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+            if (type === 'image' && mobileMedia.image?.obj) canvas.remove(mobileMedia.image.obj);
+            if (type === 'video') canvas.getObjects().filter(o => o.isVideo).forEach(o => canvas.remove(o));
+            if (type === 'audio') canvas.getObjects().filter(o => o.isAudio).forEach(o => canvas.remove(o));
+            mobileMedia[type] = null;
+            document.getElementById('mobileImageInput').value = '';
+            document.getElementById('mobileVideoInput').value = '';
+            document.getElementById('mobileAudioInput').value = '';
             canvas.renderAll();
-            updateMobilePreview();
         }
 
         function mobileUpdateQty(change) {
@@ -2646,15 +2212,103 @@
         }
 
         function mobileUpdatePrice() {
-            const qty = parseInt(document.getElementById('mobileQtyInput').value) || 2;
+            const qty = parseInt(document.getElementById('mobileQtyInput')?.value) || 2;
             const total = (qty * 2.99).toFixed(2);
-            document.getElementById('mobileTotalPrice').textContent = 'Total: $' + total;
-            document.getElementById('mobileCheckoutPrice').textContent = '$' + total;
+            const tp = document.getElementById('mobileTotalPrice');
+            const cp = document.getElementById('mobileCheckoutPrice');
+            if (tp) tp.textContent = 'Total: $' + total;
+            if (cp) cp.textContent = '$' + total;
         }
 
         function enableMobileBatchMode() {
-            document.getElementById('mobileBatchSection').style.display = 'block';
+            const bs = document.getElementById('mobileBatchSection');
+            if (bs) bs.style.display = 'block';
             mobileUpdatePrice();
+        }
+
+        function setupMobileForm() {
+            ['mobileHeader', 'mobileNames', 'mobileSubtext', 'mobileDate'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', syncMobileTextToCanvas);
+            });
+
+            document.querySelectorAll('#mobileForm .mobile-form-section div[data-color], #mobileForm .mobile-form-section div[data-gradient]').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    document.querySelectorAll('#mobileForm .mobile-form-section div[data-color], #mobileForm .mobile-form-section div[data-gradient]').forEach(o => o.style.borderColor = 'transparent');
+                    this.style.borderColor = '#06D6A0';
+                    if (this.dataset.gradient) {
+                        canvas.backgroundColor = this.dataset.gradient.split(',')[0];
+                    } else {
+                        canvas.backgroundColor = this.dataset.color;
+                    }
+                    canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
+                    canvas.renderAll();
+                });
+            });
+
+            document.getElementById('mobileAddImage')?.addEventListener('click', () => document.getElementById('mobileImageInput').click());
+            document.getElementById('mobileAddVideo')?.addEventListener('click', () => document.getElementById('mobileVideoInput').click());
+            document.getElementById('mobileAddAudio')?.addEventListener('click', () => document.getElementById('mobileAudioInput').click());
+
+            document.getElementById('mobileImageInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0]; if (!file) return; this.value = '';
+                if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    fabric.Image.fromURL(f.target.result, (img) => {
+                        const scale = Math.min(200 / img.width, 200 / img.height);
+                        img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center' });
+                        canvas.add(img); canvas.renderAll();
+                        mobileMedia.image = { url: f.target.result, file: file, obj: img };
+                        showMobileMediaPreview('image', f.target.result, file.name);
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('mobileVideoInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0]; if (!file) return;
+                handleVideoUpload(e);
+                setTimeout(() => {
+                    const v = canvas.getObjects().filter(o => o.isVideo);
+                    if (v.length > 0) { mobileMedia.video = { obj: v[v.length-1], file: file }; showMobileMediaPreview('video', URL.createObjectURL(file), file.name); }
+                }, 500);
+            });
+
+            document.getElementById('mobileAudioInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0]; if (!file) return;
+                handleAudioUpload(e);
+                setTimeout(() => {
+                    const a = canvas.getObjects().filter(o => o.isAudio);
+                    if (a.length > 0) { mobileMedia.audio = { obj: a[a.length-1], file: file }; showMobileMediaPreview('audio', URL.createObjectURL(file), file.name); }
+                }, 500);
+            });
+
+            document.getElementById('mobileQtyMinus')?.addEventListener('click', () => mobileUpdateQty(-1));
+            document.getElementById('mobileQtyPlus')?.addEventListener('click', () => mobileUpdateQty(1));
+            document.getElementById('mobileQtyInput')?.addEventListener('change', mobileUpdatePrice);
+            document.getElementById('mobileAdvancedBtn')?.addEventListener('click', showAdvancedMode);
+            document.getElementById('simpleModeBtn')?.addEventListener('click', showSimpleMode);
+            document.getElementById('mobileCheckoutBtn')?.addEventListener('click', proceedToCheckout);
+            window.addEventListener('resize', detectMobile);
+        }
+
+        // ========== NESTED ACCORDION ==========
+        function setupNestedAccordions() {
+            if (window.innerWidth >= 768) {
+                document.querySelectorAll('.property-section').forEach(s => s.classList.add('expanded'));
+                return;
+            }
+            document.querySelectorAll('.property-section h4').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    if (window.innerWidth >= 768) return;
+                    const section = this.closest('.property-section');
+                    const isExpanded = section.classList.contains('expanded');
+                    const tabContent = section.closest('.tab-content');
+                    if (tabContent) tabContent.querySelectorAll('.property-section').forEach(s => s.classList.remove('expanded'));
+                    if (!isExpanded) section.classList.add('expanded');
+                });
+            });
         }
 
         async function init() {
@@ -2696,13 +2350,11 @@
             setupModeSwitch();
             checkForSavedProgress();
             startAutoSave();
-
-            // Mobile canvas setup
-            setupMobileCanvas();
-
-            // Keep mobile form hidden, show full canvas
-            const mobileForm = document.getElementById('mobileForm');
-            if (mobileForm) mobileForm.style.display = 'none';
+            detectMobile();
+            setupMobileForm();
+            mapMobileTextObjects();
+            populateMobileForm();
+            setupNestedAccordions();
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
