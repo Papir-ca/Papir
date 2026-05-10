@@ -136,18 +136,19 @@
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                padding: 12px;
+                padding: 10px 12px;
                 background: rgba(255,255,255,0.08);
                 border-radius: 10px;
-                margin-top: 8px;
+                margin-top: 4px;
                 cursor: pointer;
                 font-weight: 600;
                 font-size: 0.95rem;
                 color: white;
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
+                touch-action: manipulation;
             }
-            .mobile-tools-toggle:active { opacity: 0.8; transform: scale(0.98); }
+            .mobile-tools-toggle:active { opacity: 0.8; }
             .mobile-tools-toggle i.fa-chevron-up,
             .mobile-tools-toggle i.fa-chevron-down {
                 margin-left: auto;
@@ -174,26 +175,26 @@
             /* Mobile accordion for Design/Layers/Settings */
             .mobile-accordion-container {
                 display: block;
-                margin-top: 8px;
+                margin-top: 4px;
             }
             .mobile-accordion-header {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 14px 12px;
+                padding: 12px 12px;
                 background: rgba(255,255,255,0.08);
                 border-radius: 10px;
-                margin-bottom: 6px;
+                margin-bottom: 4px;
                 cursor: pointer;
                 font-weight: 600;
                 font-size: 0.95rem;
                 border: 1px solid rgba(255,255,255,0.1);
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
+                touch-action: manipulation;
             }
             .mobile-accordion-header:active {
-                opacity: 0.8;
-                transform: scale(0.98);
+                opacity: 0.9;
             }
             .mobile-accordion-header.active {
                 background: rgba(6, 214, 160, 0.15);
@@ -205,6 +206,7 @@
             }
             .accordion-chevron {
                 transition: transform 0.2s;
+                pointer-events: none;
             }
 
             /* Hide desktop tabs on mobile */
@@ -235,6 +237,7 @@
                 transition: transform 0.2s;
                 margin-left: 10px;
                 color: var(--primary-gold);
+                pointer-events: none;
             }
             .property-section.collapsed h4::after {
                 transform: rotate(-90deg);
@@ -248,14 +251,15 @@
 
             /* Canvas visibility fixes for portrait */
             .canvas-area {
-                min-height: 65vh;
-                height: 65vh;
-                padding: 8px;
+                min-height: 68vh;
+                height: 68vh;
+                padding: 6px;
             }
             .canvas-container {
-                padding: 5px;
+                padding: 4px;
                 touch-action: pan-y pan-x !important;
                 -webkit-overflow-scrolling: touch;
+                overflow: auto;
             }
             #designCanvas {
                 max-width: 100%;
@@ -270,34 +274,38 @@
 
             /* Compact header */
             .design-header {
-                padding: 8px 10px;
-                margin-bottom: 6px;
+                padding: 6px 10px;
+                margin-bottom: 4px;
             }
             .header-left {
-                gap: 8px;
+                gap: 6px;
             }
             .design-header h1 {
-                font-size: 1rem;
+                font-size: 0.95rem;
             }
             .back-link {
-                padding: 6px 10px;
-                font-size: 0.8rem;
+                padding: 5px 8px;
+                font-size: 0.75rem;
             }
             .mode-switch {
-                transform: scale(0.85);
+                transform: scale(0.8);
             }
             .batch-controls {
                 padding: 8px;
-                margin-bottom: 6px;
+                margin-bottom: 4px;
             }
             .design-layout {
-                gap: 8px;
+                gap: 4px;
             }
             .properties-panel {
-                padding: 10px;
+                padding: 8px;
+                overscroll-behavior: contain;
             }
             .checkout-section {
-                margin-top: 10px;
+                margin-top: 8px;
+            }
+            .app-container {
+                padding: 6px;
             }
         }
         @media (min-width: 769px) {
@@ -2269,12 +2277,15 @@
                     header.dataset.target = tab.contentId;
                     header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
 
-                    header.addEventListener('click', function() {
+                    header.addEventListener('click', function(e) {
                         if (window.innerWidth > 768) return;
                         const targetId = this.dataset.target;
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
                         const isActive = this.classList.contains('active');
+
+                        // If already open, do nothing (prevent accidental close)
+                        if (isActive) return;
 
                         // Close all accordions
                         document.querySelectorAll('.mobile-accordion-header').forEach(h => {
@@ -2286,11 +2297,15 @@
                             if (window.innerWidth <= 768) c.style.display = 'none';
                         });
 
-                        // Open clicked if it wasn't active
-                        if (!isActive) {
-                            this.classList.add('active');
-                            if (chevron) chevron.style.transform = 'rotate(180deg)';
-                            if (targetContent) targetContent.style.display = 'block';
+                        // Open clicked
+                        this.classList.add('active');
+                        if (chevron) chevron.style.transform = 'rotate(180deg)';
+                        if (targetContent) {
+                            targetContent.style.display = 'block';
+                            // Scroll the opened content into view smoothly
+                            setTimeout(() => {
+                                this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 50);
                         }
                     });
 
