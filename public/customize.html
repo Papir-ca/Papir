@@ -110,7 +110,88 @@
         #audioUploadSection .upload-area { border-color: var(--primary-gold); }
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
-        @media (max-width: 768px) { body { overflow-x: hidden; } .app-container { padding: 8px; height: auto; min-height: 100vh; } .design-header { flex-direction: column; gap: 10px; padding: 10px; margin-bottom: 8px; } .header-left { width: 100%; justify-content: space-between; } .design-header h1 { font-size: 1.1rem; } .template-badge { font-size: 0.7rem; } .design-header > div:last-child { width: 100%; justify-content: space-between; } .batch-controls { padding: 10px; } .batch-controls > div:first-child { flex-direction: column; gap: 8px; } .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; } .design-layout { flex-direction: column; height: auto; gap: 10px; } .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; } .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; } .tool-divider { width: 1px; height: 70%; margin: 0 3px; } .canvas-area { order: 1; min-height: 400px; height: 50vh; } .canvas-container { padding: 10px; } #designCanvas { max-width: 100%; height: auto !important; } .properties-panel { width: 100%; order: 3; max-height: none; padding: 12px; } .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; } .control-row { flex-wrap: wrap; } .control-group { min-width: 120px; } .checkout-section { position: sticky; bottom: 0; margin-top: 15px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); } .checkout-btn { padding: 16px; font-size: 1.1rem; } .layer-item { padding: 14px 10px; } .layer-btn { padding: 8px; } .upload-area { padding: 25px 15px; } .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; } }
+        @media (max-width: 768px) {
+            /* ===== REMOVE ALL DEAD SPACE ===== */
+            body { overflow-x: hidden; }
+            .app-container { padding: 4px; height: auto; min-height: 100vh; gap: 0; }
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; border-radius: 8px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .template-badge { font-size: 0.7rem; }
+            .design-header > div:last-child { width: 100%; justify-content: space-between; }
+            .batch-controls { padding: 8px; margin-bottom: 2px; border-radius: 8px; }
+            .batch-controls > div:first-child { flex-direction: column; gap: 8px; }
+            .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; }
+            .design-layout { flex-direction: column; height: auto; gap: 0 !important; margin: 0 !important; padding: 0 !important; background: transparent; flex: none !important; min-height: auto !important; }
+            .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; margin: 0 !important; border-radius: 0 0 8px 8px; }
+            .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
+            .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
+
+            /* ===== CANVAS AREA - ZERO DEAD SPACE, STICKY ===== */
+            .canvas-area { order: 1; position: sticky; top: 0; z-index: 50; min-height: auto; height: auto; padding: 0 !important; margin: 0 !important; gap: 0 !important; border-radius: 0 !important; overflow: visible; background: transparent !important; background-color: transparent !important; display: block !important; flex: none !important; }
+            .canvas-area > * { margin: 0 !important; padding: 0 !important; }
+            .canvas-container { padding: 0 !important; margin: 0 !important; border-radius: 0 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; touch-action: pan-y pan-x !important; -webkit-overflow-scrolling: touch; overflow: visible; display: block; line-height: 0; height: auto !important; min-height: auto !important; flex: none !important; }
+            #designCanvas { max-width: 100%; width: 100%; height: auto !important; max-height: 58vh; touch-action: auto; margin: 0 !important; display: block; border-radius: 0; box-shadow: none !important; }
+            .canvas-toolbar { margin: 0 !important; padding: 2px 4px !important; font-size: 0.6rem; min-height: 22px; border-bottom: none !important; flex-shrink: 0; background: transparent !important; }
+            .canvas-toolbar span { font-size: 0.6rem !important; }
+            .canvas-toolbar .mobile-scroll-hint { display: none !important; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 22px; font-size: 0.6rem; }
+            .grid-overlay { display: none; }
+
+            /* ===== TOOLS PANEL COLLAPSED ===== */
+            .tools-panel.collapsed { max-height: 0; min-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; overflow: hidden; border: none; }
+
+            /* ===== TOOLS TOGGLE - DIRECTLY UNDER CANVAS ===== */
+            .mobile-tools-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.08); border-radius: 0 0 8px 8px; margin: 0 !important; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: white; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; border-top: 1px solid rgba(255,255,255,0.05); position: relative; top: 0; }
+            .mobile-tools-toggle:active { opacity: 0.8; }
+            .mobile-tools-toggle i.fa-chevron-up, .mobile-tools-toggle i.fa-chevron-down { margin-left: auto; transition: transform 0.2s; }
+            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
+
+            /* ===== ACCORDION ===== */
+            .mobile-accordion-container { display: block; margin: 0 !important; padding: 0 !important; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 2px 0 0 0 !important; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .mobile-accordion-header i:first-child { margin-right: 10px; }
+            .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
+
+            /* ===== HIDE DESKTOP TABS ===== */
+            .properties-panel .tabs { display: none !important; }
+
+            /* ===== PROPERTIES PANEL COMPACT ===== */
+            .properties-panel { width: 100%; order: 3; max-height: none; padding: 6px; overscroll-behavior: contain; margin: 0 !important; border-radius: 8px; background: transparent; flex: none !important; height: auto !important; }
+            .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
+            .properties-panel .panel-title { font-size: 0.85rem; }
+            .properties-panel .btn-icon.small { padding: 4px 8px; min-height: 32px; font-size: 0.75rem; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+
+            /* ===== COLLAPSIBLE SECTIONS ===== */
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; margin-bottom: 8px; }
+            .property-section h4 { cursor: pointer; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; font-size: 0.7rem; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.7rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); pointer-events: none; }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
+
+            /* ===== LOCK TOGGLE IN LAYERS ===== */
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
+            .mobile-lock-toggle:active { opacity: 0.9; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+
+            /* ===== LESS SENSITIVE BUTTONS ===== */
+            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle, .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+
+            /* ===== CHECKOUT COMPACT ===== */
+            .checkout-section { position: sticky; bottom: 0; margin: 2px 0 0 0 !important; padding: 10px; border-radius: 8px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); }
+            .checkout-btn { padding: 16px; font-size: 1.1rem; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+        }
         @media (max-width: 480px) { .design-header h1 { display: none; } .header-left { justify-content: flex-start; gap: 10px; } .mode-switch { transform: scale(0.9); } .price-display { font-size: 0.8rem; padding: 6px 12px; } .canvas-area { min-height: 350px; height: 45vh; } .btn-group { gap: 8px; } .btn-icon { padding: 10px 8px; font-size: 0.8rem; } .tabs { overflow-x: auto; flex-wrap: nowrap; } .tab { white-space: nowrap; padding: 10px 14px; } input[type="color"] { width: 50px; height: 44px; } .color-preset { width: 36px; height: 36px; } .batch-controls input[type="number"] { width: 50px; } .qty-btn { width: 36px; height: 36px; } }
         @media (max-height: 500px) and (orientation: landscape) { .design-layout { flex-direction: row; } .tools-panel { width: 60px; flex-direction: column; order: 1; } .canvas-area { order: 2; height: 80vh; } .properties-panel { width: 280px; order: 3; max-height: 80vh; } .design-header { display: none; } }
         .tool-btn, .btn-icon, .tab, .layer-item, .bg-option { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
