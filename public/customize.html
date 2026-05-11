@@ -110,108 +110,248 @@
         #audioUploadSection .upload-area { border-color: var(--primary-gold); }
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
-        @media (max-width: 768px) { body { overflow-x: hidden; } .app-container { padding: 8px; height: auto; min-height: 100vh; } .design-header { flex-direction: column; gap: 10px; padding: 10px; margin-bottom: 8px; } .header-left { width: 100%; justify-content: space-between; } .design-header h1 { font-size: 1.1rem; } .template-badge { font-size: 0.7rem; } .design-header > div:last-child { width: 100%; justify-content: space-between; } .batch-controls { padding: 10px; } .batch-controls > div:first-child { flex-direction: column; gap: 8px; } .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; } .design-layout { flex-direction: column; height: auto; gap: 10px; } .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; } .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; } .tool-divider { width: 1px; height: 70%; margin: 0 3px; } .canvas-area { order: 1; min-height: 400px; height: 50vh; } .canvas-container { padding: 10px; } #designCanvas { max-width: 100%; height: auto !important; } .properties-panel { width: 100%; order: 3; max-height: none; padding: 12px; } .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; } .control-row { flex-wrap: wrap; } .control-group { min-width: 120px; } .checkout-section { position: sticky; bottom: 0; margin-top: 15px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); } .checkout-btn { padding: 16px; font-size: 1.1rem; } .layer-item { padding: 14px 10px; } .layer-btn { padding: 8px; } .upload-area { padding: 25px 15px; } .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; } }
-        @media (max-width: 480px) { .design-header h1 { display: none; } .header-left { justify-content: flex-start; gap: 10px; } .mode-switch { transform: scale(0.9); } .price-display { font-size: 0.8rem; padding: 6px 12px; } .canvas-area { min-height: 350px; height: 45vh; } .btn-group { gap: 8px; } .btn-icon { padding: 10px 8px; font-size: 0.8rem; } .tabs { overflow-x: auto; flex-wrap: nowrap; } .tab { white-space: nowrap; padding: 10px 14px; } input[type="color"] { width: 50px; height: 44px; } .color-preset { width: 36px; height: 36px; } .batch-controls input[type="number"] { width: 50px; } .qty-btn { width: 36px; height: 36px; } }
-        @media (max-height: 500px) and (orientation: landscape) { .design-layout { flex-direction: row; } .tools-panel { width: 60px; flex-direction: column; order: 1; } .canvas-area { order: 2; height: 80vh; } .properties-panel { width: 280px; order: 3; max-height: 80vh; } .design-header { display: none; } }
-        .tool-btn, .btn-icon, .tab, .layer-item, .bg-option { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
-        .tool-btn:active, .btn-icon:active, .tab:active { transform: scale(0.95); opacity: 0.8; }
-        #designCanvas { max-width: 100%; height: auto; touch-action: none; }
-        @supports (-webkit-touch-callout: none) { .app-container { min-height: -webkit-fill-available; } }
-        * { -webkit-tap-highlight-color: transparent; }
-        body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
-        html, body { overflow-x: hidden; max-width: 100vw; }
-        input, select, textarea, button { font-size: 16px; min-height: 44px; }
-        html { scroll-behavior: smooth; }
-        img { max-width: 100%; height: auto; }
-    
-        /* ===== MOBILE UI ADDITIONS ===== */
-        .mobile-tools-toggle { display: none; }
-        .mobile-accordion-container { display: none; }
-        .mobile-accordion-header { display: none; }
-        .mobile-lock-toggle { display: none; }
-        .section-content { display: block; }
-
         @media (max-width: 768px) {
-            /* Fix dead space: stop flexbox expansion */
-            .design-layout { flex-direction: column; height: auto; min-height: auto; gap: 2px; }
-            .canvas-area { flex: none; height: auto; min-height: auto; padding: 0; margin: 0; }
-            .canvas-container { padding: 0; margin: 0; }
-            #designCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-            .canvas-toolbar { margin-bottom: 2px; padding-bottom: 2px; font-size: 0.75rem; }
-            .canvas-toolbar .mobile-scroll-hint { display: none; }
+            /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
+            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
 
-            /* Sticky canvas */
-            .canvas-area { position: sticky; top: 0; z-index: 50; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+            /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
+            .design-layout { 
+                flex-direction: column; 
+                height: auto !important; 
+                min-height: auto !important;
+                max-height: none !important;
+                gap: 2px; 
+                flex: none !important;
+            }
 
-            /* Tools toggle */
-            .mobile-tools-toggle {
-                display: flex; align-items: center; justify-content: center; gap: 8px;
-                padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
-                margin: 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem;
-                color: white; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+            /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
+            .canvas-area { 
+                order: 1; 
+                position: relative !important; 
+                top: auto !important;
+                z-index: auto !important; 
+                display: block !important;
+                flex: none !important; 
+                height: auto !important; 
+                min-height: auto !important;
+                max-height: none !important;
+                padding: 0 !important; 
+                margin: 0 0 2px 0 !important; 
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+
+            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
+            .canvas-container { 
+                display: block !important;
+                flex: none !important; 
+                height: auto !important; 
+                min-height: auto !important;
+                max-height: none !important;
+                padding: 0 !important; 
+                margin: 0 !important; 
+                background: transparent !important;
+                background-color: transparent !important;
+                background-image: none !important;
+                overflow: visible;
+                line-height: 0;
+                font-size: 0;
+                text-align: center;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+
+            /* ===== CANVAS ITSELF ===== */
+            #designCanvas { 
+                max-width: 100%; 
+                width: 100%; 
+                height: auto !important; 
+                max-height: 55vh;
+                display: block; 
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                vertical-align: top !important;
+            }
+
+            /* ===== TOOLBAR COMPACT ===== */
+            .canvas-toolbar { 
+                margin: 0 !important; 
+                padding: 2px 4px !important; 
+                font-size: 0.7rem; 
+                min-height: 24px;
+                border-bottom: none !important;
+            }
+            .canvas-toolbar .mobile-scroll-hint { display: none !important; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
+            .grid-overlay { display: none; }
+
+            /* ===== TOOLS PANEL ===== */
+            .tools-panel { 
+                width: 100%; 
+                flex-direction: row; 
+                justify-content: flex-start; 
+                overflow-x: auto; 
+                padding: 8px; 
+                gap: 6px; 
+                order: 2; 
+                min-height: 60px; 
+                margin: 0 !important;
+                transition: max-height 0.35s ease, opacity 0.35s ease;
+                max-height: 120px;
+            }
+            .tools-panel.collapsed { 
+                max-height: 0; 
+                min-height: 0 !important; 
+                opacity: 0; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                overflow: hidden; 
+                border: none; 
+            }
+            .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
+            .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
+
+            /* ===== TOOLS TOGGLE ===== */
+            .mobile-tools-toggle { 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                gap: 8px;
+                padding: 10px 12px; 
+                background: rgba(255,255,255,0.08); 
+                border-radius: 8px;
+                margin: 0 !important; 
+                cursor: pointer; 
+                font-weight: 600; 
+                font-size: 0.9rem;
+                color: white; 
+                -webkit-tap-highlight-color: transparent; 
+                touch-action: manipulation;
             }
             .mobile-tools-toggle:active { opacity: 0.8; }
             .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
-            .tools-panel {
-                transition: max-height 0.35s ease, opacity 0.35s ease;
-                max-height: 120px; margin: 0;
-            }
-            .tools-panel.collapsed {
-                max-height: 0; min-height: 0; opacity: 0; padding: 0; margin: 0;
-                overflow: hidden; border: none;
-            }
-
-            /* Accordion tabs */
-            .mobile-accordion-container { display: block; margin: 2px 0; }
+            /* ===== ACCORDION ===== */
+            .mobile-accordion-container { display: block; margin: 0 !important; }
             .mobile-accordion-header {
-                display: flex; align-items: center; justify-content: space-between;
-                padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
-                margin-bottom: 2px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
-                border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation;
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between;
+                padding: 12px; 
+                background: rgba(255,255,255,0.08); 
+                border-radius: 8px;
+                margin-bottom: 2px; 
+                cursor: pointer; 
+                font-weight: 600; 
+                font-size: 0.9rem;
+                border: 1px solid rgba(255,255,255,0.1); 
+                touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
             }
             .mobile-accordion-header:active { opacity: 0.9; }
             .mobile-accordion-header.active {
-                background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal);
+                background: rgba(6, 214, 160, 0.15); 
+                border-color: var(--primary-teal); 
+                color: var(--primary-teal);
             }
             .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
 
-            /* Hide desktop tabs */
+            /* ===== HIDE DESKTOP TABS ===== */
             .properties-panel .tabs { display: none !important; }
 
-            /* Collapsible sections */
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; }
-            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            /* ===== PROPERTIES PANEL ===== */
+            .properties-panel { 
+                width: 100%; 
+                order: 3; 
+                padding: 0 8px 8px !important; 
+                margin: 0 !important;
+                flex: none !important;
+                height: auto !important;
+                min-height: auto !important;
+                display: block !important;
+            }
+            .properties-panel .panel-header { margin: 0 !important; padding: 8px 0 !important; }
+            .properties-panel .panel-title { font-size: 0.85rem; }
+
+            /* ===== COLLAPSIBLE SECTIONS ===== */
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; margin-bottom: 10px !important; }
+            .property-section h4 { 
+                cursor: pointer; 
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between; 
+                padding: 8px 0; 
+                margin-bottom: 0 !important; 
+            }
+            .property-section h4::after { 
+                content: '\f078'; 
+                font-family: 'Font Awesome 6 Free'; 
+                font-weight: 900; 
+                font-size: 0.75rem; 
+                transition: transform 0.2s; 
+                margin-left: 10px; 
+                color: var(--primary-gold); 
+            }
             .property-section.collapsed h4::after { transform: rotate(-90deg); }
             .property-section.collapsed .section-content { display: none; }
             .property-section .section-content { padding-top: 6px; }
 
-            /* Lock toggle in Layers */
+            /* ===== LOCK TOGGLE ===== */
             .mobile-lock-toggle {
-                display: flex; align-items: center; justify-content: space-between;
-                padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
-                margin-bottom: 10px; cursor: pointer; font-size: 0.85rem;
-                border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation;
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between;
+                padding: 10px 12px; 
+                background: rgba(255,255,255,0.08); 
+                border-radius: 8px;
+                margin-bottom: 10px; 
+                cursor: pointer; 
+                font-size: 0.85rem;
+                border: 1px solid rgba(255,255,255,0.1); 
+                touch-action: manipulation;
             }
-            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
-            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .mobile-lock-toggle.locked { 
+                background: rgba(255, 107, 107, 0.15); 
+                border-color: var(--danger); 
+                color: var(--danger); 
+            }
+            .mobile-lock-toggle.unlocked { 
+                background: rgba(6, 214, 160, 0.15); 
+                border-color: var(--primary-teal); 
+                color: var(--primary-teal); 
+            }
 
-            /* Less sensitive buttons */
+            /* ===== LESS SENSITIVE ===== */
             .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
             .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
-                touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-                user-select: none; -webkit-user-select: none;
+                touch-action: manipulation; 
+                -webkit-tap-highlight-color: transparent;
+                user-select: none; 
+                -webkit-user-select: none;
             }
 
-            /* Compact properties panel */
-            .properties-panel { width: 100%; padding: 8px; margin: 0; }
-            .checkout-section { margin-top: 8px; }
-        }
+            /* ===== CHECKOUT ===== */
+            .checkout-section { margin-top: 8px !important; }
 
-        @media (min-width: 769px) {
+            /* ===== HEADER COMPACT ===== */
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .back-link { padding: 5px 8px; font-size: 0.75rem; }
+            .mode-switch { transform: scale(0.8); }
+            .batch-controls { padding: 8px; margin-bottom: 2px; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+        }
+@media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
@@ -2134,6 +2274,68 @@
         }
 
         /* ===== MOBILE UI SETUP ===== */
+        function applyMobileSpacingFix() {
+            if (window.innerWidth > 768) return;
+            const canvasArea = document.querySelector('.canvas-area');
+            const canvasContainer = document.querySelector('.canvas-container');
+            const canvasToolbar = document.querySelector('.canvas-toolbar');
+            const designLayout = document.querySelector('.design-layout');
+            const appContainer = document.querySelector('.app-container');
+            const designCanvas = document.getElementById('designCanvas');
+            const propertiesPanel = document.querySelector('.properties-panel');
+
+            if (canvasArea) {
+                canvasArea.style.setProperty('display', 'block', 'important');
+                canvasArea.style.setProperty('flex', 'none', 'important');
+                canvasArea.style.setProperty('height', 'auto', 'important');
+                canvasArea.style.setProperty('min-height', 'auto', 'important');
+                canvasArea.style.setProperty('padding', '0', 'important');
+                canvasArea.style.setProperty('margin', '0 0 2px 0', 'important');
+                canvasArea.style.setProperty('background', 'transparent', 'important');
+                canvasArea.style.setProperty('border', 'none', 'important');
+                canvasArea.style.setProperty('border-radius', '0', 'important');
+                canvasArea.style.setProperty('position', 'relative', 'important');
+            }
+            if (canvasContainer) {
+                canvasContainer.style.setProperty('display', 'block', 'important');
+                canvasContainer.style.setProperty('flex', 'none', 'important');
+                canvasContainer.style.setProperty('height', 'auto', 'important');
+                canvasContainer.style.setProperty('min-height', 'auto', 'important');
+                canvasContainer.style.setProperty('padding', '0', 'important');
+                canvasContainer.style.setProperty('margin', '0', 'important');
+                canvasContainer.style.setProperty('background', 'transparent', 'important');
+                canvasContainer.style.setProperty('border', 'none', 'important');
+                canvasContainer.style.setProperty('border-radius', '0', 'important');
+                canvasContainer.style.setProperty('line-height', '0', 'important');
+                canvasContainer.style.setProperty('font-size', '0', 'important');
+            }
+            if (canvasToolbar) {
+                canvasToolbar.style.setProperty('margin', '0', 'important');
+                canvasToolbar.style.setProperty('padding', '2px 4px', 'important');
+                canvasToolbar.style.setProperty('border-bottom', 'none', 'important');
+            }
+            if (designLayout) {
+                designLayout.style.setProperty('height', 'auto', 'important');
+                designLayout.style.setProperty('min-height', 'auto', 'important');
+                designLayout.style.setProperty('flex', 'none', 'important');
+            }
+            if (appContainer) {
+                appContainer.style.setProperty('height', 'auto', 'important');
+                appContainer.style.setProperty('min-height', 'auto', 'important');
+            }
+            if (designCanvas) {
+                designCanvas.style.setProperty('display', 'block', 'important');
+                designCanvas.style.setProperty('margin', '0 auto', 'important');
+                designCanvas.style.setProperty('box-shadow', 'none', 'important');
+                designCanvas.style.setProperty('border', 'none', 'important');
+                designCanvas.style.setProperty('vertical-align', 'top', 'important');
+            }
+            if (propertiesPanel) {
+                propertiesPanel.style.setProperty('padding', '0 8px 8px', 'important');
+                propertiesPanel.style.setProperty('margin', '0', 'important');
+            }
+        }
+
         function setupMobileUI() {
             // Wrap property sections for collapsible headings
             if (!document.querySelector('.section-content')) {
@@ -2240,6 +2442,7 @@
 
             // Resize handler
             function handleResize() {
+                applyMobileSpacingFix();
                 const isMobile = window.innerWidth <= 768;
                 const toolsPanel = document.querySelector('.tools-panel');
                 const toggleEl = document.getElementById('mobileToolsToggle');
@@ -2286,6 +2489,7 @@
         async function init() {
             if (document.fonts) await document.fonts.ready;
             setupMobileUI();
+            applyMobileSpacingFix();
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
