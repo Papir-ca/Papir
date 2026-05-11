@@ -127,19 +127,17 @@
             /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
             .canvas-area { 
                 order: 1; 
-                position: relative !important; 
-                top: auto !important;
-                z-index: auto !important; 
+                position: sticky; 
+                top: 0; 
+                z-index: 50; 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
                 min-height: auto !important;
                 max-height: none !important;
                 padding: 0 !important; 
-                margin: 0 0 2px 0 !important; 
+                margin: 0 !important; 
                 background: transparent !important;
-                border: none !important;
-                border-radius: 0 !important;
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -156,10 +154,7 @@
                 background-image: none !important;
                 overflow: visible;
                 line-height: 0;
-                font-size: 0;
                 text-align: center;
-                border: none !important;
-                border-radius: 0 !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -169,10 +164,20 @@
                 height: auto !important; 
                 max-height: 55vh;
                 display: block; 
-                margin: 0 auto !important;
+                margin: 0 auto;
                 box-shadow: none !important;
-                border: none !important;
-                vertical-align: top !important;
+            }
+
+            /* Fix Fabric.js inner wrapper dead space */
+            #canvasContainer > .canvas-container {
+                width: 100% !important;
+                height: auto !important;
+            }
+            #canvasContainer > .canvas-container canvas {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: 55vh;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -222,7 +227,7 @@
                 padding: 10px 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin: 0 !important; 
+                margin: 0; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
@@ -235,7 +240,7 @@
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             /* ===== ACCORDION ===== */
-            .mobile-accordion-container { display: block; margin: 0 !important; }
+            .mobile-accordion-container { display: block; margin: 0; }
             .mobile-accordion-header {
                 display: flex; 
                 align-items: center; 
@@ -266,18 +271,18 @@
             .properties-panel { 
                 width: 100%; 
                 order: 3; 
-                padding: 0 8px 8px !important; 
+                padding: 4px 8px 8px; 
                 margin: 0 !important;
                 flex: none !important;
                 height: auto !important;
                 min-height: auto !important;
                 display: block !important;
             }
-            .properties-panel .panel-header { margin: 0 !important; padding: 8px 0 !important; }
+            .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
 
             /* ===== COLLAPSIBLE SECTIONS ===== */
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; margin-bottom: 10px !important; }
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
             .property-section h4 { 
                 cursor: pointer; 
                 display: flex; 
@@ -2282,57 +2287,46 @@
             const designLayout = document.querySelector('.design-layout');
             const appContainer = document.querySelector('.app-container');
             const designCanvas = document.getElementById('designCanvas');
-            const propertiesPanel = document.querySelector('.properties-panel');
 
             if (canvasArea) {
-                canvasArea.style.setProperty('display', 'block', 'important');
-                canvasArea.style.setProperty('flex', 'none', 'important');
-                canvasArea.style.setProperty('height', 'auto', 'important');
-                canvasArea.style.setProperty('min-height', 'auto', 'important');
-                canvasArea.style.setProperty('padding', '0', 'important');
-                canvasArea.style.setProperty('margin', '0 0 2px 0', 'important');
-                canvasArea.style.setProperty('background', 'transparent', 'important');
-                canvasArea.style.setProperty('border', 'none', 'important');
-                canvasArea.style.setProperty('border-radius', '0', 'important');
-                canvasArea.style.setProperty('position', 'relative', 'important');
+                canvasArea.style.display = 'block';
+                canvasArea.style.flex = 'none';
+                canvasArea.style.height = 'auto';
+                canvasArea.style.minHeight = 'auto';
+                canvasArea.style.maxHeight = 'none';
+                canvasArea.style.padding = '0';
+                canvasArea.style.margin = '0';
+                canvasArea.style.background = 'transparent';
             }
             if (canvasContainer) {
-                canvasContainer.style.setProperty('display', 'block', 'important');
-                canvasContainer.style.setProperty('flex', 'none', 'important');
-                canvasContainer.style.setProperty('height', 'auto', 'important');
-                canvasContainer.style.setProperty('min-height', 'auto', 'important');
-                canvasContainer.style.setProperty('padding', '0', 'important');
-                canvasContainer.style.setProperty('margin', '0', 'important');
-                canvasContainer.style.setProperty('background', 'transparent', 'important');
-                canvasContainer.style.setProperty('border', 'none', 'important');
-                canvasContainer.style.setProperty('border-radius', '0', 'important');
-                canvasContainer.style.setProperty('line-height', '0', 'important');
-                canvasContainer.style.setProperty('font-size', '0', 'important');
+                canvasContainer.style.display = 'block';
+                canvasContainer.style.flex = 'none';
+                canvasContainer.style.height = 'auto';
+                canvasContainer.style.minHeight = 'auto';
+                canvasContainer.style.maxHeight = 'none';
+                canvasContainer.style.padding = '0';
+                canvasContainer.style.margin = '0';
+                canvasContainer.style.background = 'transparent';
+                canvasContainer.style.backgroundColor = 'transparent';
+                canvasContainer.style.backgroundImage = 'none';
             }
             if (canvasToolbar) {
-                canvasToolbar.style.setProperty('margin', '0', 'important');
-                canvasToolbar.style.setProperty('padding', '2px 4px', 'important');
-                canvasToolbar.style.setProperty('border-bottom', 'none', 'important');
+                canvasToolbar.style.margin = '0';
+                canvasToolbar.style.padding = '2px 4px';
+                canvasToolbar.style.borderBottom = 'none';
             }
             if (designLayout) {
-                designLayout.style.setProperty('height', 'auto', 'important');
-                designLayout.style.setProperty('min-height', 'auto', 'important');
-                designLayout.style.setProperty('flex', 'none', 'important');
+                designLayout.style.height = 'auto';
+                designLayout.style.minHeight = 'auto';
+                designLayout.style.flex = 'none';
             }
             if (appContainer) {
-                appContainer.style.setProperty('height', 'auto', 'important');
-                appContainer.style.setProperty('min-height', 'auto', 'important');
+                appContainer.style.height = 'auto';
+                appContainer.style.minHeight = 'auto';
             }
             if (designCanvas) {
-                designCanvas.style.setProperty('display', 'block', 'important');
-                designCanvas.style.setProperty('margin', '0 auto', 'important');
-                designCanvas.style.setProperty('box-shadow', 'none', 'important');
-                designCanvas.style.setProperty('border', 'none', 'important');
-                designCanvas.style.setProperty('vertical-align', 'top', 'important');
-            }
-            if (propertiesPanel) {
-                propertiesPanel.style.setProperty('padding', '0 8px 8px', 'important');
-                propertiesPanel.style.setProperty('margin', '0', 'important');
+                designCanvas.style.display = 'block';
+                designCanvas.style.margin = '0 auto';
             }
         }
 
