@@ -129,7 +129,6 @@
                 order: 1; 
                 position: sticky; 
                 top: 0; 
-                z-index: 50; 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
@@ -172,6 +171,7 @@
             #canvasContainer > .canvas-container {
                 width: 100% !important;
                 height: auto !important;
+                min-height: auto !important;
             }
             #canvasContainer > .canvas-container canvas {
                 display: block !important;
@@ -271,7 +271,7 @@
             .properties-panel { 
                 width: 100%; 
                 order: 3; 
-                padding: 4px 8px 8px; 
+                padding: 0 8px 8px; 
                 margin: 0 !important;
                 flex: none !important;
                 height: auto !important;
