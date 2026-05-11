@@ -127,8 +127,7 @@
             /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
             .canvas-area { 
                 order: 1; 
-                position: sticky; 
-                top: 0; 
+                position: relative; 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
@@ -2297,6 +2296,7 @@
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
+                canvasArea.style.position = 'relative';
             }
             if (canvasContainer) {
                 canvasContainer.style.display = 'block';
