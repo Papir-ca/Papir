@@ -110,88 +110,7 @@
         #audioUploadSection .upload-area { border-color: var(--primary-gold); }
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
-        @media (max-width: 768px) {
-            /* ===== REMOVE ALL DEAD SPACE ===== */
-            body { overflow-x: hidden; }
-            .app-container { padding: 4px; height: auto; min-height: 100vh; gap: 0; }
-            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; border-radius: 8px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .design-header h1 { font-size: 0.9rem; }
-            .template-badge { font-size: 0.7rem; }
-            .design-header > div:last-child { width: 100%; justify-content: space-between; }
-            .batch-controls { padding: 8px; margin-bottom: 2px; border-radius: 8px; }
-            .batch-controls > div:first-child { flex-direction: column; gap: 8px; }
-            .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; }
-            .design-layout { flex-direction: column; height: auto; gap: 0 !important; margin: 0 !important; padding: 0 !important; background: transparent; flex: none !important; min-height: auto !important; }
-            .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; margin: 0 !important; border-radius: 0 0 8px 8px; }
-            .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
-            .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
-
-            /* ===== CANVAS AREA - ZERO DEAD SPACE, STICKY ===== */
-            .canvas-area { order: 1; position: sticky; top: 0; z-index: 50; min-height: auto; height: auto; padding: 0 !important; margin: 0 !important; gap: 0 !important; border-radius: 0 !important; overflow: visible; background: transparent !important; background-color: transparent !important; display: block !important; flex: none !important; }
-            .canvas-area > * { margin: 0 !important; padding: 0 !important; }
-            .canvas-container { padding: 0 !important; margin: 0 !important; border-radius: 0 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; touch-action: pan-y pan-x !important; -webkit-overflow-scrolling: touch; overflow: visible; display: block; line-height: 0; height: auto !important; min-height: auto !important; flex: none !important; }
-            #designCanvas { max-width: 100%; width: 100%; height: auto !important; max-height: 58vh; touch-action: auto; margin: 0 !important; display: block; border-radius: 0; box-shadow: none !important; }
-            .canvas-toolbar { margin: 0 !important; padding: 2px 4px !important; font-size: 0.6rem; min-height: 22px; border-bottom: none !important; flex-shrink: 0; background: transparent !important; }
-            .canvas-toolbar span { font-size: 0.6rem !important; }
-            .canvas-toolbar .mobile-scroll-hint { display: none !important; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 22px; font-size: 0.6rem; }
-            .grid-overlay { display: none; }
-
-            /* ===== TOOLS PANEL COLLAPSED ===== */
-            .tools-panel.collapsed { max-height: 0; min-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; overflow: hidden; border: none; }
-
-            /* ===== TOOLS TOGGLE - DIRECTLY UNDER CANVAS ===== */
-            .mobile-tools-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.08); border-radius: 0 0 8px 8px; margin: 0 !important; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: white; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; border-top: 1px solid rgba(255,255,255,0.05); position: relative; top: 0; }
-            .mobile-tools-toggle:active { opacity: 0.8; }
-            .mobile-tools-toggle i.fa-chevron-up, .mobile-tools-toggle i.fa-chevron-down { margin-left: auto; transition: transform 0.2s; }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
-
-            /* ===== ACCORDION ===== */
-            .mobile-accordion-container { display: block; margin: 0 !important; padding: 0 !important; }
-            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 2px 0 0 0 !important; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-            .mobile-accordion-header i:first-child { margin-right: 10px; }
-            .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
-
-            /* ===== HIDE DESKTOP TABS ===== */
-            .properties-panel .tabs { display: none !important; }
-
-            /* ===== PROPERTIES PANEL COMPACT ===== */
-            .properties-panel { width: 100%; order: 3; max-height: none; padding: 6px; overscroll-behavior: contain; margin: 0 !important; border-radius: 8px; background: transparent; flex: none !important; height: auto !important; }
-            .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
-            .properties-panel .panel-title { font-size: 0.85rem; }
-            .properties-panel .btn-icon.small { padding: 4px 8px; min-height: 32px; font-size: 0.75rem; }
-            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
-            .control-row { flex-wrap: wrap; }
-            .control-group { min-width: 120px; }
-
-            /* ===== COLLAPSIBLE SECTIONS ===== */
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; margin-bottom: 8px; }
-            .property-section h4 { cursor: pointer; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; font-size: 0.7rem; }
-            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.7rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); pointer-events: none; }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
-
-            /* ===== LOCK TOGGLE IN LAYERS ===== */
-            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
-            .mobile-lock-toggle:active { opacity: 0.9; }
-            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
-            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-
-            /* ===== LESS SENSITIVE BUTTONS ===== */
-            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle, .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
-
-            /* ===== CHECKOUT COMPACT ===== */
-            .checkout-section { position: sticky; bottom: 0; margin: 2px 0 0 0 !important; padding: 10px; border-radius: 8px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); }
-            .checkout-btn { padding: 16px; font-size: 1.1rem; }
-            .layer-item { padding: 14px 10px; }
-            .layer-btn { padding: 8px; }
-            .upload-area { padding: 25px 15px; }
-            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-        }
+        @media (max-width: 768px) { body { overflow-x: hidden; } .app-container { padding: 8px; height: auto; min-height: 100vh; } .design-header { flex-direction: column; gap: 10px; padding: 10px; margin-bottom: 8px; } .header-left { width: 100%; justify-content: space-between; } .design-header h1 { font-size: 1.1rem; } .template-badge { font-size: 0.7rem; } .design-header > div:last-child { width: 100%; justify-content: space-between; } .batch-controls { padding: 10px; } .batch-controls > div:first-child { flex-direction: column; gap: 8px; } .batch-controls > div:first-child > div:last-child { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; } .design-layout { flex-direction: column; height: auto; gap: 10px; } .tools-panel { width: 100%; flex-direction: row; justify-content: flex-start; overflow-x: auto; padding: 8px; gap: 6px; order: 2; min-height: 60px; } .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; } .tool-divider { width: 1px; height: 70%; margin: 0 3px; } .canvas-area { order: 1; min-height: 400px; height: 50vh; } .canvas-container { padding: 10px; } #designCanvas { max-width: 100%; height: auto !important; } .properties-panel { width: 100%; order: 3; max-height: none; padding: 12px; } .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; } .control-row { flex-wrap: wrap; } .control-group { min-width: 120px; } .checkout-section { position: sticky; bottom: 0; margin-top: 15px; background: linear-gradient(135deg, rgba(6, 214, 160, 0.95), rgba(102, 126, 234, 0.95)); backdrop-filter: blur(10px); } .checkout-btn { padding: 16px; font-size: 1.1rem; } .layer-item { padding: 14px 10px; } .layer-btn { padding: 8px; } .upload-area { padding: 25px 15px; } .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; } }
         @media (max-width: 480px) { .design-header h1 { display: none; } .header-left { justify-content: flex-start; gap: 10px; } .mode-switch { transform: scale(0.9); } .price-display { font-size: 0.8rem; padding: 6px 12px; } .canvas-area { min-height: 350px; height: 45vh; } .btn-group { gap: 8px; } .btn-icon { padding: 10px 8px; font-size: 0.8rem; } .tabs { overflow-x: auto; flex-wrap: nowrap; } .tab { white-space: nowrap; padding: 10px 14px; } input[type="color"] { width: 50px; height: 44px; } .color-preset { width: 36px; height: 36px; } .batch-controls input[type="number"] { width: 50px; } .qty-btn { width: 36px; height: 36px; } }
         @media (max-height: 500px) and (orientation: landscape) { .design-layout { flex-direction: row; } .tools-panel { width: 60px; flex-direction: column; order: 1; } .canvas-area { order: 2; height: 80vh; } .properties-panel { width: 280px; order: 3; max-height: 80vh; } .design-header { display: none; } }
         .tool-btn, .btn-icon, .tab, .layer-item, .bg-option { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -204,314 +123,101 @@
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
         html { scroll-behavior: smooth; }
         img { max-width: 100%; height: auto; }
-
-        /* ===== MOBILE COLLAPSIBLE UI ADDITIONS ===== */
-        .section-content { display: block; }
+    
+        /* ===== MOBILE UI ADDITIONS ===== */
         .mobile-tools-toggle { display: none; }
         .mobile-accordion-container { display: none; }
         .mobile-accordion-header { display: none; }
+        .mobile-lock-toggle { display: none; }
+        .section-content { display: block; }
 
         @media (max-width: 768px) {
+            /* Fix dead space: stop flexbox expansion */
+            .design-layout { flex-direction: column; height: auto; min-height: auto; gap: 2px; }
+            .canvas-area { flex: none; height: auto; min-height: auto; padding: 0; margin: 0; }
+            .canvas-container { padding: 0; margin: 0; }
+            #designCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+            .canvas-toolbar { margin-bottom: 2px; padding-bottom: 2px; font-size: 0.75rem; }
+            .canvas-toolbar .mobile-scroll-hint { display: none; }
+
+            /* Sticky canvas */
+            .canvas-area { position: sticky; top: 0; z-index: 50; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+
+            /* Tools toggle */
             .mobile-tools-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                padding: 8px 12px;
-                background: rgba(255,255,255,0.08);
-                border-radius: 10px;
-                margin-top: 2px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 0.95rem;
-                color: white;
-                -webkit-tap-highlight-color: transparent;
-                user-select: none;
-                touch-action: manipulation;
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+                padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
+                margin: 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+                color: white; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
             }
             .mobile-tools-toggle:active { opacity: 0.8; }
-            .mobile-tools-toggle i.fa-chevron-up,
-            .mobile-tools-toggle i.fa-chevron-down {
-                margin-left: auto;
-                transition: transform 0.2s;
-            }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up {
-                transform: rotate(180deg);
-            }
+            .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
+            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             .tools-panel {
-                transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease;
-                max-height: 120px;
+                transition: max-height 0.35s ease, opacity 0.35s ease;
+                max-height: 120px; margin: 0;
             }
             .tools-panel.collapsed {
-                max-height: 0;
-                min-height: 0 !important;
-                opacity: 0;
-                padding: 0 !important;
-                margin: 0 !important;
-                overflow: hidden;
-                border: none;
+                max-height: 0; min-height: 0; opacity: 0; padding: 0; margin: 0;
+                overflow: hidden; border: none;
             }
 
-            /* Mobile accordion for Design/Layers/Settings */
-            .mobile-accordion-container {
-                display: block;
-                margin-top: 2px;
-            }
+            /* Accordion tabs */
+            .mobile-accordion-container { display: block; margin: 2px 0; }
             .mobile-accordion-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 12px 12px;
-                background: rgba(255,255,255,0.08);
-                border-radius: 10px;
-                margin-bottom: 4px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 0.95rem;
-                border: 1px solid rgba(255,255,255,0.1);
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
+                margin-bottom: 2px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+                border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
-                user-select: none;
-                touch-action: manipulation;
             }
-            .mobile-accordion-header:active {
-                opacity: 0.9;
-            }
+            .mobile-accordion-header:active { opacity: 0.9; }
             .mobile-accordion-header.active {
-                background: rgba(6, 214, 160, 0.15);
-                border-color: var(--primary-teal);
-                color: var(--primary-teal);
+                background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal);
             }
-            .mobile-accordion-header i:first-child {
-                margin-right: 10px;
-            }
-            .accordion-chevron {
-                transition: transform 0.2s;
-                pointer-events: none;
-            }
+            .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
 
-            /* Hide desktop tabs on mobile */
-            .properties-panel .tabs {
-                display: none !important;
-            }
+            /* Hide desktop tabs */
+            .properties-panel .tabs { display: none !important; }
 
-            /* Collapsible property sections */
-            .property-section {
-                border-bottom: 1px solid rgba(255,255,255,0.06);
-                padding-bottom: 4px;
-            }
-            .property-section h4 {
-                cursor: pointer;
-                user-select: none;
-                -webkit-user-select: none;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 10px 0;
-                margin-bottom: 0 !important;
-            }
-            .property-section h4::after {
-                content: '\f078';
-                font-family: 'Font Awesome 6 Free';
-                font-weight: 900;
-                font-size: 0.75rem;
-                transition: transform 0.2s;
-                margin-left: 10px;
-                color: var(--primary-gold);
-                pointer-events: none;
-            }
-            .property-section.collapsed h4::after {
-                transform: rotate(-90deg);
-            }
-            .property-section.collapsed .section-content {
-                display: none;
-            }
-            .property-section .section-content {
-                padding-top: 8px;
-            }
+            /* Collapsible sections */
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
 
-            /* Canvas visibility fixes for portrait - ZERO dead space */
-            .canvas-area {
-                min-height: 70vh;
-                height: 70vh;
-                padding: 0;
-                margin: 0;
-                gap: 0;
-            }
-            .canvas-container {
-                padding: 0;
-                touch-action: pan-y pan-x !important;
-                -webkit-overflow-scrolling: touch;
-                overflow: auto;
-                margin: 0;
-                border-radius: 0;
-                background: #252538;
-            }
-            #designCanvas {
-                max-width: 100%;
-                height: auto !important;
-                max-height: 100%;
-                touch-action: auto;
-                margin: 0 auto;
-                display: block;
-            }
-            .canvas-toolbar {
-                margin: 0;
-                padding: 4px 6px;
-                font-size: 0.7rem;
-                min-height: 28px;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
-            }
-            .canvas-toolbar span {
-                font-size: 0.65rem !important;
-            }
-            .canvas-toolbar .mobile-scroll-hint {
-                display: none !important;
-            }
-            .canvas-controls .btn-icon.small {
-                padding: 3px 5px;
-                min-height: 28px;
-                font-size: 0.7rem;
-            }
-            .grid-overlay {
-                display: none;
-            }
-
-            /* Compact header */
-            .design-header {
-                padding: 6px 10px;
-                margin-bottom: 4px;
-            }
-            .header-left {
-                gap: 6px;
-            }
-            .design-header h1 {
-                font-size: 0.95rem;
-            }
-            .back-link {
-                padding: 5px 8px;
-                font-size: 0.75rem;
-            }
-            .mode-switch {
-                transform: scale(0.8);
-            }
-            .batch-controls {
-                padding: 8px;
-                margin-bottom: 4px;
-            }
-            .design-layout {
-                gap: 2px;
-            }
-            .properties-panel {
-                padding: 6px;
-                overscroll-behavior: contain;
-                margin: 0;
-            }
-            .checkout-section {
-                margin-top: 4px;
-                padding: 10px;
-            }
-            .app-container {
-                padding: 6px;
-            }
-        }
-            /* Compact panel header on mobile */
-            .properties-panel .panel-header {
-                margin-bottom: 6px;
-                padding-bottom: 6px;
-            }
-            .properties-panel .panel-title {
-                font-size: 0.9rem;
-            }
-            .properties-panel .btn-icon.small {
-                padding: 4px 8px;
-                min-height: 32px;
-                font-size: 0.75rem;
-            }
-
-            /* Sticky canvas on mobile */
-            .canvas-area {
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            }
-
-            /* Lock toggle button in Layers */
+            /* Lock toggle in Layers */
             .mobile-lock-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 10px 12px;
-                background: rgba(255,255,255,0.08);
-                border-radius: 8px;
-                margin-bottom: 10px;
-                cursor: pointer;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255,255,255,0.1);
-                -webkit-tap-highlight-color: transparent;
-                touch-action: manipulation;
-                user-select: none;
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px;
+                margin-bottom: 10px; cursor: pointer; font-size: 0.85rem;
+                border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation;
             }
-            .mobile-lock-toggle:active {
-                opacity: 0.9;
-            }
-            .mobile-lock-toggle.locked {
-                background: rgba(255, 107, 107, 0.15);
-                border-color: var(--danger);
-                color: var(--danger);
-            }
-            .mobile-lock-toggle.unlocked {
-                background: rgba(6, 214, 160, 0.15);
-                border-color: var(--primary-teal);
-                color: var(--primary-teal);
-            }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
 
             /* Less sensitive buttons */
-            .mobile-tools-toggle,
-            .mobile-accordion-header,
-            .mobile-lock-toggle,
-            .property-section h4,
-            .btn-icon,
-            .tool-btn,
-            .layer-item,
-            .checkout-btn {
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-                user-select: none;
-                -webkit-user-select: none;
+            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
+            .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
+                touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+                user-select: none; -webkit-user-select: none;
             }
 
-        @media (min-width: 769px) {
-            .mobile-tools-toggle { display: none !important; }
-            .mobile-accordion-container { display: none !important; }
-            .mobile-accordion-header { display: none !important; }
-            .mobile-lock-toggle { display: none !important; }
-            .tools-panel.collapsed {
-                max-height: none;
-                opacity: 1;
-                overflow: visible;
-            }
-            .property-section.collapsed .section-content {
-                display: block !important;
-            }
-            .canvas-area {
-                position: relative;
-                z-index: auto;
-                min-height: auto;
-                height: auto;
-            }
-            .canvas-container {
-                background: linear-gradient(45deg, #2a2a3e 25%, transparent 25%), linear-gradient(-45deg, #2a2a3e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a3e 75%), linear-gradient(-45deg, transparent 75%, #2a2a3e 75%);
-                background-size: 20px 20px;
-                background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-                background-color: #252538;
-            }
-            .grid-overlay {
-                display: block;
-            }
+            /* Compact properties panel */
+            .properties-panel { width: 100%; padding: 8px; margin: 0; }
+            .checkout-section { margin-top: 8px; }
         }
-    </style>
+
+        @media (min-width: 769px) {
+            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
+            .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
+            .property-section.collapsed .section-content { display: block !important; }
+            .canvas-area { position: relative; z-index: auto; }
+        }
+</style>
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -1159,7 +865,7 @@
 
         function restoreVideoObject(obj) {
             if (!obj.videoBlobUrl || obj.videoElement) return;
-
+            
             const videoEl = document.createElement('video');
             videoEl.src = obj.videoBlobUrl;
             videoEl.crossOrigin = "anonymous";
@@ -1168,21 +874,21 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-
+            
             videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(() => {});
-
+                
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
                 videoCanvas.height = obj.height || videoEl.videoHeight || 480;
                 const ctx = videoCanvas.getContext('2d');
-
+                
                 obj._element = videoCanvas;
                 obj._originalElement = videoCanvas;
                 obj.videoElement = videoEl;
                 obj.videoCanvas = videoCanvas;
                 obj.videoContext = ctx;
-
+                
                 const renderLoop = () => {
                     if (obj.canvas && !obj.isDeleted) {
                         if (videoEl.readyState >= 2) {
@@ -1194,17 +900,17 @@
                     }
                 };
                 obj._videoFrame = requestAnimationFrame(renderLoop);
-
+                
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
-
+                
                 canvas.requestRenderAll();
             };
-
+            
             videoEl.onerror = () => {
                 console.error('Error restoring video from blob URL');
             };
@@ -1212,22 +918,22 @@
 
         function restoreAudioObject(obj) {
             if (!obj.audioBlobUrl || obj.audioElement) return;
-
+            
             const audioEl = document.createElement('audio');
             audioEl.src = obj.audioBlobUrl;
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-
+            
             audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
-
+                
                 obj.on('selected', () => {
                     if (obj.audioElement) obj.audioElement.play().catch(() => {});
                 });
-
+                
                 obj.on('removed', function() {
                     if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
@@ -2260,11 +1966,11 @@
             try {
                 const BACKEND_URL = '';
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
-
+                
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
-
+                
                 if (hasVideo) {
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
@@ -2281,7 +1987,7 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) videoUrl = uploadData.url;
                 }
-
+                
                 let audioUrl = '';
                 const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
                 if (audioObjects.length > 0) {
@@ -2300,10 +2006,10 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) audioUrl = uploadData.url;
                 }
-
+                
                 let overlayUrl = '';
                 let thumbnailUrl = '';
-
+                
                 if (hasVideo) {
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
@@ -2315,14 +2021,14 @@
                     canvas.renderAll();
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
-
+                    
                     const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
                     const overlayData2 = await overlayRes.json();
                     if (overlayData2.success) overlayUrl = overlayData2.url;
-
+                    
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2339,13 +2045,13 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) thumbnailUrl = uploadData.url;
                 }
-
+                
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
                 const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
                 let mediaType = 'image';
                 if (hasVideo) mediaType = 'video';
                 else if (audioUrl) mediaType = 'audio';
-
+                
                 if (qty === 1) {
                     const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
@@ -2406,9 +2112,30 @@
             }
         }
 
-        /* ===== MOBILE UI SETUP (collapsible sections, accordion, tools toggle) ===== */
+        /* ===== MOBILE LOCK/UNLOCK ===== */
+        function lockMobileObjects(lock) {
+            if (!canvas) return;
+            canvas.getObjects().forEach(obj => {
+                if (lock) {
+                    obj._wasSelectable = obj.selectable;
+                    obj._wasEvented = obj.evented;
+                    obj.set({ selectable: false, evented: false });
+                } else {
+                    if (obj._wasSelectable !== undefined) {
+                        obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
+                    } else {
+                        obj.set({ selectable: true, evented: true });
+                    }
+                }
+            });
+            if (lock) { canvas.selection = false; canvas.discardActiveObject(); }
+            else { canvas.selection = true; }
+            canvas.renderAll();
+        }
+
+        /* ===== MOBILE UI SETUP ===== */
         function setupMobileUI() {
-            // 1. Wrap property-section contents for collapsible headings
+            // Wrap property sections for collapsible headings
             if (!document.querySelector('.section-content')) {
                 document.querySelectorAll('.property-section').forEach(section => {
                     const h4 = section.querySelector('h4');
@@ -2424,14 +2151,14 @@
                 });
             }
 
-            // 2. Tools toggle below canvas
+            // Tools toggle below canvas
             const canvasArea = document.querySelector('.canvas-area');
             let toggle = document.getElementById('mobileToolsToggle');
             if (!toggle && canvasArea) {
                 toggle = document.createElement('div');
-                toggle.className = 'mobile-tools-toggle';
+                toggle.className = 'mobile-tools-toggle collapsed';
                 toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-up" style="margin-left:auto; transition:transform 0.2s;"></i>';
+                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>';
                 canvasArea.appendChild(toggle);
                 toggle.addEventListener('click', function() {
                     const toolsPanel = document.querySelector('.tools-panel');
@@ -2440,48 +2167,36 @@
                         toolsPanel.classList.toggle('collapsed');
                         this.classList.toggle('collapsed');
                         if (icon) {
-                            if (toolsPanel.classList.contains('collapsed')) {
-                                icon.classList.remove('fa-chevron-up');
-                                icon.classList.add('fa-chevron-down');
-                            } else {
-                                icon.classList.remove('fa-chevron-down');
-                                icon.classList.add('fa-chevron-up');
-                            }
+                            icon.classList.toggle('fa-chevron-up');
+                            icon.classList.toggle('fa-chevron-down');
                         }
                     }
                 });
             }
 
-            // 3. Mobile accordion for Design / Layers / Settings
+            // Mobile accordion for Design/Layers/Settings
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
                 accordion.id = 'mobileAccordionContainer';
                 accordion.className = 'mobile-accordion-container';
-
                 const tabData = [
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
                     { tabId: 'settings', label: 'Settings', icon: 'fa-cog', contentId: 'settingsTab' }
                 ];
-
                 tabData.forEach(tab => {
                     const header = document.createElement('div');
                     header.className = 'mobile-accordion-header';
                     header.dataset.target = tab.contentId;
                     header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
-
-                    header.addEventListener('click', function(e) {
+                    header.addEventListener('click', function() {
                         if (window.innerWidth > 768) return;
                         const targetId = this.dataset.target;
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
                         const isActive = this.classList.contains('active');
-
-                        // If already open, do nothing (prevent accidental close)
                         if (isActive) return;
-
-                        // Close all accordions
                         document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                             h.classList.remove('active');
                             const c = h.querySelector('.accordion-chevron');
@@ -2490,73 +2205,40 @@
                         document.querySelectorAll('.tab-content').forEach(c => {
                             if (window.innerWidth <= 768) c.style.display = 'none';
                         });
-
-                        // Open clicked
                         this.classList.add('active');
                         if (chevron) chevron.style.transform = 'rotate(180deg)';
                         if (targetContent) {
                             targetContent.style.display = 'block';
-                            // Scroll the opened content into view smoothly
-                            setTimeout(() => {
-                                this.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 50);
+                            setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
                         }
                     });
-
                     accordion.appendChild(header);
                 });
-
-                // Mobile lock/unlock toggle
-                const lockToggle = document.getElementById('mobileLockToggle');
-                if (lockToggle) {
-                    lockToggle.addEventListener('click', function() {
-                        const isLocked = this.classList.contains('locked');
-                        if (isLocked) {
-                            // Unlock
-                            lockMobileObjects(false);
-                            this.classList.remove('locked');
-                            this.classList.add('unlocked');
-                            this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-                        } else {
-                            // Lock
-                            lockMobileObjects(true);
-                            this.classList.remove('unlocked');
-                            this.classList.add('locked');
-                            this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
-                        }
-                    });
-                }
-
                 const propertiesPanel = document.querySelector('.properties-panel');
                 const tabs = propertiesPanel.querySelector('.tabs');
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
-            // 4. Resize handler
-            function lockMobileObjects(lock) {
-                if (!canvas) return;
-                canvas.getObjects().forEach(obj => {
-                    if (lock) {
-                        obj._wasSelectable = obj.selectable;
-                        obj._wasEvented = obj.evented;
-                        obj.set({ selectable: false, evented: false });
+            // Mobile lock/unlock toggle
+            const lockToggle = document.getElementById('mobileLockToggle');
+            if (lockToggle) {
+                lockToggle.addEventListener('click', function() {
+                    const isLocked = this.classList.contains('locked');
+                    if (isLocked) {
+                        lockMobileObjects(false);
+                        this.classList.remove('locked');
+                        this.classList.add('unlocked');
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                     } else {
-                        if (obj._wasSelectable !== undefined) {
-                            obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
-                        } else {
-                            obj.set({ selectable: true, evented: true });
-                        }
+                        lockMobileObjects(true);
+                        this.classList.remove('unlocked');
+                        this.classList.add('locked');
+                        this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                     }
                 });
-                if (lock) {
-                    canvas.selection = false;
-                    canvas.discardActiveObject();
-                } else {
-                    canvas.selection = true;
-                }
-                canvas.renderAll();
             }
 
+            // Resize handler
             function handleResize() {
                 const isMobile = window.innerWidth <= 768;
                 const toolsPanel = document.querySelector('.tools-panel');
@@ -2564,77 +2246,31 @@
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
-
                 if (!isMobile) {
-                    // Desktop: restore everything
-                    if (toolsPanel) {
-                        toolsPanel.classList.remove('collapsed');
-                        toolsPanel.style.maxHeight = '';
-                        toolsPanel.style.opacity = '';
-                        toolsPanel.style.padding = '';
-                        toolsPanel.style.margin = '';
-                        toolsPanel.style.overflow = '';
-                        toolsPanel.style.border = '';
-                    }
-                    if (toggleEl) {
-                        toggleEl.classList.remove('collapsed');
-                        const icon = toggleEl.querySelector('i.fa-chevron-down, i.fa-chevron-up');
-                        if (icon) {
-                            icon.classList.remove('fa-chevron-down');
-                            icon.classList.add('fa-chevron-up');
-                        }
-                    }
+                    if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
+                    if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
                     if (tabs) tabs.style.display = '';
                     if (accordionContainer) accordionContainer.style.display = 'none';
-
-                    tabContents.forEach(c => {
-                        c.style.display = ''; // Remove inline override
-                    });
-
-                    // Restore active tab
+                    tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
                     const activeTab = document.querySelector('.tab.active');
                     if (activeTab) {
-                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                         const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                         if (target) target.classList.add('active');
                     }
-
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-
-                    // Unlock objects on desktop
                     lockMobileObjects(false);
                 } else {
-                    // Mobile: setup
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
-
-                    // Collapse tools by default on mobile
                     if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    if (toggleEl) {
-                        toggleEl.classList.add('collapsed');
-                        const icon = toggleEl.querySelector('i.fa-chevron-up, i.fa-chevron-down');
-                        if (icon) {
-                            icon.classList.remove('fa-chevron-up');
-                            icon.classList.add('fa-chevron-down');
-                        }
-                    }
-
-                    // Collapse all tab contents by default
-                    tabContents.forEach(c => {
-                        c.classList.remove('active');
-                        c.style.display = 'none';
-                    });
-
-                    // Collapse accordion headers
+                    if (toggleEl) toggleEl.classList.add('collapsed');
+                    tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
-
-                    // Lock objects on mobile to prevent accidental moves while scrolling
                     lockMobileObjects(true);
-                    // Reset lock toggle UI
                     const lockToggleEl = document.getElementById('mobileLockToggle');
                     if (lockToggleEl) {
                         lockToggleEl.classList.remove('unlocked');
@@ -2643,7 +2279,6 @@
                     }
                 }
             }
-
             window.addEventListener('resize', handleResize);
             handleResize();
         }
