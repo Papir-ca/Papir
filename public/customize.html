@@ -127,7 +127,6 @@
             /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
             .canvas-area { 
                 order: 1; 
-                position: relative; 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
@@ -136,6 +135,7 @@
                 padding: 0 !important; 
                 margin: 0 !important; 
                 background: transparent !important;
+                position: static !important;
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -150,8 +150,10 @@
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
-                overflow: visible;
+                overflow: hidden !important;
+                position: relative !important;
                 line-height: 0;
+                font-size: 0;
                 text-align: center;
             }
 
@@ -165,18 +167,13 @@
                 margin: 0 auto;
                 box-shadow: none !important;
             }
-
-            /* Fix Fabric.js inner wrapper dead space */
-            #canvasContainer > .canvas-container {
+            .canvas-container .upper-canvas {
+                max-width: 100% !important;
                 width: 100% !important;
                 height: auto !important;
-                min-height: auto !important;
-            }
-            #canvasContainer > .canvas-container canvas {
-                display: block !important;
-                width: 100% !important;
-                height: auto !important;
-                max-height: 55vh;
+                max-height: 55vh !important;
+                left: 0 !important;
+                top: 0 !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -362,6 +359,7 @@
             .canvas-area { position: relative; z-index: auto; }
         }
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -2280,6 +2278,7 @@
         /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
             if (window.innerWidth > 768) return;
+            // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
             const canvasContainer = document.querySelector('.canvas-container');
             const canvasToolbar = document.querySelector('.canvas-toolbar');
@@ -2292,22 +2291,18 @@
                 canvasArea.style.flex = 'none';
                 canvasArea.style.height = 'auto';
                 canvasArea.style.minHeight = 'auto';
-                canvasArea.style.maxHeight = 'none';
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
-                canvasArea.style.position = 'relative';
             }
             if (canvasContainer) {
                 canvasContainer.style.display = 'block';
                 canvasContainer.style.flex = 'none';
                 canvasContainer.style.height = 'auto';
                 canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.maxHeight = 'none';
                 canvasContainer.style.padding = '0';
                 canvasContainer.style.margin = '0';
                 canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundColor = 'transparent';
                 canvasContainer.style.backgroundImage = 'none';
             }
             if (canvasToolbar) {
@@ -2327,6 +2322,7 @@
             if (designCanvas) {
                 designCanvas.style.display = 'block';
                 designCanvas.style.margin = '0 auto';
+                designCanvas.style.boxShadow = 'none';
             }
         }
 
