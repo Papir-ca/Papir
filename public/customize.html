@@ -111,8 +111,10 @@
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
         @media (max-width: 768px) {
-            /* Mobile fix: canvas area no longer sticky, flush under canvas */
+            /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
             .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
+
+            /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
             .design-layout { 
                 flex-direction: column; 
                 height: auto !important; 
@@ -122,23 +124,22 @@
                 flex: none !important;
             }
 
-            /* Canvas area - clean bottom flow, no sticky overlap */
+            /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
             .canvas-area { 
                 order: 1; 
-                position: relative !important;   /* NOT sticky on mobile */
-                top: auto !important;
-                z-index: auto !important;
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
                 min-height: auto !important;
                 max-height: none !important;
                 padding: 0 !important; 
-                margin: 0 0 12px 0 !important;   /* margin-bottom creates flush separation */
+                margin: 0 !important; 
                 background: transparent !important;
-                box-shadow: none;
+                position: relative !important;
+                z-index: auto !important;
             }
 
+            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
             .canvas-container { 
                 display: block !important;
                 flex: none !important; 
@@ -151,10 +152,29 @@
                 background-color: transparent !important;
                 background-image: none !important;
                 overflow: visible;
+                position: relative !important;
                 line-height: 0;
                 text-align: center;
             }
+            /* Force Fabric.js inner wrapper to scale */
+            #canvasContainer > .canvas-container {
+                width: 100% !important;
+                height: auto !important;
+                position: relative !important;
+            }
+            #canvasContainer canvas {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 55vh;
+                display: block;
+            }
+            #canvasContainer .upper-canvas {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+            }
 
+            /* ===== CANVAS ITSELF ===== */
             #designCanvas { 
                 max-width: 100%; 
                 width: 100%; 
@@ -165,17 +185,7 @@
                 box-shadow: none !important;
             }
 
-            #canvasContainer > .canvas-container {
-                width: 100% !important;
-                height: auto !important;
-            }
-            #canvasContainer > .canvas-container canvas {
-                display: block !important;
-                width: 100% !important;
-                height: auto !important;
-                max-height: 55vh;
-            }
-
+            /* ===== TOOLBAR COMPACT ===== */
             .canvas-toolbar { 
                 margin: 0 !important; 
                 padding: 2px 4px !important; 
@@ -187,6 +197,7 @@
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .grid-overlay { display: none; }
 
+            /* ===== TOOLS PANEL ===== */
             .tools-panel { 
                 width: 100%; 
                 flex-direction: row; 
@@ -196,7 +207,7 @@
                 gap: 6px; 
                 order: 2; 
                 min-height: 60px; 
-                margin: 4px 0 0 0 !important;
+                margin: 0 !important;
                 transition: max-height 0.35s ease, opacity 0.35s ease;
                 max-height: 120px;
             }
@@ -212,6 +223,7 @@
             .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
             .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
 
+            /* ===== TOOLS TOGGLE ===== */
             .mobile-tools-toggle { 
                 display: flex; 
                 align-items: center; 
@@ -220,7 +232,7 @@
                 padding: 10px 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin: 4px 0 0 0; 
+                margin: 0; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
@@ -232,7 +244,8 @@
             .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
-            .mobile-accordion-container { display: block; margin: 6px 0 0 0; }
+            /* ===== ACCORDION ===== */
+            .mobile-accordion-container { display: block; margin: 0; }
             .mobile-accordion-header {
                 display: flex; 
                 align-items: center; 
@@ -256,13 +269,15 @@
             }
             .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
 
+            /* ===== HIDE DESKTOP TABS ===== */
             .properties-panel .tabs { display: none !important; }
 
+            /* ===== PROPERTIES PANEL ===== */
             .properties-panel { 
                 width: 100%; 
                 order: 3; 
-                padding: 4px 8px 8px; 
-                margin: 8px 0 0 0 !important;
+                padding: 0 8px 8px; 
+                margin: 0 !important;
                 flex: none !important;
                 height: auto !important;
                 min-height: auto !important;
@@ -271,6 +286,7 @@
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
 
+            /* ===== COLLAPSIBLE SECTIONS ===== */
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
             .property-section h4 { 
                 cursor: pointer; 
@@ -293,6 +309,7 @@
             .property-section.collapsed .section-content { display: none; }
             .property-section .section-content { padding-top: 6px; }
 
+            /* ===== LOCK TOGGLE ===== */
             .mobile-lock-toggle {
                 display: flex; 
                 align-items: center; 
@@ -317,6 +334,7 @@
                 color: var(--primary-teal); 
             }
 
+            /* ===== LESS SENSITIVE ===== */
             .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
             .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
                 touch-action: manipulation; 
@@ -325,8 +343,10 @@
                 -webkit-user-select: none;
             }
 
+            /* ===== CHECKOUT ===== */
             .checkout-section { margin-top: 8px !important; }
 
+            /* ===== HEADER COMPACT ===== */
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
             .design-header h1 { font-size: 0.9rem; }
@@ -341,14 +361,16 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
         }
-        @media (min-width: 769px) {
+@media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
         }
-    </style>
-    <base target="_blank">
+</style>
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -421,7 +443,7 @@
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
-                        <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
+                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
                         <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
                         <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
                     </div>
@@ -725,6 +747,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- NEW: Media Playback Controls -->
                         <div id="mediaPlaybackControls" style="display: none;">
                             <div class="property-section">
                                 <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
@@ -852,6 +875,7 @@
             canvas.clear();
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
+            // Load texture background if available
             if (config.textureUrl) {
                 await new Promise((resolve) => {
                     fabric.Image.fromURL(config.textureUrl, (img) => {
@@ -882,7 +906,7 @@
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
-            if (config.borderWidth > 0 && config.borderColor) {
+            if (config.borderWidth > 0) {
                 canvas.add(new fabric.Rect({
                     left: config.borderWidth / 2, top: config.borderWidth / 2,
                     width: 600 - config.borderWidth, height: 450 - config.borderWidth,
@@ -946,6 +970,7 @@
                 opt.addEventListener('click', function() {
                     document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
+                    // Remove any existing texture backgrounds when switching to solid/gradient
                     canvas.getObjects().forEach(obj => {
                         if (obj.isTexture) canvas.remove(obj);
                     });
@@ -960,6 +985,7 @@
                 });
             });
             document.getElementById('bgColorPicker').addEventListener('input', function() {
+                // Remove any existing texture backgrounds when picking custom color
                 canvas.getObjects().forEach(obj => {
                     if (obj.isTexture) canvas.remove(obj);
                 });
@@ -1167,6 +1193,7 @@
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.addEventListener('keydown', handleKeyboard);
 
+            // Media playback button listeners
             document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
             document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
             document.getElementById('mediaDeleteBtn').addEventListener('click', deleteSelected);
@@ -1447,6 +1474,7 @@
                 document.getElementById('shapeControls').style.display = 'none';
             }
 
+            // Media playback controls
             const mediaControls = document.getElementById('mediaPlaybackControls');
             if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
                 mediaControls.style.display = 'block';
@@ -2235,6 +2263,7 @@
             }
         }
 
+        /* ===== MOBILE LOCK/UNLOCK ===== */
         function lockMobileObjects(lock) {
             if (!canvas) return;
             canvas.getObjects().forEach(obj => {
@@ -2255,8 +2284,10 @@
             canvas.renderAll();
         }
 
+        /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
             if (window.innerWidth > 768) return;
+            // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
             const canvasContainer = document.querySelector('.canvas-container');
             const canvasToolbar = document.querySelector('.canvas-toolbar');
@@ -2269,9 +2300,8 @@
                 canvasArea.style.flex = 'none';
                 canvasArea.style.height = 'auto';
                 canvasArea.style.minHeight = 'auto';
-                canvasArea.style.maxHeight = 'none';
                 canvasArea.style.padding = '0';
-                canvasArea.style.margin = '0 0 12px 0';
+                canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
             }
             if (canvasContainer) {
@@ -2279,11 +2309,9 @@
                 canvasContainer.style.flex = 'none';
                 canvasContainer.style.height = 'auto';
                 canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.maxHeight = 'none';
                 canvasContainer.style.padding = '0';
                 canvasContainer.style.margin = '0';
                 canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundColor = 'transparent';
                 canvasContainer.style.backgroundImage = 'none';
             }
             if (canvasToolbar) {
@@ -2303,10 +2331,12 @@
             if (designCanvas) {
                 designCanvas.style.display = 'block';
                 designCanvas.style.margin = '0 auto';
+                designCanvas.style.boxShadow = 'none';
             }
         }
 
         function setupMobileUI() {
+            // Wrap property sections for collapsible headings
             if (!document.querySelector('.section-content')) {
                 document.querySelectorAll('.property-section').forEach(section => {
                     const h4 = section.querySelector('h4');
@@ -2322,6 +2352,7 @@
                 });
             }
 
+            // Tools toggle below canvas
             const canvasArea = document.querySelector('.canvas-area');
             let toggle = document.getElementById('mobileToolsToggle');
             if (!toggle && canvasArea) {
@@ -2344,6 +2375,7 @@
                 });
             }
 
+            // Mobile accordion for Design/Layers/Settings
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2388,6 +2420,7 @@
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
+            // Mobile lock/unlock toggle
             const lockToggle = document.getElementById('mobileLockToggle');
             if (lockToggle) {
                 lockToggle.addEventListener('click', function() {
@@ -2406,6 +2439,7 @@
                 });
             }
 
+            // Resize handler
             function handleResize() {
                 applyMobileSpacingFix();
                 const isMobile = window.innerWidth <= 768;
