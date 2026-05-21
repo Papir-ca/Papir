@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Customize Your Card | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -18,33 +18,10 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
-            min-height: 100vh; 
-            color: white; 
-            overflow-x: hidden;
-        }
-        .app-container { 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 15px; 
-            overflow-x: hidden;
-            max-width: 100%;
-        }
-        .design-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 10px; 
-            background: rgba(255,255,255,0.05); 
-            padding: 12px 20px; 
-            border-radius: 12px; 
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
+        .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; }
+        .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
         .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
         .mode-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 3px; }
@@ -53,156 +30,35 @@
         .price-display { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: 2px solid var(--primary-teal); font-size: 0.9rem; }
         .batch-controls { display: none; background: rgba(6, 214, 160, 0.1); border: 2px solid var(--primary-teal); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         .batch-controls.active { display: block; }
-        .design-layout { 
-            display: flex; 
-            gap: 12px; 
-            flex: 1; 
-            min-height: 0;  /* essential for flex children scroll/containment */
-            overflow: hidden;
-        }
-        /* ----- DESKTOP TOOLS PANEL (intact) ----- */
-        .tools-panel { 
-            width: 65px; 
-            background: rgba(255,255,255,0.05); 
-            backdrop-filter: blur(8px);
-            border-radius: 24px;
-            padding: 16px 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            height: fit-content;
-            transition: all 0.2s ease;
-        }
-        .tool-icon {
-            width: 44px;
-            height: 44px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: 0.2s;
-            color: rgba(255,255,255,0.9);
-        }
+        .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
+        .tools-panel { width: 65px; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border-radius: 24px; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 20px; height: fit-content; }
+        .tool-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; transition: 0.2s; color: rgba(255,255,255,0.9); }
         .tool-icon:hover, .tool-icon.active { background: var(--primary-teal); color: #1a1a2e; }
-        .canvas-area {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0,0,0,0.2);
-            border-radius: 28px;
-            padding: 12px;
-            overflow: auto;
-            position: relative;
-            min-width: 0;
-        }
-        .canvas-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 8px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-        canvas {
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            display: block;
-            /* desktop original dimensions are handled by fabric.js (600x400) */
-        }
-        /* ----- MOBILE UI FIXES (canvas & content fits screen, no overflow) ----- */
-        @media screen and (max-width: 768px) {
-            .app-container {
-                padding: 12px;
-                height: 100dvh;
-            }
-            .design-header {
-                padding: 8px 12px;
-                margin-bottom: 8px;
-            }
-            .design-layout {
-                flex-direction: column;
-                gap: 14px;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-            .tools-panel {
-                width: 100%;
-                flex-direction: row;
-                justify-content: center;
-                gap: 14px;
-                padding: 12px;
-                border-radius: 28px;
-                background: rgba(255,255,255,0.08);
-                backdrop-filter: blur(12px);
-                order: 2;
-                margin-top: 4px;
-            }
-            .tool-icon {
-                width: 48px;
-                height: 48px;
-                font-size: 1.3rem;
-            }
+        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); border-radius: 28px; padding: 12px; overflow: auto; position: relative; }
+        .canvas-wrapper { display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        canvas { border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: block; }
+
+        /* ----- ONLY MOBILE FIX: canvas fits screen, no layout changes ----- */
+        @media (max-width: 768px) {
+            body { overflow-x: hidden; }
+            .app-container { overflow-x: hidden; }
+            .design-layout { gap: 8px; }
             .canvas-area {
-                order: 1;
-                padding: 8px;
                 overflow: visible;
-                min-height: 280px;
-                flex: initial;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
+                padding: 8px;
             }
             .canvas-wrapper {
                 width: 100%;
-                display: flex;
-                justify-content: center;
-                padding: 6px;
+                padding: 4px;
             }
-            /* canvas itself will be dynamically resized via JS to fit wrapper */
-            .canvas-wrapper canvas {
+            canvas {
                 max-width: 100%;
                 height: auto !important;
-                object-fit: contain;
+                width: auto !important;
             }
-            .batch-controls {
-                margin-bottom: 8px;
-            }
-            .price-display {
-                font-size: 0.8rem;
-                padding: 6px 12px;
-            }
-            .mode-option {
-                padding: 4px 12px;
-                font-size: 0.75rem;
-            }
-            .back-link {
-                padding: 6px 10px;
-                font-size: 0.8rem;
-            }
+            /* keep tools-panel vertical, no reordering, no extra wrapping */
+            .tools-panel { flex-shrink: 0; }
         }
-
-        /* Extra small devices */
-        @media screen and (max-width: 480px) {
-            .tools-panel {
-                gap: 10px;
-            }
-            .tool-icon {
-                width: 42px;
-                height: 42px;
-                font-size: 1.2rem;
-            }
-        }
-
-        /* Scrollbar styling optional */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--primary-teal); border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -223,7 +79,6 @@
     </div>
 
     <div class="design-layout">
-        <!-- tools panel desktop (icons) -->
         <div class="tools-panel" id="toolsPanel">
             <div class="tool-icon" id="toolText" title="Add Text"><i class="fas fa-font"></i></div>
             <div class="tool-icon" id="toolColor" title="Change Accent Color"><i class="fas fa-palette"></i></div>
@@ -231,10 +86,9 @@
             <div class="tool-icon" id="toolReset" title="Reset Design"><i class="fas fa-undo-alt"></i></div>
         </div>
 
-        <!-- canvas area with wrapper -->
         <div class="canvas-area">
-            <div class="canvas-wrapper" id="canvasWrapper">
-                <canvas id="cardCanvas" width="600" height="400" style="width:600px; height:400px;"></canvas>
+            <div class="canvas-wrapper">
+                <canvas id="cardCanvas" width="600" height="400"></canvas>
             </div>
         </div>
     </div>
@@ -242,77 +96,17 @@
 
 <script>
     (function() {
-        // ========== FABRIC.JS SETUP ==========
-        const canvasElement = document.getElementById('cardCanvas');
-        let canvas = new fabric.Canvas('cardCanvas', {
+        const canvas = new fabric.Canvas('cardCanvas', {
             preserveObjectStacking: true,
             backgroundColor: '#fef9e8',
             width: 600,
             height: 400,
-            selection: true,
-            allowTouchScrolling: false
+            selection: true
         });
 
-        // ----- Global tracking for scaling logic (mobile adaptation)
-        let originalCanvasWidth = 600;
-        let originalCanvasHeight = 400;
-        let isMobileActive = false;      // track if we are currently in mobile responsive mode
-        let lastScaleFactor = 1;          // for incremental scaling not needed, we'll recalc based on container
-
-        // store default objects for reset
-        let defaultObjects = [];
-
-        // ---- Helper: apply scaling to all objects given a target canvas width/height (preserve aspect ratio)
-        function scaleCanvasAndObjects(targetWidth, targetHeight) {
-            if (!canvas) return;
-            const oldWidth = canvas.width;
-            const oldHeight = canvas.height;
-            if (oldWidth === targetWidth && oldHeight === targetHeight) return;
-
-            const scaleX = targetWidth / oldWidth;
-            const scaleY = targetHeight / oldHeight;
-            // scale all objects
-            canvas.getObjects().forEach(obj => {
-                // Scale properties
-                obj.set({
-                    left: (obj.left || 0) * scaleX,
-                    top: (obj.top || 0) * scaleY,
-                    width: (obj.width || 0) * scaleX,
-                    height: (obj.height || 0) * scaleY,
-                    scaleX: (obj.scaleX || 1) * 1,   // avoid double scaling, we directly adjust width/left
-                    scaleY: (obj.scaleY || 1) * 1
-                });
-                // If it's a text object, scale fontSize
-                if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
-                    const originalFont = obj.originalFontSize || obj.fontSize;
-                    const newFontSize = (obj.fontSize || 16) * scaleX;
-                    obj.set('fontSize', newFontSize);
-                    if (!obj.originalFontSize) obj.originalFontSize = originalFont;
-                }
-                // For strokes consistency
-                if (obj.strokeWidth) {
-                    obj.set('strokeWidth', (obj.strokeWidth || 1) * Math.min(scaleX, scaleY));
-                }
-                obj.setCoords();
-            });
-            canvas.setDimensions({ width: targetWidth, height: targetHeight });
-            canvas.renderAll();
-        }
-
-        // ---- Store initial object properties (for reset, but also used to keep base)
-        function captureDefaultState() {
-            defaultObjects = [];
-            canvas.getObjects().forEach(obj => {
-                defaultObjects.push(JSON.parse(JSON.stringify(obj.toObject())));
-            });
-        }
-
-        // Reset to factory design (preserves base card)
         function resetToOriginalDesign() {
-            // clear canvas
             canvas.clear();
             canvas.setBackgroundColor('#fef9e8', canvas.renderAll.bind(canvas));
-            // Create default elegant card design (preserve ratio independent)
             const rect = new fabric.Rect({
                 left: 30, top: 30, width: 540, height: 340,
                 rx: 16, ry: 16,
@@ -345,90 +139,12 @@
                 left: 520 + 8, top: 45 + 11, fontSize: 28, fill: '#1a1a2e',
                 fontWeight: 'bold', originX: 'left', originY: 'top'
             });
-            
             canvas.add(rect, nameText, titleText, contactIcon, goldAccent, logoCircle, logoSymbol);
             canvas.renderAll();
-            captureDefaultState();
-            
-            // also after reset, reapply scaling if in mobile mode to keep fit
-            if (isMobileActive) {
-                applyMobileScaling();
-            }
         }
-        
-        // apply mobile scaling based on wrapper container width
-        function applyMobileScaling() {
-            if (!isMobileActive) return;
-            const wrapper = document.getElementById('canvasWrapper');
-            if (!wrapper) return;
-            // get available width inside canvas-area minus padding
-            const maxWidth = wrapper.clientWidth - 20; // some inner gap
-            if (maxWidth < 50) return;
-            const aspect = originalCanvasHeight / originalCanvasWidth; // 400/600 = 0.666
-            let targetWidth = Math.min(maxWidth, originalCanvasWidth);
-            let targetHeight = targetWidth * aspect;
-            // limit max height based on viewport, but keep within canvas-area
-            const canvasArea = document.querySelector('.canvas-area');
-            if (canvasArea) {
-                const maxHeight = canvasArea.clientHeight - 30;
-                if (targetHeight > maxHeight && maxHeight > 100) {
-                    targetHeight = maxHeight;
-                    targetWidth = targetHeight / aspect;
-                }
-            }
-            targetWidth = Math.floor(targetWidth);
-            targetHeight = Math.floor(targetHeight);
-            if (targetWidth !== canvas.width || targetHeight !== canvas.height) {
-                scaleCanvasAndObjects(targetWidth, targetHeight);
-            }
-        }
-        
-        // revert to desktop original dimensions (600x400)
-        function revertToDesktopScale() {
-            if (canvas.width !== originalCanvasWidth || canvas.height !== originalCanvasHeight) {
-                scaleCanvasAndObjects(originalCanvasWidth, originalCanvasHeight);
-            }
-        }
-        
-        // Responsive handler: only for mobile, adjust canvas and objects to wrapper size
-        function handleResponsiveFit() {
-            const isMobileView = window.innerWidth <= 768;
-            if (isMobileView) {
-                if (!isMobileActive) {
-                    isMobileActive = true;
-                    // first time entering mobile mode: scale from desktop dimensions to fit wrapper
-                    applyMobileScaling();
-                } else {
-                    // already mobile: re-evaluate container size (orientation change)
-                    applyMobileScaling();
-                }
-            } else {
-                if (isMobileActive) {
-                    isMobileActive = false;
-                    revertToDesktopScale();
-                } else {
-                    // Ensure desktop dimensions are intact if somehow deviated
-                    if (canvas.width !== originalCanvasWidth || canvas.height !== originalCanvasHeight) {
-                        revertToDesktopScale();
-                    }
-                }
-            }
-        }
-        
-        // Resize observer for wrapper changes (dynamic, but also use window resize)
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                handleResponsiveFit();
-            }, 100);
-        });
-        
-        // Initialize canvas with design
+
         resetToOriginalDesign();
-        
-        // optional: add some extra interactivity that doesn't break mobile fit
-        // ----- tools functionality (keep desktop/mobile consistent)
+
         document.getElementById('toolText')?.addEventListener('click', () => {
             const newText = new fabric.IText('Your Text', {
                 left: 100, top: 220, fontSize: 20, fontFamily: 'Segoe UI',
@@ -437,18 +153,15 @@
             canvas.add(newText);
             canvas.setActiveObject(newText);
             canvas.renderAll();
-            if (isMobileActive) applyMobileScaling(); // re-fit just in case scaling needed
         });
         
         document.getElementById('toolColor')?.addEventListener('click', () => {
-            // cycle accent color (gold <-> teal <-> purple)
             const newGold = '#06D6A0';
             const currentGold = '#BCAE83';
             let objectsToUpdate = canvas.getObjects().filter(obj => 
                 (obj.fill === currentGold || obj.fill === '#06D6A0' || obj.stroke === currentGold)
             );
             if (objectsToUpdate.length === 0) {
-                // fallback: find gold accent rect
                 const accentRect = canvas.getObjects().find(obj => obj.fill === '#BCAE83' && obj.width === 120);
                 if (accentRect) objectsToUpdate = [accentRect];
             }
@@ -467,22 +180,18 @@
         });
         
         document.getElementById('toolLogo')?.addEventListener('click', () => {
-            // add a simple star / decorative logo
             fabric.loadSVGFromString('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#BCAE83"><path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2z"/></svg>', (objects, opts) => {
                 const svgShape = fabric.util.groupSVGElements(objects, opts);
                 svgShape.set({ left: 440, top: 310, scaleX: 0.8, scaleY: 0.8 });
                 canvas.add(svgShape);
                 canvas.renderAll();
-                if (isMobileActive) applyMobileScaling();
             });
         });
         
         document.getElementById('toolReset')?.addEventListener('click', () => {
             resetToOriginalDesign();
-            if (isMobileActive) applyMobileScaling();
         });
         
-        // Mode switch logic (UI only, no backend)
         const modeSwitch = document.getElementById('modeSwitch');
         const batchCtrl = document.getElementById('batchControls');
         const priceSpan = document.getElementById('priceDisplay');
@@ -501,44 +210,7 @@
             }
         });
         
-        // enable touch/pan avoid zoom issues: fabric disable panning if needed, but we allow selection
-        canvas.on('mouse:down', function(opt) {
-            // just ensure touch usability
-        });
-        
-        // update scaling after any object modifications or addition/removal to ensure mobile fit
-        function syncMobileAfterChange() {
-            if (isMobileActive) {
-                // brief delay to let fabric settle coordinates then reapply scaling to maintain exact fitting
-                setTimeout(() => applyMobileScaling(), 10);
-            }
-        }
-        
-        canvas.on('object:added', syncMobileAfterChange);
-        canvas.on('object:modified', syncMobileAfterChange);
-        canvas.on('object:removed', syncMobileAfterChange);
-        
-        // after initial load trigger mobile check
-        setTimeout(() => {
-            handleResponsiveFit();
-        }, 100);
-        
-        // Additional safety: observe wrapper resizing (like orientation changes or dynamic content)
-        const wrapperElem = document.getElementById('canvasWrapper');
-        if (window.ResizeObserver && wrapperElem) {
-            const resizeObserver = new ResizeObserver(() => {
-                if (isMobileActive) {
-                    applyMobileScaling();
-                }
-            });
-            resizeObserver.observe(wrapperElem);
-        }
-        
-        // ensure canvas context menu disabled
-        canvasElement.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // update price display with Stripe dummy, but not needed - just static UI.
-        console.log('Canvas ready with mobile-responsive scaling (preserves desktop layout).');
+        canvas.on('mouse:down', function(opt) {});
     })();
 </script>
 </body>
