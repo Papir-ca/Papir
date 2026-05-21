@@ -133,19 +133,17 @@
                 min-height: auto !important;
                 max-height: none !important;
                 padding: 0 !important; 
-                margin: 0 0 4px 0 !important; 
+                margin: 0 !important; 
                 background: transparent !important;
-                position: relative !important;
-                z-index: 1;
-                overflow: hidden;
+                position: static !important;
             }
 
             /* ===== CANVAS CONTAINER - OUTER ONLY (not Fabric.js wrapper) ===== */
             #canvasContainer { 
                 width: 100%;
-                height: auto !important; 
-                min-height: auto !important;
+                max-width: 100%;
                 max-height: 55vh;
+                aspect-ratio: 600 / 450;
                 padding: 0 !important; 
                 margin: 0 auto !important; 
                 background: transparent !important;
@@ -159,9 +157,9 @@
 
             /* ===== CANVAS ITSELF ===== */
             #designCanvas { 
-                max-width: 100%; 
-                width: 100%; 
-                height: auto !important; 
+                width: 100% !important; 
+                height: auto !important;
+                aspect-ratio: 600 / 450;
                 max-height: 55vh;
                 display: block; 
                 margin: 0 auto;
@@ -193,8 +191,6 @@
                 margin: 0 !important;
                 transition: max-height 0.35s ease, opacity 0.35s ease;
                 max-height: 120px;
-                position: relative;
-                z-index: 2;
             }
             .tools-panel.collapsed { 
                 max-height: 0; 
@@ -267,8 +263,6 @@
                 height: auto !important;
                 min-height: auto !important;
                 display: block !important;
-                position: relative;
-                z-index: 2;
             }
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
@@ -1757,23 +1751,6 @@
             document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
 
-        function resizeCanvasForMobile() {
-            if (window.innerWidth <= 768) {
-                const container = document.getElementById('canvasContainer');
-                if (!container) return;
-                const maxWidth = container.clientWidth;
-                const aspectRatio = canvas.height / canvas.width;
-                const newWidth = Math.min(maxWidth, 600);
-                const newHeight = Math.round(newWidth * aspectRatio);
-                if (Math.abs(canvas.width - newWidth) > 2) {
-                    canvas.setWidth(newWidth);
-                    canvas.setHeight(newHeight);
-                    canvas.renderAll();
-                    document.getElementById('canvasSize').textContent = `${newWidth} × ${newHeight} px`;
-                }
-            }
-        }
-
         function setupZoomControls() {
             document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
             document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
@@ -2402,7 +2379,8 @@
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
                         const isActive = this.classList.contains('active');
-                        if (isActive) return;
+
+                        // Close all accordions first
                         document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                             h.classList.remove('active');
                             const c = h.querySelector('.accordion-chevron');
@@ -2411,6 +2389,11 @@
                         document.querySelectorAll('.tab-content').forEach(c => {
                             if (window.innerWidth <= 768) c.style.display = 'none';
                         });
+
+                        // If it was already active, we just closed it — stop here
+                        if (isActive) return;
+
+                        // Otherwise open the clicked one
                         this.classList.add('active');
                         if (chevron) chevron.style.transform = 'rotate(180deg)';
                         if (targetContent) {
@@ -2531,11 +2514,6 @@
             setupModeSwitch();
             checkForSavedProgress();
             startAutoSave();
-            resizeCanvasForMobile();
-            window.addEventListener('resize', () => {
-                clearTimeout(window._resizeTimer);
-                window._resizeTimer = setTimeout(resizeCanvasForMobile, 150);
-            });
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
