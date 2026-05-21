@@ -135,8 +135,7 @@
                 padding: 0 !important; 
                 margin: 0 !important; 
                 background: transparent !important;
-                position: relative !important;
-                z-index: auto !important;
+                position: static !important;
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -151,12 +150,11 @@
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
-                overflow: visible;
                 position: relative !important;
                 line-height: 0;
                 text-align: center;
             }
-            /* Force Fabric.js inner wrapper to scale */
+            /* Force Fabric.js inner wrapper and canvases to scale with screen */
             #canvasContainer > .canvas-container {
                 width: 100% !important;
                 height: auto !important;
