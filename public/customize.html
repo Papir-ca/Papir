@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Customize Your Card | Papir</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -18,10 +18,33 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
-        .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; }
-        .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
-        .header-left { display: flex; align-items: center; gap: 15px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            min-height: 100vh; 
+            color: white; 
+            overflow-x: hidden;
+        }
+        .app-container { 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 15px; 
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        .design-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            background: rgba(255,255,255,0.05); 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
         .mode-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 3px; }
@@ -30,2496 +53,493 @@
         .price-display { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: 2px solid var(--primary-teal); font-size: 0.9rem; }
         .batch-controls { display: none; background: rgba(6, 214, 160, 0.1); border: 2px solid var(--primary-teal); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         .batch-controls.active { display: block; }
-        .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
-        .tools-panel { width: 65px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; }
-        .tool-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; position: relative; }
-        .tool-btn:hover, .tool-btn.active { background: var(--primary-gold); color: white; transform: translateY(-2px); }
-        .tool-btn.danger:hover { background: var(--danger); }
-        .tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .tool-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.1); margin: 3px 0; }
-        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
-        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
-        .canvas-controls { display: flex; gap: 10px; align-items: center; }
-        .canvas-container { flex: 1; border-radius: 8px; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 15px; background: linear-gradient(45deg, #2a2a3e 25%, transparent 25%), linear-gradient(-45deg, #2a2a3e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a3e 75%), linear-gradient(-45deg, transparent 75%, #2a2a3e 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #252538; }
-        #designCanvas { box-shadow: 0 15px 50px rgba(0,0,0,0.6); border-radius: 4px; }
-        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
-        .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
-        .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .control-group { flex: 1; }
-        .control-group label { display: block; font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; }
-        .text-input { width: 100%; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: inherit; font-size: 0.9rem; }
-        .text-input:focus { outline: none; border-color: var(--primary-teal); }
-        select, input[type="number"] { width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 0.85rem; }
-        select option { background: #2a2a3e; }
-        .slider-container { display: flex; align-items: center; gap: 10px; }
-        .slider { flex: 1; height: 6px; -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 3px; }
-        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary-teal); border-radius: 50%; cursor: pointer; }
-        .slider-value { min-width: 45px; text-align: center; font-size: 0.85rem; font-weight: 600; }
-        .btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
-        .btn-icon { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-icon:hover, .btn-icon.active { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
-        .btn-icon.small { padding: 6px 10px; font-size: 0.75rem; }
-        .btn-icon.danger { border-color: var(--danger); }
-        .btn-icon.danger:hover { background: var(--danger); color: white; }
-        .color-picker-wrapper { display: flex; align-items: center; gap: 10px; }
-        input[type="color"] { width: 45px; height: 40px; border: none; border-radius: 6px; cursor: pointer; background: transparent; }
-        .color-presets { display: flex; gap: 5px; flex-wrap: wrap; }
-        .color-preset { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .color-preset:hover { transform: scale(1.1); border-color: white; }
-        .layer-item { background: rgba(255,255,255,0.08); padding: 10px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; transition: all 0.2s; border: 1px solid transparent; }
-        .layer-item:hover { background: rgba(255,255,255,0.15); }
-        .layer-item.active { border-color: var(--primary-gold); background: rgba(188, 174, 131, 0.15); }
-        .layer-item.locked { opacity: 0.5; }
-        .layer-actions { display: flex; gap: 5px; }
-        .layer-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 4px; border-radius: 4px; }
-        .layer-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-        .effect-toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
-        .effect-toggle:hover { background: rgba(255,255,255,0.1); }
-        .toggle-switch { width: 40px; height: 22px; background: rgba(255,255,255,0.2); border-radius: 11px; position: relative; transition: all 0.3s; }
-        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
-        .effect-toggle.active .toggle-switch { background: var(--primary-teal); }
-        .effect-toggle.active .toggle-switch::after { left: 20px; }
-        .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .bg-option:hover { transform: scale(1.05); }
-        .bg-option.active { border-color: var(--primary-teal); }
-        .checkout-section { background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(102, 126, 234, 0.15)); border: 2px solid var(--primary-teal); border-radius: 12px; padding: 15px; margin-top: auto; }
-        .checkout-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
-        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4); }
-        .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .tab { padding: 8px 16px; background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.85rem; border-radius: 6px; transition: all 0.2s; }
-        .tab:hover { color: white; background: rgba(255,255,255,0.1); }
-        .tab.active { color: var(--primary-teal); background: rgba(6, 214, 160, 0.1); font-weight: 600; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .hidden { display: none !important; }
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .grid-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px; opacity: 0; transition: opacity 0.3s; }
-        .grid-overlay.show { opacity: 1; }
-        .upload-area { border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
-        .upload-area:hover { border-color: var(--primary-gold); background: rgba(255,255,255,0.05); }
-        .upload-area i { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-gold); }
-        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .qty-btn:hover { background: rgba(255,255,255,0.1); }
-        #videoUploadSection .upload-area { border-color: var(--primary-teal); }
-        #audioUploadSection .upload-area { border-color: var(--primary-gold); }
-
-        @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
-        @media (max-width: 768px) {
-            /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
-            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
-
-            /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
-            .design-layout { 
-                flex-direction: column; 
-                height: auto !important; 
-                min-height: auto !important;
-                max-height: none !important;
-                gap: 2px; 
-                flex: none !important;
+        .design-layout { 
+            display: flex; 
+            gap: 12px; 
+            flex: 1; 
+            min-height: 0;  /* essential for flex children scroll/containment */
+            overflow: hidden;
+        }
+        /* ----- DESKTOP TOOLS PANEL (intact) ----- */
+        .tools-panel { 
+            width: 65px; 
+            background: rgba(255,255,255,0.05); 
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            height: fit-content;
+            transition: all 0.2s ease;
+        }
+        .tool-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: rgba(255,255,255,0.9);
+        }
+        .tool-icon:hover, .tool-icon.active { background: var(--primary-teal); color: #1a1a2e; }
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 28px;
+            padding: 12px;
+            overflow: auto;
+            position: relative;
+            min-width: 0;
+        }
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        canvas {
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: block;
+            /* desktop original dimensions are handled by fabric.js (600x400) */
+        }
+        /* ----- MOBILE UI FIXES (canvas & content fits screen, no overflow) ----- */
+        @media screen and (max-width: 768px) {
+            .app-container {
+                padding: 12px;
+                height: 100dvh;
             }
-
-            /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
-            .canvas-area { 
-                order: 1; 
-                display: block !important;
-                flex: none !important; 
-                height: auto !important; 
-                min-height: auto !important;
-                max-height: none !important;
-                padding: 0 !important; 
-                margin: 0 !important; 
-                background: transparent !important;
-                position: static !important;
+            .design-header {
+                padding: 8px 12px;
+                margin-bottom: 8px;
             }
-
-            /* ===== CANVAS CONTAINER - OUTER ONLY (not Fabric.js wrapper) ===== */
-            #canvasContainer { 
+            .design-layout {
+                flex-direction: column;
+                gap: 14px;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+            .tools-panel {
                 width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                gap: 14px;
+                padding: 12px;
+                border-radius: 28px;
+                background: rgba(255,255,255,0.08);
+                backdrop-filter: blur(12px);
+                order: 2;
+                margin-top: 4px;
+            }
+            .tool-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+            }
+            .canvas-area {
+                order: 1;
+                padding: 8px;
+                overflow: visible;
+                min-height: 280px;
+                flex: initial;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+            }
+            .canvas-wrapper {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                padding: 6px;
+            }
+            /* canvas itself will be dynamically resized via JS to fit wrapper */
+            .canvas-wrapper canvas {
                 max-width: 100%;
-                max-height: 55vh;
-                aspect-ratio: 600 / 450;
-                padding: 0 !important; 
-                margin: 0 auto !important; 
-                background: transparent !important;
-                background-color: transparent !important;
-                background-image: none !important;
-                overflow: hidden;
-                line-height: 0;
-                text-align: center;
-                position: relative;
-            }
-
-            /* ===== CANVAS ITSELF ===== */
-            #designCanvas { 
-                width: 100% !important; 
                 height: auto !important;
-                aspect-ratio: 600 / 450;
-                max-height: 55vh;
-                display: block; 
-                margin: 0 auto;
-                box-shadow: none !important;
+                object-fit: contain;
             }
-
-            /* ===== TOOLBAR COMPACT ===== */
-            .canvas-toolbar { 
-                margin: 0 !important; 
-                padding: 2px 4px !important; 
-                font-size: 0.7rem; 
-                min-height: 24px;
-                border-bottom: none !important;
+            .batch-controls {
+                margin-bottom: 8px;
             }
-            .canvas-toolbar .mobile-scroll-hint { display: none !important; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .grid-overlay { display: none; }
-
-            /* ===== TOOLS PANEL ===== */
-            .tools-panel { 
-                width: 100%; 
-                flex-direction: row; 
-                justify-content: flex-start; 
-                overflow-x: auto; 
-                padding: 8px; 
-                gap: 6px; 
-                order: 2; 
-                min-height: 60px; 
-                margin: 0 !important;
-                transition: max-height 0.35s ease, opacity 0.35s ease;
-                max-height: 120px;
+            .price-display {
+                font-size: 0.8rem;
+                padding: 6px 12px;
             }
-            .tools-panel.collapsed { 
-                max-height: 0; 
-                min-height: 0 !important; 
-                opacity: 0; 
-                padding: 0 !important; 
-                margin: 0 !important; 
-                overflow: hidden; 
-                border: none; 
+            .mode-option {
+                padding: 4px 12px;
+                font-size: 0.75rem;
             }
-            .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
-            .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
-
-            /* ===== TOOLS TOGGLE ===== */
-            .mobile-tools-toggle { 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                gap: 8px;
-                padding: 10px 12px; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin: 0; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                color: white; 
-                -webkit-tap-highlight-color: transparent; 
-                touch-action: manipulation;
+            .back-link {
+                padding: 6px 10px;
+                font-size: 0.8rem;
             }
-            .mobile-tools-toggle:active { opacity: 0.8; }
-            .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
-
-            /* ===== ACCORDION ===== */
-            .mobile-accordion-container { display: block; margin: 0; }
-            .mobile-accordion-header {
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between;
-                padding: 12px; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin-bottom: 2px; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                border: 1px solid rgba(255,255,255,0.1); 
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-            }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active {
-                background: rgba(6, 214, 160, 0.15); 
-                border-color: var(--primary-teal); 
-                color: var(--primary-teal);
-            }
-            .accordion-chevron { transition: transform 0.2s; pointer-events: none; }
-
-            /* ===== HIDE DESKTOP TABS ===== */
-            .properties-panel .tabs { display: none !important; }
-
-            /* ===== PROPERTIES PANEL ===== */
-            .properties-panel { 
-                width: 100%; 
-                order: 3; 
-                padding: 0 8px 8px; 
-                margin: 0 !important;
-                flex: none !important;
-                height: auto !important;
-                min-height: auto !important;
-                display: block !important;
-            }
-            .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
-            .properties-panel .panel-title { font-size: 0.85rem; }
-
-            /* ===== COLLAPSIBLE SECTIONS ===== */
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { 
-                cursor: pointer; 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                padding: 8px 0; 
-                margin-bottom: 0 !important; 
-            }
-            .property-section h4::after { 
-                content: '\f078'; 
-                font-family: 'Font Awesome 6 Free'; 
-                font-weight: 900; 
-                font-size: 0.75rem; 
-                transition: transform 0.2s; 
-                margin-left: 10px; 
-                color: var(--primary-gold); 
-            }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
-
-            /* ===== LOCK TOGGLE ===== */
-            .mobile-lock-toggle {
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between;
-                padding: 10px 12px; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin-bottom: 10px; 
-                cursor: pointer; 
-                font-size: 0.85rem;
-                border: 1px solid rgba(255,255,255,0.1); 
-                touch-action: manipulation;
-            }
-            .mobile-lock-toggle.locked { 
-                background: rgba(255, 107, 107, 0.15); 
-                border-color: var(--danger); 
-                color: var(--danger); 
-            }
-            .mobile-lock-toggle.unlocked { 
-                background: rgba(6, 214, 160, 0.15); 
-                border-color: var(--primary-teal); 
-                color: var(--primary-teal); 
-            }
-
-            /* ===== LESS SENSITIVE ===== */
-            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
-            .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
-                touch-action: manipulation; 
-                -webkit-tap-highlight-color: transparent;
-                user-select: none; 
-                -webkit-user-select: none;
-            }
-
-            /* ===== CHECKOUT ===== */
-            .checkout-section { margin-top: 8px !important; }
-
-            /* ===== HEADER COMPACT ===== */
-            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .design-header h1 { font-size: 0.9rem; }
-            .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .mode-switch { transform: scale(0.8); }
-            .batch-controls { padding: 8px; margin-bottom: 2px; }
-            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
-            .control-row { flex-wrap: wrap; }
-            .control-group { min-width: 120px; }
-            .layer-item { padding: 14px 10px; }
-            .layer-btn { padding: 8px; }
-            .upload-area { padding: 25px 15px; }
-            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
         }
-@media (min-width: 769px) {
-            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
-            .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
-            .property-section.collapsed .section-content { display: block !important; }
-            .canvas-area { position: relative; z-index: auto; }
+
+        /* Extra small devices */
+        @media screen and (max-width: 480px) {
+            .tools-panel {
+                gap: 10px;
+            }
+            .tool-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 1.2rem;
+            }
         }
-</style>
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
+
+        /* Scrollbar styling optional */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-teal); border-radius: 4px; }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="design-header">
-            <div class="header-left">
-                <a href="templates.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
-                <h1 style="font-size: 1.3rem;"><i class="fas fa-magic"></i> Studio</h1>
-                <span class="template-badge" id="templateName">Design</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="mode-switch">
-                    <button class="mode-option active" id="singleModeBtn" data-mode="single">Single</button>
-                    <button class="mode-option" id="batchModeBtn" data-mode="batch">Batch</button>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
-                    <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
-                </div>
-                <div class="price-display" id="priceDisplay">$2.99</div>
+<div class="app-container">
+    <div class="design-header">
+        <div class="header-left">
+            <a href="#" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <span class="template-badge"><i class="fas fa-id-card"></i> Premium Card</span>
+            <div class="mode-switch" id="modeSwitch">
+                <button class="mode-option active" data-mode="single">Single</button>
+                <button class="mode-option" data-mode="batch">Batch (5+)</button>
             </div>
         </div>
+        <div class="price-display" id="priceDisplay">$29.90</div>
+    </div>
+    <div class="batch-controls" id="batchControls">
+        <i class="fas fa-layer-group"></i> Batch mode active — 10% discount per card
+    </div>
 
-        <div class="batch-controls" id="batchControls">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="color: var(--primary-teal); margin: 0; font-size: 1rem;">Batch Order</h3>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">Perfect for events & invitations</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 1.4rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$5.98</div>
-                    <div style="font-size: 0.75rem;">$2.99 × <span id="qtyDisplay">2</span> cards</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
-                <span style="font-size: 0.85rem;">Quantity:</span>
-                <button class="qty-btn" id="qtyMinus" data-change="-1"><i class="fas fa-minus"></i></button>
-                <input type="number" id="qtyInput" value="2" min="2" max="2000" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
-                <button class="qty-btn" id="qtyPlus" data-change="1"><i class="fas fa-plus"></i></button>
-                <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 2000</span>
-            </div>
-            <div style="margin-top: 10px;">
-                <label style="font-size: 0.85rem; display: block; margin-bottom: 5px;">Batch ID (Optional):</label>
-                <input type="text" id="customBatchId" class="text-input" placeholder="e.g., WEDDING-2024" style="font-size: 0.85rem;">
-                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 4px;">Leave blank for auto-generated ID</div>
-            </div>
+    <div class="design-layout">
+        <!-- tools panel desktop (icons) -->
+        <div class="tools-panel" id="toolsPanel">
+            <div class="tool-icon" id="toolText" title="Add Text"><i class="fas fa-font"></i></div>
+            <div class="tool-icon" id="toolColor" title="Change Accent Color"><i class="fas fa-palette"></i></div>
+            <div class="tool-icon" id="toolLogo" title="Add Logo"><i class="fas fa-image"></i></div>
+            <div class="tool-icon" id="toolReset" title="Reset Design"><i class="fas fa-undo-alt"></i></div>
         </div>
 
-        <div class="design-layout">
-            <div class="tools-panel">
-                <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
-                <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
-                <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
-                <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
-                <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
-                <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="far fa-square"></i></button>
-                <button class="tool-btn" data-tool="circle" title="Circle (C)"><i class="far fa-circle"></i></button>
-                <button class="tool-btn" data-tool="triangle" title="Triangle"><i class="fas fa-play" style="transform: rotate(-90deg);"></i></button>
-                <button class="tool-btn" data-tool="line" title="Line (L)"><i class="fas fa-minus"></i></button>
-                <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="grid" title="Toggle Grid (G)"><i class="fas fa-border-all"></i></button>
-                <button class="tool-btn" data-tool="rulers" title="Toggle Rulers"><i class="fas fa-ruler-combined"></i></button>
-                <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
-            </div>
-
-            <div class="canvas-area">
-                <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
-                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
-                        <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
-                    </div>
-                    <div class="canvas-controls">
-                        <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
-                        <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                        <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
-                        <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
-                        <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
-                    </div>
-                </div>
-                <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
-                    <div class="grid-overlay" id="gridOverlay"></div>
-                    <canvas id="designCanvas" width="600" height="450"></canvas>
-                </div>
-            </div>
-
-            <div class="properties-panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-sliders-h"></i> Properties</div>
-                    <button class="btn-icon small" id="resetDesignBtn" style="padding: 6px 12px;"><i class="fas fa-undo"></i> Reset</button>
-                </div>
-                <div class="tabs">
-                    <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
-                    <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
-                    <button class="tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
-                </div>
-                <div class="tab-content active" id="designTab">
-                    <div id="noSelection" class="empty-state">
-                        <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.4;"></i>
-                        <p style="font-size: 0.95rem; margin-bottom: 8px;">Select an element to edit</p>
-                        <p style="font-size: 0.75rem; opacity: 0.6;">Or use tools to add new elements</p>
-                        <div class="property-section" style="margin-top: 20px;">
-                            <h4><i class="fas fa-image"></i> Change Background</h4>
-                            <div class="bg-options" id="bgOptions">
-                                <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
-                                <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="true" data-colors="#667eea,#764ba2" title="Purple Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="true" data-colors="#f093fb,#f5576c" title="Pink Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="true" data-colors="#4facfe,#00f2fe" title="Blue Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-gradient="true" data-colors="#43e97b,#38f9d7" title="Green Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-gradient="true" data-colors="#fa709a,#fee140" title="Sunset"></div>
-                                <div class="bg-option" style="background: #1a1a2e;" data-color="#1a1a2e" title="Dark"></div>
-                            </div>
-                            <div class="color-picker-wrapper" style="margin-top: 10px;">
-                                <input type="color" id="bgColorPicker" value="#ffffff">
-                                <span style="font-size: 0.85rem;">Custom Color</span>
-                            </div>
-                        </div>
-                        <div class="property-section" id="mediaControls">
-                            <h4><i class="fas fa-photo-video"></i> Add Media</h4>
-                            <div class="btn-group" style="margin-bottom: 10px;">
-                                <button class="btn-icon" id="addImageMode" data-mediatype="image"><i class="fas fa-image"></i> Image</button>
-                                <button class="btn-icon" id="addVideoMode" data-mediatype="video"><i class="fas fa-video"></i> Video</button>
-                                <button class="btn-icon" id="addAudioMode" data-mediatype="audio"><i class="fas fa-music"></i> Audio</button>
-                            </div>
-                            <div id="imageUploadSection" style="display: none;">
-                                <div class="upload-area" id="uploadArea"><i class="fas fa-cloud-upload-alt"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div><div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div></div>
-                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                            </div>
-                            <div id="videoUploadSection" style="display: none;">
-                                <div class="upload-area" id="videoUploadArea"><i class="fas fa-video"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop video</div><div style="font-size: 0.7rem; opacity: 0.6;">MP4, WebM up to 40MB</div></div>
-                                <input type="file" id="videoInput" accept="video/*" style="display: none;">
-                                <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;"><i class="fas fa-info-circle"></i> Video plays as background, text on top</div>
-                            </div>
-                            <div id="audioUploadSection" style="display: none;">
-                                <div class="upload-area" id="audioUploadArea"><i class="fas fa-music"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop audio</div><div style="font-size: 0.7rem; opacity: 0.6;">MP3, WAV up to 40MB</div></div>
-                                <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;"><i class="fas fa-info-circle"></i> Audio plays automatically when card is opened</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="selectionControls" style="display: none;">
-                        <div id="textControls">
-                            <div class="property-section">
-                                <h4><i class="fas fa-edit"></i> Text Content</h4>
-                                <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-font"></i> Typography</h4>
-                                <select id="fontFamily" style="margin-bottom: 10px;">
-                                    <optgroup label="Serif Fonts">
-                                        <option value="Playfair Display">Playfair Display</option>
-                                        <option value="Cormorant Garamond">Cormorant Garamond</option>
-                                        <option value="Merriweather">Merriweather</option>
-                                        <option value="Lora">Lora</option>
-                                        <option value="Libre Baskerville">Libre Baskerville</option>
-                                        <option value="Cinzel">Cinzel</option>
-                                        <option value="PT Serif">PT Serif</option>
-                                        <option value="Noto Serif">Noto Serif</option>
-                                        <option value="Crimson Text">Crimson Text</option>
-                                        <option value="Old Standard TT">Old Standard TT</option>
-                                        <option value="Bitter">Bitter</option>
-                                    </optgroup>
-                                    <optgroup label="Sans Serif">
-                                        <option value="Montserrat">Montserrat</option>
-                                        <option value="Raleway">Raleway</option>
-                                        <option value="Poppins">Poppins</option>
-                                        <option value="Oswald">Oswald</option>
-                                        <option value="Roboto">Roboto</option>
-                                        <option value="Open Sans">Open Sans</option>
-                                        <option value="Lato">Lato</option>
-                                        <option value="Nunito">Nunito</option>
-                                        <option value="Source Sans Pro">Source Sans Pro</option>
-                                        <option value="PT Sans">PT Sans</option>
-                                        <option value="Ubuntu">Ubuntu</option>
-                                        <option value="Work Sans">Work Sans</option>
-                                    </optgroup>
-                                    <optgroup label="Script & Decorative">
-                                        <option value="Parisienne">Parisienne</option>
-                                        <option value="Great Vibes">Great Vibes</option>
-                                        <option value="Pacifico">Pacifico</option>
-                                        <option value="Alex Brush">Alex Brush</option>
-                                        <option value="Sacramento">Sacramento</option>
-                                        <option value="Dancing Script">Dancing Script</option>
-                                        <option value="Tangerine">Tangerine</option>
-                                        <option value="Satisfy">Satisfy</option>
-                                        <option value="Courgette">Courgette</option>
-                                        <option value="Kalam">Kalam</option>
-                                        <option value="Amatic SC">Amatic SC</option>
-                                        <option value="Lobster">Lobster</option>
-                                    </optgroup>
-                                    <optgroup label="Display & Fun">
-                                        <option value="Abril Fatface">Abril Fatface</option>
-                                        <option value="Bebas Neue">Bebas Neue</option>
-                                        <option value="Fredoka One">Fredoka One</option>
-                                        <option value="Monoton">Monoton</option>
-                                        <option value="Bangers">Bangers</option>
-                                        <option value="Comfortaa">Comfortaa</option>
-                                        <option value="Quicksand">Quicksand</option>
-                                        <option value="Space Mono">Space Mono</option>
-                                    </optgroup>
-                                </select>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Size</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="fontSize" min="8" max="150" value="32">
-                                            <span class="slider-value" id="fontSizeVal">32</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Letter Spacing</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="charSpacing" min="-50" max="200" value="0">
-                                            <span class="slider-value">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="control-group">
-                                        <label>Line Height</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="lineHeight" min="0.5" max="3" step="0.1" value="1.16">
-                                            <span class="slider-value">1.2</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Text Color</label>
-                                        <div class="color-picker-wrapper">
-                                            <input type="color" id="textColor" value="#333333">
-                                            <div class="color-presets" id="textColorPresets">
-                                                <div class="color-preset" style="background: #333;" data-color="#333333"></div>
-                                                <div class="color-preset" style="background: #fff; border: 1px solid #ccc;" data-color="#ffffff"></div>
-                                                <div class="color-preset" style="background: #764ba2;" data-color="#764ba2"></div>
-                                                <div class="color-preset" style="background: #06D6A0;" data-color="#06D6A0"></div>
-                                                <div class="color-preset" style="background: #FFD166;" data-color="#FFD166"></div>
-                                                <div class="color-preset" style="background: #FF6B6B;" data-color="#FF6B6B"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="effect-toggle" id="textStrokeToggle">
-                                    <span><i class="fas fa-border-style"></i> Text Outline</span>
-                                    <div class="toggle-switch"></div>
-                                </div>
-                                <div id="strokeControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 10px;">
-                                    <div class="control-row">
-                                        <input type="color" id="strokeColor" value="#000000" style="width: 40px;">
-                                        <div class="control-group" style="flex: 1;">
-                                            <label>Stroke Width</label>
-                                            <div class="slider-container">
-                                                <input type="range" class="slider" id="strokeWidth" min="0" max="10" value="0">
-                                                <span class="slider-value">0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="effect-toggle" id="shadowToggle">
-                                    <span><i class="fas fa-cloud"></i> Drop Shadow</span>
-                                    <div class="toggle-switch"></div>
-                                </div>
-                                <div id="shadowControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;">
-                                    <div class="control-row">
-                                        <input type="color" id="shadowColor" value="#000000" style="width: 40px;">
-                                        <div class="control-group" style="flex: 1;">
-                                            <label>Blur</label>
-                                            <input type="range" class="slider" id="shadowBlur" min="0" max="50" value="10">
-                                        </div>
-                                    </div>
-                                    <div class="control-row">
-                                        <div class="control-group">
-                                            <label>Offset X</label>
-                                            <input type="number" id="shadowOffsetX" value="5" style="width: 60px;">
-                                        </div>
-                                        <div class="control-group">
-                                            <label>Offset Y</label>
-                                            <input type="number" id="shadowOffsetY" value="5" style="width: 60px;">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-bold"></i> Text Style</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
-                                    <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
-                                    <button class="btn-icon" id="underlineBtn"><i class="fas fa-underline"></i> Underline</button>
-                                    <button class="btn-icon" id="overlineBtn"><i class="fas fa-text-width"></i> Overline</button>
-                                    <button class="btn-icon" id="linethroughBtn"><i class="fas fa-strikethrough"></i> Strike</button>
-                                </div>
-                                <div class="btn-group" style="margin-top: 8px;">
-                                    <button class="btn-icon" data-align="left"><i class="fas fa-align-left"></i></button>
-                                    <button class="btn-icon" data-align="center"><i class="fas fa-align-center"></i></button>
-                                    <button class="btn-icon" data-align="right"><i class="fas fa-align-right"></i></button>
-                                    <button class="btn-icon" data-align="justify"><i class="fas fa-align-justify"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="transformControls">
-                            <div class="property-section">
-                                <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
-                                <div class="control-row">
-                                    <div class="control-group"><label>X Position</label><input type="number" id="posX" value="300"></div>
-                                    <div class="control-group"><label>Y Position</label><input type="number" id="posY" value="200"></div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group"><label>Width</label><input type="number" id="objWidth" value="100"></div>
-                                    <div class="control-group"><label>Height</label><input type="number" id="objHeight" value="100"></div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Rotation</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="rotation" min="-180" max="180" value="0">
-                                            <span class="slider-value">0°</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Opacity</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="opacity" min="0" max="100" value="100">
-                                            <span class="slider-value">100%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-layer-group"></i> Arrange</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
-                                    <button class="btn-icon" id="bringForwardBtn"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
-                                    <button class="btn-icon" id="sendBackwardBtn"><i class="fas fa-arrow-down" style="font-size: 0.7em;"></i> Backward</button>
-                                    <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
-                                </div>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-magic"></i> Effects</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="flipHBtn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
-                                    <button class="btn-icon" id="flipVBtn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
-                                    <button class="btn-icon" id="lockBtn"><i class="fas fa-lock"></i> Lock</button>
-                                    <button class="btn-icon" id="duplicateBtn"><i class="fas fa-copy"></i> Duplicate</button>
-                                </div>
-                            </div>
-                            <div id="shapeControls" style="display: none;">
-                                <div class="property-section">
-                                    <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
-                                    <div class="control-row">
-                                        <div class="control-group"><label>Fill Color</label><input type="color" id="shapeFill" value="#BCAE83"></div>
-                                        <div class="control-group"><label>Stroke Color</label><input type="color" id="shapeStroke" value="#000000"></div>
-                                    </div>
-                                    <div class="control-row">
-                                        <div class="control-group">
-                                            <label>Stroke Width</label>
-                                            <input type="range" class="slider" id="shapeStrokeWidth" min="0" max="20" value="0">
-                                        </div>
-                                    </div>
-                                    <div class="control-row" id="cornerRadiusRow" style="display: none;">
-                                        <div class="control-group">
-                                            <label>Corner Radius</label>
-                                            <input type="range" class="slider" id="cornerRadius" min="0" max="50" value="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- NEW: Media Playback Controls -->
-                        <div id="mediaPlaybackControls" style="display: none;">
-                            <div class="property-section">
-                                <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
-                                    <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
-                                </div>
-                                <div class="btn-group" style="margin-top: 10px;">
-                                    <button class="btn-icon danger" id="mediaDeleteBtn"><i class="fas fa-trash"></i> Remove from Canvas</button>
-                                </div>
-                                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
-                                    <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute | Del: Remove
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="layersTab">
-                    <div class="mobile-lock-toggle locked" id="mobileLockToggle">
-                        <span><i class="fas fa-lock"></i> Objects Locked</span>
-                        <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
-                    </div>
-                    <div class="property-section">
-                        <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
-                        <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
-                    </div>
-                    <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
-                        <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
-                        <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
-                    </div>
-                </div>
-                <div class="tab-content" id="settingsTab">
-                    <div class="property-section">
-                        <h4><i class="fas fa-cog"></i> Canvas Settings</h4>
-                        <div class="control-row">
-                            <div class="control-group"><label>Canvas Width</label><input type="number" id="canvasWidth" value="600" min="200" max="1200"></div>
-                            <div class="control-group"><label>Canvas Height</label><input type="number" id="canvasHeight" value="450" min="200" max="900"></div>
-                        </div>
-                        <button class="btn-icon" id="resizeCanvasBtn" style="margin-top: 10px; width: 100%;"><i class="fas fa-expand"></i> Apply Canvas Size</button>
-                    </div>
-                    <div class="property-section">
-                        <h4><i class="fas fa-border-all"></i> Grid & Guides</h4>
-                        <div class="effect-toggle" id="snapToggle">
-                            <span><i class="fas fa-magnet"></i> Snap to Grid</span>
-                            <div class="toggle-switch"></div>
-                        </div>
-                        <div class="control-row" style="margin-top: 10px;">
-                            <div class="control-group">
-                                <label>Grid Size</label>
-                                <input type="range" class="slider" id="gridSize" min="5" max="50" value="20">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="property-section">
-                        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
-                        <div style="font-size: 0.8rem; line-height: 1.8; opacity: 0.9;">
-                            <div><strong>V</strong> - Select tool</div>
-                            <div><strong>T</strong> - Text tool</div>
-                            <div><strong>I</strong> - Image tool</div>
-                            <div><strong>R</strong> - Rectangle</div>
-                            <div><strong>C</strong> - Circle</div>
-                            <div><strong>L</strong> - Line</div>
-                            <div><strong>G</strong> - Toggle grid</div>
-                            <div><strong>Delete</strong> - Remove selected</div>
-                            <div><strong>Ctrl+D</strong> - Duplicate</div>
-                            <div><strong>Ctrl+G</strong> - Group</div>
-                            <div><strong>Ctrl+Shift+G</strong> - Ungroup</div>
-                            <div><strong>Ctrl+Z</strong> - Undo</div>
-                            <div><strong>Ctrl+Y</strong> - Redo</div>
-                            <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
-                            <div><strong>Space</strong> - Play/Pause media</div>
-                            <div><strong>M</strong> - Mute/Unmute media</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="checkout-section">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div>
-                            <div style="font-size: 0.8rem; opacity: 0.8;">Design</div>
-                            <div style="font-weight: 600;" id="designName">Custom Card</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.8rem; opacity: 0.8;">Total</div>
-                            <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
-                        </div>
-                    </div>
-                    <button class="checkout-btn" id="checkoutBtn"><i class="fas fa-lock"></i> Secure Checkout</button>
-                    <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; opacity: 0.6;"><i class="fas fa-shield-alt"></i> SSL Secure Payment</div>
-                </div>
+        <!-- canvas area with wrapper -->
+        <div class="canvas-area">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="cardCanvas" width="600" height="400" style="width:600px; height:400px;"></canvas>
             </div>
         </div>
     </div>
-    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
+</div>
 
-    <script>
-        const canvas = new fabric.Canvas('designCanvas', {
+<script>
+    (function() {
+        // ========== FABRIC.JS SETUP ==========
+        const canvasElement = document.getElementById('cardCanvas');
+        let canvas = new fabric.Canvas('cardCanvas', {
             preserveObjectStacking: true,
+            backgroundColor: '#fef9e8',
+            width: 600,
+            height: 400,
             selection: true,
-            allowTouchScrolling: false,
-            perPixelTargetFind: false
+            allowTouchScrolling: false
         });
 
-        let selectedObject = null;
-        let templateConfig = null;
-        let isBatchMode = false;
-        let currentZoom = 1;
-        let undoStack = [];
-        let redoStack = [];
-        let snapToGrid = false;
-        let gridSize = 20;
-        let showGrid = false;
-
-        function showNotification(message, type) {
-            console.log(`[${type || 'info'}] ${message}`);
-        }
-
-        async function loadTemplateDesign() {
-            if (!templateConfig || !templateConfig.config) {
-                console.warn('No template config available');
-                return;
-            }
-            const config = templateConfig.config;
-            canvas.clear();
-            canvas.backgroundColor = config.backgroundColor || '#ffffff';
-
-            // Load texture background if available
-            if (config.textureUrl) {
-                await new Promise((resolve) => {
-                    fabric.Image.fromURL(config.textureUrl, (img) => {
-                        if (!img) {
-                            console.warn('Failed to load texture:', config.textureUrl);
-                            resolve();
-                            return;
-                        }
-                        img.set({
-                            left: 0,
-                            top: 0,
-                            scaleX: canvas.width / img.width,
-                            scaleY: canvas.height / img.height,
-                            selectable: false,
-                            evented: false,
-                            originX: 'left',
-                            originY: 'top',
-                            isTexture: true,
-                            hoverCursor: 'default'
-                        });
-                        canvas.add(img);
-                        canvas.sendToBack(img);
-                        resolve();
-                    }, { crossOrigin: 'anonymous' });
-                });
-            }
-
-            if (config.defaultFont && document.fonts) {
-                try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
-            }
-            if (config.borderWidth > 0) {
-                canvas.add(new fabric.Rect({
-                    left: config.borderWidth / 2, top: config.borderWidth / 2,
-                    width: 600 - config.borderWidth, height: 450 - config.borderWidth,
-                    fill: 'transparent', stroke: config.borderColor, strokeWidth: config.borderWidth,
-                    selectable: false, evented: false
-                }));
-            }
-            if (config.decorations) {
-                config.decorations.forEach(dec => {
-                    if (dec.type === 'line') {
-                        canvas.add(new fabric.Line(dec.coords, {
-                            stroke: dec.color || config.accentColor, strokeWidth: dec.width || 2,
-                            selectable: false, evented: false
-                        }));
-                    }
-                });
-            }
-            const layout = config.layout;
-            if (config.sampleText.header && config.sampleText.header.trim() !== '') {
-                await addTextElement(config.sampleText.header, 300, layout.headerY || 80, {
-                    fontSize: layout.headerSize || 24, fontFamily: config.defaultFont || 'Montserrat',
-                    fill: config.textColor || '#333', fontWeight: layout.headerWeight || 'normal'
-                });
-            }
-            if (config.sampleText.names) {
-                await addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
-                    fontSize: layout.namesSize || 48, fontFamily: config.defaultFont || 'Montserrat',
-                    fill: config.textColor || '#333', fontWeight: layout.namesWeight || 'bold',
-                    charSpacing: layout.namesSpacing || 0
-                });
-            }
-            if (config.sampleText.subtext) {
-                await addTextElement(config.sampleText.subtext, 300, layout.subtextY || 280, {
-                    fontSize: layout.subtextSize || 18, fontFamily: layout.subtextFont || config.defaultFont || 'Montserrat',
-                    fill: config.accentColor || config.textColor || '#333'
-                });
-            }
-            if (config.sampleText.date) {
-                await addTextElement(config.sampleText.date, 300, layout.dateY || 380, {
-                    fontSize: layout.dateSize || 20, fontFamily: layout.dateFont || config.defaultFont || 'Montserrat',
-                    fill: config.accentColor || config.textColor || '#333', fontWeight: layout.dateWeight || 'normal'
-                });
-            }
-            canvas.renderAll();
-        }
-
-        async function addTextElement(text, left, top, options) {
-            options = options || {};
-            if (options.fontFamily && document.fonts) {
-                try { await document.fonts.load('1em "' + options.fontFamily + '"'); } catch (e) {}
-            }
-            const textObj = new fabric.IText(text, {
-                left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, ...options
-            });
-            canvas.add(textObj);
-        }
-
-        function setupBackgroundOptions() {
-            document.querySelectorAll('.bg-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    // Remove any existing texture backgrounds when switching to solid/gradient
-                    canvas.getObjects().forEach(obj => {
-                        if (obj.isTexture) canvas.remove(obj);
-                    });
-                    if (this.dataset.gradient) {
-                        const colors = this.dataset.colors.split(',');
-                        canvas.backgroundColor = colors[0];
-                    } else {
-                        canvas.backgroundColor = this.dataset.color;
-                    }
-                    canvas.renderAll();
-                    saveState();
-                });
-            });
-            document.getElementById('bgColorPicker').addEventListener('input', function() {
-                // Remove any existing texture backgrounds when picking custom color
-                canvas.getObjects().forEach(obj => {
-                    if (obj.isTexture) canvas.remove(obj);
-                });
-                canvas.backgroundColor = this.value;
-                canvas.renderAll();
-                saveState();
-            });
-        }
-
-        function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']));
-            if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
-                undoStack.push(json);
-                if (undoStack.length > 30) undoStack.shift();
-                redoStack = [];
-            }
-        }
-
-        function restoreMediaObjects() {
-            canvas.getObjects().forEach(obj => {
-                if (obj.isVideo && obj.videoBlobUrl) {
-                    restoreVideoObject(obj);
-                } else if (obj.isAudio && obj.audioBlobUrl) {
-                    restoreAudioObject(obj);
-                }
-            });
-        }
-
-        function restoreVideoObject(obj) {
-            if (!obj.videoBlobUrl || obj.videoElement) return;
-            
-            const videoEl = document.createElement('video');
-            videoEl.src = obj.videoBlobUrl;
-            videoEl.crossOrigin = "anonymous";
-            videoEl.loop = true;
-            videoEl.playsInline = true;
-            videoEl.autoplay = true;
-            videoEl.style.display = 'none';
-            document.body.appendChild(videoEl);
-            
-            videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(() => {});
-                
-                const videoCanvas = document.createElement('canvas');
-                videoCanvas.width = obj.width || videoEl.videoWidth || 640;
-                videoCanvas.height = obj.height || videoEl.videoHeight || 480;
-                const ctx = videoCanvas.getContext('2d');
-                
-                obj._element = videoCanvas;
-                obj._originalElement = videoCanvas;
-                obj.videoElement = videoEl;
-                obj.videoCanvas = videoCanvas;
-                obj.videoContext = ctx;
-                
-                const renderLoop = () => {
-                    if (obj.canvas && !obj.isDeleted) {
-                        if (videoEl.readyState >= 2) {
-                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
-                            obj.dirty = true;
-                            canvas.requestRenderAll();
-                        }
-                        obj._videoFrame = requestAnimationFrame(renderLoop);
-                    }
-                };
-                obj._videoFrame = requestAnimationFrame(renderLoop);
-                
-                obj.on('removed', function() {
-                    this.isDeleted = true;
-                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
-                    if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                });
-                
-                canvas.requestRenderAll();
-            };
-            
-            videoEl.onerror = () => {
-                console.error('Error restoring video from blob URL');
-            };
-        }
-
-        function restoreAudioObject(obj) {
-            if (!obj.audioBlobUrl || obj.audioElement) return;
-            
-            const audioEl = document.createElement('audio');
-            audioEl.src = obj.audioBlobUrl;
-            audioEl.crossOrigin = "anonymous";
-            audioEl.loop = true;
-            audioEl.style.display = 'none';
-            document.body.appendChild(audioEl);
-            
-            audioEl.onloadedmetadata = () => {
-                audioEl.play().catch(() => {});
-                obj.audioElement = audioEl;
-                
-                obj.on('selected', () => {
-                    if (obj.audioElement) obj.audioElement.play().catch(() => {});
-                });
-                
-                obj.on('removed', function() {
-                    if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
-                    if (this.audioElement) this.audioElement.pause();
-                });
-            };
-        }
-
-        function undo() {
-            if (undoStack.length > 1) {
-                redoStack.push(undoStack.pop());
-                const prevState = undoStack[undoStack.length - 1];
-                canvas.loadFromJSON(prevState, () => { 
-                    restoreMediaObjects();
-                    canvas.renderAll(); 
-                    updateLayerList(); 
-                });
-            }
-        }
-
-        function redo() {
-            if (redoStack.length > 0) {
-                const nextState = redoStack.pop();
-                undoStack.push(nextState);
-                canvas.loadFromJSON(nextState, () => { 
-                    restoreMediaObjects();
-                    canvas.renderAll(); 
-                    updateLayerList(); 
-                });
-            }
-        }
-
-        function updatePrice() {
-            const qty = parseInt(document.getElementById('qtyInput').value) || 2;
-            const total = (qty * 2.99).toFixed(2);
-            document.getElementById('totalPrice').textContent = '$' + total;
-            document.getElementById('priceDisplay').textContent = '$' + total;
-        }
-
-        function updateCheckoutDisplay() {
-            const qty = isBatchMode ? (parseInt(document.getElementById('qtyInput').value) || 2) : 1;
-            const total = (qty * 2.99).toFixed(2);
-            document.getElementById('checkoutTotal').textContent = '$' + total;
-        }
-
-        function enableBatchMode() {
-            isBatchMode = true;
-            document.getElementById('batchControls').classList.add('active');
-            document.getElementById('singleModeBtn').classList.remove('active');
-            document.getElementById('batchModeBtn').classList.add('active');
-            updatePrice();
-            updateCheckoutDisplay();
-        }
-
-        function updateQty(change) {
-            const input = document.getElementById('qtyInput');
-            let val = parseInt(input.value) + change;
-            if (val < 2) val = 2;
-            if (val > 2000) val = 2000;
-            input.value = val;
-            document.getElementById('qtyDisplay').textContent = val;
-            updatePrice();
-            updateCheckoutDisplay();
-        }
-
-        function setupEventListeners() {
-            canvas.on('selection:created', handleSelection);
-            canvas.on('selection:updated', handleSelection);
-            canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', saveState);
-            canvas.on('object:moving', handleObjectMoving);
-
-            document.querySelector('.tools-panel').addEventListener('click', function(e) {
-                const btn = e.target.closest('.tool-btn');
-                if (btn) {
-                    const tool = btn.dataset.tool;
-                    if (tool) handleToolClick(tool);
-                }
-            });
-
-            setupTextControls();
-            setupTransformControls();
-            setupEffectsControls();
-
-            const fileInput = document.getElementById('fileInput');
-            const uploadArea = document.getElementById('uploadArea');
-            uploadArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', handleImageUpload);
-            uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary-gold)'; });
-            uploadArea.addEventListener('dragleave', (e) => { e.preventDefault(); uploadArea.style.borderColor = ''; });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault(); uploadArea.style.borderColor = '';
-                const files = e.dataTransfer.files;
-                if (files.length > 0) handleFile(files[0]);
-            });
-
-            document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
-            document.getElementById('videoUploadArea').addEventListener('click', () => document.getElementById('videoInput').click());
-            document.getElementById('audioUploadArea').addEventListener('click', () => document.getElementById('audioInput').click());
-            document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
-
-            document.getElementById('addImageMode').addEventListener('click', () => document.getElementById('fileInput').click());
-            document.getElementById('addVideoMode').addEventListener('click', () => document.getElementById('videoInput').click());
-            document.getElementById('addAudioMode').addEventListener('click', () => document.getElementById('audioInput').click());
-
-            document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
-            document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
-            document.addEventListener('keydown', handleKeyboard);
-
-            // Media playback button listeners
-            document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
-            document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
-            document.getElementById('mediaDeleteBtn').addEventListener('click', deleteSelected);
-
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) e.preventDefault();
-                lastTouchEnd = now;
-            }, { passive: false });
-            canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
-        }
-
-        async function handleVideoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            if (file.size > 40 * 1024 * 1024) { alert('Video must be under 40MB'); return; }
-            const blobUrl = URL.createObjectURL(file);
-            const videoEl = document.createElement('video');
-            videoEl.src = blobUrl;
-            videoEl.crossOrigin = "anonymous";
-            videoEl.loop = true;
-            videoEl.playsInline = true;
-            videoEl.autoplay = true;
-            videoEl.style.display = 'none';
-            document.body.appendChild(videoEl);
-            videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(e => {
-                    console.log('Autoplay with sound blocked - user must click to enable audio');
-                    showNotification('Video added! Click to enable audio if needed.', 'info');
-                });
-                const videoCanvas = document.createElement('canvas');
-                videoCanvas.width = videoEl.videoWidth || 640;
-                videoCanvas.height = videoEl.videoHeight || 480;
-                const ctx = videoCanvas.getContext('2d');
-                const fabricVideo = new fabric.Image(videoCanvas, {
-                    left: canvas.width / 2, top: canvas.height / 2,
-                    scaleX: 0.5, scaleY: 0.5, originX: 'center', originY: 'center',
-                    opacity: 0.5, hasControls: true, hasBorders: true,
-                    lockScalingX: false, lockScalingY: false, lockRotation: false,
-                    lockMovementX: false, lockMovementY: false, hasRotatingPoint: true,
-                    transparentCorners: false, cornerColor: '#06D6A0',
-                    cornerStrokeColor: '#fff', cornerSize: 12,
-                    borderColor: '#06D6A0', borderScaleFactor: 2
-                });
-                fabricVideo.setControlsVisibility({
-                    mt: true, mb: true, ml: true, mr: true,
-                    bl: true, br: true, tl: true, tr: true, mtr: true
-                });
-                fabricVideo.isVideo = true;
-                fabricVideo.videoFile = file;
-                fabricVideo.videoBlobUrl = blobUrl;
-                fabricVideo.videoType = file.type;
-                fabricVideo.videoElement = videoEl;
-                fabricVideo.videoCanvas = videoCanvas;
-                fabricVideo.videoContext = ctx;
-                canvas.add(fabricVideo);
-                canvas.setActiveObject(fabricVideo);
-                canvas.renderAll();
-                saveState();
-                const renderLoop = () => {
-                    if (fabricVideo.canvas && !fabricVideo.isDeleted) {
-                        if (videoEl.readyState >= 2) {
-                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
-                            fabricVideo.dirty = true;
-                            canvas.requestRenderAll();
-                        }
-                        fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
-                    }
-                };
-                fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
-                fabricVideo.on('removed', function() {
-                    this.isDeleted = true;
-                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
-                    if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                });
-                showNotification('Video added! Drag corners to resize, edges to rotate.');
-            };
-            videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
-        }
-
-        function handleAudioUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            if (file.size > 40 * 1024 * 1024) { alert('Audio must be under 40MB'); return; }
-            const blobUrl = URL.createObjectURL(file);
-            const audioEl = document.createElement('audio');
-            audioEl.src = blobUrl;
-            audioEl.crossOrigin = "anonymous";
-            audioEl.loop = true;
-            audioEl.onloadedmetadata = () => {
-                audioEl.play().catch(e => { console.log('Audio autoplay blocked'); });
-                const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
-                fabric.Image.fromURL(svgIcon, (img) => {
-                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center' });
-                    img.isAudio = true;
-                    img.audioFile = file;
-                    img.audioBlobUrl = blobUrl;
-                    img.audioElement = audioEl;
-                    img.audioType = file.type;
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                    saveState();
-                    img.on('selected', () => { audioEl.play().catch(() => {}); });
-                    img.on('removed', function() {
-                        if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
-                        if (this.audioElement) this.audioElement.pause();
-                    });
-                    showNotification('Audio added! Will play when card is viewed.');
-                });
-            };
-        }
-
-        function handleSelection(e) {
-            selectedObject = e.selected[0];
-            updateControls();
-            showSelectionControls();
-            updateLayerList();
-        }
-
-        function handleDeselection() {
-            selectedObject = null;
-            showNoSelection();
-            updateLayerList();
-        }
-
-        function handleObjectMoving(e) {
-            if (snapToGrid && e.target) {
-                e.target.set({
-                    left: Math.round(e.target.left / gridSize) * gridSize,
-                    top: Math.round(e.target.top / gridSize) * gridSize
-                });
-            }
-        }
-
-        function handleToolClick(tool) {
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.querySelector(`[data-tool="${tool}"]`);
-            if (btn) btn.classList.add('active');
-            switch(tool) {
-                case 'select': canvas.isDrawingMode = false; break;
-                case 'text': addNewText(); break;
-                case 'rect': addShape('rect'); break;
-                case 'circle': addShape('circle'); break;
-                case 'triangle': addShape('triangle'); break;
-                case 'line': addLine(); break;
-                case 'image': document.getElementById('fileInput').click(); break;
-                case 'video': document.getElementById('videoInput').click(); break;
-                case 'audio': document.getElementById('audioInput').click(); break;
-                case 'delete': deleteSelected(); break;
-                case 'undo': undo(); break;
-                case 'redo': redo(); break;
-                case 'grid': toggleGrid(); break;
-                case 'rulers': document.body.classList.toggle('show-rulers'); break;
-            }
-        }
-
-        function addNewText() {
-            const text = new fabric.IText('New Text', {
-                left: 300, top: 225, fontSize: 32,
-                fontFamily: templateConfig?.config?.defaultFont || 'Montserrat',
-                fill: templateConfig?.config?.textColor || '#333333',
-                originX: 'center', originY: 'center'
-            });
-            canvas.add(text);
-            canvas.setActiveObject(text);
-            canvas.renderAll();
-            saveState();
-        }
-
-        function addShape(type) {
-            let shape;
-            const options = {
-                left: 300, top: 225,
-                fill: templateConfig?.config?.accentColor || '#BCAE83',
-                originX: 'center', originY: 'center'
-            };
-            switch(type) {
-                case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
-                case 'circle': shape = new fabric.Circle({ ...options, radius: 50 }); break;
-                case 'triangle': shape = new fabric.Triangle({ ...options, width: 100, height: 100 }); break;
-            }
-            if (shape) {
-                canvas.add(shape);
-                canvas.setActiveObject(shape);
-                canvas.renderAll();
-                saveState();
-            }
-        }
-
-        function addLine() {
-            const line = new fabric.Line([250, 225, 350, 225], {
-                stroke: templateConfig?.config?.accentColor || '#333333',
-                strokeWidth: 3, originX: 'center', originY: 'center'
-            });
-            canvas.add(line);
-            canvas.setActiveObject(line);
-            canvas.renderAll();
-            saveState();
-        }
-
-        function deleteSelected() {
-            const active = canvas.getActiveObject();
-            if (active) {
-                if (active.type === 'activeSelection') {
-                    active.getObjects().forEach(obj => canvas.remove(obj));
-                } else {
-                    canvas.remove(active);
-                }
-                canvas.discardActiveObject();
-                canvas.renderAll();
-                saveState();
-            }
-        }
-
-        function updateControls() {
-            if (!selectedObject) return;
-            document.getElementById('posX').value = Math.round(selectedObject.left);
-            document.getElementById('posY').value = Math.round(selectedObject.top);
-            document.getElementById('objWidth').value = Math.round(selectedObject.width * selectedObject.scaleX);
-            document.getElementById('objHeight').value = Math.round(selectedObject.height * selectedObject.scaleY);
-            document.getElementById('rotation').value = Math.round(selectedObject.angle || 0);
-            document.getElementById('opacity').value = Math.round((selectedObject.opacity || 1) * 100);
-
-            if (selectedObject.type === 'i-text') {
-                document.getElementById('textControls').style.display = 'block';
-                document.getElementById('textContent').value = selectedObject.text;
-                document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Montserrat';
-                document.getElementById('fontSize').value = selectedObject.fontSize;
-                document.getElementById('fontSizeVal').textContent = selectedObject.fontSize;
-                document.getElementById('charSpacing').value = selectedObject.charSpacing || 0;
-                document.getElementById('lineHeight').value = selectedObject.lineHeight || 1.16;
-                document.getElementById('textColor').value = selectedObject.fill || '#333333';
-
-                document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
-                document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
-                document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-                document.getElementById('linethroughBtn').classList.toggle('active', selectedObject.linethrough);
-                document.getElementById('overlineBtn').classList.toggle('active', selectedObject.overline);
-
-                document.querySelectorAll('[data-align]').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
-                });
-
-                document.getElementById('textStrokeToggle').classList.toggle('active', selectedObject.stroke && selectedObject.strokeWidth > 0);
-                document.getElementById('strokeControls').style.display = (selectedObject.stroke && selectedObject.strokeWidth > 0) ? 'block' : 'none';
-                if (selectedObject.stroke) {
-                    document.getElementById('strokeColor').value = selectedObject.stroke;
-                    document.getElementById('strokeWidth').value = selectedObject.strokeWidth;
-                }
-
-                document.getElementById('shadowToggle').classList.toggle('active', selectedObject.shadow);
-                document.getElementById('shadowControls').style.display = selectedObject.shadow ? 'block' : 'none';
-                if (selectedObject.shadow) {
-                    document.getElementById('shadowColor').value = selectedObject.shadow.color;
-                    document.getElementById('shadowBlur').value = selectedObject.shadow.blur;
-                    document.getElementById('shadowOffsetX').value = selectedObject.shadow.offsetX;
-                    document.getElementById('shadowOffsetY').value = selectedObject.shadow.offsetY;
-                }
-            } else {
-                document.getElementById('textControls').style.display = 'none';
-            }
-
-            if (['rect', 'circle', 'triangle'].includes(selectedObject.type)) {
-                document.getElementById('shapeControls').style.display = 'block';
-                document.getElementById('shapeFill').value = selectedObject.fill || '#BCAE83';
-                document.getElementById('shapeStroke').value = selectedObject.stroke || '#000000';
-                document.getElementById('shapeStrokeWidth').value = selectedObject.strokeWidth || 0;
-                document.getElementById('cornerRadiusRow').style.display = selectedObject.type === 'rect' ? 'block' : 'none';
-                if (selectedObject.type === 'rect') {
-                    document.getElementById('cornerRadius').value = selectedObject.rx || 0;
-                }
-            } else {
-                document.getElementById('shapeControls').style.display = 'none';
-            }
-
-            // Media playback controls
-            const mediaControls = document.getElementById('mediaPlaybackControls');
-            if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                mediaControls.style.display = 'block';
-                updateMediaButtons();
-            } else {
-                mediaControls.style.display = 'none';
-            }
-
-            updateLockButton();
-        }
-
-        function updateMediaButtons() {
-            if (!selectedObject) return;
-            const playBtn = document.getElementById('mediaPlayPauseBtn');
-            const muteBtn = document.getElementById('mediaMuteBtn');
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                const video = selectedObject.videoElement;
-                playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
-                muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                const audio = selectedObject.audioElement;
-                playBtn.innerHTML = audio.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
-                muteBtn.innerHTML = audio.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
-            }
-        }
-
-        function toggleMediaPlayPause() {
-            if (!selectedObject) return;
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                const video = selectedObject.videoElement;
-                if (video.paused) video.play().catch(() => {});
-                else video.pause();
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                const audio = selectedObject.audioElement;
-                if (audio.paused) audio.play().catch(() => {});
-                else audio.pause();
-            }
-            setTimeout(updateMediaButtons, 50);
-        }
-
-        function toggleMediaMute() {
-            if (!selectedObject) return;
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                selectedObject.videoElement.muted = !selectedObject.videoElement.muted;
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                selectedObject.audioElement.muted = !selectedObject.audioElement.muted;
-            }
-            updateMediaButtons();
-        }
-
-        function setupTextControls() {
-            document.getElementById('textContent').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('text', this.value);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('fontFamily').addEventListener('change', async function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    if (document.fonts) {
-                        try { await document.fonts.load('1em "' + this.value + '"'); } catch (e) {}
-                    }
-                    selectedObject.set('fontFamily', this.value);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('fontSize').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('fontSize', parseInt(this.value));
-                    document.getElementById('fontSizeVal').textContent = this.value;
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('charSpacing').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('charSpacing', parseInt(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('lineHeight').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('lineHeight', parseFloat(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('textColor').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('fill', this.value);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('textColorPresets').addEventListener('click', function(e) {
-                const preset = e.target.closest('.color-preset');
-                if (preset && preset.dataset.color) {
-                    const color = preset.dataset.color;
-                    document.getElementById('textColor').value = color;
-                    if (selectedObject && selectedObject.type === 'i-text') {
-                        selectedObject.set('fill', color);
-                        canvas.renderAll();
-                    }
-                }
-            });
-            document.getElementById('boldBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    const isBold = selectedObject.fontWeight === 'bold';
-                    selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
-                    this.classList.toggle('active', !isBold);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('italicBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    const isItalic = selectedObject.fontStyle === 'italic';
-                    selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
-                    this.classList.toggle('active', !isItalic);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('underlineBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('underline', !selectedObject.underline);
-                    this.classList.toggle('active', selectedObject.underline);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('linethroughBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('linethrough', !selectedObject.linethrough);
-                    this.classList.toggle('active', selectedObject.linethrough);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('overlineBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('overline', !selectedObject.overline);
-                    this.classList.toggle('active', selectedObject.overline);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.querySelectorAll('[data-align]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (selectedObject && selectedObject.type === 'i-text') {
-                        document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        selectedObject.set('textAlign', this.dataset.align);
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
-        }
-
-        function setupTransformControls() {
-            ['posX', 'posY'].forEach(id => {
-                document.getElementById(id).addEventListener('change', function() {
-                    if (selectedObject) {
-                        const prop = id === 'posX' ? 'left' : 'top';
-                        selectedObject.set(prop, parseInt(this.value));
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
-            ['objWidth', 'objHeight'].forEach(id => {
-                document.getElementById(id).addEventListener('change', function() {
-                    if (selectedObject) {
-                        const prop = id === 'objWidth' ? 'scaleX' : 'scaleY';
-                        const original = id === 'objWidth' ? selectedObject.width : selectedObject.height;
-                        selectedObject.set(prop, parseInt(this.value) / original);
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
-            document.getElementById('rotation').addEventListener('input', function() {
-                if (selectedObject) {
-                    selectedObject.set('angle', parseInt(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('opacity').addEventListener('input', function() {
-                if (selectedObject) {
-                    selectedObject.set('opacity', parseInt(this.value) / 100);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('shapeFill').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('fill', this.value); canvas.renderAll(); }
-            });
-            document.getElementById('shapeStroke').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('stroke', this.value); canvas.renderAll(); }
-            });
-            document.getElementById('shapeStrokeWidth').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('strokeWidth', parseInt(this.value)); canvas.renderAll(); }
-            });
-            document.getElementById('cornerRadius').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'rect') {
-                    selectedObject.set({ rx: parseInt(this.value), ry: parseInt(this.value) });
-                    canvas.renderAll();
-                }
-            });
-        }
-
-        function setupEffectsControls() {
-            document.getElementById('textStrokeToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                const show = this.classList.contains('active');
-                document.getElementById('strokeControls').style.display = show ? 'block' : 'none';
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    if (show) {
-                        selectedObject.set({
-                            stroke: document.getElementById('strokeColor').value,
-                            strokeWidth: parseInt(document.getElementById('strokeWidth').value)
-                        });
-                    } else {
-                        selectedObject.set({ strokeWidth: 0 });
-                    }
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('strokeColor').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('stroke', this.value);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('strokeWidth').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('strokeWidth', parseInt(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('shadowToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                const show = this.classList.contains('active');
-                document.getElementById('shadowControls').style.display = show ? 'block' : 'none';
-                if (selectedObject) {
-                    if (show) {
-                        selectedObject.set('shadow', new fabric.Shadow({
-                            color: document.getElementById('shadowColor').value,
-                            blur: parseInt(document.getElementById('shadowBlur').value),
-                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
-                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
-                        }));
-                    } else {
-                        selectedObject.set('shadow', null);
-                    }
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            ['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].forEach(id => {
-                document.getElementById(id).addEventListener('input', function() {
-                    if (selectedObject && selectedObject.shadow) {
-                        selectedObject.shadow.set({
-                            color: document.getElementById('shadowColor').value,
-                            blur: parseInt(document.getElementById('shadowBlur').value),
-                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
-                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
-                        });
-                        canvas.renderAll();
-                    }
-                });
-            });
-            document.getElementById('snapToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                snapToGrid = this.classList.contains('active');
-            });
-            document.getElementById('gridSize').addEventListener('input', function() {
-                gridSize = parseInt(this.value);
-            });
-        }
-
-        function setupArrangeControls() {
-            document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
-            document.getElementById('bringForwardBtn').addEventListener('click', bringForward);
-            document.getElementById('sendBackwardBtn').addEventListener('click', sendBackward);
-            document.getElementById('sendToBackBtn').addEventListener('click', sendToBack);
-            document.getElementById('flipHBtn').addEventListener('click', flipHorizontal);
-            document.getElementById('flipVBtn').addEventListener('click', flipVertical);
-            document.getElementById('lockBtn').addEventListener('click', lockObject);
-            document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
-            document.getElementById('groupBtn').addEventListener('click', groupSelected);
-            document.getElementById('ungroupBtn').addEventListener('click', ungroupSelected);
-            document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
-        }
-
-        function setupZoomControls() {
-            document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
-            document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
-            document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
-            document.getElementById('fitToScreenBtn').addEventListener('click', fitToScreen);
-            document.getElementById('resizeCanvasBtn').addEventListener('click', resizeCanvas);
-        }
-
-        function setupQtyControls() {
-            document.getElementById('qtyMinus').addEventListener('click', () => updateQty(-1));
-            document.getElementById('qtyPlus').addEventListener('click', () => updateQty(1));
-            document.getElementById('qtyInput').addEventListener('change', function() {
-                document.getElementById('qtyDisplay').textContent = this.value;
-                updatePrice();
-                updateCheckoutDisplay();
-            });
-        }
-
-        function setupModeSwitch() {
-            document.getElementById('singleModeBtn').addEventListener('click', function() {
-                isBatchMode = false;
-                this.classList.add('active');
-                document.getElementById('batchModeBtn').classList.remove('active');
-                document.getElementById('batchControls').classList.remove('active');
-                document.getElementById('priceDisplay').textContent = '$2.99';
-                updateCheckoutDisplay();
-            });
-            document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
-        }
-
-        function bringToFront() {
-            if (selectedObject) { canvas.bringToFront(selectedObject); canvas.renderAll(); saveState(); updateLayerList(); }
-        }
-        function bringForward() {
-            if (selectedObject) { canvas.bringForward(selectedObject); canvas.renderAll(); saveState(); updateLayerList(); }
-        }
-        function sendBackward() {
-            if (selectedObject) { canvas.sendBackwards(selectedObject); canvas.renderAll(); saveState(); updateLayerList(); }
-        }
-        function sendToBack() {
-            if (selectedObject) { canvas.sendToBack(selectedObject); canvas.renderAll(); saveState(); updateLayerList(); }
-        }
-        function flipHorizontal() {
-            if (selectedObject) { selectedObject.set('flipX', !selectedObject.flipX); canvas.renderAll(); saveState(); }
-        }
-        function flipVertical() {
-            if (selectedObject) { selectedObject.set('flipY', !selectedObject.flipY); canvas.renderAll(); saveState(); }
-        }
-        function lockObject() {
-            if (selectedObject) {
-                selectedObject.set('selectable', !selectedObject.selectable);
-                selectedObject.set('evented', !selectedObject.evented);
-                canvas.discardActiveObject();
-                canvas.renderAll();
-                updateLayerList();
-                updateLockButton();
-            }
-        }
-        function updateLockButton() {
-            const btn = document.getElementById('lockBtn');
-            if (selectedObject && !selectedObject.selectable) {
-                btn.innerHTML = '<i class="fas fa-lock"></i> Unlock';
-                btn.classList.add('active');
-            } else {
-                btn.innerHTML = '<i class="fas fa-lock"></i> Lock';
-                btn.classList.remove('active');
-            }
-        }
-        function duplicateObject() {
-            if (selectedObject) {
-                selectedObject.clone(function(cloned) {
-                    cloned.set({ left: selectedObject.left + 20, top: selectedObject.top + 20 });
-                    canvas.add(cloned);
-                    canvas.setActiveObject(cloned);
-                    canvas.renderAll();
-                    saveState();
-                });
-            }
-        }
-        function groupSelected() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'activeSelection') {
-                const group = active.toGroup();
-                canvas.setActiveObject(group);
-                canvas.renderAll();
-                saveState();
-            }
-        }
-        function ungroupSelected() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'group') {
-                active.toActiveSelection();
-                canvas.renderAll();
-                saveState();
-            }
-        }
-
-        function updateLayerList() {
-            const list = document.getElementById('layerList');
-            list.innerHTML = '';
-            canvas.getObjects().forEach((obj, index) => {
-                const item = document.createElement('div');
-                item.className = 'layer-item' + (obj === selectedObject ? ' active' : '') + (!obj.selectable ? ' locked' : '');
-                let icon = 'fa-square';
-                let name = `Object ${index + 1}`;
-                if (obj.type === 'i-text') { icon = 'fa-font'; name = obj.text ? obj.text.substring(0, 20) : 'Text'; }
-                else if (obj.type === 'image') { icon = 'fa-image'; name = 'Image'; }
-                else if (obj.type === 'group') { icon = 'fa-object-group'; name = 'Group'; }
-                else if (obj.type === 'line') { icon = 'fa-minus'; name = 'Line'; }
-                else if (obj.isVideo) { icon = 'fa-video'; name = 'Video'; }
-                else if (obj.isAudio) { icon = 'fa-music'; name = 'Audio'; }
-                item.innerHTML = `<span><i class="fas ${icon}"></i> ${name}</span><div class="layer-actions">${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;
-                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); } });
-                const deleteBtn = item.querySelector('[data-action="delete"]');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteObjectByIndex(index); });
-                }
-                list.appendChild(item);
-            });
-        }
-
-        function deleteObjectByIndex(index) {
-            const obj = canvas.getObjects()[index];
-            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); }
-        }
-
-        function deleteAll() {
-            if (confirm('Clear all objects? This cannot be undone.')) {
-                canvas.getObjects().forEach(obj => canvas.remove(obj));
-                canvas.renderAll();
-                saveState();
-            }
-        }
-
-        function toggleGrid() {
-            showGrid = !showGrid;
-            document.getElementById('gridOverlay').classList.toggle('show', showGrid);
-        }
-
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            handleFile(file);
-        }
-
-        function handleFile(file) {
-            if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-            if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center' });
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                    saveState();
-                });
-            };
-            reader.onerror = () => { alert('Error reading file'); };
-            reader.readAsDataURL(file);
-        }
-
-        function zoom(delta) {
-            currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
-            canvas.setZoom(currentZoom);
-            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
-        }
-        function resetZoom() {
-            currentZoom = 1;
-            canvas.setZoom(1);
-            document.getElementById('zoomDisplay').textContent = '100%';
-        }
-        function fitToScreen() {
-            const container = document.querySelector('.canvas-container');
-            const scaleX = (container.clientWidth - 60) / 600;
-            const scaleY = (container.clientHeight - 60) / 450;
-            currentZoom = Math.min(scaleX, scaleY, 1);
-            canvas.setZoom(currentZoom);
-            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
-        }
-        function resizeCanvas() {
-            const width = parseInt(document.getElementById('canvasWidth').value);
-            const height = parseInt(document.getElementById('canvasHeight').value);
-            canvas.setWidth(width);
-            canvas.setHeight(height);
-            canvas.renderAll();
-            document.getElementById('canvasSize').textContent = `${width} × ${height} px`;
-            saveState();
-        }
-        function resetDesign() {
-            if (confirm('Reset to template defaults? All changes will be lost.')) {
-                loadTemplateDesign();
-                saveState();
-            }
-        }
-        function showSelectionControls() {
-            document.getElementById('selectionControls').style.display = 'block';
-            document.getElementById('noSelection').style.display = 'none';
-        }
-        function showNoSelection() {
-            document.getElementById('selectionControls').style.display = 'none';
-            document.getElementById('noSelection').style.display = 'block';
-        }
-        function setupTabs() {
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-                });
-            });
-        }
-
-        function handleKeyboard(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-            if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) return;
-            const activeObject = canvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text' && activeObject.isEditing) return;
-
-            if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'v': handleToolClick('select'); break;
-                    case 't': handleToolClick('text'); break;
-                    case 'i': handleToolClick('image'); break;
-                    case 'r': handleToolClick('rect'); break;
-                    case 'c': handleToolClick('circle'); break;
-                    case 'l': handleToolClick('line'); break;
-                    case 'g': handleToolClick('grid'); break;
-                    case ' ':
-                        e.preventDefault();
-                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                            toggleMediaPlayPause();
-                        }
-                        break;
-                    case 'm':
-                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                            e.preventDefault();
-                            toggleMediaMute();
-                        }
-                        break;
-                    case 'delete':
-                    case 'backspace':
-                        if (selectedObject && selectedObject.type !== 'i-text') deleteSelected();
-                        break;
-                }
-            }
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'z': e.preventDefault(); undo(); break;
-                    case 'y': e.preventDefault(); redo(); break;
-                    case 'd': e.preventDefault(); duplicateObject(); break;
-                    case 'g': e.preventDefault(); if (e.shiftKey) ungroupSelected(); else groupSelected(); break;
-                    case 'a': e.preventDefault(); canvas.discardActiveObject(); const sel = new fabric.ActiveSelection(canvas.getObjects(), { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); break;
-                }
-            }
-            if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                e.preventDefault();
-                const step = e.shiftKey ? 10 : 1;
-                switch(e.key) {
-                    case 'ArrowUp': selectedObject.top -= step; break;
-                    case 'ArrowDown': selectedObject.top += step; break;
-                    case 'ArrowLeft': selectedObject.left -= step; break;
-                    case 'ArrowRight': selectedObject.left += step; break;
-                }
-                canvas.renderAll();
-                updateControls();
-            }
-        }
-
-        function checkForSavedProgress() {
-            const saved = localStorage.getItem('papirDesignAutosave');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    const age = Date.now() - data.timestamp;
-                    const hoursAgo = Math.floor(age / (1000 * 60 * 60));
-                    if (hoursAgo < 24) {
-                        document.getElementById('loadProgressBtn').style.display = 'block';
-                        showNotification(`Found design from ${hoursAgo} hours ago. Click Resume to continue.`, 'info');
-                    } else {
-                        localStorage.removeItem('papirDesignAutosave');
-                    }
-                } catch(e) {
-                    console.error('Error checking saved progress:', e);
-                }
-            }
-        }
-
-        function saveProgress() {
-            try {
-                const designData = {
-                    canvas: canvas.toJSON(),
-                    templateConfig: templateConfig,
-                    backgroundColor: canvas.backgroundColor,
-                    timestamp: Date.now(),
-                    version: '1.0'
-                };
-                localStorage.setItem('papirDesignAutosave', JSON.stringify(designData));
-                showNotification('Design saved! You can resume anytime within 24 hours.', 'success');
-                const btn = document.getElementById('saveProgressBtn');
-                btn.innerHTML = '<i class="fas fa-check"></i> Saved';
-                setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 2000);
-            } catch (error) {
-                console.error('Save error:', error);
-                showNotification('Could not save design (too large?). Try exporting instead.', 'error');
-            }
-        }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('papirDesignAutosave');
-            if (!saved) { showNotification('No saved design found', 'error'); return; }
-            if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
-            try {
-                const data = JSON.parse(saved);
-                canvas.loadFromJSON(data.canvas, () => { canvas.renderAll(); saveState(); });
-                if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
-                if (data.templateConfig) {
-                    templateConfig = data.templateConfig;
-                    document.getElementById('templateName').textContent = templateConfig.name || 'Design';
-                    document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
-                }
-                showNotification('Design loaded! Continue where you left off.', 'success');
-                document.getElementById('loadProgressBtn').style.display = 'none';
-            } catch (error) {
-                console.error('Load error:', error);
-                showNotification('Could not load saved design', 'error');
-            }
-        }
-
-        function startAutoSave() {
-            setInterval(() => {
-                if (canvas.getObjects().length > 0) {
-                    try { saveProgress(); } catch (e) {}
-                }
-            }, 300000);
-        }
-
-        async function proceedToCheckout() {
-            const btn = document.getElementById('checkoutBtn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner"></span> Saving...';
-            btn.disabled = true;
-            try {
-                const BACKEND_URL = '';
-                const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
-                
-                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
-                const hasVideo = videoObjects.length > 0;
-                let videoUrl = '';
-                
-                if (hasVideo) {
-                    showNotification('Uploading video...', 'info');
-                    const video = videoObjects[0];
-                    const file = video.videoFile;
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) videoUrl = uploadData.url;
-                }
-                
-                let audioUrl = '';
-                const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
-                if (audioObjects.length > 0) {
-                    showNotification('Uploading audio...', 'info');
-                    const audio = audioObjects[0];
-                    const file = audio.audioFile;
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) audioUrl = uploadData.url;
-                }
-                
-                let overlayUrl = '';
-                let thumbnailUrl = '';
-                
-                if (hasVideo) {
-                    const originalBg = canvas.backgroundColor;
-                    videoObjects.forEach(v => canvas.remove(v));
-                    canvas.backgroundColor = 'transparent';
-                    canvas.renderAll();
-                    const overlayData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    canvas.backgroundColor = originalBg;
-                    videoObjects.forEach(v => canvas.add(v));
-                    canvas.renderAll();
-                    videoObjects.forEach(v => canvas.sendToBack(v));
-                    canvas.renderAll();
-                    
-                    const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const overlayData2 = await overlayRes.json();
-                    if (overlayData2.success) overlayUrl = overlayData2.url;
-                    
-                    const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: thumbData, fileName: 'thumbnail.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const thumbData2 = await thumbRes.json();
-                    if (thumbData2.success) thumbnailUrl = thumbData2.url;
-                } else {
-                    const canvasData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: canvasData, fileName: 'card-design.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) thumbnailUrl = uploadData.url;
-                }
-                
-                const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
-                const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
-                let mediaType = 'image';
-                if (hasVideo) mediaType = 'video';
-                else if (audioUrl) mediaType = 'audio';
-                
-                if (qty === 1) {
-                    const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            card_id: cardId, message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
-                            has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard'
-                        })
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'Failed to create card');
-                    localStorage.setItem('pendingCardId', cardId);
-                    localStorage.setItem('pendingBatchId', '');
-                    localStorage.setItem('pendingQty', '1');
-                    window.location.href = `checkout.html?card_id=${encodeURIComponent(cardId)}&qty=1`;
-                } else {
-                    const customBatchId = document.getElementById('customBatchId').value.trim();
-                    const batchId = customBatchId || 'BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-                    const templateCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                    const totalAmount = (qty * 2.99).toFixed(2);
-                    const batchRes = await fetch(`${BACKEND_URL}/api/batches`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            batch_id: batchId, batch_name: customBatchId || `Batch ${new Date().toLocaleDateString()}`,
-                            total_cards_purchased: qty, cards_created: 0, max_cards_allowed: qty,
-                            status: 'pending_payment', unit_price: 2.99, total_amount: parseFloat(totalAmount),
-                            template_card_id: templateCardId
-                        })
-                    });
-                    if (!batchRes.ok) {
-                        const err = await batchRes.json().catch(() => ({}));
-                        throw new Error(err.error || 'Failed to create batch record');
-                    }
-                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            card_id: templateCardId, batch_id: batchId, batch_order: 1,
-                            message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
-                            has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard', is_batch_template: true, quantity: qty
-                        })
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'Failed to create template card');
-                    localStorage.setItem('pendingCardId', '');
-                    localStorage.setItem('pendingBatchId', batchId);
-                    localStorage.setItem('pendingQty', qty.toString());
-                    window.location.href = `checkout.html?batch_id=${encodeURIComponent(batchId)}&qty=${qty}&mode=batch`;
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Failed to save: ' + error.message);
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        }
-
-        /* ===== MOBILE LOCK/UNLOCK ===== */
-        function lockMobileObjects(lock) {
+        // ----- Global tracking for scaling logic (mobile adaptation)
+        let originalCanvasWidth = 600;
+        let originalCanvasHeight = 400;
+        let isMobileActive = false;      // track if we are currently in mobile responsive mode
+        let lastScaleFactor = 1;          // for incremental scaling not needed, we'll recalc based on container
+
+        // store default objects for reset
+        let defaultObjects = [];
+
+        // ---- Helper: apply scaling to all objects given a target canvas width/height (preserve aspect ratio)
+        function scaleCanvasAndObjects(targetWidth, targetHeight) {
             if (!canvas) return;
+            const oldWidth = canvas.width;
+            const oldHeight = canvas.height;
+            if (oldWidth === targetWidth && oldHeight === targetHeight) return;
+
+            const scaleX = targetWidth / oldWidth;
+            const scaleY = targetHeight / oldHeight;
+            // scale all objects
             canvas.getObjects().forEach(obj => {
-                if (lock) {
-                    obj._wasSelectable = obj.selectable;
-                    obj._wasEvented = obj.evented;
-                    obj.set({ selectable: false, evented: false });
-                } else {
-                    if (obj._wasSelectable !== undefined) {
-                        obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
-                    } else {
-                        obj.set({ selectable: true, evented: true });
-                    }
+                // Scale properties
+                obj.set({
+                    left: (obj.left || 0) * scaleX,
+                    top: (obj.top || 0) * scaleY,
+                    width: (obj.width || 0) * scaleX,
+                    height: (obj.height || 0) * scaleY,
+                    scaleX: (obj.scaleX || 1) * 1,   // avoid double scaling, we directly adjust width/left
+                    scaleY: (obj.scaleY || 1) * 1
+                });
+                // If it's a text object, scale fontSize
+                if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
+                    const originalFont = obj.originalFontSize || obj.fontSize;
+                    const newFontSize = (obj.fontSize || 16) * scaleX;
+                    obj.set('fontSize', newFontSize);
+                    if (!obj.originalFontSize) obj.originalFontSize = originalFont;
                 }
+                // For strokes consistency
+                if (obj.strokeWidth) {
+                    obj.set('strokeWidth', (obj.strokeWidth || 1) * Math.min(scaleX, scaleY));
+                }
+                obj.setCoords();
             });
-            if (lock) { canvas.selection = false; canvas.discardActiveObject(); }
-            else { canvas.selection = true; }
+            canvas.setDimensions({ width: targetWidth, height: targetHeight });
             canvas.renderAll();
         }
 
-        /* ===== MOBILE UI SETUP ===== */
-        function applyMobileSpacingFix() {
-            if (window.innerWidth > 768) return;
-            // Directly override any stubborn default styles
-            const canvasArea = document.querySelector('.canvas-area');
-            const canvasContainer = document.querySelector('.canvas-container');
-            const canvasToolbar = document.querySelector('.canvas-toolbar');
-            const designLayout = document.querySelector('.design-layout');
-            const appContainer = document.querySelector('.app-container');
-            const designCanvas = document.getElementById('designCanvas');
-
-            if (canvasArea) {
-                canvasArea.style.display = 'block';
-                canvasArea.style.flex = 'none';
-                canvasArea.style.height = 'auto';
-                canvasArea.style.minHeight = 'auto';
-                canvasArea.style.padding = '0';
-                canvasArea.style.margin = '0';
-                canvasArea.style.background = 'transparent';
-            }
-            if (canvasContainer) {
-                canvasContainer.style.display = 'block';
-                canvasContainer.style.flex = 'none';
-                canvasContainer.style.height = 'auto';
-                canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.padding = '0';
-                canvasContainer.style.margin = '0';
-                canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundImage = 'none';
-            }
-            if (canvasToolbar) {
-                canvasToolbar.style.margin = '0';
-                canvasToolbar.style.padding = '2px 4px';
-                canvasToolbar.style.borderBottom = 'none';
-            }
-            if (designLayout) {
-                designLayout.style.height = 'auto';
-                designLayout.style.minHeight = 'auto';
-                designLayout.style.flex = 'none';
-            }
-            if (appContainer) {
-                appContainer.style.height = 'auto';
-                appContainer.style.minHeight = 'auto';
-            }
-            if (designCanvas) {
-                designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0 auto';
-                designCanvas.style.boxShadow = 'none';
-            }
+        // ---- Store initial object properties (for reset, but also used to keep base)
+        function captureDefaultState() {
+            defaultObjects = [];
+            canvas.getObjects().forEach(obj => {
+                defaultObjects.push(JSON.parse(JSON.stringify(obj.toObject())));
+            });
         }
 
-        function setupMobileUI() {
-            // Wrap property sections for collapsible headings
-            if (!document.querySelector('.section-content')) {
-                document.querySelectorAll('.property-section').forEach(section => {
-                    const h4 = section.querySelector('h4');
-                    if (!h4) return;
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'section-content';
-                    const toWrap = Array.from(section.children).filter(c => c !== h4 && !c.classList.contains('section-content'));
-                    toWrap.forEach(c => wrapper.appendChild(c));
-                    if (wrapper.children.length > 0) section.appendChild(wrapper);
-                    h4.addEventListener('click', function() {
-                        if (window.innerWidth <= 768) section.classList.toggle('collapsed');
-                    });
-                });
+        // Reset to factory design (preserves base card)
+        function resetToOriginalDesign() {
+            // clear canvas
+            canvas.clear();
+            canvas.setBackgroundColor('#fef9e8', canvas.renderAll.bind(canvas));
+            // Create default elegant card design (preserve ratio independent)
+            const rect = new fabric.Rect({
+                left: 30, top: 30, width: 540, height: 340,
+                rx: 16, ry: 16,
+                fill: '#ffffff',
+                stroke: '#BCAE83',
+                strokeWidth: 2,
+                shadow: 'rgba(0,0,0,0.1) 0px 4px 12px'
+            });
+            const nameText = new fabric.Text('ALEXANDER GRANT', {
+                left: 50, top: 100, fontSize: 28, fontFamily: 'Segoe UI', fontWeight: 'bold',
+                fill: '#1a1a2e', originX: 'left'
+            });
+            const titleText = new fabric.Text('Creative Director', {
+                left: 52, top: 145, fontSize: 18, fontFamily: 'Segoe UI',
+                fill: '#BCAE83', originX: 'left'
+            });
+            const contactIcon = new fabric.Text('✉  alex@papir.com   |   📞 +1 234 567 890', {
+                left: 50, top: 280, fontSize: 12, fontFamily: 'Segoe UI',
+                fill: '#555', originX: 'left'
+            });
+            const goldAccent = new fabric.Rect({
+                left: 50, top: 200, width: 120, height: 3,
+                fill: '#BCAE83', rx: 2
+            });
+            const logoCircle = new fabric.Circle({
+                left: 520, top: 45, radius: 28,
+                fill: '#06D6A0', opacity: 0.8
+            });
+            const logoSymbol = new fabric.Text('P', {
+                left: 520 + 8, top: 45 + 11, fontSize: 28, fill: '#1a1a2e',
+                fontWeight: 'bold', originX: 'left', originY: 'top'
+            });
+            
+            canvas.add(rect, nameText, titleText, contactIcon, goldAccent, logoCircle, logoSymbol);
+            canvas.renderAll();
+            captureDefaultState();
+            
+            // also after reset, reapply scaling if in mobile mode to keep fit
+            if (isMobileActive) {
+                applyMobileScaling();
             }
-
-            // Tools toggle below canvas
+        }
+        
+        // apply mobile scaling based on wrapper container width
+        function applyMobileScaling() {
+            if (!isMobileActive) return;
+            const wrapper = document.getElementById('canvasWrapper');
+            if (!wrapper) return;
+            // get available width inside canvas-area minus padding
+            const maxWidth = wrapper.clientWidth - 20; // some inner gap
+            if (maxWidth < 50) return;
+            const aspect = originalCanvasHeight / originalCanvasWidth; // 400/600 = 0.666
+            let targetWidth = Math.min(maxWidth, originalCanvasWidth);
+            let targetHeight = targetWidth * aspect;
+            // limit max height based on viewport, but keep within canvas-area
             const canvasArea = document.querySelector('.canvas-area');
-            let toggle = document.getElementById('mobileToolsToggle');
-            if (!toggle && canvasArea) {
-                toggle = document.createElement('div');
-                toggle.className = 'mobile-tools-toggle collapsed';
-                toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>';
-                canvasArea.appendChild(toggle);
-                toggle.addEventListener('click', function() {
-                    const toolsPanel = document.querySelector('.tools-panel');
-                    const icon = this.querySelector('i.fa-chevron-up, i.fa-chevron-down');
-                    if (toolsPanel) {
-                        toolsPanel.classList.toggle('collapsed');
-                        this.classList.toggle('collapsed');
-                        if (icon) {
-                            icon.classList.toggle('fa-chevron-up');
-                            icon.classList.toggle('fa-chevron-down');
-                        }
-                    }
-                });
-            }
-
-            // Mobile accordion for Design/Layers/Settings
-            let accordion = document.getElementById('mobileAccordionContainer');
-            if (!accordion) {
-                accordion = document.createElement('div');
-                accordion.id = 'mobileAccordionContainer';
-                accordion.className = 'mobile-accordion-container';
-                const tabData = [
-                    { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
-                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-                    { tabId: 'settings', label: 'Settings', icon: 'fa-cog', contentId: 'settingsTab' }
-                ];
-                tabData.forEach(tab => {
-                    const header = document.createElement('div');
-                    header.className = 'mobile-accordion-header';
-                    header.dataset.target = tab.contentId;
-                    header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
-                    header.addEventListener('click', function() {
-                        if (window.innerWidth > 768) return;
-                        const targetId = this.dataset.target;
-                        const targetContent = document.getElementById(targetId);
-                        const chevron = this.querySelector('.accordion-chevron');
-                        const isActive = this.classList.contains('active');
-
-                        // Close all accordions first
-                        document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                            h.classList.remove('active');
-                            const c = h.querySelector('.accordion-chevron');
-                            if (c) c.style.transform = 'rotate(0deg)';
-                        });
-                        document.querySelectorAll('.tab-content').forEach(c => {
-                            if (window.innerWidth <= 768) c.style.display = 'none';
-                        });
-
-                        // If it was already active, we just closed it — stop here
-                        if (isActive) return;
-
-                        // Otherwise open the clicked one
-                        this.classList.add('active');
-                        if (chevron) chevron.style.transform = 'rotate(180deg)';
-                        if (targetContent) {
-                            targetContent.style.display = 'block';
-                            setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
-                        }
-                    });
-                    accordion.appendChild(header);
-                });
-                const propertiesPanel = document.querySelector('.properties-panel');
-                const tabs = propertiesPanel.querySelector('.tabs');
-                if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
-            }
-
-            // Mobile lock/unlock toggle
-            const lockToggle = document.getElementById('mobileLockToggle');
-            if (lockToggle) {
-                lockToggle.addEventListener('click', function() {
-                    const isLocked = this.classList.contains('locked');
-                    if (isLocked) {
-                        lockMobileObjects(false);
-                        this.classList.remove('locked');
-                        this.classList.add('unlocked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-                    } else {
-                        lockMobileObjects(true);
-                        this.classList.remove('unlocked');
-                        this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
-                    }
-                });
-            }
-
-            // Resize handler
-            function handleResize() {
-                applyMobileSpacingFix();
-                const isMobile = window.innerWidth <= 768;
-                const toolsPanel = document.querySelector('.tools-panel');
-                const toggleEl = document.getElementById('mobileToolsToggle');
-                const tabs = document.querySelector('.tabs');
-                const accordionContainer = document.getElementById('mobileAccordionContainer');
-                const tabContents = document.querySelectorAll('.tab-content');
-                if (!isMobile) {
-                    if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
-                    if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
-                    if (tabs) tabs.style.display = '';
-                    if (accordionContainer) accordionContainer.style.display = 'none';
-                    tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
-                    const activeTab = document.querySelector('.tab.active');
-                    if (activeTab) {
-                        const target = document.getElementById(activeTab.dataset.tab + 'Tab');
-                        if (target) target.classList.add('active');
-                    }
-                    document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-                    lockMobileObjects(false);
-                } else {
-                    if (tabs) tabs.style.display = 'none';
-                    if (accordionContainer) accordionContainer.style.display = 'block';
-                    if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    if (toggleEl) toggleEl.classList.add('collapsed');
-                    tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
-                    document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                        h.classList.remove('active');
-                        const c = h.querySelector('.accordion-chevron');
-                        if (c) c.style.transform = 'rotate(0deg)';
-                    });
-                    lockMobileObjects(true);
-                    const lockToggleEl = document.getElementById('mobileLockToggle');
-                    if (lockToggleEl) {
-                        lockToggleEl.classList.remove('unlocked');
-                        lockToggleEl.classList.add('locked');
-                        lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
-                    }
+            if (canvasArea) {
+                const maxHeight = canvasArea.clientHeight - 30;
+                if (targetHeight > maxHeight && maxHeight > 100) {
+                    targetHeight = maxHeight;
+                    targetWidth = targetHeight / aspect;
                 }
             }
-            window.addEventListener('resize', handleResize);
-            handleResize();
+            targetWidth = Math.floor(targetWidth);
+            targetHeight = Math.floor(targetHeight);
+            if (targetWidth !== canvas.width || targetHeight !== canvas.height) {
+                scaleCanvasAndObjects(targetWidth, targetHeight);
+            }
         }
-
-        async function init() {
-            if (document.fonts) await document.fonts.ready;
-            setupMobileUI();
-            applyMobileSpacingFix();
-            const urlParams = new URLSearchParams(window.location.search);
-            const saved = localStorage.getItem('selectedTemplateConfig');
-            if (saved) {
-                try {
-                    templateConfig = JSON.parse(saved);
-                    if (templateConfig) {
-                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
-                        document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
-                        if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
-                            enableBatchMode();
-                            if (templateConfig.batchSize) {
-                                document.getElementById('qtyInput').value = templateConfig.batchSize;
-                                updatePrice();
-                            }
-                        }
-                        await loadTemplateDesign();
-                        saveState();
-                    }
-                } catch (e) {
-                    console.error('Error loading template:', e);
-                    canvas.backgroundColor = '#ffffff';
-                    canvas.renderAll();
+        
+        // revert to desktop original dimensions (600x400)
+        function revertToDesktopScale() {
+            if (canvas.width !== originalCanvasWidth || canvas.height !== originalCanvasHeight) {
+                scaleCanvasAndObjects(originalCanvasWidth, originalCanvasHeight);
+            }
+        }
+        
+        // Responsive handler: only for mobile, adjust canvas and objects to wrapper size
+        function handleResponsiveFit() {
+            const isMobileView = window.innerWidth <= 768;
+            if (isMobileView) {
+                if (!isMobileActive) {
+                    isMobileActive = true;
+                    // first time entering mobile mode: scale from desktop dimensions to fit wrapper
+                    applyMobileScaling();
+                } else {
+                    // already mobile: re-evaluate container size (orientation change)
+                    applyMobileScaling();
                 }
             } else {
-                canvas.backgroundColor = '#ffffff';
-                canvas.renderAll();
+                if (isMobileActive) {
+                    isMobileActive = false;
+                    revertToDesktopScale();
+                } else {
+                    // Ensure desktop dimensions are intact if somehow deviated
+                    if (canvas.width !== originalCanvasWidth || canvas.height !== originalCanvasHeight) {
+                        revertToDesktopScale();
+                    }
+                }
             }
-            updateCheckoutDisplay();
-            setupEventListeners();
-            setupTabs();
-            setupBackgroundOptions();
-            setupQtyControls();
-            setupZoomControls();
-            setupArrangeControls();
-            setupModeSwitch();
-            checkForSavedProgress();
-            startAutoSave();
         }
-
-        document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
-        document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
-
-        init();
-    </script>
+        
+        // Resize observer for wrapper changes (dynamic, but also use window resize)
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                handleResponsiveFit();
+            }, 100);
+        });
+        
+        // Initialize canvas with design
+        resetToOriginalDesign();
+        
+        // optional: add some extra interactivity that doesn't break mobile fit
+        // ----- tools functionality (keep desktop/mobile consistent)
+        document.getElementById('toolText')?.addEventListener('click', () => {
+            const newText = new fabric.IText('Your Text', {
+                left: 100, top: 220, fontSize: 20, fontFamily: 'Segoe UI',
+                fill: '#1a1a2e', editable: true
+            });
+            canvas.add(newText);
+            canvas.setActiveObject(newText);
+            canvas.renderAll();
+            if (isMobileActive) applyMobileScaling(); // re-fit just in case scaling needed
+        });
+        
+        document.getElementById('toolColor')?.addEventListener('click', () => {
+            // cycle accent color (gold <-> teal <-> purple)
+            const newGold = '#06D6A0';
+            const currentGold = '#BCAE83';
+            let objectsToUpdate = canvas.getObjects().filter(obj => 
+                (obj.fill === currentGold || obj.fill === '#06D6A0' || obj.stroke === currentGold)
+            );
+            if (objectsToUpdate.length === 0) {
+                // fallback: find gold accent rect
+                const accentRect = canvas.getObjects().find(obj => obj.fill === '#BCAE83' && obj.width === 120);
+                if (accentRect) objectsToUpdate = [accentRect];
+            }
+            objectsToUpdate.forEach(obj => {
+                if (obj.fill === currentGold) obj.set('fill', newGold);
+                else if (obj.fill === newGold) obj.set('fill', '#764ba2');
+                else if (obj.fill === '#764ba2') obj.set('fill', currentGold);
+                if (obj.stroke === currentGold) obj.set('stroke', newGold);
+                else if (obj.stroke === newGold) obj.set('stroke', '#764ba2');
+                else if (obj.stroke === '#764ba2') obj.set('stroke', currentGold);
+                if (obj.type === 'text' && obj.fill === currentGold) obj.set('fill', newGold);
+                else if (obj.type === 'text' && obj.fill === newGold) obj.set('fill', '#764ba2');
+                else if (obj.type === 'text' && obj.fill === '#764ba2') obj.set('fill', currentGold);
+            });
+            canvas.renderAll();
+        });
+        
+        document.getElementById('toolLogo')?.addEventListener('click', () => {
+            // add a simple star / decorative logo
+            fabric.loadSVGFromString('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#BCAE83"><path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2z"/></svg>', (objects, opts) => {
+                const svgShape = fabric.util.groupSVGElements(objects, opts);
+                svgShape.set({ left: 440, top: 310, scaleX: 0.8, scaleY: 0.8 });
+                canvas.add(svgShape);
+                canvas.renderAll();
+                if (isMobileActive) applyMobileScaling();
+            });
+        });
+        
+        document.getElementById('toolReset')?.addEventListener('click', () => {
+            resetToOriginalDesign();
+            if (isMobileActive) applyMobileScaling();
+        });
+        
+        // Mode switch logic (UI only, no backend)
+        const modeSwitch = document.getElementById('modeSwitch');
+        const batchCtrl = document.getElementById('batchControls');
+        const priceSpan = document.getElementById('priceDisplay');
+        modeSwitch?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.mode-option');
+            if (!btn) return;
+            const mode = btn.dataset.mode;
+            document.querySelectorAll('.mode-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (mode === 'batch') {
+                batchCtrl.classList.add('active');
+                priceSpan.innerText = '$26.91 / card';
+            } else {
+                batchCtrl.classList.remove('active');
+                priceSpan.innerText = '$29.90';
+            }
+        });
+        
+        // enable touch/pan avoid zoom issues: fabric disable panning if needed, but we allow selection
+        canvas.on('mouse:down', function(opt) {
+            // just ensure touch usability
+        });
+        
+        // update scaling after any object modifications or addition/removal to ensure mobile fit
+        function syncMobileAfterChange() {
+            if (isMobileActive) {
+                // brief delay to let fabric settle coordinates then reapply scaling to maintain exact fitting
+                setTimeout(() => applyMobileScaling(), 10);
+            }
+        }
+        
+        canvas.on('object:added', syncMobileAfterChange);
+        canvas.on('object:modified', syncMobileAfterChange);
+        canvas.on('object:removed', syncMobileAfterChange);
+        
+        // after initial load trigger mobile check
+        setTimeout(() => {
+            handleResponsiveFit();
+        }, 100);
+        
+        // Additional safety: observe wrapper resizing (like orientation changes or dynamic content)
+        const wrapperElem = document.getElementById('canvasWrapper');
+        if (window.ResizeObserver && wrapperElem) {
+            const resizeObserver = new ResizeObserver(() => {
+                if (isMobileActive) {
+                    applyMobileScaling();
+                }
+            });
+            resizeObserver.observe(wrapperElem);
+        }
+        
+        // ensure canvas context menu disabled
+        canvasElement.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // update price display with Stripe dummy, but not needed - just static UI.
+        console.log('Canvas ready with mobile-responsive scaling (preserves desktop layout).');
+    })();
+</script>
 </body>
 </html>
