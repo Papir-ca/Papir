@@ -133,43 +133,28 @@
                 min-height: auto !important;
                 max-height: none !important;
                 padding: 0 !important; 
-                margin: 0 !important; 
+                margin: 0 0 4px 0 !important; 
                 background: transparent !important;
-                position: static !important;
+                position: relative !important;
+                z-index: 1;
+                overflow: hidden;
             }
 
-            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
-            .canvas-container { 
-                display: block !important;
-                flex: none !important; 
+            /* ===== CANVAS CONTAINER - OUTER ONLY (not Fabric.js wrapper) ===== */
+            #canvasContainer { 
+                width: 100%;
                 height: auto !important; 
                 min-height: auto !important;
-                max-height: none !important;
+                max-height: 55vh;
                 padding: 0 !important; 
-                margin: 0 !important; 
+                margin: 0 auto !important; 
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
-                position: relative !important;
+                overflow: hidden;
                 line-height: 0;
                 text-align: center;
-            }
-            /* Force Fabric.js inner wrapper and canvases to scale with screen */
-            #canvasContainer > .canvas-container {
-                width: 100% !important;
-                height: auto !important;
-                position: relative !important;
-            }
-            #canvasContainer canvas {
-                width: 100% !important;
-                height: auto !important;
-                max-height: 55vh;
-                display: block;
-            }
-            #canvasContainer .upper-canvas {
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
+                position: relative;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -208,6 +193,8 @@
                 margin: 0 !important;
                 transition: max-height 0.35s ease, opacity 0.35s ease;
                 max-height: 120px;
+                position: relative;
+                z-index: 2;
             }
             .tools-panel.collapsed { 
                 max-height: 0; 
@@ -280,6 +267,8 @@
                 height: auto !important;
                 min-height: auto !important;
                 display: block !important;
+                position: relative;
+                z-index: 2;
             }
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
@@ -366,6 +355,7 @@
             .canvas-area { position: relative; z-index: auto; }
         }
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -1767,6 +1757,23 @@
             document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
 
+        function resizeCanvasForMobile() {
+            if (window.innerWidth <= 768) {
+                const container = document.getElementById('canvasContainer');
+                if (!container) return;
+                const maxWidth = container.clientWidth;
+                const aspectRatio = canvas.height / canvas.width;
+                const newWidth = Math.min(maxWidth, 600);
+                const newHeight = Math.round(newWidth * aspectRatio);
+                if (Math.abs(canvas.width - newWidth) > 2) {
+                    canvas.setWidth(newWidth);
+                    canvas.setHeight(newHeight);
+                    canvas.renderAll();
+                    document.getElementById('canvasSize').textContent = `${newWidth} × ${newHeight} px`;
+                }
+            }
+        }
+
         function setupZoomControls() {
             document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
             document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
@@ -2524,6 +2531,11 @@
             setupModeSwitch();
             checkForSavedProgress();
             startAutoSave();
+            resizeCanvasForMobile();
+            window.addEventListener('resize', () => {
+                clearTimeout(window._resizeTimer);
+                window._resizeTimer = setTimeout(resizeCanvasForMobile, 150);
+            });
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
