@@ -138,29 +138,27 @@
                 position: static !important;
             }
 
-            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
-            .canvas-container { 
+            /* ===== OUTER CANVAS CONTAINER (has both .canvas-container and #canvasContainer) ===== */
+            #canvasContainer.canvas-container { 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
                 min-height: auto !important;
-                max-height: none !important;
+                max-height: 55vh;
                 padding: 0 !important; 
                 margin: 0 !important; 
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
-                overflow: visible;
+                overflow: hidden;
                 line-height: 0;
                 text-align: center;
+                position: relative;
             }
-
-            /* ===== CANVAS ITSELF ===== */
+            /* ===== CANVAS ELEMENT ===== */
             #designCanvas { 
                 max-width: 100%; 
-                width: 100%; 
-                height: auto !important; 
-                max-height: 55vh;
+                height: auto;
                 display: block; 
                 margin: 0 auto;
                 box-shadow: none !important;
@@ -191,6 +189,8 @@
                 margin: 0 !important;
                 transition: max-height 0.35s ease, opacity 0.35s ease;
                 max-height: 120px;
+                position: relative;
+                z-index: 2;
             }
             .tools-panel.collapsed { 
                 max-height: 0; 
@@ -263,6 +263,8 @@
                 height: auto !important;
                 min-height: auto !important;
                 display: block !important;
+                position: relative;
+                z-index: 2;
             }
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
@@ -342,11 +344,10 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
-            /* ===== REMOVE GAP BETWEEN CANVAS AND TOOLS (MOBILE ONLY) ===== */
+            /* Flush canvas to tools */
             .canvas-area { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-            .canvas-toolbar { margin-bottom: 0 !important; padding-bottom: 2px !important; }
+            .canvas-toolbar { margin-bottom: 0 !important; padding-bottom: 2px !important; border-bottom: none !important; }
             #canvasContainer { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-            .canvas-container { margin-bottom: 0 !important; padding-bottom: 0 !important; }
             .mobile-tools-toggle { margin-top: 0 !important; }
         }
 @media (min-width: 769px) {
@@ -1758,6 +1759,33 @@
             document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
 
+        function resizeCanvasForMobile() {
+            if (window.innerWidth > 768) {
+                if (canvas && canvas.setDimensions) {
+                    canvas.setDimensions({ width: 600, height: 450 }, { cssOnly: true });
+                }
+                const sizeEl = document.getElementById('canvasSize');
+                if (sizeEl) sizeEl.textContent = '600 × 450 px';
+                return;
+            }
+            const container = document.getElementById('canvasContainer');
+            if (!container || !canvas || !canvas.setDimensions) {
+                setTimeout(resizeCanvasForMobile, 300);
+                return;
+            }
+            const containerWidth = container.clientWidth || container.offsetWidth;
+            if (!containerWidth) {
+                setTimeout(resizeCanvasForMobile, 300);
+                return;
+            }
+            const scale = Math.min(containerWidth / 600, 1);
+            const newWidth = Math.max(Math.floor(600 * scale), 100);
+            const newHeight = Math.max(Math.floor(450 * scale), 75);
+            canvas.setDimensions({ width: newWidth, height: newHeight }, { cssOnly: true });
+            const sizeEl = document.getElementById('canvasSize');
+            if (sizeEl) sizeEl.textContent = `${newWidth} × ${newHeight} px`;
+        }
+
         function setupZoomControls() {
             document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
             document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
@@ -2276,13 +2304,11 @@
         /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
             if (window.innerWidth > 768) return;
-            // Directly override any stubborn default styles
+            // Only touch outer layout elements by ID — NEVER touch Fabric.js inner wrapper
             const canvasArea = document.querySelector('.canvas-area');
-            const canvasContainer = document.querySelector('.canvas-container');
             const canvasToolbar = document.querySelector('.canvas-toolbar');
             const designLayout = document.querySelector('.design-layout');
             const appContainer = document.querySelector('.app-container');
-            const designCanvas = document.getElementById('designCanvas');
 
             if (canvasArea) {
                 canvasArea.style.display = 'block';
@@ -2292,16 +2318,6 @@
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
-            }
-            if (canvasContainer) {
-                canvasContainer.style.display = 'block';
-                canvasContainer.style.flex = 'none';
-                canvasContainer.style.height = 'auto';
-                canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.padding = '0';
-                canvasContainer.style.margin = '0';
-                canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundImage = 'none';
             }
             if (canvasToolbar) {
                 canvasToolbar.style.margin = '0';
@@ -2316,11 +2332,6 @@
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
-            }
-            if (designCanvas) {
-                designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0 auto';
-                designCanvas.style.boxShadow = 'none';
             }
         }
 
@@ -2385,8 +2396,9 @@
                         const targetId = this.dataset.target;
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
-                        const isActive = this.classList.contains('active');
-                        if (isActive) return;
+                        const wasActive = this.classList.contains('active');
+
+                        // Close all first
                         document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                             h.classList.remove('active');
                             const c = h.querySelector('.accordion-chevron');
@@ -2395,6 +2407,11 @@
                         document.querySelectorAll('.tab-content').forEach(c => {
                             if (window.innerWidth <= 768) c.style.display = 'none';
                         });
+
+                        // If was already active, we just closed it — stop here
+                        if (wasActive) return;
+
+                        // Otherwise open the clicked one
                         this.classList.add('active');
                         if (chevron) chevron.style.transform = 'rotate(180deg)';
                         if (targetContent) {
@@ -2515,6 +2532,11 @@
             setupModeSwitch();
             checkForSavedProgress();
             startAutoSave();
+            [0, 100, 300, 600].forEach(d => setTimeout(resizeCanvasForMobile, d));
+            window.addEventListener('resize', () => {
+                clearTimeout(window._resizeTimer);
+                window._resizeTimer = setTimeout(resizeCanvasForMobile, 150);
+            });
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
