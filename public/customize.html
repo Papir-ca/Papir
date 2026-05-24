@@ -155,21 +155,32 @@
                 text-align: center;
             }
 
+            /* ===== CANVAS ITSELF ===== */
+            #designCanvas { 
+                max-width: 100%; 
+                width: 100%; 
+                height: auto !important; 
+                max-height: 55vh;
+                display: block; 
+                margin: 0 auto;
+                box-shadow: none !important;
+            }
+            /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
             #canvasContainer {
                 max-height: 55vh;
                 overflow: hidden;
-                display: flex;
-                justify-content: center;
-                align-items: center;
             }
             /* ===== INNER FABRIC.JS WRAPPER ===== */
             #canvasContainer .canvas-container {
+                width: 100% !important;
                 max-width: 100% !important;
-                max-height: 55vh !important;
                 width: auto !important;
                 height: auto !important;
+                aspect-ratio: 600 / 450 !important;
+                max-height: 55vh !important;
                 margin: 0 auto !important;
+                position: relative !important;
             }
             /* ===== CANVAS ELEMENTS ===== */
             #designCanvas {
@@ -181,11 +192,8 @@
             }
             #canvasContainer .lower-canvas,
             #canvasContainer .upper-canvas {
-                max-width: 100% !important;
-                max-height: 55vh !important;
-                width: auto !important;
-                height: auto !important;
-                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -368,16 +376,10 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
-            /* Flush canvas to tools */
-            .canvas-area { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-            .canvas-toolbar { margin-bottom: 0 !important; padding-bottom: 2px !important; border-bottom: none !important; }
-            #canvasContainer { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-            .mobile-tools-toggle { margin-top: 0 !important; }
-
-            /* Hide Properties label */
+            /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
 
-            /* Reset button floating */
+            /* ===== MOVE RESET BUTTON TO CANVAS TOOLBAR ===== */
             #resetDesignBtn {
                 position: fixed;
                 top: 8px;
@@ -390,7 +392,7 @@
                 opacity: 0.9;
             }
 
-            /* Mobile context menu */
+            /* ===== MOBILE CONTEXT MENU ===== */
             .mobile-context-menu {
                 position: fixed;
                 background: rgba(26, 26, 46, 0.98);
@@ -515,6 +517,7 @@
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
                         <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap text to select, hold for options</span>
                     <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
                         <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
@@ -1089,7 +1092,7 @@
 
         function restoreVideoObject(obj) {
             if (!obj.videoBlobUrl || obj.videoElement) return;
-            
+
             const videoEl = document.createElement('video');
             videoEl.src = obj.videoBlobUrl;
             videoEl.crossOrigin = "anonymous";
@@ -1098,21 +1101,21 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-            
+
             videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(() => {});
-                
+
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
                 videoCanvas.height = obj.height || videoEl.videoHeight || 480;
                 const ctx = videoCanvas.getContext('2d');
-                
+
                 obj._element = videoCanvas;
                 obj._originalElement = videoCanvas;
                 obj.videoElement = videoEl;
                 obj.videoCanvas = videoCanvas;
                 obj.videoContext = ctx;
-                
+
                 const renderLoop = () => {
                     if (obj.canvas && !obj.isDeleted) {
                         if (videoEl.readyState >= 2) {
@@ -1124,17 +1127,17 @@
                     }
                 };
                 obj._videoFrame = requestAnimationFrame(renderLoop);
-                
+
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
-                
+
                 canvas.requestRenderAll();
             };
-            
+
             videoEl.onerror = () => {
                 console.error('Error restoring video from blob URL');
             };
@@ -1142,22 +1145,22 @@
 
         function restoreAudioObject(obj) {
             if (!obj.audioBlobUrl || obj.audioElement) return;
-            
+
             const audioEl = document.createElement('audio');
             audioEl.src = obj.audioBlobUrl;
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-            
+
             audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
-                
+
                 obj.on('selected', () => {
                     if (obj.audioElement) obj.audioElement.play().catch(() => {});
                 });
-                
+
                 obj.on('removed', function() {
                     if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
@@ -1222,8 +1225,7 @@
             updateCheckoutDisplay();
         }
 
-        function setupMobileTouch() {
-            if (!('ontouchstart' in window)) return;
+        function setupMobileContextMenu() {
             const canvasEl = document.getElementById('designCanvas');
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
@@ -1233,44 +1235,24 @@
             let touchStartX = 0;
             let touchStartY = 0;
             let touchMoved = false;
-            let isLongPress = false;
-            const LONG_PRESS_MS = 600;
-            const MOVE_THRESHOLD = 12;
-
-            function getCanvasPointer(clientX, clientY) {
-                const rect = canvasEl.getBoundingClientRect();
-                return {
-                    x: (clientX - rect.left) * (canvas.width / rect.width),
-                    y: (clientY - rect.top) * (canvas.height / rect.height)
-                };
-            }
-
-            function findObjectAt(clientX, clientY) {
-                const pointer = getCanvasPointer(clientX, clientY);
-                const objects = canvas.getObjects();
-                for (let i = objects.length - 1; i >= 0; i--) {
-                    if (objects[i].containsPoint(pointer)) {
-                        return objects[i];
-                    }
-                }
-                return null;
-            }
+            const LONG_PRESS_MS = 500;
 
             function showMenu(x, y) {
+                // Update lock text based on selected object
                 const lockText = document.getElementById('ctxLockText');
                 if (lockText) {
-                    lockText.textContent = (selectedObject && selectedObject.selectable === false) ? 'Unlock' : 'Lock';
+                    lockText.textContent = (selectedObject && !selectedObject.selectable) ? 'Unlock' : 'Lock';
                 }
                 menu.style.display = 'block';
                 backdrop.style.display = 'block';
-                void menu.offsetWidth;
+                // Position menu near touch but keep on screen
                 const menuRect = menu.getBoundingClientRect();
                 let left = x - menuRect.width / 2;
-                let top = y - menuRect.height - 15;
-                if (left < 10) left = 10;
-                if (left + menuRect.width > window.innerWidth - 10) left = window.innerWidth - menuRect.width - 10;
-                if (top < 10) top = y + 20;
-                if (top + menuRect.height > window.innerHeight - 10) top = window.innerHeight - menuRect.height - 10;
+                let top = y - menuRect.height - 10;
+                if (left < 8) left = 8;
+                if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
+                if (top < 8) top = y + 20;
+                if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
                 menu.style.left = left + 'px';
                 menu.style.top = top + 'px';
             }
@@ -1286,67 +1268,51 @@
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 touchMoved = false;
-                isLongPress = false;
-
                 touchTimer = setTimeout(() => {
                     touchTimer = null;
-                    isLongPress = true;
                     if (!touchMoved) {
-                        const obj = findObjectAt(touchStartX, touchStartY);
-                        if (obj) {
-                            canvas.setActiveObject(obj);
-                            selectedObject = obj;
+                        // Select object under touch
+                        const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
+                        const objects = canvas.getObjects();
+                        let target = null;
+                        for (let i = objects.length - 1; i >= 0; i--) {
+                            if (objects[i].containsPoint(pointer) && objects[i].selectable !== false) {
+                                target = objects[i];
+                                break;
+                            }
+                        }
+                        if (target) {
+                            canvas.setActiveObject(target);
+                            selectedObject = target;
                             updateControls();
                             showSelectionControls();
                             updateLayerList();
                             canvas.renderAll();
+                        }
+                        if (selectedObject) {
                             showMenu(touchStartX, touchStartY);
-                        } else {
-                            canvas.discardActiveObject();
-                            selectedObject = null;
-                            showNoSelection();
-                            updateLayerList();
-                            canvas.renderAll();
                         }
                     }
                 }, LONG_PRESS_MS);
             }, { passive: true });
 
             canvasEl.addEventListener('touchmove', function(e) {
-                if (!touchTimer && !isLongPress) return;
+                if (!touchTimer) return;
                 const touch = e.touches[0];
                 const dx = touch.clientX - touchStartX;
                 const dy = touch.clientY - touchStartY;
-                if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                     touchMoved = true;
-                    if (touchTimer) {
-                        clearTimeout(touchTimer);
-                        touchTimer = null;
-                    }
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
                 }
             }, { passive: true });
 
-            canvasEl.addEventListener('touchend', function(e) {
+            canvasEl.addEventListener('touchend', function() {
                 if (touchTimer) {
                     clearTimeout(touchTimer);
                     touchTimer = null;
-                    if (!touchMoved && !isLongPress) {
-                        const touch = e.changedTouches[0];
-                        const obj = findObjectAt(touch.clientX, touch.clientY);
-                        if (obj) {
-                            canvas.setActiveObject(obj);
-                            selectedObject = obj;
-                        } else {
-                            canvas.discardActiveObject();
-                            selectedObject = null;
-                        }
-                        updateControls();
-                        selectedObject ? showSelectionControls() : showNoSelection();
-                        updateLayerList();
-                        canvas.renderAll();
-                    }
                 }
-                isLongPress = false;
             });
 
             backdrop.addEventListener('touchstart', hideMenu);
@@ -1355,15 +1321,12 @@
             menu.querySelectorAll('.ctx-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    e.preventDefault();
                     const action = this.dataset.action;
                     switch(action) {
                         case 'front': bringToFront(); break;
                         case 'forward': bringForward(); break;
                         case 'backward': sendBackward(); break;
                         case 'back': sendToBack(); break;
-                        case 'flipH': flipHorizontal(); break;
-                        case 'flipV': flipVertical(); break;
                         case 'duplicate': duplicateObject(); break;
                         case 'lock': lockObject(); break;
                         case 'delete': deleteSelected(); break;
@@ -1379,6 +1342,30 @@
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
+
+            // Mobile tap-to-select fallback (improves touch accuracy)
+            if ('ontouchstart' in window) {
+                canvas.on('mouse:down', function(e) {
+                    if (!e.target) {
+                        const pointer = canvas.getPointer(e.e);
+                        const objects = canvas.getObjects();
+                        for (let i = objects.length - 1; i >= 0; i--) {
+                            const obj = objects[i];
+                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
+                                if (canvas.getActiveObject() !== obj) {
+                                    canvas.setActiveObject(obj);
+                                    selectedObject = obj;
+                                    updateControls();
+                                    showSelectionControls();
+                                    updateLayerList();
+                                    canvas.renderAll();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
 
             document.querySelector('.tools-panel').addEventListener('click', function(e) {
                 const btn = e.target.closest('.tool-btn');
@@ -2341,11 +2328,11 @@
             try {
                 const BACKEND_URL = '';
                 const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
-                
+
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
-                
+
                 if (hasVideo) {
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
@@ -2362,7 +2349,7 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) videoUrl = uploadData.url;
                 }
-                
+
                 let audioUrl = '';
                 const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
                 if (audioObjects.length > 0) {
@@ -2381,10 +2368,10 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) audioUrl = uploadData.url;
                 }
-                
+
                 let overlayUrl = '';
                 let thumbnailUrl = '';
-                
+
                 if (hasVideo) {
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
@@ -2396,14 +2383,14 @@
                     canvas.renderAll();
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
-                    
+
                     const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
                     const overlayData2 = await overlayRes.json();
                     if (overlayData2.success) overlayUrl = overlayData2.url;
-                    
+
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2420,13 +2407,13 @@
                     const uploadData = await uploadRes.json();
                     if (uploadData.success) thumbnailUrl = uploadData.url;
                 }
-                
+
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
                 const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
                 let mediaType = 'image';
                 if (hasVideo) mediaType = 'video';
                 else if (audioUrl) mediaType = 'audio';
-                
+
                 if (qty === 1) {
                     const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                     const response = await fetch(`${BACKEND_URL}/api/cards`, {
@@ -2511,10 +2498,13 @@
         /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
             if (window.innerWidth > 768) return;
+            // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
+            const canvasContainer = document.querySelector('.canvas-container');
             const canvasToolbar = document.querySelector('.canvas-toolbar');
             const designLayout = document.querySelector('.design-layout');
             const appContainer = document.querySelector('.app-container');
+            const designCanvas = document.getElementById('designCanvas');
 
             if (canvasArea) {
                 canvasArea.style.display = 'block';
@@ -2524,6 +2514,16 @@
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
+            }
+            if (canvasContainer) {
+                canvasContainer.style.display = 'block';
+                canvasContainer.style.flex = 'none';
+                canvasContainer.style.height = 'auto';
+                canvasContainer.style.minHeight = 'auto';
+                canvasContainer.style.padding = '0';
+                canvasContainer.style.margin = '0';
+                canvasContainer.style.background = 'transparent';
+                canvasContainer.style.backgroundImage = 'none';
             }
             if (canvasToolbar) {
                 canvasToolbar.style.margin = '0';
@@ -2538,6 +2538,11 @@
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
+            }
+            if (designCanvas) {
+                designCanvas.style.display = 'block';
+                designCanvas.style.margin = '0 auto';
+                designCanvas.style.boxShadow = 'none';
             }
         }
 
@@ -2603,6 +2608,8 @@
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
                         const wasActive = this.classList.contains('active');
+
+                        // Close all first
                         document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                             h.classList.remove('active');
                             const c = h.querySelector('.accordion-chevron');
@@ -2611,7 +2618,11 @@
                         document.querySelectorAll('.tab-content').forEach(c => {
                             if (window.innerWidth <= 768) c.style.display = 'none';
                         });
+
+                        // If was already active, we just closed it — stop here
                         if (wasActive) return;
+
+                        // Otherwise open the clicked one
                         this.classList.add('active');
                         if (chevron) chevron.style.transform = 'rotate(180deg)';
                         if (targetContent) {
@@ -2724,7 +2735,7 @@
             }
             updateCheckoutDisplay();
             setupEventListeners();
-            setupMobileTouch();
+            setupMobileContextMenu();
             setupTabs();
             setupBackgroundOptions();
             setupQtyControls();
@@ -2746,9 +2757,6 @@
         <div class="ctx-item" data-action="forward"><i class="fas fa-arrow-up" style="font-size:0.7em;"></i> Bring Forward</div>
         <div class="ctx-item" data-action="backward"><i class="fas fa-arrow-down" style="font-size:0.7em;"></i> Send Backward</div>
         <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
-        <div class="ctx-divider"></div>
-        <div class="ctx-item" data-action="flipH"><i class="fas fa-arrows-alt-h"></i> Flip Horizontal</div>
-        <div class="ctx-item" data-action="flipV"><i class="fas fa-arrows-alt-v"></i> Flip Vertical</div>
         <div class="ctx-divider"></div>
         <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
         <div class="ctx-item" data-action="lock"><i class="fas fa-lock"></i> <span id="ctxLockText">Lock</span></div>
