@@ -251,7 +251,7 @@
                 padding: 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin: 0 8px 2px; 
+                margin-bottom: 2px; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
@@ -2613,15 +2613,15 @@
                 });
             }
 
-            // Tools toggle below canvas
-            const canvasArea = document.querySelector('.canvas-area');
+            // Tools toggle inside properties panel (sits above Design/Layers/Settings accordion)
+            const propertiesPanel = document.querySelector('.properties-panel');
             let toggle = document.getElementById('mobileToolsToggle');
-            if (!toggle && canvasArea) {
+            if (!toggle && propertiesPanel) {
                 toggle = document.createElement('div');
                 toggle.className = 'mobile-tools-toggle collapsed';
                 toggle.id = 'mobileToolsToggle';
                 toggle.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><i class="fas fa-tools"></i> Tools</span> <i class="fas fa-chevron-up"></i>';
-                canvasArea.appendChild(toggle);
+                propertiesPanel.insertBefore(toggle, propertiesPanel.firstChild);
                 toggle.addEventListener('click', function() {
                     const toolsPanel = document.querySelector('.tools-panel');
                     const icon = this.querySelector('i.fa-chevron-up, i.fa-chevron-down');
@@ -2727,6 +2727,7 @@
                         if (target) target.classList.add('active');
                     }
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+                    canvas.selection = true;
                     lockMobileObjects(false);
                 } else {
                     if (tabs) tabs.style.display = 'none';
@@ -2739,6 +2740,8 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
+                    // Lock canvas group selection so empty space drags don't move a selection box
+                    canvas.selection = false;
                     // Default to UNLOCKED on mobile so users can tap & move immediately
                     lockMobileObjects(false);
                     const lockToggleEl = document.getElementById('mobileLockToggle');
