@@ -2052,8 +2052,8 @@
             document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
             document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
             document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
-            document.getElementById('fitToScreenBtn').addEventListener('click', fitToScreen);
-            document.getElementById('resizeCanvasBtn').addEventListener('click', resizeCanvas);
+            const resizeBtn = document.getElementById('resizeCanvasBtn');
+            if (resizeBtn) resizeBtn.addEventListener('click', resizeCanvas);
         }
 
         function setupQtyControls() {
