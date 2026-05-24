@@ -155,7 +155,6 @@
                 line-height: 0;
                 text-align: center;
                 border-radius: 0 !important;
-                touch-action: manipulation;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -1008,12 +1007,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
     <script>
-        const canvas = new fabric.Canvas('designCanvas', {
-            preserveObjectStacking: true,
-            selection: true,
-            allowTouchScrolling: false,
-            perPixelTargetFind: false
-        });
+        const canvas = new fabric.Canvas('designCanvas');
 
         let selectedObject = null;
         let templateConfig = null;
@@ -1308,27 +1302,23 @@
         }
 
         function setupMobileContextMenu() {
-            // Attach to upper canvas so long-press works reliably (upper canvas covers lower)
-            const canvasEl = canvas.upperCanvasEl || document.getElementById('designCanvas');
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
-            if (!canvasEl || !menu || !backdrop) return;
+            if (!menu || !backdrop) return;
 
             let touchTimer = null;
             let touchStartX = 0;
             let touchStartY = 0;
             let touchMoved = false;
-            const LONG_PRESS_MS = 500;
+            const LONG_PRESS_MS = 600;
 
             function showMenu(x, y) {
-                // Update lock text based on selected object
                 const lockText = document.getElementById('ctxLockText');
                 if (lockText) {
                     lockText.textContent = (selectedObject && selectedObject.selectable === false) ? 'Unlock' : 'Lock';
                 }
                 menu.style.display = 'block';
                 backdrop.style.display = 'block';
-                // Position menu near touch but keep on screen
                 const menuRect = menu.getBoundingClientRect();
                 let left = x - menuRect.width / 2;
                 let top = y - menuRect.height - 10;
@@ -1345,58 +1335,38 @@
                 backdrop.style.display = 'none';
             }
 
-            // Prevent browser's default context menu on long press
-            canvasEl.addEventListener('contextmenu', (e) => {
-                if (window.innerWidth <= 768) e.preventDefault();
-            });
-
-            canvasEl.addEventListener('touchstart', function(e) {
+            // Use document-level touch detection — doesn't interfere with Fabric.js canvas events
+            document.addEventListener('touchstart', function(e) {
                 if (window.innerWidth > 768) return;
+                // Only trigger if touch is on or near the canvas area
+                const canvasRect = document.getElementById('canvasContainer').getBoundingClientRect();
                 const touch = e.touches[0];
+                if (touch.clientX < canvasRect.left - 20 || touch.clientX > canvasRect.right + 20 ||
+                    touch.clientY < canvasRect.top - 20 || touch.clientY > canvasRect.bottom + 20) {
+                    return;
+                }
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 touchMoved = false;
                 touchTimer = setTimeout(() => {
                     touchTimer = null;
-                    if (!touchMoved) {
-                        // Select object under touch
-                        const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
-                        const objects = canvas.getObjects();
-                        let target = null;
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            if (objects[i].containsPoint(pointer) && objects[i].evented !== false) {
-                                target = objects[i];
-                                break;
-                            }
-                        }
-                        if (target) {
-                            canvas.setActiveObject(target);
-                            selectedObject = target;
-                            updateControls();
-                            showSelectionControls();
-                            updateLayerList();
-                            canvas.renderAll();
-                        }
-                        if (selectedObject) {
-                            showMenu(touchStartX, touchStartY);
-                        }
+                    if (!touchMoved && selectedObject) {
+                        showMenu(touchStartX, touchStartY);
                     }
                 }, LONG_PRESS_MS);
             }, { passive: true });
 
-            canvasEl.addEventListener('touchmove', function(e) {
+            document.addEventListener('touchmove', function(e) {
                 if (!touchTimer) return;
                 const touch = e.touches[0];
-                const dx = touch.clientX - touchStartX;
-                const dy = touch.clientY - touchStartY;
-                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) {
                     touchMoved = true;
                     clearTimeout(touchTimer);
                     touchTimer = null;
                 }
             }, { passive: true });
 
-            canvasEl.addEventListener('touchend', function() {
+            document.addEventListener('touchend', function() {
                 if (touchTimer) {
                     clearTimeout(touchTimer);
                     touchTimer = null;
@@ -2832,8 +2802,8 @@
                 canvas.renderAll();
             }
             updateCheckoutDisplay();
-            lockBackgroundObjects();
-            lockMobileObjects(false);
+            // lockBackgroundObjects();  // TEMP: disabled for testing
+            // lockMobileObjects(false); // TEMP: disabled for testing
             setupEventListeners();
             setupMobileContextMenu();
             setupTabs();
@@ -2852,6 +2822,7 @@
         document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
 
         init();
+        console.log('✅ init() completed successfully');
     </script>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
     <div class="mobile-context-menu" id="mobileContextMenu">
