@@ -401,10 +401,12 @@
             .header-left { width: 100%; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .mode-switch { transform: scale(0.85); flex-shrink: 0; }
-            .design-header > div:last-child { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+            .mode-switch { flex-shrink: 0; }
+            .mode-option { padding: 8px 16px; font-size: 0.85rem; }
+            .design-header > div:last-child { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; align-items: center; }
             .batch-controls { padding: 8px; margin-bottom: 2px; }
-            .mode-switch { transform: scale(0.85); flex-shrink: 0; }
+            .mode-switch { flex-shrink: 0; }
+            .mode-option { padding: 8px 16px; font-size: 0.85rem; }
             .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
             .control-row { flex-wrap: wrap; }
             .control-group { min-width: 120px; }
@@ -2554,6 +2556,8 @@
         function lockMobileObjects(lock) {
             if (!canvas) return;
             canvas.getObjects().forEach(obj => {
+                // NEVER touch background/template objects — they stay locked forever
+                if (obj.isBackground || obj.isTexture) return;
                 if (lock) {
                     obj._wasSelectable = obj.selectable;
                     obj._wasEvented = obj.evented;
@@ -2566,8 +2570,7 @@
                     }
                 }
             });
-            if (lock) { canvas.selection = false; canvas.discardActiveObject(); }
-            else { canvas.selection = true; }
+            if (lock) { canvas.discardActiveObject(); }
             canvas.renderAll();
         }
 
@@ -2783,10 +2786,6 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
-                    // Lock background decorative objects so they never get selected
-                    lockBackgroundObjects();
-                    // Default to UNLOCKED on mobile so users can tap & move immediately
-                    lockMobileObjects(false);
                     const lockToggleEl = document.getElementById('mobileLockToggle');
                     if (lockToggleEl) {
                         lockToggleEl.classList.remove('locked');
@@ -2833,6 +2832,7 @@
             }
             updateCheckoutDisplay();
             lockBackgroundObjects();
+            lockMobileObjects(false);
             setupEventListeners();
             setupMobileContextMenu();
             setupTabs();
