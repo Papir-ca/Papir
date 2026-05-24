@@ -112,7 +112,7 @@
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
         @media (max-width: 768px) {
             /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
-            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
+            .app-container { height: auto !important; min-height: auto !important; padding: 0; }
 
             /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
             .design-layout { 
@@ -136,6 +136,7 @@
                 margin: 0 !important; 
                 background: transparent !important;
                 position: static !important;
+                border-radius: 0 !important;
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -153,6 +154,7 @@
                 overflow: visible;
                 line-height: 0;
                 text-align: center;
+                border-radius: 0 !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -170,16 +172,20 @@
             #canvasContainer {
                 max-height: 55vh;
                 overflow: hidden;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border-radius: 0 !important;
             }
             /* ===== INNER FABRIC.JS WRAPPER ===== */
             #canvasContainer .canvas-container {
-                max-width: 100% !important;
+                width: 100% !important;
                 height: auto !important;
                 aspect-ratio: 600 / 450 !important;
                 max-height: 55vh !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 position: relative !important;
-                display: inline-block !important;
+                display: block !important;
             }
             /* ===== CANVAS ELEMENTS ===== */
             #designCanvas {
@@ -240,21 +246,22 @@
             .mobile-tools-toggle { 
                 display: flex; 
                 align-items: center; 
-                justify-content: center; 
+                justify-content: space-between; 
                 gap: 8px;
-                padding: 10px 12px; 
+                padding: 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin: 0; 
+                margin: 0 8px 2px; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
                 color: white; 
+                border: 1px solid rgba(255,255,255,0.1); 
                 -webkit-tap-highlight-color: transparent; 
                 touch-action: manipulation;
             }
-            .mobile-tools-toggle:active { opacity: 0.8; }
-            .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
+            .mobile-tools-toggle:active { opacity: 0.9; }
+            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             /* ===== ACCORDION ===== */
@@ -363,10 +370,11 @@
 
             /* ===== HEADER COMPACT ===== */
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .mode-switch { transform: scale(0.8); }
+            .mode-switch { transform: scale(0.85); flex-shrink: 0; }
+            .design-header > div:last-child { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
             .batch-controls { padding: 8px; margin-bottom: 2px; }
             .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
             .control-row { flex-wrap: wrap; }
@@ -439,8 +447,12 @@
         @media (max-width: 768px) and (orientation: landscape) {
             #canvasContainer,
             #canvasContainer .canvas-container,
-            #designCanvas {
+            #designCanvas,
+            .canvas-area,
+            .canvas-container {
                 max-height: 80vh !important;
+                width: 100% !important;
+                border-radius: 0 !important;
             }
         }
 @media (min-width: 769px) {
@@ -526,12 +538,10 @@
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap text to select & edit</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap text to select, hold for options</span>
-                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
-                        <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.75rem; opacity: 0.7; white-space: nowrap;"><i class="fas fa-info-circle"></i> Tap to select, hold for options</span>
+                        <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
+                        <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
                     </div>
                     <div class="canvas-controls">
                         <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
@@ -1369,7 +1379,13 @@
                         const objects = canvas.getObjects();
                         for (let i = objects.length - 1; i >= 0; i--) {
                             const obj = objects[i];
-                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
+                            // Use tolerance for thin objects like lines (12px radius)
+                            const hit = obj.containsPoint(pointer, null, true) ||
+                                        (obj.type === 'line' && obj.intersectsWithObject(
+                                            new fabric.Rect({ left: pointer.x - 15, top: pointer.y - 15, width: 30, height: 30, fill: 'transparent' })
+                                        )) ||
+                                        (Math.abs(pointer.x - obj.left) < 20 && Math.abs(pointer.y - obj.top) < 20);
+                            if (hit && obj.selectable !== false && obj.evented !== false) {
                                 if (canvas.getActiveObject() !== obj) {
                                     canvas.setActiveObject(obj);
                                     selectedObject = obj;
@@ -2533,6 +2549,7 @@
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
+                canvasArea.style.borderRadius = '0';
             }
             if (canvasContainer) {
                 canvasContainer.style.display = 'block';
@@ -2543,6 +2560,7 @@
                 canvasContainer.style.margin = '0';
                 canvasContainer.style.background = 'transparent';
                 canvasContainer.style.backgroundImage = 'none';
+                canvasContainer.style.borderRadius = '0';
             }
             if (canvasToolbar) {
                 canvasToolbar.style.margin = '0';
@@ -2560,8 +2578,21 @@
             }
             if (designCanvas) {
                 designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0 auto';
+                designCanvas.style.margin = '0';
                 designCanvas.style.boxShadow = 'none';
+                designCanvas.style.width = '100%';
+            }
+            const canvasContainer2 = document.querySelector('#canvasContainer');
+            if (canvasContainer2) {
+                canvasContainer2.style.width = '100%';
+                canvasContainer2.style.padding = '0';
+                canvasContainer2.style.margin = '0';
+            }
+            const fabricWrap = document.querySelector('#canvasContainer .canvas-container');
+            if (fabricWrap) {
+                fabricWrap.style.width = '100%';
+                fabricWrap.style.margin = '0';
+                fabricWrap.style.display = 'block';
             }
         }
 
@@ -2589,7 +2620,7 @@
                 toggle = document.createElement('div');
                 toggle.className = 'mobile-tools-toggle collapsed';
                 toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>';
+                toggle.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><i class="fas fa-tools"></i> Tools</span> <i class="fas fa-chevron-up"></i>';
                 canvasArea.appendChild(toggle);
                 toggle.addEventListener('click', function() {
                     const toolsPanel = document.querySelector('.tools-panel');
@@ -2768,6 +2799,8 @@
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
+        document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
+        document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
 
         init();
     </script>
