@@ -155,6 +155,7 @@
                 line-height: 0;
                 text-align: center;
                 border-radius: 0 !important;
+                touch-action: manipulation;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -617,7 +618,7 @@
                     <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
                     <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                 </div>
-                <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
+                <div class="canvas-container" id="canvasContainer">
                     <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
