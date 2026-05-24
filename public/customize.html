@@ -445,14 +445,24 @@
             }
         }
         @media (max-width: 768px) and (orientation: landscape) {
+            /* Landscape layout must match portrait — only phone orientation changes */
             #canvasContainer,
             #canvasContainer .canvas-container,
-            #designCanvas,
-            .canvas-area,
-            .canvas-container {
-                max-height: 80vh !important;
+            #designCanvas {
+                max-height: 50vh !important;
                 width: 100% !important;
                 border-radius: 0 !important;
+            }
+            .canvas-area,
+            .canvas-container {
+                border-radius: 0 !important;
+            }
+            /* Ensure tools panel and accordion stay visible below canvas */
+            .tools-panel,
+            .mobile-accordion-container,
+            .properties-panel {
+                position: relative;
+                z-index: 2;
             }
         }
 @media (min-width: 769px) {
@@ -1370,6 +1380,18 @@
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
+
+            // Prevent empty-canvas drag from creating selection box on mobile
+            canvas.on('mouse:down', function(e) {
+                if (window.innerWidth <= 768 && !e.target) {
+                    canvas.selection = false;
+                }
+            });
+            canvas.on('mouse:up', function(e) {
+                if (window.innerWidth <= 768) {
+                    canvas.selection = false;
+                }
+            });
 
             // Mobile tap-to-select fallback (improves touch accuracy)
             if ('ontouchstart' in window) {
@@ -2760,6 +2782,10 @@
             if (document.fonts) await document.fonts.ready;
             setupMobileUI();
             applyMobileSpacingFix();
+            // Lock group-selection box on mobile so empty-canvas drags do nothing
+            if (window.innerWidth <= 768) {
+                canvas.selection = false;
+            }
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
