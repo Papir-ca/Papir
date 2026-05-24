@@ -1430,18 +1430,6 @@
             canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
 
-            // Prevent empty-canvas drag from creating selection box on mobile
-            canvas.on('mouse:down', function(e) {
-                if (window.innerWidth <= 768 && !e.target) {
-                    canvas.selection = false;
-                }
-            });
-            canvas.on('mouse:up', function(e) {
-                if (window.innerWidth <= 768) {
-                    canvas.selection = false;
-                }
-            });
-
             // Mobile tap-to-select fallback (improves touch accuracy)
             if ('ontouchstart' in window) {
                 canvas.on('mouse:down', function(e) {
@@ -2826,7 +2814,6 @@
                         if (target) target.classList.add('active');
                     }
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-                    canvas.selection = true;
                     lockMobileObjects(false);
                 } else {
                     if (tabs) tabs.style.display = 'none';
@@ -2839,8 +2826,6 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
-                    // Lock canvas group selection so empty space drags don't move a selection box
-                    canvas.selection = false;
                     // Lock background decorative objects so they never get selected
                     lockBackgroundObjects();
                     // Default to UNLOCKED on mobile so users can tap & move immediately
@@ -2861,10 +2846,6 @@
             if (document.fonts) await document.fonts.ready;
             setupMobileUI();
             applyMobileSpacingFix();
-            // Lock group-selection box on mobile so empty-canvas drags do nothing
-            if (window.innerWidth <= 768) {
-                canvas.selection = false;
-            }
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
