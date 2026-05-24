@@ -162,27 +162,24 @@
                 max-width: 100%; 
                 width: 100%; 
                 height: auto !important; 
-                max-height: 55vh;
                 display: block; 
-                margin: 0 auto;
+                margin: 0;
                 box-shadow: none !important;
             }
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
             #canvasContainer {
-                max-height: 55vh;
-                overflow: hidden;
                 width: 100%;
                 padding: 0;
                 margin: 0;
                 border-radius: 0 !important;
+                overflow: visible;
             }
             /* ===== INNER FABRIC.JS WRAPPER ===== */
             #canvasContainer .canvas-container {
                 width: 100% !important;
                 height: auto !important;
                 aspect-ratio: 600 / 450 !important;
-                max-height: 55vh !important;
                 margin: 0 !important;
                 position: relative !important;
                 display: block !important;
@@ -204,14 +201,41 @@
 
             /* ===== TOOLBAR COMPACT ===== */
             .canvas-toolbar { 
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                gap: 4px;
                 margin: 0 !important; 
-                padding: 2px 4px !important; 
+                padding: 4px 6px !important; 
                 font-size: 0.7rem; 
-                min-height: 24px;
+                min-height: 28px;
                 border-bottom: none !important;
+                flex-wrap: nowrap;
+                overflow: hidden;
+            }
+            .canvas-toolbar .toolbar-hint {
+                font-size: 0.65rem;
+                opacity: 0.7;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                flex: 1;
+                min-width: 0;
+            }
+            .canvas-toolbar .btn-icon.small {
+                padding: 2px 6px !important;
+                min-height: 26px;
+                min-width: 26px;
+                font-size: 0.7rem;
+                flex-shrink: 0;
+            }
+            .canvas-toolbar #zoomDisplay {
+                font-size: 0.65rem;
+                min-width: 28px;
+                text-align: center;
+                flex-shrink: 0;
             }
             .canvas-toolbar .mobile-scroll-hint { display: none !important; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .grid-overlay { display: none; }
 
             /* ===== TOOLS PANEL ===== */
@@ -452,12 +476,24 @@
             }
         }
         @media (max-width: 768px) and (orientation: landscape) {
-            /* Landscape layout must match portrait — only phone orientation changes */
-            #canvasContainer,
-            #canvasContainer .canvas-container,
-            #designCanvas {
-                max-height: 50vh !important;
+            /* Landscape: canvas stretches full width, aspect-ratio keeps content unwarped */
+            #canvasContainer {
                 width: 100% !important;
+                max-height: none !important;
+                border-radius: 0 !important;
+            }
+            #canvasContainer .canvas-container {
+                width: 100% !important;
+                height: auto !important;
+                aspect-ratio: 600 / 450 !important;
+                max-height: none !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+            }
+            #designCanvas {
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
                 border-radius: 0 !important;
             }
             .canvas-area,
@@ -477,6 +513,17 @@
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
+            .canvas-toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
+            .canvas-toolbar .toolbar-hint {
+                font-size: 0.8rem;
+                opacity: 0.8;
+                white-space: nowrap;
+            }
         }
 </style>
 <base target="_blank">
@@ -555,18 +602,13 @@
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 0.75rem; opacity: 0.7; white-space: nowrap;"><i class="fas fa-info-circle"></i> Tap to select, hold for options</span>
-                        <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
-                        <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
-                    </div>
-                    <div class="canvas-controls">
-                        <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
-                        <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                        <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
-                        <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
-                        <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
-                    </div>
+                    <span class="toolbar-hint"><i class="fas fa-info-circle"></i> Tap to select, hold for options</span>
+                    <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
+                    <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
+                    <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
+                    <span id="zoomDisplay">100%</span>
+                    <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
+                    <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
                     <div class="grid-overlay" id="gridOverlay"></div>
