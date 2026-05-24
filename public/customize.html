@@ -138,33 +138,34 @@
                 position: static !important;
             }
 
-            /* ===== OUTER CANVAS CONTAINER ===== */
-            #canvasContainer {
-                max-height: 55vh;
-                overflow: hidden;
-            }
-            /* ===== INNER FABRIC.JS WRAPPER ===== */
-            #canvasContainer .canvas-container {
-                max-width: 100% !important;
-                width: auto !important;
+            /* ===== CANVAS CONTAINER (outer + inner) ===== */
+            .canvas-container {
+                display: block !important;
+                flex: none !important;
                 height: auto !important;
-                aspect-ratio: 600 / 450 !important;
-                max-height: 55vh !important;
-                margin: 0 auto !important;
-                position: relative !important;
+                min-height: auto !important;
+                max-height: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: transparent !important;
+                background-color: transparent !important;
+                background-image: none !important;
+                overflow: visible;
+                line-height: 0;
+                text-align: center;
+                /* Transform scaling container */
+                transform-origin: top center;
+                transition: transform 0.2s ease;
             }
-            /* ===== CANVAS ELEMENTS ===== */
+            /* ===== CANVAS ITSELF ===== */
             #designCanvas {
                 max-width: 100%;
-                height: auto;
+                width: 100%;
+                height: auto !important;
+                max-height: 55vh;
                 display: block;
                 margin: 0 auto;
                 box-shadow: none !important;
-            }
-            #canvasContainer .lower-canvas,
-            #canvasContainer .upper-canvas {
-                width: 100% !important;
-                height: 100% !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -1205,24 +1206,45 @@
             let touchStartX = 0;
             let touchStartY = 0;
             let touchMoved = false;
-            const LONG_PRESS_MS = 500;
+            let isLongPress = false;
+            const LONG_PRESS_MS = 600;
+            const MOVE_THRESHOLD = 12;
+
+            function getObjectAtTouch(x, y) {
+                // Get canvas bounding rect to map screen coords to canvas coords
+                const rect = canvasEl.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const pointer = {
+                    x: (x - rect.left) * scaleX,
+                    y: (y - rect.top) * scaleY
+                };
+                const objects = canvas.getObjects();
+                for (let i = objects.length - 1; i >= 0; i--) {
+                    const obj = objects[i];
+                    if (obj.containsPoint(pointer)) {
+                        return obj;
+                    }
+                }
+                return null;
+            }
 
             function showMenu(x, y) {
-                // Update lock text based on selected object
                 const lockText = document.getElementById('ctxLockText');
                 if (lockText) {
-                    lockText.textContent = (selectedObject && !selectedObject.selectable) ? 'Unlock' : 'Lock';
+                    lockText.textContent = (selectedObject && selectedObject.selectable === false) ? 'Unlock' : 'Lock';
                 }
                 menu.style.display = 'block';
                 backdrop.style.display = 'block';
-                // Position menu near touch but keep on screen
+                // Force layout to get menu dimensions
+                void menu.offsetWidth;
                 const menuRect = menu.getBoundingClientRect();
                 let left = x - menuRect.width / 2;
-                let top = y - menuRect.height - 10;
-                if (left < 8) left = 8;
-                if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
-                if (top < 8) top = y + 20;
-                if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
+                let top = y - menuRect.height - 15;
+                if (left < 10) left = 10;
+                if (left + menuRect.width > window.innerWidth - 10) left = window.innerWidth - menuRect.width - 10;
+                if (top < 10) top = y + 20;
+                if (top + menuRect.height > window.innerHeight - 10) top = window.innerHeight - menuRect.height - 10;
                 menu.style.left = left + 'px';
                 menu.style.top = top + 'px';
             }
@@ -1232,30 +1254,32 @@
                 backdrop.style.display = 'none';
             }
 
+            // Use capture phase to intercept before Fabric.js
             canvasEl.addEventListener('touchstart', function(e) {
                 if (window.innerWidth > 768) return;
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 touchMoved = false;
+                isLongPress = false;
+
                 touchTimer = setTimeout(() => {
                     touchTimer = null;
+                    isLongPress = true;
                     if (!touchMoved) {
-                        // Select object under touch
-                        const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
-                        const objects = canvas.getObjects();
-                        let target = null;
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            if (objects[i].containsPoint(pointer) && objects[i].selectable !== false) {
-                                target = objects[i];
-                                break;
-                            }
-                        }
+                        // Long press: select object and show menu
+                        const target = getObjectAtTouch(touchStartX, touchStartY);
                         if (target) {
                             canvas.setActiveObject(target);
                             selectedObject = target;
                             updateControls();
                             showSelectionControls();
+                            updateLayerList();
+                            canvas.renderAll();
+                        } else {
+                            canvas.discardActiveObject();
+                            selectedObject = null;
+                            showNoSelection();
                             updateLayerList();
                             canvas.renderAll();
                         }
@@ -1264,25 +1288,47 @@
                         }
                     }
                 }, LONG_PRESS_MS);
-            }, { passive: true });
+            }, { passive: true, capture: false });
 
             canvasEl.addEventListener('touchmove', function(e) {
-                if (!touchTimer) return;
+                if (!touchTimer && !isLongPress) return;
                 const touch = e.touches[0];
                 const dx = touch.clientX - touchStartX;
                 const dy = touch.clientY - touchStartY;
-                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
                     touchMoved = true;
-                    clearTimeout(touchTimer);
-                    touchTimer = null;
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
                 }
             }, { passive: true });
 
-            canvasEl.addEventListener('touchend', function() {
+            canvasEl.addEventListener('touchend', function(e) {
                 if (touchTimer) {
                     clearTimeout(touchTimer);
                     touchTimer = null;
+                    // It was a tap (not long press)
+                    if (!touchMoved && !isLongPress) {
+                        const changed = e.changedTouches[0];
+                        const target = getObjectAtTouch(changed.clientX, changed.clientY);
+                        if (target) {
+                            canvas.setActiveObject(target);
+                            selectedObject = target;
+                            updateControls();
+                            showSelectionControls();
+                            updateLayerList();
+                            canvas.renderAll();
+                        } else {
+                            canvas.discardActiveObject();
+                            selectedObject = null;
+                            showNoSelection();
+                            updateLayerList();
+                            canvas.renderAll();
+                        }
+                    }
                 }
+                isLongPress = false;
             });
 
             backdrop.addEventListener('touchstart', hideMenu);
@@ -1291,6 +1337,7 @@
             menu.querySelectorAll('.ctx-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
+                    e.preventDefault();
                     const action = this.dataset.action;
                     switch(action) {
                         case 'front': bringToFront(); break;
@@ -1306,6 +1353,38 @@
             });
         }
 
+        function scaleCanvasForMobile() {
+            if (window.innerWidth > 768) {
+                // Reset desktop
+                const container = document.querySelector('.canvas-container');
+                if (container) {
+                    container.style.transform = '';
+                    container.style.width = '';
+                    container.style.height = '';
+                }
+                const outer = document.getElementById('canvasContainer');
+                if (outer) outer.style.height = '';
+                return;
+            }
+            const outer = document.getElementById('canvasContainer');
+            const inner = outer ? outer.querySelector('.canvas-container') : null;
+            if (!outer || !inner) return;
+
+            const availWidth = outer.clientWidth;
+            const availHeight = window.innerHeight * 0.45; // 45vh max
+            const scaleX = availWidth / 600;
+            const scaleY = availHeight / 450;
+            const scale = Math.min(scaleX, scaleY, 1);
+
+            inner.style.width = '600px';
+            inner.style.height = '450px';
+            inner.style.transform = 'scale(' + scale + ')';
+            outer.style.height = Math.floor(450 * scale) + 'px';
+
+            const sizeEl = document.getElementById('canvasSize');
+            if (sizeEl) sizeEl.textContent = Math.floor(600 * scale) + ' × ' + Math.floor(450 * scale) + ' px';
+        }
+
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
@@ -1313,29 +1392,7 @@
             canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
 
-            // Mobile tap-to-select fallback (improves touch accuracy)
-            if ('ontouchstart' in window) {
-                canvas.on('mouse:down', function(e) {
-                    if (!e.target) {
-                        const pointer = canvas.getPointer(e.e);
-                        const objects = canvas.getObjects();
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            const obj = objects[i];
-                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
-                                if (canvas.getActiveObject() !== obj) {
-                                    canvas.setActiveObject(obj);
-                                    selectedObject = obj;
-                                    updateControls();
-                                    showSelectionControls();
-                                    updateLayerList();
-                                    canvas.renderAll();
-                                }
-                                break;
-                            }
-                        }
-                    }
-                });
-            }
+
 
             document.querySelector('.tools-panel').addEventListener('click', function(e) {
                 const btn = e.target.closest('.tool-btn');
@@ -2496,6 +2553,7 @@
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
             }
+            scaleCanvasForMobile();
         }
 
         function setupMobileUI() {
@@ -2690,6 +2748,11 @@
             setupModeSwitch();
             checkForSavedProgress();
             startAutoSave();
+            scaleCanvasForMobile();
+            window.addEventListener('resize', () => {
+                clearTimeout(window._resizeTimer);
+                window._resizeTimer = setTimeout(scaleCanvasForMobile, 150);
+            });
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
