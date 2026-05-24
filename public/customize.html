@@ -387,6 +387,13 @@
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
 
+            /* ===== HIDE SELECTION CORNERS ON MOBILE (they look like a square) ===== */
+            .canvas-container .canvas-container canvas + div,
+            .canvas-container .lower-canvas + .upper-canvas + div,
+            .canvas-container .canvas-container [class*="control"],
+            .canvas-container .canvas-container [class*="corner"] {
+                display: none !important;
+            }
             /* ===== HIDE DESKTOP RESET BUTTON ON MOBILE ===== */
             #resetDesignBtn {
                 display: none !important;
@@ -1000,6 +1007,7 @@
                             originX: 'left',
                             originY: 'top',
                             isTexture: true,
+                            isBackground: true,
                             hoverCursor: 'default'
                         });
                         canvas.add(img);
@@ -1012,20 +1020,14 @@
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
-            if (config.borderWidth > 0) {
-                canvas.add(new fabric.Rect({
-                    left: config.borderWidth / 2, top: config.borderWidth / 2,
-                    width: 600 - config.borderWidth, height: 450 - config.borderWidth,
-                    fill: 'transparent', stroke: config.borderColor, strokeWidth: config.borderWidth,
-                    selectable: false, evented: false
-                }));
-            }
+            /* Border removed — not visible on desktop or mobile */
             if (config.decorations) {
                 config.decorations.forEach(dec => {
                     if (dec.type === 'line') {
                         canvas.add(new fabric.Line(dec.coords, {
                             stroke: dec.color || config.accentColor, strokeWidth: dec.width || 2,
-                            selectable: false, evented: false
+                            selectable: false, evented: false,
+                            isBackground: true, hoverCursor: 'default'
                         }));
                     }
                 });
@@ -2531,6 +2533,16 @@
             }
         }
 
+        /* ===== LOCK BACKGROUND OBJECTS (borders, decorations, textures) ===== */
+        function lockBackgroundObjects() {
+            canvas.getObjects().forEach(obj => {
+                if (obj.isBackground || obj.isTexture) {
+                    obj.set({ selectable: false, evented: false, hoverCursor: 'default' });
+                }
+            });
+            canvas.renderAll();
+        }
+
         /* ===== MOBILE LOCK/UNLOCK ===== */
         function lockMobileObjects(lock) {
             if (!canvas) return;
@@ -2764,6 +2776,8 @@
                     });
                     // Lock canvas group selection so empty space drags don't move a selection box
                     canvas.selection = false;
+                    // Lock background decorative objects so they never get selected
+                    lockBackgroundObjects();
                     // Default to UNLOCKED on mobile so users can tap & move immediately
                     lockMobileObjects(false);
                     const lockToggleEl = document.getElementById('mobileLockToggle');
@@ -2814,6 +2828,7 @@
                 canvas.renderAll();
             }
             updateCheckoutDisplay();
+            lockBackgroundObjects();
             setupEventListeners();
             setupMobileContextMenu();
             setupTabs();
