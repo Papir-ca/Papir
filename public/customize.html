@@ -618,7 +618,7 @@
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <span class="toolbar-hint"><i class="fas fa-info-circle"></i> Tap to select, hold for options</span>
+                    <span class="toolbar-hint"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                     <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
                     <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
@@ -2489,27 +2489,26 @@
             const canvasRect = canvasEl.getBoundingClientRect();
             const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
 
-            // Scale factor: canvas logical size vs actual displayed size
             const scaleX = canvasRect.width / canvas.width;
             const scaleY = canvasRect.height / canvas.height;
-
-            // Canvas offset within container
             const offsetX = canvasRect.left - containerRect.left;
             const offsetY = canvasRect.top - containerRect.top;
 
             let x, y;
 
             if (obj.type === 'line') {
-                // Line start point relative to canvas center
                 x = offsetX + (obj.x1 + canvas.width / 2) * scaleX;
                 y = offsetY + (obj.y1 + canvas.height / 2) * scaleY;
             } else {
-                // Top-left of object's bounding box
                 const halfW = (obj.width * (obj.scaleX || 1)) / 2;
                 const halfH = (obj.height * (obj.scaleY || 1)) / 2;
                 x = offsetX + (obj.left - halfW) * scaleX;
                 y = offsetY + (obj.top - halfH) * scaleY;
             }
+
+            // Offset handle 15px left so it doesn't cover first letters
+            x -= 15;
+            y -= 5;
 
             return { left: x, top: y };
         }
@@ -2541,7 +2540,8 @@
                 handle.style.left = pos.left + 'px';
                 handle.style.top = pos.top + 'px';
 
-                // Touch start: select object, start drag or long-press timer
+                // Touch start: select object, track for drag or double-tap
+                let lastTapTime = 0;
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2549,7 +2549,6 @@
                     const touch = e.touches[0];
                     const startX = touch.clientX;
                     const startY = touch.clientY;
-                    let moved = false;
 
                     // Select the object
                     canvas.setActiveObject(obj);
@@ -2560,12 +2559,15 @@
                     canvas.renderAll();
                     updateHandleSelection();
 
-                    // Long press timer for context menu
-                    let longPressTimer = setTimeout(() => {
-                        if (!moved && selectedObject) {
-                            showMobileContextMenu(touch.clientX, touch.clientY);
-                        }
-                    }, 600);
+                    // Double-tap detection for context menu
+                    const now = Date.now();
+                    if (now - lastTapTime < 300) {
+                        // Double tap — show context menu
+                        showMobileContextMenu(touch.clientX, touch.clientY);
+                        lastTapTime = 0;
+                        return;
+                    }
+                    lastTapTime = now;
 
                     handleDragState = {
                         obj: obj,
