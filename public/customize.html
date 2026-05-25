@@ -112,7 +112,7 @@
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
         @media (max-width: 768px) {
             /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
-            .app-container { height: auto !important; min-height: auto !important; padding: 0; }
+            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
 
             /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
             .design-layout { 
@@ -136,13 +136,10 @@
                 margin: 0 !important; 
                 background: transparent !important;
                 position: static !important;
-                border-radius: 0 !important;
-                gap: 0 !important;
             }
-            /* Fabric.js creates its own .canvas-container wrapper — DO NOT style it */
 
-            /* ===== OUTER CANVAS WRAPPER ===== */
-            #canvasContainer { 
+            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
+            .canvas-container { 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
@@ -156,8 +153,6 @@
                 overflow: visible;
                 line-height: 0;
                 text-align: center;
-                border-radius: 0 !important;
-                position: relative !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -165,12 +160,28 @@
                 max-width: 100%; 
                 width: 100%; 
                 height: auto !important; 
+                max-height: 55vh;
                 display: block; 
-                margin: 0;
+                margin: 0 auto;
                 box-shadow: none !important;
-                border-radius: 0 !important;
             }
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
+            /* ===== OUTER CANVAS CONTAINER ===== */
+            #canvasContainer {
+                max-height: 55vh;
+                overflow: hidden;
+            }
+            /* ===== INNER FABRIC.JS WRAPPER ===== */
+            #canvasContainer .canvas-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                width: auto !important;
+                height: auto !important;
+                aspect-ratio: 600 / 450 !important;
+                max-height: 55vh !important;
+                margin: 0 auto !important;
+                position: relative !important;
+            }
             /* ===== CANVAS ELEMENTS ===== */
             #designCanvas {
                 max-width: 100%;
@@ -178,51 +189,23 @@
                 display: block;
                 margin: 0 auto;
                 box-shadow: none !important;
-                border-radius: 0 !important;
+            }
+            #canvasContainer .lower-canvas,
+            #canvasContainer .upper-canvas {
+                width: 100% !important;
+                height: 100% !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
             .canvas-toolbar { 
-                display: flex !important;
-                align-items: center;
-                justify-content: space-between;
-                gap: 4px;
                 margin: 0 !important; 
-                padding: 4px 6px !important; 
+                padding: 2px 4px !important; 
                 font-size: 0.7rem; 
-                min-height: 28px;
+                min-height: 24px;
                 border-bottom: none !important;
-                border-top: none !important;
-                flex-wrap: nowrap;
-                overflow: hidden;
-            }
-            .canvas-toolbar .toolbar-hint {
-                font-size: 0.6rem;
-                opacity: 0.8;
-                line-height: 1.3;
-                flex: 1;
-                min-width: 0;
-                padding-right: 4px;
-            }
-            .canvas-toolbar .btn-icon.small {
-                padding: 0 !important;
-                min-height: 22px;
-                min-width: 22px;
-                height: 22px;
-                width: 22px;
-                font-size: 0.6rem;
-                flex-shrink: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .canvas-toolbar #zoomDisplay {
-                font-size: 0.6rem;
-                min-width: 24px;
-                text-align: center;
-                flex-shrink: 0;
             }
             .canvas-toolbar .mobile-scroll-hint { display: none !important; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .grid-overlay { display: none; }
 
             /* ===== TOOLS PANEL ===== */
@@ -257,9 +240,9 @@
             .mobile-tools-toggle { 
                 display: flex; 
                 align-items: center; 
-                justify-content: space-between; 
+                justify-content: center; 
                 gap: 8px;
-                padding: 12px; 
+                padding: 10px 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
                 margin: 0; 
@@ -267,12 +250,11 @@
                 font-weight: 600; 
                 font-size: 0.9rem;
                 color: white; 
-                border: 1px solid rgba(255,255,255,0.1); 
                 -webkit-tap-highlight-color: transparent; 
                 touch-action: manipulation;
             }
-            .mobile-tools-toggle:active { opacity: 0.9; }
-            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
+            .mobile-tools-toggle:active { opacity: 0.8; }
+            .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; }
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             /* ===== ACCORDION ===== */
@@ -381,15 +363,11 @@
 
             /* ===== HEADER COMPACT ===== */
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .mode-switch { flex-shrink: 0; }
-            .mode-option { padding: 8px 16px; font-size: 0.85rem; }
-            .design-header > div:last-child { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; align-items: center; }
+            .mode-switch { transform: scale(0.8); }
             .batch-controls { padding: 8px; margin-bottom: 2px; }
-            .mode-switch { flex-shrink: 0; }
-            .mode-option { padding: 8px 16px; font-size: 0.85rem; }
             .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
             .control-row { flex-wrap: wrap; }
             .control-group { min-width: 120px; }
@@ -398,84 +376,20 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
-            /* ===== ZERO GAP BETWEEN CANVAS AND TOOLS ===== */
-            .design-layout {
-                gap: 0 !important;
-            }
-            .canvas-area {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            .canvas-container {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            #designCanvas {
-                margin-bottom: 0 !important;
-            }
-            .canvas-toolbar {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            .tools-panel {
-                margin-top: 0 !important;
-                padding-top: 2px !important;
-            }
-
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
 
-            /* Selection corners are visible on mobile — needed for interaction */
-            /* ===== MOBILE OBJECT HANDLES ===== */
-            .mobile-handle-container {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 100;
-            }
-            .mobile-object-handle {
-                position: absolute;
-                width: 24px;
-                height: 24px;
-                background: rgba(6, 214, 160, 0.95);
-                border: 2px solid white;
-                border-radius: 50%;
-                pointer-events: auto;
-                touch-action: manipulation;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 9px;
-                color: white;
-                font-weight: bold;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-                transform: translate(-50%, -50%);
-                transition: transform 0.1s, background 0.1s;
-            }
-            .mobile-object-handle:active {
-                transform: translate(-50%, -50%) scale(1.3);
-                background: var(--primary-gold);
-            }
-            .mobile-object-handle.selected {
-                background: var(--primary-gold);
-                border-color: var(--primary-teal);
-                box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4);
-            }
-            /* ===== HIDE DESKTOP RESET BUTTON ON MOBILE ===== */
+            /* ===== MOVE RESET BUTTON TO CANVAS TOOLBAR ===== */
             #resetDesignBtn {
-                display: none !important;
-            }
-            /* ===== SHOW MOBILE RESET BUTTON IN HEADER ===== */
-            #mobileResetBtn {
-                display: inline-flex !important;
-                background: rgba(255,107,107,0.2);
-                border: 1px solid var(--danger);
-                color: white;
-                font-size: 0.75rem;
-                padding: 6px 10px;
+                position: fixed;
+                top: 8px;
+                right: 8px;
+                z-index: 100;
+                padding: 6px 10px !important;
+                font-size: 0.75rem !important;
+                background: rgba(255,107,107,0.2) !important;
+                border-color: var(--danger) !important;
+                opacity: 0.9;
             }
 
             /* ===== MOBILE CONTEXT MENU ===== */
@@ -521,53 +435,13 @@
                 display: none;
             }
         }
-        @media (max-width: 768px) and (orientation: landscape) {
-            /* Landscape: canvas stretches full width, aspect-ratio keeps content unwarped */
-            #canvasContainer {
-                width: 100% !important;
-                max-height: none !important;
-                border-radius: 0 !important;
-            }
-                        /* Fabric.js wrapper — untouched */
-
-            #designCanvas {
-                width: 100% !important;
-                height: auto !important;
-                max-height: none !important;
-                border-radius: 0 !important;
-            }
-            .canvas-area,
-            #canvasContainer {
-                border-radius: 0 !important;
-            }
-            /* Ensure tools panel and accordion stay visible below canvas */
-            .tools-panel,
-            .mobile-accordion-container,
-            .properties-panel {
-                position: relative;
-                z-index: 2;
-            }
-        }
 @media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
-            .canvas-toolbar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 10px;
-            }
-            .canvas-toolbar .toolbar-hint {
-                font-size: 0.8rem;
-                opacity: 0.8;
-                white-space: nowrap;
-            }
         }
 </style>
-<base target="_blank">
-<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -589,7 +463,6 @@
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
                     <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
-                    <button class="btn-icon" id="mobileResetBtn" title="Reset Design" style="display:none;"><i class="fas fa-undo"></i> Reset</button>
                 </div>
                 <div class="price-display" id="priceDisplay">$2.99</div>
             </div>
@@ -643,15 +516,22 @@
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <span class="toolbar-hint"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
-                    <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
-                    <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
-                    <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                    <span id="zoomDisplay">100%</span>
-                    <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
-                    <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
+                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap text to select, hold for options</span>
+                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
+                        <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
+                        <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
+                    </div>
+                    <div class="canvas-controls">
+                        <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
+                        <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
+                        <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
+                        <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                    </div>
                 </div>
-                <div class="canvas-container" id="canvasContainer">
+                <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
                     <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
@@ -659,7 +539,7 @@
 
             <div class="properties-panel">
                 <div class="panel-header">
-                    <div class="panel-title" style="display:none;"><i class="fas fa-sliders-h"></i> Properties</div>
+                    <div class="panel-title"><i class="fas fa-sliders-h"></i> Properties</div>
                     <button class="btn-icon small" id="resetDesignBtn" style="padding: 6px 12px;"><i class="fas fa-undo"></i> Reset</button>
                 </div>
                 <div class="tabs">
@@ -971,7 +851,6 @@
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn-icon" id="addLayerBtn"><i class="fas fa-plus"></i> Add Layer</button>
                         <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
                         <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
@@ -1043,44 +922,10 @@
 
     <script>
         const canvas = new fabric.Canvas('designCanvas', {
-            preserveObjectStacking: true
-        });
-
-        // Ensure every interactive object gets full controls & borders
-        function ensureObjectControls(obj) {
-            if (!obj || obj.isBackground || obj.isTexture || obj.selectable === false) return;
-            obj.set({
-                hasControls: true,
-                hasBorders: true,
-                transparentCorners: false,
-                cornerColor: '#3b82f6',
-                cornerStrokeColor: '#1d4ed8',
-                cornerSize: window.innerWidth < 768 ? 20 : 10,
-                borderColor: '#3b82f6',
-                padding: 2,
-                selectable: true,
-                evented: true,
-                lockScalingX: false,
-                lockScalingY: false,
-                lockRotation: false,
-                lockMovementX: false,
-                lockMovementY: false
-            });
-            if (obj.setControlVisible) {
-                ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
-            }
-            // Hide mobile handles while editing text, restore after
-            if (obj.type === 'i-text') {
-                obj.off('editing:entered');
-                obj.off('editing:exited');
-                obj.on('editing:entered', function() { clearMobileHandles(); });
-                obj.on('editing:exited', function() { createMobileHandles(); });
-            }
-        }
-        canvas.on('object:added', (e) => {
-            if (e.target && !e.target.isBackground && !e.target.isTexture) {
-                ensureObjectControls(e.target);
-            }
+            preserveObjectStacking: true,
+            selection: true,
+            allowTouchScrolling: false,
+            perPixelTargetFind: false
         });
 
         let selectedObject = null;
@@ -1125,7 +970,6 @@
                             originX: 'left',
                             originY: 'top',
                             isTexture: true,
-                            isBackground: true,
                             hoverCursor: 'default'
                         });
                         canvas.add(img);
@@ -1138,15 +982,20 @@
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
-            /* Border removed — not visible on desktop or mobile */
+            if (config.borderWidth > 0) {
+                canvas.add(new fabric.Rect({
+                    left: config.borderWidth / 2, top: config.borderWidth / 2,
+                    width: 600 - config.borderWidth, height: 450 - config.borderWidth,
+                    fill: 'transparent', stroke: config.borderColor, strokeWidth: config.borderWidth,
+                    selectable: false, evented: false
+                }));
+            }
             if (config.decorations) {
                 config.decorations.forEach(dec => {
                     if (dec.type === 'line') {
                         canvas.add(new fabric.Line(dec.coords, {
                             stroke: dec.color || config.accentColor, strokeWidth: dec.width || 2,
-                            selectable: false, evented: false,
-                            isBackground: true, hoverCursor: 'default',
-                            padding: 15
+                            selectable: false, evented: false
                         }));
                     }
                 });
@@ -1178,9 +1027,6 @@
                 });
             }
             canvas.renderAll();
-            canvas.getObjects().forEach(obj => {
-                if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
-            });
         }
 
         async function addTextElement(text, left, top, options) {
@@ -1190,8 +1036,7 @@
             }
             const textObj = new fabric.IText(text, {
                 left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, padding: 12,
-                hasControls: true, hasBorders: true, ...options
+                textAlign: 'center', editable: true, ...options
             });
             canvas.add(textObj);
         }
@@ -1329,9 +1174,6 @@
                 const prevState = undoStack[undoStack.length - 1];
                 canvas.loadFromJSON(prevState, () => { 
                     restoreMediaObjects();
-                    canvas.getObjects().forEach(obj => {
-                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
-                    });
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1344,9 +1186,6 @@
                 undoStack.push(nextState);
                 canvas.loadFromJSON(nextState, () => { 
                     restoreMediaObjects();
-                    canvas.getObjects().forEach(obj => {
-                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
-                    });
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1387,14 +1226,94 @@
         }
 
         function setupMobileContextMenu() {
+            const canvasEl = document.getElementById('designCanvas');
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
-            if (!menu || !backdrop) return;
+            if (!canvasEl || !menu || !backdrop) return;
+
+            let touchTimer = null;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchMoved = false;
+            const LONG_PRESS_MS = 500;
+
+            function showMenu(x, y) {
+                // Update lock text based on selected object
+                const lockText = document.getElementById('ctxLockText');
+                if (lockText) {
+                    lockText.textContent = (selectedObject && !selectedObject.selectable) ? 'Unlock' : 'Lock';
+                }
+                menu.style.display = 'block';
+                backdrop.style.display = 'block';
+                // Position menu near touch but keep on screen
+                const menuRect = menu.getBoundingClientRect();
+                let left = x - menuRect.width / 2;
+                let top = y - menuRect.height - 10;
+                if (left < 8) left = 8;
+                if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
+                if (top < 8) top = y + 20;
+                if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
+                menu.style.left = left + 'px';
+                menu.style.top = top + 'px';
+            }
 
             function hideMenu() {
                 menu.style.display = 'none';
                 backdrop.style.display = 'none';
             }
+
+            canvasEl.addEventListener('touchstart', function(e) {
+                if (window.innerWidth > 768) return;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                touchMoved = false;
+                touchTimer = setTimeout(() => {
+                    touchTimer = null;
+                    if (!touchMoved) {
+                        // Select object under touch
+                        const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
+                        const objects = canvas.getObjects();
+                        let target = null;
+                        for (let i = objects.length - 1; i >= 0; i--) {
+                            if (objects[i].containsPoint(pointer) && objects[i].selectable !== false) {
+                                target = objects[i];
+                                break;
+                            }
+                        }
+                        if (target) {
+                            canvas.setActiveObject(target);
+                            selectedObject = target;
+                            updateControls();
+                            showSelectionControls();
+                            updateLayerList();
+                            canvas.renderAll();
+                        }
+                        if (selectedObject) {
+                            showMenu(touchStartX, touchStartY);
+                        }
+                    }
+                }, LONG_PRESS_MS);
+            }, { passive: true });
+
+            canvasEl.addEventListener('touchmove', function(e) {
+                if (!touchTimer) return;
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchStartX;
+                const dy = touch.clientY - touchStartY;
+                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                    touchMoved = true;
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            }, { passive: true });
+
+            canvasEl.addEventListener('touchend', function() {
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
 
             backdrop.addEventListener('touchstart', hideMenu);
             backdrop.addEventListener('click', hideMenu);
@@ -1404,24 +1323,15 @@
                     e.stopPropagation();
                     const action = this.dataset.action;
                     switch(action) {
-                        case 'editText':
-                            if (selectedObject && selectedObject.type === 'i-text') {
-                                selectedObject.enterEditing();
-                                if (selectedObject.hiddenTextarea) selectedObject.hiddenTextarea.focus();
-                            }
-                            break;
                         case 'front': bringToFront(); break;
                         case 'forward': bringForward(); break;
                         case 'backward': sendBackward(); break;
                         case 'back': sendToBack(); break;
                         case 'duplicate': duplicateObject(); break;
-                        case 'flipH': flipHorizontal(); break;
-                        case 'flipV': flipVertical(); break;
                         case 'lock': lockObject(); break;
                         case 'delete': deleteSelected(); break;
                     }
                     hideMenu();
-                    createMobileHandles();
                 });
             });
         }
@@ -1430,14 +1340,32 @@
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function() { saveState(); createMobileHandles(); });
+            canvas.on('object:modified', saveState);
             canvas.on('object:moving', handleObjectMoving);
-            canvas.on('after:render', updateMobileHandlePositions);
-            canvas.on('object:added', createMobileHandles);
-            canvas.on('object:removed', createMobileHandles);
 
             // Mobile tap-to-select fallback (improves touch accuracy)
-            // Fabric.js handles tap-to-select natively — no custom handler needed
+            if ('ontouchstart' in window) {
+                canvas.on('mouse:down', function(e) {
+                    if (!e.target) {
+                        const pointer = canvas.getPointer(e.e);
+                        const objects = canvas.getObjects();
+                        for (let i = objects.length - 1; i >= 0; i--) {
+                            const obj = objects[i];
+                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
+                                if (canvas.getActiveObject() !== obj) {
+                                    canvas.setActiveObject(obj);
+                                    selectedObject = obj;
+                                    updateControls();
+                                    showSelectionControls();
+                                    updateLayerList();
+                                    canvas.renderAll();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
 
             document.querySelector('.tools-panel').addEventListener('click', function(e) {
                 const btn = e.target.closest('.tool-btn');
@@ -1474,20 +1402,7 @@
 
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
-            document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
-            const addLayerBtn = document.getElementById('addLayerBtn');
-            if (addLayerBtn) addLayerBtn.addEventListener('click', addNewText);
             document.addEventListener('keydown', handleKeyboard);
-
-            // Mobile: tap on already-selected text to enter editing mode (keyboard)
-            canvas.on('mouse:down', function(e) {
-                if (window.innerWidth > 768) return;
-                if (!e.target || e.target.type !== 'i-text') return;
-                if (canvas.getActiveObject() === e.target) {
-                    e.target.enterEditing();
-                    if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
-                }
-            });
 
             // Media playback button listeners
             document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
@@ -1500,6 +1415,7 @@
                 if (now - lastTouchEnd <= 300) e.preventDefault();
                 lastTouchEnd = now;
             }, { passive: false });
+            canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
         }
 
         async function handleVideoUpload(e) {
@@ -1586,7 +1502,7 @@
                 audioEl.play().catch(e => { console.log('Audio autoplay blocked'); });
                 const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
                 fabric.Image.fromURL(svgIcon, (img) => {
-                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center', hasControls: true, hasBorders: true });
+                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center' });
                     img.isAudio = true;
                     img.audioFile = file;
                     img.audioBlobUrl = blobUrl;
@@ -1655,8 +1571,7 @@
                 left: 300, top: 225, fontSize: 32,
                 fontFamily: templateConfig?.config?.defaultFont || 'Montserrat',
                 fill: templateConfig?.config?.textColor || '#333333',
-                originX: 'center', originY: 'center',
-                padding: 12
+                originX: 'center', originY: 'center'
             });
             canvas.add(text);
             canvas.setActiveObject(text);
@@ -1669,8 +1584,7 @@
             const options = {
                 left: 300, top: 225,
                 fill: templateConfig?.config?.accentColor || '#BCAE83',
-                originX: 'center', originY: 'center',
-                padding: 12, hasControls: true, hasBorders: true
+                originX: 'center', originY: 'center'
             };
             switch(type) {
                 case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
@@ -1688,8 +1602,7 @@
         function addLine() {
             const line = new fabric.Line([250, 225, 350, 225], {
                 stroke: templateConfig?.config?.accentColor || '#333333',
-                strokeWidth: 3, originX: 'center', originY: 'center',
-                padding: 15, hasControls: true, hasBorders: true
+                strokeWidth: 3, originX: 'center', originY: 'center'
             });
             canvas.add(line);
             canvas.setActiveObject(line);
@@ -1708,7 +1621,6 @@
                 canvas.discardActiveObject();
                 canvas.renderAll();
                 saveState();
-                createMobileHandles();
             }
         }
 
@@ -2072,8 +1984,8 @@
             document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
             document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
             document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
-            const resizeBtn = document.getElementById('resizeCanvasBtn');
-            if (resizeBtn) resizeBtn.addEventListener('click', resizeCanvas);
+            document.getElementById('fitToScreenBtn').addEventListener('click', fitToScreen);
+            document.getElementById('resizeCanvasBtn').addEventListener('click', resizeCanvas);
         }
 
         function setupQtyControls() {
@@ -2191,16 +2103,14 @@
 
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
-            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
+            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); }
         }
 
         function deleteAll() {
             if (confirm('Clear all objects? This cannot be undone.')) {
                 canvas.getObjects().forEach(obj => canvas.remove(obj));
-                canvas.discardActiveObject();
                 canvas.renderAll();
                 saveState();
-                createMobileHandles();
             }
         }
 
@@ -2223,7 +2133,7 @@
             reader.onload = (f) => {
                 fabric.Image.fromURL(f.target.result, (img) => {
                     const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', padding: 12, hasControls: true, hasBorders: true });
+                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center' });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                     canvas.renderAll();
@@ -2387,13 +2297,7 @@
             if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
             try {
                 const data = JSON.parse(saved);
-                canvas.loadFromJSON(data.canvas, () => { 
-                    canvas.getObjects().forEach(obj => {
-                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
-                    });
-                    canvas.renderAll(); 
-                    saveState(); 
-                });
+                canvas.loadFromJSON(data.canvas, () => { canvas.renderAll(); saveState(); });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
                     templateConfig = data.templateConfig;
@@ -2570,221 +2474,10 @@
             }
         }
 
-        /* ===== LOCK BACKGROUND OBJECTS (borders, decorations, textures) ===== */
-        function lockBackgroundObjects() {
-            canvas.getObjects().forEach(obj => {
-                if (obj.isBackground || obj.isTexture) {
-                    obj.set({ selectable: false, evented: false, hoverCursor: 'default' });
-                }
-            });
-            canvas.renderAll();
-        }
-
-        /* ===== MOBILE OBJECT HANDLES ===== */
-        let mobileHandles = [];
-        let handleDragState = null;
-
-        function getHandlePosition(obj) {
-            const canvasEl = document.getElementById('designCanvas');
-            const canvasRect = canvasEl.getBoundingClientRect();
-            const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
-
-            const scaleX = canvasRect.width / canvas.width;
-            const scaleY = canvasRect.height / canvas.height;
-            const offsetX = canvasRect.left - containerRect.left;
-            const offsetY = canvasRect.top - containerRect.top;
-
-            let x, y;
-
-            if (obj.type === 'line') {
-                x = offsetX + (obj.x1 + canvas.width / 2) * scaleX;
-                y = offsetY + (obj.y1 + canvas.height / 2) * scaleY;
-            } else {
-                const halfW = (obj.width * (obj.scaleX || 1)) / 2;
-                const halfH = (obj.height * (obj.scaleY || 1)) / 2;
-                x = offsetX + (obj.left - halfW) * scaleX;
-                y = offsetY + (obj.top - halfH) * scaleY;
-            }
-
-            // Offset handle 15px left so it doesn't cover first letters
-            x -= 15;
-            y -= 5;
-
-            return { left: x, top: y };
-        }
-
-        function createMobileHandles() {
-            if (window.innerWidth > 768) return;
-            clearMobileHandles();
-            const container = document.getElementById('canvasContainer');
-            if (!container) return;
-
-            // Create a wrapper for handles
-            let handleContainer = document.getElementById('mobileHandleContainer');
-            if (!handleContainer) {
-                handleContainer = document.createElement('div');
-                handleContainer.id = 'mobileHandleContainer';
-                handleContainer.className = 'mobile-handle-container';
-                container.appendChild(handleContainer);
-            }
-
-            canvas.getObjects().forEach((obj, index) => {
-                if (obj.isBackground || obj.isTexture || !obj.selectable) return;
-
-                const handle = document.createElement('div');
-                handle.className = 'mobile-object-handle';
-                handle.dataset.index = index;
-                handle.textContent = index + 1;
-
-                const pos = getHandlePosition(obj);
-                handle.style.left = pos.left + 'px';
-                handle.style.top = pos.top + 'px';
-
-                // Touch start: select object, track for drag or double-tap
-                let lastTapTime = 0;
-                handle.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const touch = e.touches[0];
-                    const startX = touch.clientX;
-                    const startY = touch.clientY;
-
-                    // Select the object
-                    canvas.setActiveObject(obj);
-                    selectedObject = obj;
-                    updateControls();
-                    showSelectionControls();
-                    updateLayerList();
-                    canvas.renderAll();
-                    updateHandleSelection();
-
-                    // Double-tap detection for context menu
-                    const now = Date.now();
-                    if (now - lastTapTime < 300) {
-                        // Double tap — show context menu
-                        showMobileContextMenu(touch.clientX, touch.clientY);
-                        lastTapTime = 0;
-                        return;
-                    }
-                    lastTapTime = now;
-
-                    handleDragState = {
-                        obj: obj,
-                        startX: startX,
-                        startY: startY,
-                        objStartLeft: obj.left,
-                        objStartTop: obj.top,
-                        moved: false
-                    };
-                }, { passive: false });
-
-                // Touch move: drag the object
-                handle.addEventListener('touchmove', function(e) {
-                    if (!handleDragState || handleDragState.obj !== obj) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const touch = e.touches[0];
-                    const dx = touch.clientX - handleDragState.startX;
-                    const dy = touch.clientY - handleDragState.startY;
-
-                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-                        handleDragState.moved = true;
-                    }
-
-                    obj.set({
-                        left: handleDragState.objStartLeft + dx / canvas.getZoom(),
-                        top: handleDragState.objStartTop + dy / canvas.getZoom()
-                    });
-                    canvas.renderAll();
-                    updateMobileHandlePositions();
-                    updateControls();
-                }, { passive: false });
-
-                // Touch end: clean up
-                handle.addEventListener('touchend', function(e) {
-                    if (handleDragState && handleDragState.obj === obj && handleDragState.moved) {
-                        saveState();
-                    }
-                    handleDragState = null;
-                });
-
-                handleContainer.appendChild(handle);
-                mobileHandles.push(handle);
-            });
-
-            updateHandleSelection();
-        }
-
-        function clearMobileHandles() {
-            mobileHandles.forEach(h => h.remove());
-            mobileHandles = [];
-        }
-
-        function updateMobileHandlePositions() {
-            if (window.innerWidth > 768) return;
-            canvas.getObjects().forEach((obj, index) => {
-                const handle = mobileHandles.find(h => parseInt(h.dataset.index) === index);
-                if (handle && obj) {
-                    const pos = getHandlePosition(obj);
-                    handle.style.left = pos.left + 'px';
-                    handle.style.top = pos.top + 'px';
-                }
-            });
-        }
-
-        function updateHandleSelection() {
-            const active = canvas.getActiveObject();
-            mobileHandles.forEach(h => {
-                const idx = parseInt(h.dataset.index);
-                const obj = canvas.getObjects()[idx];
-                if (obj && active === obj) {
-                    h.classList.add('selected');
-                } else {
-                    h.classList.remove('selected');
-                }
-            });
-        }
-
-        function showMobileContextMenu(x, y) {
-            const menu = document.getElementById('mobileContextMenu');
-            const backdrop = document.getElementById('ctxBackdrop');
-            if (!menu || !backdrop || !selectedObject) return;
-
-            const lockText = document.getElementById('ctxLockText');
-            if (lockText) {
-                lockText.textContent = (selectedObject.selectable === false) ? 'Unlock' : 'Lock';
-            }
-            const editItem = document.getElementById('ctxEditText');
-            const editDivider = document.getElementById('ctxEditDivider');
-            if (editItem) {
-                const isText = selectedObject && selectedObject.type === 'i-text';
-                editItem.style.display = isText ? 'flex' : 'none';
-                if (editDivider) editDivider.style.display = isText ? 'block' : 'none';
-            }
-
-            menu.style.display = 'block';
-            backdrop.style.display = 'block';
-
-            const menuRect = menu.getBoundingClientRect();
-            let left = x - menuRect.width / 2;
-            let top = y - menuRect.height - 10;
-            if (left < 8) left = 8;
-            if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
-            if (top < 8) top = y + 20;
-            if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
-
-            menu.style.left = left + 'px';
-            menu.style.top = top + 'px';
-        }
-
         /* ===== MOBILE LOCK/UNLOCK ===== */
         function lockMobileObjects(lock) {
             if (!canvas) return;
             canvas.getObjects().forEach(obj => {
-                // NEVER touch background/template objects — they stay locked forever
-                if (obj.isBackground || obj.isTexture) return;
                 if (lock) {
                     obj._wasSelectable = obj.selectable;
                     obj._wasEvented = obj.evented;
@@ -2797,7 +2490,8 @@
                     }
                 }
             });
-            if (lock) { canvas.discardActiveObject(); }
+            if (lock) { canvas.selection = false; canvas.discardActiveObject(); }
+            else { canvas.selection = true; }
             canvas.renderAll();
         }
 
@@ -2820,7 +2514,6 @@
                 canvasArea.style.padding = '0';
                 canvasArea.style.margin = '0';
                 canvasArea.style.background = 'transparent';
-                canvasArea.style.borderRadius = '0';
             }
             if (canvasContainer) {
                 canvasContainer.style.display = 'block';
@@ -2831,21 +2524,16 @@
                 canvasContainer.style.margin = '0';
                 canvasContainer.style.background = 'transparent';
                 canvasContainer.style.backgroundImage = 'none';
-                canvasContainer.style.borderRadius = '0';
-                // Do NOT touch Fabric.js's internal .canvas-container wrapper
             }
             if (canvasToolbar) {
                 canvasToolbar.style.margin = '0';
                 canvasToolbar.style.padding = '2px 4px';
                 canvasToolbar.style.borderBottom = 'none';
-                canvasToolbar.style.marginBottom = '0';
-                canvasToolbar.style.paddingBottom = '0';
             }
             if (designLayout) {
                 designLayout.style.height = 'auto';
                 designLayout.style.minHeight = 'auto';
                 designLayout.style.flex = 'none';
-                designLayout.style.gap = '0';
             }
             if (appContainer) {
                 appContainer.style.height = 'auto';
@@ -2853,21 +2541,8 @@
             }
             if (designCanvas) {
                 designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0';
+                designCanvas.style.margin = '0 auto';
                 designCanvas.style.boxShadow = 'none';
-                designCanvas.style.width = '100%';
-            }
-            const canvasContainer2 = document.querySelector('#canvasContainer');
-            if (canvasContainer2) {
-                canvasContainer2.style.width = '100%';
-                canvasContainer2.style.padding = '0';
-                canvasContainer2.style.margin = '0';
-            }
-            const fabricWrap = document.querySelector('#canvasContainer .canvas-container');
-            if (fabricWrap) {
-                fabricWrap.style.width = '100%';
-                fabricWrap.style.margin = '0';
-                fabricWrap.style.display = 'block';
             }
         }
 
@@ -2888,14 +2563,14 @@
                 });
             }
 
-            // Tools toggle below canvas (flush with canvas area)
+            // Tools toggle below canvas
             const canvasArea = document.querySelector('.canvas-area');
             let toggle = document.getElementById('mobileToolsToggle');
             if (!toggle && canvasArea) {
                 toggle = document.createElement('div');
                 toggle.className = 'mobile-tools-toggle collapsed';
                 toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><i class="fas fa-tools"></i> Tools</span> <i class="fas fa-chevron-up"></i>';
+                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>';
                 canvasArea.appendChild(toggle);
                 toggle.addEventListener('click', function() {
                     const toolsPanel = document.querySelector('.tools-panel');
@@ -2919,7 +2594,7 @@
                 accordion.className = 'mobile-accordion-container';
                 const tabData = [
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
-                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab', onOpen: updateLayerList },
+                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
                     { tabId: 'settings', label: 'Settings', icon: 'fa-cog', contentId: 'settingsTab' }
                 ];
                 tabData.forEach(tab => {
@@ -2952,9 +2627,6 @@
                         if (chevron) chevron.style.transform = 'rotate(180deg)';
                         if (targetContent) {
                             targetContent.style.display = 'block';
-                            // Call onOpen callback if defined (e.g., refresh layer list)
-                            const tabConfig = tabData.find(t => t.contentId === targetId);
-                            if (tabConfig && tabConfig.onOpen) tabConfig.onOpen();
                             setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
                         }
                     });
@@ -3017,13 +2689,13 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
+                    lockMobileObjects(true);
                     const lockToggleEl = document.getElementById('mobileLockToggle');
                     if (lockToggleEl) {
-                        lockToggleEl.classList.remove('locked');
-                        lockToggleEl.classList.add('unlocked');
-                        lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        lockToggleEl.classList.remove('unlocked');
+                        lockToggleEl.classList.add('locked');
+                        lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                     }
-                    createMobileHandles();
                 }
             }
             window.addEventListener('resize', handleResize);
@@ -3051,7 +2723,6 @@
                         }
                         await loadTemplateDesign();
                         saveState();
-                        updateLayerList();
                     }
                 } catch (e) {
                     console.error('Error loading template:', e);
@@ -3063,10 +2734,7 @@
                 canvas.renderAll();
             }
             updateCheckoutDisplay();
-            lockBackgroundObjects();
-            lockMobileObjects(false);
             setupEventListeners();
-            createMobileHandles();
             setupMobileContextMenu();
             setupTabs();
             setupBackgroundOptions();
@@ -3080,24 +2748,17 @@
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
-        document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
-        document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
 
         init();
-        console.log('✅ init() completed successfully');
     </script>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
     <div class="mobile-context-menu" id="mobileContextMenu">
-        <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
-        <div class="ctx-divider" id="ctxEditDivider"></div>
         <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
         <div class="ctx-item" data-action="forward"><i class="fas fa-arrow-up" style="font-size:0.7em;"></i> Bring Forward</div>
         <div class="ctx-item" data-action="backward"><i class="fas fa-arrow-down" style="font-size:0.7em;"></i> Send Backward</div>
         <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
         <div class="ctx-divider"></div>
         <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
-        <div class="ctx-item" data-action="flipH"><i class="fas fa-arrows-alt-h"></i> Flip Horizontal</div>
-        <div class="ctx-item" data-action="flipV"><i class="fas fa-arrows-alt-v"></i> Flip Vertical</div>
         <div class="ctx-item" data-action="lock"><i class="fas fa-lock"></i> <span id="ctxLockText">Lock</span></div>
         <div class="ctx-divider"></div>
         <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
