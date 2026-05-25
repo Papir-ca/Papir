@@ -1049,7 +1049,8 @@
                         canvas.add(new fabric.Line(dec.coords, {
                             stroke: dec.color || config.accentColor, strokeWidth: dec.width || 2,
                             selectable: false, evented: false,
-                            isBackground: true, hoverCursor: 'default'
+                            isBackground: true, hoverCursor: 'default',
+                            padding: 15
                         }));
                     }
                 });
@@ -1090,7 +1091,7 @@
             }
             const textObj = new fabric.IText(text, {
                 left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, ...options
+                textAlign: 'center', editable: true, padding: 12, ...options
             });
             canvas.add(textObj);
         }
@@ -1588,7 +1589,8 @@
                 left: 300, top: 225, fontSize: 32,
                 fontFamily: templateConfig?.config?.defaultFont || 'Montserrat',
                 fill: templateConfig?.config?.textColor || '#333333',
-                originX: 'center', originY: 'center'
+                originX: 'center', originY: 'center',
+                padding: 12
             });
             canvas.add(text);
             canvas.setActiveObject(text);
@@ -1601,7 +1603,8 @@
             const options = {
                 left: 300, top: 225,
                 fill: templateConfig?.config?.accentColor || '#BCAE83',
-                originX: 'center', originY: 'center'
+                originX: 'center', originY: 'center',
+                padding: 12
             };
             switch(type) {
                 case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
@@ -1619,7 +1622,8 @@
         function addLine() {
             const line = new fabric.Line([250, 225, 350, 225], {
                 stroke: templateConfig?.config?.accentColor || '#333333',
-                strokeWidth: 3, originX: 'center', originY: 'center'
+                strokeWidth: 3, originX: 'center', originY: 'center',
+                padding: 15
             });
             canvas.add(line);
             canvas.setActiveObject(line);
@@ -2150,7 +2154,7 @@
             reader.onload = (f) => {
                 fabric.Image.fromURL(f.target.result, (img) => {
                     const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center' });
+                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', padding: 12 });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                     canvas.renderAll();
