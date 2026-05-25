@@ -398,6 +398,30 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
+            /* ===== ZERO GAP BETWEEN CANVAS AND TOOLS ===== */
+            .design-layout {
+                gap: 0 !important;
+            }
+            .canvas-area {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .canvas-container {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            #designCanvas {
+                margin-bottom: 0 !important;
+            }
+            .canvas-toolbar {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .tools-panel {
+                margin-top: 0 !important;
+                padding-top: 2px !important;
+            }
+
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
 
@@ -542,6 +566,7 @@
             }
         }
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -1020,6 +1045,31 @@
             preserveObjectStacking: true
         });
 
+        // Ensure every interactive object gets full controls & borders
+        function ensureObjectControls(obj) {
+            if (!obj || obj.isBackground || obj.isTexture || obj.selectable === false) return;
+            obj.set({
+                hasControls: true,
+                hasBorders: true,
+                transparentCorners: false,
+                cornerColor: '#3b82f6',
+                cornerStrokeColor: '#1d4ed8',
+                cornerSize: window.innerWidth < 768 ? 16 : 10,
+                borderColor: '#3b82f6',
+                padding: 2,
+                selectable: true,
+                evented: true
+            });
+            if (obj.setControlVisible) {
+                ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
+            }
+        }
+        canvas.on('object:added', (e) => {
+            if (e.target && !e.target.isBackground && !e.target.isTexture) {
+                ensureObjectControls(e.target);
+            }
+        });
+
         let selectedObject = null;
         let templateConfig = null;
         let isBatchMode = false;
@@ -1115,6 +1165,9 @@
                 });
             }
             canvas.renderAll();
+            canvas.getObjects().forEach(obj => {
+                if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
+            });
         }
 
         async function addTextElement(text, left, top, options) {
@@ -1124,7 +1177,8 @@
             }
             const textObj = new fabric.IText(text, {
                 left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, padding: 12, ...options
+                textAlign: 'center', editable: true, padding: 12,
+                hasControls: true, hasBorders: true, ...options
             });
             canvas.add(textObj);
         }
@@ -1262,6 +1316,9 @@
                 const prevState = undoStack[undoStack.length - 1];
                 canvas.loadFromJSON(prevState, () => { 
                     restoreMediaObjects();
+                    canvas.getObjects().forEach(obj => {
+                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
+                    });
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1274,6 +1331,9 @@
                 undoStack.push(nextState);
                 canvas.loadFromJSON(nextState, () => { 
                     restoreMediaObjects();
+                    canvas.getObjects().forEach(obj => {
+                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
+                    });
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1495,7 +1555,7 @@
                 audioEl.play().catch(e => { console.log('Audio autoplay blocked'); });
                 const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
                 fabric.Image.fromURL(svgIcon, (img) => {
-                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center' });
+                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center', hasControls: true, hasBorders: true });
                     img.isAudio = true;
                     img.audioFile = file;
                     img.audioBlobUrl = blobUrl;
@@ -1579,7 +1639,7 @@
                 left: 300, top: 225,
                 fill: templateConfig?.config?.accentColor || '#BCAE83',
                 originX: 'center', originY: 'center',
-                padding: 12
+                padding: 12, hasControls: true, hasBorders: true
             };
             switch(type) {
                 case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
@@ -1598,7 +1658,7 @@
             const line = new fabric.Line([250, 225, 350, 225], {
                 stroke: templateConfig?.config?.accentColor || '#333333',
                 strokeWidth: 3, originX: 'center', originY: 'center',
-                padding: 15
+                padding: 15, hasControls: true, hasBorders: true
             });
             canvas.add(line);
             canvas.setActiveObject(line);
@@ -1617,6 +1677,7 @@
                 canvas.discardActiveObject();
                 canvas.renderAll();
                 saveState();
+                createMobileHandles();
             }
         }
 
@@ -2099,14 +2160,16 @@
 
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
-            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); }
+            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
         }
 
         function deleteAll() {
             if (confirm('Clear all objects? This cannot be undone.')) {
                 canvas.getObjects().forEach(obj => canvas.remove(obj));
+                canvas.discardActiveObject();
                 canvas.renderAll();
                 saveState();
+                createMobileHandles();
             }
         }
 
@@ -2129,7 +2192,7 @@
             reader.onload = (f) => {
                 fabric.Image.fromURL(f.target.result, (img) => {
                     const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', padding: 12 });
+                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', padding: 12, hasControls: true, hasBorders: true });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                     canvas.renderAll();
@@ -2293,7 +2356,13 @@
             if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
             try {
                 const data = JSON.parse(saved);
-                canvas.loadFromJSON(data.canvas, () => { canvas.renderAll(); saveState(); });
+                canvas.loadFromJSON(data.canvas, () => { 
+                    canvas.getObjects().forEach(obj => {
+                        if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
+                    });
+                    canvas.renderAll(); 
+                    saveState(); 
+                });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
                     templateConfig = data.templateConfig;
@@ -2731,11 +2800,14 @@
                 canvasToolbar.style.margin = '0';
                 canvasToolbar.style.padding = '2px 4px';
                 canvasToolbar.style.borderBottom = 'none';
+                canvasToolbar.style.marginBottom = '0';
+                canvasToolbar.style.paddingBottom = '0';
             }
             if (designLayout) {
                 designLayout.style.height = 'auto';
                 designLayout.style.minHeight = 'auto';
                 designLayout.style.flex = 'none';
+                designLayout.style.gap = '0';
             }
             if (appContainer) {
                 appContainer.style.height = 'auto';
