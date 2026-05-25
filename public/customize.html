@@ -971,6 +971,7 @@
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
+                        <button class="btn-icon" id="addLayerBtn"><i class="fas fa-plus"></i> Add Layer</button>
                         <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
                         <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
@@ -1054,14 +1055,26 @@
                 transparentCorners: false,
                 cornerColor: '#3b82f6',
                 cornerStrokeColor: '#1d4ed8',
-                cornerSize: window.innerWidth < 768 ? 16 : 10,
+                cornerSize: window.innerWidth < 768 ? 20 : 10,
                 borderColor: '#3b82f6',
                 padding: 2,
                 selectable: true,
-                evented: true
+                evented: true,
+                lockScalingX: false,
+                lockScalingY: false,
+                lockRotation: false,
+                lockMovementX: false,
+                lockMovementY: false
             });
             if (obj.setControlVisible) {
                 ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
+            }
+            // Hide mobile handles while editing text, restore after
+            if (obj.type === 'i-text') {
+                obj.off('editing:entered');
+                obj.off('editing:exited');
+                obj.on('editing:entered', function() { clearMobileHandles(); });
+                obj.on('editing:exited', function() { createMobileHandles(); });
             }
         }
         canvas.on('object:added', (e) => {
@@ -1391,6 +1404,12 @@
                     e.stopPropagation();
                     const action = this.dataset.action;
                     switch(action) {
+                        case 'editText':
+                            if (selectedObject && selectedObject.type === 'i-text') {
+                                selectedObject.enterEditing();
+                                if (selectedObject.hiddenTextarea) selectedObject.hiddenTextarea.focus();
+                            }
+                            break;
                         case 'front': bringToFront(); break;
                         case 'forward': bringForward(); break;
                         case 'backward': sendBackward(); break;
@@ -1456,7 +1475,19 @@
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
+            const addLayerBtn = document.getElementById('addLayerBtn');
+            if (addLayerBtn) addLayerBtn.addEventListener('click', addNewText);
             document.addEventListener('keydown', handleKeyboard);
+
+            // Mobile: tap on already-selected text to enter editing mode (keyboard)
+            canvas.on('mouse:down', function(e) {
+                if (window.innerWidth > 768) return;
+                if (!e.target || e.target.type !== 'i-text') return;
+                if (canvas.getActiveObject() === e.target) {
+                    e.target.enterEditing();
+                    if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
+                }
+            });
 
             // Media playback button listeners
             document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
@@ -2725,6 +2756,13 @@
             if (lockText) {
                 lockText.textContent = (selectedObject.selectable === false) ? 'Unlock' : 'Lock';
             }
+            const editItem = document.getElementById('ctxEditText');
+            const editDivider = document.getElementById('ctxEditDivider');
+            if (editItem) {
+                const isText = selectedObject && selectedObject.type === 'i-text';
+                editItem.style.display = isText ? 'flex' : 'none';
+                if (editDivider) editDivider.style.display = isText ? 'block' : 'none';
+            }
 
             menu.style.display = 'block';
             backdrop.style.display = 'block';
@@ -3050,6 +3088,8 @@
     </script>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
     <div class="mobile-context-menu" id="mobileContextMenu">
+        <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
+        <div class="ctx-divider" id="ctxEditDivider"></div>
         <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
         <div class="ctx-item" data-action="forward"><i class="fas fa-arrow-up" style="font-size:0.7em;"></i> Bring Forward</div>
         <div class="ctx-item" data-action="backward"><i class="fas fa-arrow-down" style="font-size:0.7em;"></i> Send Backward</div>
