@@ -137,6 +137,7 @@
                 background: transparent !important;
                 position: static !important;
                 border-radius: 0 !important;
+                gap: 0 !important;
             }
             /* Fabric.js creates its own .canvas-container wrapper — DO NOT style it */
 
@@ -156,6 +157,7 @@
                 line-height: 0;
                 text-align: center;
                 border-radius: 0 !important;
+                position: relative !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -166,17 +168,9 @@
                 display: block; 
                 margin: 0;
                 box-shadow: none !important;
+                border-radius: 0 !important;
             }
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
-            /* ===== OUTER CANVAS CONTAINER ===== */
-            #canvasContainer {
-                width: 100%;
-                padding: 0;
-                margin: 0;
-                border-radius: 0 !important;
-                overflow: visible;
-            }
-            /* Fabric.js inner wrapper — DO NOT style it */
             /* ===== CANVAS ELEMENTS ===== */
             #designCanvas {
                 max-width: 100%;
@@ -184,8 +178,8 @@
                 display: block;
                 margin: 0 auto;
                 box-shadow: none !important;
+                border-radius: 0 !important;
             }
-            /* Fabric.js manages layer dimensions — DO NOT override */
 
             /* ===== TOOLBAR COMPACT ===== */
             .canvas-toolbar { 
@@ -198,6 +192,7 @@
                 font-size: 0.7rem; 
                 min-height: 28px;
                 border-bottom: none !important;
+                border-top: none !important;
                 flex-wrap: nowrap;
                 overflow: hidden;
             }
@@ -267,7 +262,7 @@
                 padding: 12px; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin-bottom: 2px; 
+                margin: 0; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
@@ -2490,25 +2485,31 @@
         let handleDragState = null;
 
         function getHandlePosition(obj) {
-            const zoom = canvas.getZoom();
-            const vp = canvas.viewportTransform;
+            const canvasEl = document.getElementById('designCanvas');
+            const canvasRect = canvasEl.getBoundingClientRect();
+            const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
+
+            // Scale factor: canvas logical size vs actual displayed size
+            const scaleX = canvasRect.width / canvas.width;
+            const scaleY = canvasRect.height / canvas.height;
+
+            // Canvas offset within container
+            const offsetX = canvasRect.left - containerRect.left;
+            const offsetY = canvasRect.top - containerRect.top;
+
             let x, y;
 
             if (obj.type === 'line') {
-                // Place handle at the start point of the line (x1, y1)
-                x = (obj.left + obj.x1 * (obj.scaleX || 1)) * zoom + vp[4];
-                y = (obj.top + obj.y1 * (obj.scaleY || 1)) * zoom + vp[5];
+                // Line start point relative to canvas center
+                x = offsetX + (obj.x1 + canvas.width / 2) * scaleX;
+                y = offsetY + (obj.y1 + canvas.height / 2) * scaleY;
             } else {
-                // Place handle at top-left corner of the object's bounding box
+                // Top-left of object's bounding box
                 const halfW = (obj.width * (obj.scaleX || 1)) / 2;
                 const halfH = (obj.height * (obj.scaleY || 1)) / 2;
-                x = (obj.left - halfW) * zoom + vp[4];
-                y = (obj.top - halfH) * zoom + vp[5];
+                x = offsetX + (obj.left - halfW) * scaleX;
+                y = offsetY + (obj.top - halfH) * scaleY;
             }
-
-            // Offset so handle sits just outside the corner
-            x -= 10;
-            y -= 10;
 
             return { left: x, top: y };
         }
