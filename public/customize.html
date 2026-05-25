@@ -138,9 +138,10 @@
                 position: static !important;
                 border-radius: 0 !important;
             }
+            /* Fabric.js creates its own .canvas-container wrapper — DO NOT style it */
 
-            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
-            .canvas-container { 
+            /* ===== OUTER CANVAS WRAPPER ===== */
+            #canvasContainer { 
                 display: block !important;
                 flex: none !important; 
                 height: auto !important; 
@@ -175,15 +176,7 @@
                 border-radius: 0 !important;
                 overflow: visible;
             }
-            /* ===== INNER FABRIC.JS WRAPPER ===== */
-            #canvasContainer .canvas-container {
-                width: 100% !important;
-                height: auto !important;
-                aspect-ratio: 600 / 450 !important;
-                margin: 0 !important;
-                position: relative !important;
-                display: block !important;
-            }
+            /* Fabric.js inner wrapper — DO NOT style it */
             /* ===== CANVAS ELEMENTS ===== */
             #designCanvas {
                 max-width: 100%;
@@ -192,12 +185,7 @@
                 margin: 0 auto;
                 box-shadow: none !important;
             }
-            /* Let Fabric.js manage its own layer dimensions — DO NOT force 100% to avoid stretching */
-            #canvasContainer .lower-canvas,
-            #canvasContainer .upper-canvas {
-                width: auto !important;
-                height: auto !important;
-            }
+            /* Fabric.js manages layer dimensions — DO NOT override */
 
             /* ===== TOOLBAR COMPACT ===== */
             .canvas-toolbar { 
@@ -418,13 +406,7 @@
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
 
-            /* ===== HIDE SELECTION CORNERS ON MOBILE (they look like a square) ===== */
-            .canvas-container .canvas-container canvas + div,
-            .canvas-container .lower-canvas + .upper-canvas + div,
-            .canvas-container .canvas-container [class*="control"],
-            .canvas-container .canvas-container [class*="corner"] {
-                display: none !important;
-            }
+            /* Selection corners are visible on mobile — needed for interaction */
             /* ===== HIDE DESKTOP RESET BUTTON ON MOBILE ===== */
             #resetDesignBtn {
                 display: none !important;
@@ -489,14 +471,8 @@
                 max-height: none !important;
                 border-radius: 0 !important;
             }
-            #canvasContainer .canvas-container {
-                width: 100% !important;
-                height: auto !important;
-                aspect-ratio: 600 / 450 !important;
-                max-height: none !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-            }
+                        /* Fabric.js wrapper — untouched */
+
             #designCanvas {
                 width: 100% !important;
                 height: auto !important;
@@ -504,7 +480,7 @@
                 border-radius: 0 !important;
             }
             .canvas-area,
-            .canvas-container {
+            #canvasContainer {
                 border-radius: 0 !important;
             }
             /* Ensure tools panel and accordion stay visible below canvas */
@@ -1007,7 +983,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
     <script>
-        const canvas = new fabric.Canvas('designCanvas');
+        const canvas = new fabric.Canvas('designCanvas', {
+            preserveObjectStacking: true
+        });
 
         let selectedObject = null;
         let templateConfig = null;
@@ -2576,6 +2554,7 @@
                 canvasContainer.style.background = 'transparent';
                 canvasContainer.style.backgroundImage = 'none';
                 canvasContainer.style.borderRadius = '0';
+                // Do NOT touch Fabric.js's internal .canvas-container wrapper
             }
             if (canvasToolbar) {
                 canvasToolbar.style.margin = '0';
@@ -2802,8 +2781,8 @@
                 canvas.renderAll();
             }
             updateCheckoutDisplay();
-            // lockBackgroundObjects();  // TEMP: disabled for testing
-            // lockMobileObjects(false); // TEMP: disabled for testing
+            lockBackgroundObjects();
+            lockMobileObjects(false);
             setupEventListeners();
             setupMobileContextMenu();
             setupTabs();
