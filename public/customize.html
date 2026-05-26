@@ -2652,13 +2652,13 @@ customize page with correct layout
             const offsetY = canvasRect.top - containerRect.top;
             let x, y;
             if (obj.type === 'line') {
-                const midX = (obj.x1 + obj.x2) / 2;
-                const midY = (obj.y1 + obj.y2) / 2;
-                x = offsetX + midX * scaleX;
-                y = offsetY + midY * scaleY;
+                x = offsetX + obj.x1 * scaleX;
+                y = offsetY + obj.y1 * scaleY;
             } else {
-                x = offsetX + obj.left * scaleX;
-                y = offsetY + obj.top * scaleY;
+                const halfW = (obj.width * (obj.scaleX || 1)) / 2;
+                const halfH = (obj.height * (obj.scaleY || 1)) / 2;
+                x = offsetX + (obj.left - halfW) * scaleX;
+                y = offsetY + (obj.top - halfH) * scaleY;
             }
             return { left: x, top: y };
         }
