@@ -1146,7 +1146,7 @@ customize page with correct layout
             }
             const textObj = new fabric.IText(text, {
                 left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, hasControls: true, hasBorders: true, ...options
+                textAlign: 'center', editable: true, hasControls: true, hasBorders: true, padding: 12, ...options
             });
             canvas.add(textObj);
         }
@@ -1723,7 +1723,7 @@ customize page with correct layout
                 left: 300, top: 225,
                 fill: templateConfig?.config?.accentColor || '#BCAE83',
                 originX: 'center', originY: 'center',
-                hasControls: true, hasBorders: true
+                hasControls: true, hasBorders: true, padding: 12
             };
             switch(type) {
                 case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
@@ -1742,7 +1742,7 @@ customize page with correct layout
             const line = new fabric.Line([250, 225, 350, 225], {
                 stroke: templateConfig?.config?.accentColor || '#333333',
                 strokeWidth: 3, originX: 'center', originY: 'center',
-                hasControls: true, hasBorders: true
+                hasControls: true, hasBorders: true, padding: 15
             });
             canvas.add(line);
             canvas.setActiveObject(line);
@@ -2276,7 +2276,7 @@ customize page with correct layout
             reader.onload = (f) => {
                 fabric.Image.fromURL(f.target.result, (img) => {
                     const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true });
+                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                     canvas.renderAll();
@@ -3061,6 +3061,7 @@ customize page with correct layout
                         }
                         await loadTemplateDesign();
                         saveState();
+                        updateLayerList();
                     }
                 } catch (e) {
                     console.error('Error loading template:', e);
@@ -3073,6 +3074,7 @@ customize page with correct layout
             }
             updateCheckoutDisplay();
             lockBackgroundObjects();
+            lockMobileObjects(false);
             setupEventListeners();
             setupMobileContextMenu();
             createMobileHandles();
@@ -3092,6 +3094,7 @@ customize page with correct layout
         document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
 
         init();
+        console.log('✅ init() completed successfully');
     </script>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
     <div class="mobile-context-menu" id="mobileContextMenu">
