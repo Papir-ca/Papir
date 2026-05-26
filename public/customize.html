@@ -1529,6 +1529,7 @@ customize page with correct layout
 
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
+            document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
             const addLayerBtn = document.getElementById('addLayerBtn');
             if (addLayerBtn) addLayerBtn.addEventListener('click', addNewText);
             document.addEventListener('keydown', handleKeyboard);
@@ -2222,6 +2223,7 @@ customize page with correct layout
             const list = document.getElementById('layerList');
             list.innerHTML = '';
             canvas.getObjects().forEach((obj, index) => {
+                if (obj.isBackground || obj.isTexture) return;
                 const item = document.createElement('div');
                 item.className = 'layer-item' + (obj === selectedObject ? ' active' : '') + (!obj.selectable ? ' locked' : '');
                 let icon = 'fa-square';
