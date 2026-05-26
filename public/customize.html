@@ -398,29 +398,14 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
-            /* ===== ZERO GAP BETWEEN CANVAS AND TOOLS ===== */
-            .design-layout {
-                gap: 0 !important;
-            }
-            .canvas-area {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            .canvas-container {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            #designCanvas {
-                margin-bottom: 0 !important;
-            }
-            .canvas-toolbar {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            .tools-panel {
-                margin-top: 0 !important;
-                padding-top: 2px !important;
-            }
+            /* ===== ZERO GAP: CANVAS FLUSH AGAINST TOOLS ===== */
+            .design-layout { gap: 0 !important; }
+            .canvas-area { margin: 0 !important; padding: 0 !important; }
+            .canvas-container { margin: 0 !important; padding: 0 !important; }
+            #designCanvas { margin: 0 !important; padding: 0 !important; }
+            .canvas-toolbar { margin: 0 !important; padding: 0 !important; min-height: 0 !important; border: none !important; }
+            .mobile-tools-toggle { margin: 0 !important; padding: 0 !important; background: transparent !important; border: none !important; }
+            .tools-panel { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
 
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
@@ -2848,6 +2833,12 @@
                 designLayout.style.flex = 'none';
                 designLayout.style.gap = '0';
             }
+            const toolsPanel2 = document.querySelector('.tools-panel');
+            if (toolsPanel2) { toolsPanel2.style.margin = '0'; toolsPanel2.style.padding = '0'; }
+            const mobileToggle2 = document.getElementById('mobileToolsToggle');
+            if (mobileToggle2) { mobileToggle2.style.margin = '0'; mobileToggle2.style.padding = '0'; mobileToggle2.style.background = 'transparent'; mobileToggle2.style.border = 'none'; }
+            const canvasToolbar2 = document.querySelector('.canvas-toolbar');
+            if (canvasToolbar2) { canvasToolbar2.style.margin = '0'; canvasToolbar2.style.padding = '0'; canvasToolbar2.style.border = 'none'; }
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
