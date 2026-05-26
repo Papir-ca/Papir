@@ -41,8 +41,8 @@ customize page with correct layout
         .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
         .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
-        .canvas-container { flex: 1; border-radius: 8px; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 15px; background: linear-gradient(45deg, #2a2a3e 25%, transparent 25%), linear-gradient(-45deg, #2a2a3e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a3e 75%), linear-gradient(-45deg, transparent 75%, #2a2a3e 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #252538; }
-        #designCanvas { box-shadow: 0 15px 50px rgba(0,0,0,0.6); border-radius: 4px; }
+        .canvas-container { flex: 1; border-radius: 0 !important; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; }
+        #designCanvas { box-shadow: none !important; border-radius: 0 !important; border: none !important; }
         .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
@@ -137,6 +137,8 @@ customize page with correct layout
                 margin: 0 !important; 
                 background: transparent !important;
                 position: static !important;
+                border: none !important;
+                border-radius: 0 !important;
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -156,6 +158,7 @@ customize page with correct layout
                 text-align: center;
                 border: none !important;
                 border-radius: 0 !important;
+                box-shadow: none !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -169,6 +172,7 @@ customize page with correct layout
                 box-shadow: none !important;
                 border: none !important;
                 border-radius: 0 !important;
+                outline: none !important;
             }
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
@@ -270,16 +274,17 @@ customize page with correct layout
                 display: flex; 
                 align-items: center; 
                 justify-content: space-between;
-                padding: 12px; 
+                padding: 12px !important; 
                 background: rgba(255,255,255,0.08); 
                 border-radius: 8px;
-                margin-bottom: 2px; 
+                margin: 0 0 2px 0 !important; 
                 cursor: pointer; 
                 font-weight: 600; 
                 font-size: 0.9rem;
                 border: 1px solid rgba(255,255,255,0.1); 
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
+                width: 100%;
             }
             .mobile-accordion-header:active { opacity: 0.9; }
             .mobile-accordion-header.active {
@@ -450,6 +455,25 @@ customize page with correct layout
                 display: none;
             }
         }
+        @media (max-width: 768px) and (orientation: landscape) {
+            #canvasContainer {
+                width: 100% !important;
+                max-height: 55vh !important;
+                border-radius: 0 !important;
+                border: none !important;
+            }
+            #designCanvas {
+                width: auto !important;
+                max-width: 100% !important;
+                height: auto !important;
+                max-height: 55vh !important;
+                border-radius: 0 !important;
+                aspect-ratio: 600 / 450 !important;
+                object-fit: contain !important;
+                border: none !important;
+                outline: none !important;
+            }
+        }
 @media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
@@ -479,6 +503,7 @@ customize page with correct layout
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
                     <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
+                    <button class="btn-icon" id="mobileResetBtn" title="Reset Design" onclick="resetDesign()"><i class="fas fa-undo"></i> Reset</button>
                 </div>
                 <div class="price-display" id="priceDisplay">$2.99</div>
             </div>
@@ -533,10 +558,11 @@ customize page with correct layout
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap text to edit • Double-tap handle for options</span>
+                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
-                        <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
+                        <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
                         <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
                         <span id="zoomDisplay" style="min-width: 45px; text-align: center; font-size: 0.85rem;">100%</span>
                         <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
@@ -2584,7 +2610,6 @@ customize page with correct layout
                 x = offsetX + (obj.left - halfW) * scaleX;
                 y = offsetY + (obj.top - halfH) * scaleY;
             }
-            x -= 5; y -= 5;
             return { left: x, top: y };
         }
 
@@ -2628,12 +2653,30 @@ customize page with correct layout
                     lastTapTime = now;
                     handleDragState = {
                         obj: obj, startX: touch.clientX, startY: touch.clientY,
+                        startDist: null, startScaleX: obj.scaleX, startScaleY: obj.scaleY,
                         objStartLeft: obj.left, objStartTop: obj.top, moved: false
                     };
                 }, { passive: false });
                 handle.addEventListener('touchmove', function(e) {
                     if (!handleDragState || handleDragState.obj !== obj) return;
                     e.preventDefault(); e.stopPropagation();
+                    if (e.touches.length === 2) {
+                        // Pinch to resize
+                        const dx = e.touches[0].clientX - e.touches[1].clientX;
+                        const dy = e.touches[0].clientY - e.touches[1].clientY;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (handleDragState.startDist === null) handleDragState.startDist = dist;
+                        const scale = dist / handleDragState.startDist;
+                        obj.set({
+                            scaleX: handleDragState.startScaleX * scale,
+                            scaleY: handleDragState.startScaleY * scale
+                        });
+                        handleDragState.moved = true;
+                        canvas.renderAll();
+                        updateMobileHandlePositions();
+                        updateControls();
+                        return;
+                    }
                     const touch = e.touches[0];
                     const dx = touch.clientX - handleDragState.startX;
                     const dy = touch.clientY - handleDragState.startY;
@@ -2990,6 +3033,8 @@ customize page with correct layout
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
+        document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
+        document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
 
         init();
     </script>
