@@ -253,28 +253,6 @@
             .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
             .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
 
-            /* ===== TOOLS TOGGLE ===== */
-            .mobile-tools-toggle { 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                gap: 8px;
-                padding: 12px; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin: 0; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                color: white; 
-                border: 1px solid rgba(255,255,255,0.1); 
-                -webkit-tap-highlight-color: transparent; 
-                touch-action: manipulation;
-            }
-            .mobile-tools-toggle:active { opacity: 0.9; }
-            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
-
             /* ===== ACCORDION ===== */
             .mobile-accordion-container { display: block; margin: 0; }
             .mobile-accordion-header {
@@ -368,7 +346,7 @@
             }
 
             /* ===== LESS SENSITIVE ===== */
-            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
+            .mobile-accordion-header, .mobile-lock-toggle,
             .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
                 touch-action: manipulation; 
                 -webkit-tap-highlight-color: transparent;
@@ -398,14 +376,29 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
 
-            /* ===== ZERO GAP: CANVAS FLUSH AGAINST TOOLS ===== */
-            .design-layout { gap: 0 !important; }
-            .canvas-area { margin: 0 !important; padding: 0 !important; }
-            .canvas-container { margin: 0 !important; padding: 0 !important; }
-            #designCanvas { margin: 0 !important; padding: 0 !important; }
-            .canvas-toolbar { margin: 0 !important; padding: 0 !important; min-height: 0 !important; border: none !important; }
-            .mobile-tools-toggle { margin: 0 !important; padding: 0 !important; background: transparent !important; border: none !important; }
-            .tools-panel { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
+            /* ===== ZERO GAP BETWEEN CANVAS AND TOOLS ===== */
+            .design-layout {
+                gap: 0 !important;
+            }
+            .canvas-area {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .canvas-container {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            #designCanvas {
+                margin-bottom: 0 !important;
+            }
+            .canvas-toolbar {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .tools-panel {
+                margin-top: 0 !important;
+                padding-top: 2px !important;
+            }
 
             /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
             .properties-panel .panel-header { display: none !important; }
@@ -534,7 +527,7 @@
             }
         }
 @media (min-width: 769px) {
-            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
+            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -2833,12 +2826,6 @@
                 designLayout.style.flex = 'none';
                 designLayout.style.gap = '0';
             }
-            const toolsPanel2 = document.querySelector('.tools-panel');
-            if (toolsPanel2) { toolsPanel2.style.margin = '0'; toolsPanel2.style.padding = '0'; }
-            const mobileToggle2 = document.getElementById('mobileToolsToggle');
-            if (mobileToggle2) { mobileToggle2.style.margin = '0'; mobileToggle2.style.padding = '0'; mobileToggle2.style.background = 'transparent'; mobileToggle2.style.border = 'none'; }
-            const canvasToolbar2 = document.querySelector('.canvas-toolbar');
-            if (canvasToolbar2) { canvasToolbar2.style.margin = '0'; canvasToolbar2.style.padding = '0'; canvasToolbar2.style.border = 'none'; }
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
@@ -2877,29 +2864,6 @@
                     h4.addEventListener('click', function() {
                         if (window.innerWidth <= 768) section.classList.toggle('collapsed');
                     });
-                });
-            }
-
-            // Tools toggle below canvas (flush with canvas area)
-            const canvasArea = document.querySelector('.canvas-area');
-            let toggle = document.getElementById('mobileToolsToggle');
-            if (!toggle && canvasArea) {
-                toggle = document.createElement('div');
-                toggle.className = 'mobile-tools-toggle collapsed';
-                toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><i class="fas fa-tools"></i> Tools</span> <i class="fas fa-chevron-up"></i>';
-                canvasArea.appendChild(toggle);
-                toggle.addEventListener('click', function() {
-                    const toolsPanel = document.querySelector('.tools-panel');
-                    const icon = this.querySelector('i.fa-chevron-up, i.fa-chevron-down');
-                    if (toolsPanel) {
-                        toolsPanel.classList.toggle('collapsed');
-                        this.classList.toggle('collapsed');
-                        if (icon) {
-                            icon.classList.toggle('fa-chevron-up');
-                            icon.classList.toggle('fa-chevron-down');
-                        }
-                    }
                 });
             }
 
@@ -2981,13 +2945,11 @@
                 applyMobileSpacingFix();
                 const isMobile = window.innerWidth <= 768;
                 const toolsPanel = document.querySelector('.tools-panel');
-                const toggleEl = document.getElementById('mobileToolsToggle');
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
                 if (!isMobile) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
-                    if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
                     if (tabs) tabs.style.display = '';
                     if (accordionContainer) accordionContainer.style.display = 'none';
                     tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
@@ -3002,7 +2964,6 @@
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
                     if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    if (toggleEl) toggleEl.classList.add('collapsed');
                     tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
