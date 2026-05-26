@@ -1091,14 +1091,7 @@ customize page with correct layout
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
-            if (config.borderWidth > 0) {
-                canvas.add(new fabric.Rect({
-                    left: config.borderWidth / 2, top: config.borderWidth / 2,
-                    width: 600 - config.borderWidth, height: 450 - config.borderWidth,
-                    fill: 'transparent', stroke: config.borderColor, strokeWidth: config.borderWidth,
-                    selectable: false, evented: false
-                }));
-            }
+            /* Border permanently removed — not visible on desktop or mobile */
             if (config.decorations) {
                 config.decorations.forEach(dec => {
                     if (dec.type === 'line') {
