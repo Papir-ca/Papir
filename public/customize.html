@@ -181,7 +181,7 @@ customize page with correct layout
             }
             /* ===== INNER FABRIC.JS WRAPPER ===== */
             #canvasContainer .canvas-container {
-                width: auto !important;
+                width: 100% !important;
                 height: auto !important;
                 max-width: 100% !important;
                 max-height: 55vh !important;
@@ -192,12 +192,10 @@ customize page with correct layout
                 border-radius: 0 !important;
             }
             /* ===== CANVAS ELEMENTS ===== */
-            #designCanvas,
-            #canvasContainer .lower-canvas,
-            #canvasContainer .upper-canvas {
-                width: auto !important;
-                height: auto !important;
+            #designCanvas {
                 max-width: 100% !important;
+                width: 100% !important;
+                height: auto !important;
                 max-height: 55vh !important;
                 display: block !important;
                 margin: 0 auto !important;
@@ -205,7 +203,17 @@ customize page with correct layout
                 border: none !important;
                 outline: none !important;
                 border-radius: 0 !important;
-                aspect-ratio: 600 / 450 !important;
+            }
+            #canvasContainer .lower-canvas,
+            #canvasContainer .upper-canvas {
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                outline: none !important;
+                border-radius: 0 !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -490,24 +498,35 @@ customize page with correct layout
                 border-radius: 0 !important;
             }
             #canvasContainer .canvas-container {
-                width: auto !important;
+                width: 100% !important;
                 height: auto !important;
                 max-width: 100% !important;
                 max-height: 70vh !important;
                 aspect-ratio: 600 / 450 !important;
                 border: none !important;
+                border-radius: 0 !important;
             }
-            #designCanvas,
-            #canvasContainer .lower-canvas,
-            #canvasContainer .upper-canvas {
-                width: auto !important;
-                height: auto !important;
+            #designCanvas {
                 max-width: 100% !important;
+                width: 100% !important;
+                height: auto !important;
                 max-height: 70vh !important;
-                aspect-ratio: 600 / 450 !important;
+                display: block !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
                 border: none !important;
                 outline: none !important;
+                border-radius: 0 !important;
+            }
+            #canvasContainer .lower-canvas,
+            #canvasContainer .upper-canvas {
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+                margin: 0 auto !important;
                 box-shadow: none !important;
+                border: none !important;
+                outline: none !important;
                 border-radius: 0 !important;
             }
         }
