@@ -154,6 +154,8 @@ customize page with correct layout
                 overflow: visible;
                 line-height: 0;
                 text-align: center;
+                border: none !important;
+                border-radius: 0 !important;
             }
 
             /* ===== CANVAS ITSELF ===== */
@@ -165,6 +167,8 @@ customize page with correct layout
                 display: block; 
                 margin: 0 auto;
                 box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
             }
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
@@ -190,6 +194,7 @@ customize page with correct layout
                 display: block;
                 margin: 0 auto;
                 box-shadow: none !important;
+                aspect-ratio: 600 / 450 !important;
             }
             #canvasContainer .lower-canvas,
             #canvasContainer .upper-canvas {
@@ -241,24 +246,22 @@ customize page with correct layout
             .mobile-tools-toggle { 
                 display: flex; 
                 align-items: center; 
-                justify-content: center; 
-                gap: 6px;
-                padding: 2px 8px !important; 
-                background: rgba(255,255,255,0.05); 
-                border-radius: 6px;
+                justify-content: space-between; 
+                gap: 8px;
+                padding: 12px !important; 
+                background: rgba(255,255,255,0.08); 
+                border-radius: 8px;
                 margin: 0 !important; 
                 cursor: pointer; 
                 font-weight: 600; 
-                font-size: 0.75rem;
+                font-size: 0.9rem;
                 color: white; 
-                border: none; 
+                border: 1px solid rgba(255,255,255,0.1); 
                 -webkit-tap-highlight-color: transparent; 
                 touch-action: manipulation;
-                min-height: 22px;
-                line-height: 1;
             }
-            .mobile-tools-toggle:active { opacity: 0.8; }
-            .mobile-tools-toggle i { margin-left: auto; transition: transform 0.2s; font-size: 0.7rem; }
+            .mobile-tools-toggle:active { opacity: 0.9; }
+            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
             .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             /* ===== ACCORDION ===== */
@@ -362,11 +365,15 @@ customize page with correct layout
                 -webkit-user-select: none;
             }
 
+            /* ===== HIDE DESKTOP EXTRAS ON MOBILE ===== */
+            #canvasSize, #fitToScreenBtn { display: none !important; }
+
             /* ===== CHECKOUT ===== */
             .checkout-section { margin-top: 8px !important; }
 
             /* ===== HEADER COMPACT ===== */
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            #mobileResetBtn { display: inline-flex !important; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
@@ -444,7 +451,7 @@ customize page with correct layout
             }
         }
 @media (min-width: 769px) {
-            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
+            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -525,12 +532,8 @@ customize page with correct layout
 
             <div class="canvas-area">
                 <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Double-click text to edit inline</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap text to select, hold for options</span>
-                    <span class="mobile-scroll-hint" style="font-size: 0.75rem; opacity: 0.6; display: none;"><i class="fas fa-hand-pointer"></i> Scroll canvas to pan</span>
-                        <span style="font-size: 0.8rem; opacity: 0.6;">|</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;" id="canvasSize">600 × 450 px</span>
+                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap text to edit • Double-tap handle for options</span>
                     </div>
                     <div class="canvas-controls">
                         <button class="btn-icon small" id="fitToScreenBtn" title="Fit to Screen"><i class="fas fa-compress-arrows-alt"></i></button>
@@ -2581,7 +2584,7 @@ customize page with correct layout
                 x = offsetX + (obj.left - halfW) * scaleX;
                 y = offsetY + (obj.top - halfH) * scaleY;
             }
-            x -= 15; y -= 5;
+            x -= 5; y -= 5;
             return { left: x, top: y };
         }
 
