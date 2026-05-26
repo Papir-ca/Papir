@@ -20,6 +20,7 @@ customize page with correct layout
             --warning: #FFD166;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
+        .canvas-area, .canvas-container, #designCanvas, #canvasContainer, .lower-canvas, .upper-canvas { border: none !important; outline: none !important; box-shadow: none !important; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; }
         .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -161,49 +162,50 @@ customize page with correct layout
                 box-shadow: none !important;
             }
 
-            /* ===== CANVAS ITSELF ===== */
-            #designCanvas { 
-                max-width: 100%; 
-                width: 100%; 
-                height: auto !important; 
-                max-height: 55vh;
-                display: block; 
-                margin: 0 auto;
-                box-shadow: none !important;
-                border: none !important;
-                border-radius: 0 !important;
-                outline: none !important;
-            }
+
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
             #canvasContainer {
-                max-height: 55vh;
-                overflow: hidden;
+                width: 100% !important;
+                height: auto !important;
+                max-height: 55vh !important;
+                overflow: hidden !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
             }
             /* ===== INNER FABRIC.JS WRAPPER ===== */
             #canvasContainer .canvas-container {
-                width: 100% !important;
-                max-width: 100% !important;
                 width: auto !important;
                 height: auto !important;
-                aspect-ratio: 600 / 450 !important;
+                max-width: 100% !important;
                 max-height: 55vh !important;
+                aspect-ratio: 600 / 450 !important;
                 margin: 0 auto !important;
                 position: relative !important;
+                border: none !important;
+                border-radius: 0 !important;
             }
             /* ===== CANVAS ELEMENTS ===== */
-            #designCanvas {
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-                box-shadow: none !important;
-                aspect-ratio: 600 / 450 !important;
-            }
+            #designCanvas,
             #canvasContainer .lower-canvas,
             #canvasContainer .upper-canvas {
-                width: 100% !important;
-                height: 100% !important;
+                width: auto !important;
+                height: auto !important;
+                max-width: 100% !important;
+                max-height: 55vh !important;
+                display: block !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                outline: none !important;
+                border-radius: 0 !important;
+                aspect-ratio: 600 / 450 !important;
             }
 
             /* ===== TOOLBAR COMPACT ===== */
@@ -213,6 +215,13 @@ customize page with correct layout
                 font-size: 0.7rem; 
                 min-height: 24px;
                 border-bottom: none !important;
+            }
+            .toolbar-hint {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                line-height: 1.3;
+                font-size: 0.68rem !important;
             }
             .canvas-toolbar .mobile-scroll-hint { display: none !important; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
@@ -301,7 +310,7 @@ customize page with correct layout
             .properties-panel { 
                 width: 100%; 
                 order: 3; 
-                padding: 0 8px 8px; 
+                padding: 0; 
                 margin: 0 !important;
                 flex: none !important;
                 height: auto !important;
@@ -310,6 +319,8 @@ customize page with correct layout
                 position: relative;
                 z-index: 2;
             }
+            .properties-panel .tab-content { padding: 0 8px; }
+            .properties-panel .checkout-section { margin: 8px !important; }
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
 
@@ -455,23 +466,49 @@ customize page with correct layout
                 display: none;
             }
         }
+            #mobileResetBtn {
+                background: rgba(255, 107, 107, 0.2) !important;
+                border: 1px solid var(--danger) !important;
+                color: #ff6b6b !important;
+            }
+        }
         @media (max-width: 768px) and (orientation: landscape) {
+            .canvas-area {
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+            }
             #canvasContainer {
                 width: 100% !important;
-                max-height: 55vh !important;
+                height: auto !important;
+                max-height: 70vh !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                border: none !important;
                 border-radius: 0 !important;
+            }
+            #canvasContainer .canvas-container {
+                width: auto !important;
+                height: auto !important;
+                max-width: 100% !important;
+                max-height: 70vh !important;
+                aspect-ratio: 600 / 450 !important;
                 border: none !important;
             }
-            #designCanvas {
+            #designCanvas,
+            #canvasContainer .lower-canvas,
+            #canvasContainer .upper-canvas {
                 width: auto !important;
-                max-width: 100% !important;
                 height: auto !important;
-                max-height: 55vh !important;
-                border-radius: 0 !important;
+                max-width: 100% !important;
+                max-height: 70vh !important;
                 aspect-ratio: 600 / 450 !important;
-                object-fit: contain !important;
                 border: none !important;
                 outline: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
             }
         }
 @media (min-width: 769px) {
@@ -481,10 +518,6 @@ customize page with correct layout
             .canvas-area { position: relative; z-index: auto; }
         }
 </style>
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -558,7 +591,7 @@ customize page with correct layout
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
+                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
@@ -2273,8 +2306,27 @@ customize page with correct layout
         }
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
-                loadTemplateDesign();
-                saveState();
+                // Clean up any video/audio elements from DOM
+                canvas.getObjects().forEach(obj => {
+                    if (obj.videoElement) {
+                        obj.videoElement.pause();
+                        obj.videoElement.remove();
+                    }
+                    if (obj.audioElement) {
+                        obj.audioElement.pause();
+                        obj.audioElement.remove();
+                    }
+                    if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
+                });
+                canvas.clear();
+                canvas.backgroundColor = '#ffffff';
+                canvas.renderAll();
+                loadTemplateDesign().then(() => {
+                    saveState();
+                    createMobileHandles();
+                    updateLayerList();
+                    showNotification('Design reset to template defaults', 'success');
+                });
             }
         }
         function showSelectionControls() {
@@ -2602,13 +2654,15 @@ customize page with correct layout
             const offsetY = canvasRect.top - containerRect.top;
             let x, y;
             if (obj.type === 'line') {
-                x = offsetX + (obj.x1 + canvas.width / 2) * scaleX;
-                y = offsetY + (obj.y1 + canvas.height / 2) * scaleY;
+                // Place handle at the midpoint of the line
+                const midX = (obj.x1 + obj.x2) / 2;
+                const midY = (obj.y1 + obj.y2) / 2;
+                x = offsetX + midX * scaleX;
+                y = offsetY + midY * scaleY;
             } else {
-                const halfW = (obj.width * (obj.scaleX || 1)) / 2;
-                const halfH = (obj.height * (obj.scaleY || 1)) / 2;
-                x = offsetX + (obj.left - halfW) * scaleX;
-                y = offsetY + (obj.top - halfH) * scaleY;
+                // Place handle at the center of the object (in front of the layer it controls)
+                x = offsetX + obj.left * scaleX;
+                y = offsetY + obj.top * scaleY;
             }
             return { left: x, top: y };
         }
