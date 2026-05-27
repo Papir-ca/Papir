@@ -491,9 +491,10 @@ customize page with correct layout
                 align-items: center !important;
                 border: none !important;
                 border-radius: 0 !important;
+                position: relative !important;
             }
             #canvasContainer .canvas-container {
-                width: auto !important;
+                width: 100% !important;
                 height: auto !important;
                 max-width: 100% !important;
                 max-height: 70vh !important;
@@ -501,10 +502,11 @@ customize page with correct layout
                 border: none !important;
                 border-radius: 0 !important;
                 margin: 0 auto !important;
+                position: relative !important;
             }
             #designCanvas {
                 max-width: 100% !important;
-                width: auto !important;
+                width: 100% !important;
                 height: auto !important;
                 max-height: 70vh !important;
                 display: block !important;
@@ -520,7 +522,9 @@ customize page with correct layout
                 width: 100% !important;
                 height: 100% !important;
                 display: block !important;
-                margin: 0 auto !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
                 outline: none !important;
@@ -1315,7 +1319,8 @@ customize page with correct layout
 
         function enableBatchMode() {
             isBatchMode = true;
-            document.getElementById('batchControls').classList.add('active');
+            const batchControls = document.getElementById('batchControls');
+            if (batchControls) { batchControls.classList.add('active'); batchControls.style.display = 'block'; }
             document.getElementById('singleModeBtn').classList.remove('active');
             document.getElementById('batchModeBtn').classList.add('active');
             updatePrice();
@@ -1470,6 +1475,17 @@ customize page with correct layout
             }
             saveState();
             createMobileHandles();
+        });
+        canvas.on('object:rotating', function(e) {
+            if (!e.target || e.target.angle === undefined) return;
+            const a = ((e.target.angle % 360) + 360) % 360;
+            const snaps = [0, 45, 90, 135, 180, 225, 270, 315];
+            for (const s of snaps) {
+                if (Math.abs(a - s) < 5) {
+                    e.target.set('snapAngle', s);
+                    break;
+                }
+            }
         });
             canvas.on('object:moving', handleObjectMoving);
             canvas.on('after:render', function() { updateMobileHandlePositions(); if (showGrid) updateGridOverlayPosition(); });
@@ -2178,23 +2194,28 @@ customize page with correct layout
             const batchBtn = document.getElementById('batchModeBtn');
             const batchControls = document.getElementById('batchControls');
             const priceDisplay = document.getElementById('priceDisplay');
-            if (!singleBtn || !batchBtn) { console.warn('Mode buttons not found'); return; }
-            singleBtn.addEventListener('click', function() {
+            if (!singleBtn || !batchBtn) { console.error('Mode buttons missing'); return; }
+
+            function showSingle() {
                 isBatchMode = false;
                 singleBtn.classList.add('active');
                 batchBtn.classList.remove('active');
-                if (batchControls) batchControls.classList.remove('active');
+                if (batchControls) { batchControls.classList.remove('active'); batchControls.style.display = 'none'; }
                 if (priceDisplay) priceDisplay.textContent = '$2.99';
                 updateCheckoutDisplay();
-            });
-            batchBtn.addEventListener('click', function() {
+            }
+
+            function showBatch() {
                 isBatchMode = true;
                 singleBtn.classList.remove('active');
                 batchBtn.classList.add('active');
-                if (batchControls) batchControls.classList.add('active');
+                if (batchControls) { batchControls.classList.add('active'); batchControls.style.display = 'block'; }
                 updatePrice();
                 updateCheckoutDisplay();
-            });
+            }
+
+            singleBtn.addEventListener('click', showSingle);
+            batchBtn.addEventListener('click', showBatch);
         }
 
         function bringToFront() {
@@ -3136,11 +3157,16 @@ customize page with correct layout
                         document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                         document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                         if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
-                            enableBatchMode();
+                            isBatchMode = true;
+                            document.getElementById('singleModeBtn').classList.remove('active');
+                            document.getElementById('batchModeBtn').classList.add('active');
+                            const bc = document.getElementById('batchControls');
+                            if (bc) { bc.classList.add('active'); bc.style.display = 'block'; }
                             if (templateConfig.batchSize) {
                                 document.getElementById('qtyInput').value = templateConfig.batchSize;
                                 updatePrice();
                             }
+                            updateCheckoutDisplay();
                         }
                         await loadTemplateDesign();
                         saveState();
