@@ -272,6 +272,8 @@ customize page with correct layout
                 border: 1px solid rgba(255,255,255,0.1); 
                 -webkit-tap-highlight-color: transparent; 
                 touch-action: manipulation;
+                width: 100%;
+                box-sizing: border-box;
             }
             .mobile-tools-toggle:active { opacity: 0.9; }
             .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
@@ -473,10 +475,12 @@ customize page with correct layout
         }
         @media (max-width: 768px) and (orientation: landscape) {
             .canvas-area {
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
+                display: block !important;
                 width: 100% !important;
+            }
+            .mobile-tools-toggle {
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
             #canvasContainer {
                 width: 100% !important;
@@ -489,17 +493,18 @@ customize page with correct layout
                 border-radius: 0 !important;
             }
             #canvasContainer .canvas-container {
-                width: 100% !important;
+                width: auto !important;
                 height: auto !important;
                 max-width: 100% !important;
                 max-height: 70vh !important;
                 aspect-ratio: 600 / 450 !important;
                 border: none !important;
                 border-radius: 0 !important;
+                margin: 0 auto !important;
             }
             #designCanvas {
                 max-width: 100% !important;
-                width: 100% !important;
+                width: auto !important;
                 height: auto !important;
                 max-height: 70vh !important;
                 display: block !important;
@@ -508,6 +513,7 @@ customize page with correct layout
                 border: none !important;
                 outline: none !important;
                 border-radius: 0 !important;
+                aspect-ratio: 600 / 450 !important;
             }
             #canvasContainer .lower-canvas,
             #canvasContainer .upper-canvas {
@@ -1025,7 +1031,7 @@ customize page with correct layout
             if (obj.type === 'i-text') {
                 obj.off('editing:entered'); obj.off('editing:exited');
                 obj.on('editing:entered', function() { clearMobileHandles(); });
-                obj.on('editing:exited', function() { createMobileHandles(); });
+                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 100); });
             }
         }
         canvas.on('object:added', (e) => {
@@ -1536,11 +1542,14 @@ customize page with correct layout
 
             canvas.on('mouse:down', function(e) {
                 if (window.innerWidth > 768) return;
-                if (!e.target || e.target.type !== 'i-text') return;
-                if (canvas.getActiveObject() === e.target) {
+                if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.enterEditing();
                     if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
                 }
+            });
+            canvas.on('mouse:up', function() {
+                if (window.innerWidth > 768) return;
+                setTimeout(createMobileHandles, 50);
             });
 
             // Media playback button listeners
@@ -1672,6 +1681,7 @@ customize page with correct layout
             selectedObject = null;
             showNoSelection();
             updateLayerList();
+            if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50);
         }
 
         function handleObjectMoving(e) {
@@ -2166,20 +2176,22 @@ customize page with correct layout
         function setupModeSwitch() {
             const singleBtn = document.getElementById('singleModeBtn');
             const batchBtn = document.getElementById('batchModeBtn');
-            if (!singleBtn || !batchBtn) return;
+            const batchControls = document.getElementById('batchControls');
+            const priceDisplay = document.getElementById('priceDisplay');
+            if (!singleBtn || !batchBtn) { console.warn('Mode buttons not found'); return; }
             singleBtn.addEventListener('click', function() {
                 isBatchMode = false;
                 singleBtn.classList.add('active');
                 batchBtn.classList.remove('active');
-                document.getElementById('batchControls').classList.remove('active');
-                document.getElementById('priceDisplay').textContent = '$2.99';
+                if (batchControls) batchControls.classList.remove('active');
+                if (priceDisplay) priceDisplay.textContent = '$2.99';
                 updateCheckoutDisplay();
             });
             batchBtn.addEventListener('click', function() {
                 isBatchMode = true;
-                document.getElementById('batchControls').classList.add('active');
                 singleBtn.classList.remove('active');
                 batchBtn.classList.add('active');
+                if (batchControls) batchControls.classList.add('active');
                 updatePrice();
                 updateCheckoutDisplay();
             });
