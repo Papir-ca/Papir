@@ -2168,43 +2168,89 @@ customize page with correct layout
 
         function bringToFront() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { canvas.bringToFront(obj); canvas.renderAll(); saveState(); updateLayerList(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => canvas.bringToFront(o));
+            } else {
+                canvas.bringToFront(obj);
+            }
+            canvas.renderAll(); saveState(); updateLayerList();
         }
         function bringForward() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { canvas.bringForward(obj); canvas.renderAll(); saveState(); updateLayerList(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => canvas.bringForward(o));
+            } else {
+                canvas.bringForward(obj);
+            }
+            canvas.renderAll(); saveState(); updateLayerList();
         }
         function sendBackward() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { canvas.sendBackwards(obj); canvas.renderAll(); saveState(); updateLayerList(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => canvas.sendBackwards(o));
+            } else {
+                canvas.sendBackwards(obj);
+            }
+            canvas.renderAll(); saveState(); updateLayerList();
         }
         function sendToBack() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { canvas.sendToBack(obj); canvas.renderAll(); saveState(); updateLayerList(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => canvas.sendToBack(o));
+            } else {
+                canvas.sendToBack(obj);
+            }
+            canvas.renderAll(); saveState(); updateLayerList();
         }
         function flipHorizontal() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); saveState(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => o.set('flipX', !o.flipX));
+            } else {
+                obj.set('flipX', !obj.flipX);
+            }
+            canvas.renderAll(); saveState();
         }
         function flipVertical() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) { obj.set('flipY', !obj.flipY); canvas.renderAll(); saveState(); }
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => o.set('flipY', !o.flipY));
+            } else {
+                obj.set('flipY', !obj.flipY);
+            }
+            canvas.renderAll(); saveState();
         }
         function lockObject() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) {
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                obj.getObjects().forEach(o => {
+                    o.set('selectable', !o.selectable);
+                    o.set('evented', !o.evented);
+                });
+            } else {
                 obj.set('selectable', !obj.selectable);
                 obj.set('evented', !obj.evented);
-                canvas.discardActiveObject();
-                canvas.renderAll();
-                updateLayerList();
-                updateLockButton();
             }
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            updateLayerList();
+            updateLockButton();
         }
         function updateLockButton() {
             const btn = document.getElementById('lockBtn');
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj && !obj.selectable) {
+            if (obj && obj.type === 'activeSelection') {
+                const allLocked = obj.getObjects().every(o => !o.selectable);
+                btn.innerHTML = allLocked ? '<i class="fas fa-lock"></i> Unlock All' : '<i class="fas fa-lock"></i> Lock All';
+                btn.classList.toggle('active', allLocked);
+            } else if (obj && !obj.selectable) {
                 btn.innerHTML = '<i class="fas fa-lock"></i> Unlock';
                 btn.classList.add('active');
             } else {
@@ -2214,15 +2260,28 @@ customize page with correct layout
         }
         function duplicateObject() {
             const obj = canvas.getActiveObject() || selectedObject;
-            if (obj) {
+            if (!obj) return;
+            if (obj.type === 'activeSelection') {
+                const clones = [];
+                obj.getObjects().forEach(o => {
+                    o.clone(function(cloned) {
+                        cloned.set({ left: o.left + 20, top: o.top + 20 });
+                        canvas.add(cloned);
+                        clones.push(cloned);
+                    });
+                });
+                if (clones.length > 0) {
+                    const sel = new fabric.ActiveSelection(clones, { canvas: canvas });
+                    canvas.setActiveObject(sel);
+                }
+            } else {
                 obj.clone(function(cloned) {
                     cloned.set({ left: obj.left + 20, top: obj.top + 20 });
                     canvas.add(cloned);
                     canvas.setActiveObject(cloned);
-                    canvas.renderAll();
-                    saveState();
                 });
             }
+            canvas.renderAll(); saveState(); updateLayerList();
         }
         function groupSelected() {
             const active = canvas.getActiveObject();
@@ -2230,7 +2289,7 @@ customize page with correct layout
                 const group = active.toGroup();
                 canvas.setActiveObject(group);
                 canvas.renderAll();
-                saveState();
+                saveState(); updateLayerList();
             }
         }
         function ungroupSelected() {
@@ -2238,7 +2297,7 @@ customize page with correct layout
             if (active && active.type === 'group') {
                 active.toActiveSelection();
                 canvas.renderAll();
-                saveState();
+                saveState(); updateLayerList();
             }
         }
 
