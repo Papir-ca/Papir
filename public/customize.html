@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
+        /* ========== YOUR ORIGINAL CSS (unchanged) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { 
             --primary-gold: #BCAE83; 
@@ -2148,14 +2149,21 @@
         }
 
         function setupZoomControls() {
-            document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
-            document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
-            document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
-            document.getElementById('fitToScreenBtn').addEventListener('click', fitToScreen);
-            document.getElementById('resizeCanvasBtn').addEventListener('click', resizeCanvas);
-            const zd = document.getElementById('zoomDisplay');
-            if (zd) {
-                zd.addEventListener('change', function() {
+            // Safely attach zoom controls only if the elements exist
+            const zoomIn = document.getElementById('zoomInBtn');
+            const zoomOut = document.getElementById('zoomOutBtn');
+            const resetZoom = document.getElementById('resetZoomBtn');
+            const fitToScreen = document.getElementById('fitToScreenBtn');
+            const resizeCanvasBtn = document.getElementById('resizeCanvasBtn');
+            const zoomDisplay = document.getElementById('zoomDisplay');
+
+            if (zoomIn) zoomIn.addEventListener('click', () => zoom(0.1));
+            if (zoomOut) zoomOut.addEventListener('click', () => zoom(-0.1));
+            if (resetZoom) resetZoom.addEventListener('click', resetZoom);
+            if (fitToScreen) fitToScreen.addEventListener('click', fitToScreen);
+            if (resizeCanvasBtn) resizeCanvasBtn.addEventListener('click', resizeCanvas);
+            if (zoomDisplay) {
+                zoomDisplay.addEventListener('change', function() {
                     let v = parseInt(this.value.replace('%', ''));
                     if (isNaN(v)) v = 100;
                     v = Math.max(30, Math.min(300, v));
@@ -2163,7 +2171,7 @@
                     canvas.setZoom(currentZoom);
                     this.value = v + '%';
                 });
-                zd.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
+                zoomDisplay.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
             }
         }
 
@@ -2306,6 +2314,7 @@
 
         function updateLayerList() {
             const list = document.getElementById('layerList');
+            if (!list) return;
             list.innerHTML = '';
             canvas.getObjects().forEach((obj, index) => {
                 if (obj.isBackground || obj.isTexture) return;
@@ -2404,19 +2413,25 @@
         }
         function fitToScreen() {
             const container = document.querySelector('.canvas-container');
+            if (!container) return;
             const scaleX = (container.clientWidth - 60) / 600;
             const scaleY = (container.clientHeight - 60) / 450;
             currentZoom = Math.min(scaleX, scaleY, 1);
             canvas.setZoom(currentZoom);
-            document.getElementById('zoomDisplay').textContent = Math.round(currentZoom * 100) + '%';
+            const zd = document.getElementById('zoomDisplay');
+            if (zd) zd.textContent = Math.round(currentZoom * 100) + '%';
         }
         function resizeCanvas() {
-            const width = parseInt(document.getElementById('canvasWidth').value);
-            const height = parseInt(document.getElementById('canvasHeight').value);
+            const widthInput = document.getElementById('canvasWidth');
+            const heightInput = document.getElementById('canvasHeight');
+            if (!widthInput || !heightInput) return;
+            const width = parseInt(widthInput.value);
+            const height = parseInt(heightInput.value);
             canvas.setWidth(width);
             canvas.setHeight(height);
             canvas.renderAll();
-            document.getElementById('canvasSize').textContent = `${width} × ${height} px`;
+            const sizeSpan = document.getElementById('canvasSize');
+            if (sizeSpan) sizeSpan.textContent = `${width} × ${height} px`;
             saveState();
         }
         function resetDesign() {
