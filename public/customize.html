@@ -384,8 +384,11 @@
 
             /* ===== HEADER COMPACT ===== */
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
             #mobileResetBtn { display: inline-flex !important; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .mode-switch { transform: scale(0.85); flex-shrink: 0; }
+            .price-display { font-size: 0.8rem; padding: 4px 10px; flex-shrink: 0; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
             .mode-switch { transform: scale(0.8); }
@@ -449,6 +452,8 @@
             .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
             .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
             .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
+            .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
+            .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
             .mobile-context-menu .ctx-divider {
                 height: 1px;
                 background: rgba(255,255,255,0.1);
@@ -605,7 +610,6 @@
                         <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
                         <input type="text" id="zoomDisplay" value="100%" style="min-width: 45px; width: 50px; text-align: center; font-size: 0.85rem; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px;">
                         <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
-                        <button class="btn-icon small" id="resetZoomBtn" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
@@ -926,7 +930,8 @@
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
                         <button class="btn-icon" id="addLayerBtn"><i class="fas fa-plus"></i> Add Layer</button>
-                                <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
+                        <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
+                        <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
                     </div>
                 </div>
@@ -1569,16 +1574,6 @@
                 lastTouchEnd = now;
             }, { passive: false });
             canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
-            canvas.upperCanvasEl.addEventListener('touchend', (e) => {
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        const active = canvas.getActiveObject();
-                        if (!active || active.type !== 'i-text' || !active.isEditing) {
-                            createMobileHandles();
-                        }
-                    }, 80);
-                }
-            }, { passive: true });
         }
 
         async function handleVideoUpload(e) {
@@ -2153,6 +2148,7 @@
             document.getElementById('flipVBtn').addEventListener('click', flipVertical);
             document.getElementById('lockBtn').addEventListener('click', lockObject);
             document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
+            document.getElementById('groupBtn').addEventListener('click', groupSelected);
             document.getElementById('ungroupBtn').addEventListener('click', ungroupSelected);
             document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
@@ -2161,14 +2157,12 @@
             // Safely attach zoom controls only if the elements exist
             const zoomIn = document.getElementById('zoomInBtn');
             const zoomOut = document.getElementById('zoomOutBtn');
-            const resetZoom = document.getElementById('resetZoomBtn');
             const fitToScreen = document.getElementById('fitToScreenBtn');
             const resizeCanvasBtn = document.getElementById('resizeCanvasBtn');
             const zoomDisplay = document.getElementById('zoomDisplay');
 
             if (zoomIn) zoomIn.addEventListener('click', () => zoom(0.1));
             if (zoomOut) zoomOut.addEventListener('click', () => zoom(-0.1));
-            if (resetZoom) resetZoom.addEventListener('click', resetZoom);
             if (fitToScreen) fitToScreen.addEventListener('click', fitToScreen);
             if (resizeCanvasBtn) resizeCanvasBtn.addEventListener('click', resizeCanvas);
             if (zoomDisplay) {
@@ -2338,7 +2332,7 @@
                 else if (obj.isVideo) { icon = 'fa-video'; name = 'Video'; }
                 else if (obj.isAudio) { icon = 'fa-music'; name = 'Audio'; }
                 item.innerHTML = `<span><i class="fas ${icon}"></i> ${name}</span><div class="layer-actions">${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;
-                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50); } });
+                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); } });
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteObjectByIndex(index); });
@@ -2776,6 +2770,21 @@
         let mobileHandles = [];
         let handleDragState = null;
 
+        function getRotateHandlePosition(obj) {
+            const canvasEl = document.getElementById('designCanvas');
+            const canvasRect = canvasEl.getBoundingClientRect();
+            const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
+            const scaleX = canvasRect.width / canvas.width;
+            const scaleY = canvasRect.height / canvas.height;
+            const offsetX = canvasRect.left - containerRect.left;
+            const offsetY = canvasRect.top - containerRect.top;
+            const halfW = (obj.width * (obj.scaleX || 1)) / 2;
+            const halfH = (obj.height * (obj.scaleY || 1)) / 2;
+            const x = offsetX + (obj.left + halfW) * scaleX + 10;
+            const y = offsetY + (obj.top - halfH) * scaleY - 10;
+            return { left: x, top: y };
+        }
+
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
             const canvasRect = canvasEl.getBoundingClientRect();
@@ -2813,6 +2822,7 @@
             }
             canvas.getObjects().forEach((obj, index) => {
                 if (obj.isBackground || obj.isTexture || !obj.selectable) return;
+                // Selection/move handle (top-left)
                 const handle = document.createElement('div');
                 handle.className = 'mobile-object-handle';
                 handle.dataset.index = index;
@@ -2820,6 +2830,45 @@
                 const pos = getHandlePosition(obj);
                 handle.style.left = pos.left + 'px';
                 handle.style.top = pos.top + 'px';
+                // Rotation handle (top-right)
+                const rotHandle = document.createElement('div');
+                rotHandle.className = 'mobile-rotate-handle';
+                rotHandle.dataset.index = index;
+                rotHandle.innerHTML = '<i class="fas fa-sync-alt" style="font-size:7px;"></i>';
+                const rotPos = getRotateHandlePosition(obj);
+                rotHandle.style.left = rotPos.left + 'px';
+                rotHandle.style.top = rotPos.top + 'px';
+                let rotStartAngle = 0;
+                let rotStartObjAngle = 0;
+                rotHandle.addEventListener('touchstart', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    const touch = e.touches[0];
+                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
+                    rotStartAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
+                    rotStartObjAngle = obj.angle || 0;
+                    handleDragState = { obj: obj, type: 'rotate' };
+                }, { passive: false });
+                rotHandle.addEventListener('touchmove', function(e) {
+                    if (!handleDragState || handleDragState.obj !== obj || handleDragState.type !== 'rotate') return;
+                    e.preventDefault(); e.stopPropagation();
+                    const touch = e.touches[0];
+                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
+                    const currentAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
+                    let newAngle = rotStartObjAngle + (currentAngle - rotStartAngle);
+                    const snap = 8;
+                    const snapped = Math.round(newAngle / snap) * snap;
+                    if (Math.abs(newAngle - snapped) < 3) newAngle = snapped;
+                    obj.set('angle', newAngle);
+                    canvas.renderAll();
+                    updateMobileHandlePositions();
+                    updateControls();
+                }, { passive: false });
+                rotHandle.addEventListener('touchend', function(e) {
+                    if (handleDragState && handleDragState.obj === obj && handleDragState.type === 'rotate') saveState();
+                    handleDragState = null;
+                });
+                handleContainer.appendChild(rotHandle);
+                mobileHandles.push(rotHandle);
                 let lastTapTime = 0;
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -2893,11 +2942,17 @@
         function updateMobileHandlePositions() {
             if (window.innerWidth > 768) return;
             canvas.getObjects().forEach((obj, index) => {
-                const handle = mobileHandles.find(h => parseInt(h.dataset.index) === index);
+                const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && parseInt(h.dataset.index) === index);
                 if (handle && obj) {
                     const pos = getHandlePosition(obj);
                     handle.style.left = pos.left + 'px';
                     handle.style.top = pos.top + 'px';
+                }
+                const rotHandle = mobileHandles.find(h => h.classList.contains('mobile-rotate-handle') && parseInt(h.dataset.index) === index);
+                if (rotHandle && obj) {
+                    const pos = getRotateHandlePosition(obj);
+                    rotHandle.style.left = pos.left + 'px';
+                    rotHandle.style.top = pos.top + 'px';
                 }
             });
         }
@@ -2905,6 +2960,7 @@
         function updateHandleSelection() {
             const active = canvas.getActiveObject();
             mobileHandles.forEach(h => {
+                if (!h.classList.contains('mobile-object-handle')) return;
                 const idx = parseInt(h.dataset.index);
                 const obj = canvas.getObjects()[idx];
                 if (obj && active === obj) h.classList.add('selected');
