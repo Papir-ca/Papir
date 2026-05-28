@@ -1023,7 +1023,7 @@
             if (obj.type === 'i-text') {
                 obj.off('editing:entered'); obj.off('editing:exited');
                 obj.on('editing:entered', function() { clearMobileHandles(); });
-                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 100); });
+                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 150); });
             }
         }
         canvas.on('object:added', (e) => {
@@ -1482,7 +1482,16 @@
         });
 
             canvas.on('object:moving', handleObjectMoving);
-            canvas.on('after:render', function() { updateMobileHandlePositions(); if (showGrid) updateGridOverlayPosition(); });
+            canvas.on('after:render', function() { 
+                updateMobileHandlePositions(); 
+                if (showGrid) updateGridOverlayPosition();
+                // Safety net: ensure mobile handles always exist when not editing text
+                if (window.innerWidth <= 768 && mobileHandles.length === 0) {
+                    const active = canvas.getActiveObject();
+                    const editing = active && active.type === 'i-text' && active.isEditing;
+                    if (!editing) createMobileHandles();
+                }
+            });
             canvas.on('object:added', createMobileHandles);
             canvas.on('object:removed', createMobileHandles);
 
@@ -1685,6 +1694,7 @@
             updateControls();
             showSelectionControls();
             updateLayerList();
+            if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50);
         }
 
         function handleDeselection() {
@@ -2855,9 +2865,30 @@
                     const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
                     const currentAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
                     let newAngle = rotStartObjAngle + (currentAngle - rotStartAngle);
-                    const snap = 8;
-                    const snapped = Math.round(newAngle / snap) * snap;
-                    if (Math.abs(newAngle - snapped) < 3) newAngle = snapped;
+                    // Snap to 45° increments: 0, 45, 90, 135, 180, 225, 270, 315
+                    const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315];
+                    const snapThreshold = 6;
+                    let isSnapped = false;
+                    let normalized = ((newAngle % 360) + 360) % 360;
+                    for (const snap of snapAngles) {
+                        const diff = Math.abs(normalized - snap);
+                        const wrapDiff = Math.min(diff, 360 - diff);
+                        if (wrapDiff < snapThreshold) {
+                            newAngle = newAngle - normalized + snap;
+                            isSnapped = true;
+                            break;
+                        }
+                    }
+                    // Visual feedback: white flash when snapped
+                    if (isSnapped) {
+                        rotHandle.style.background = '#fff';
+                        rotHandle.style.color = '#ff8c00';
+                        rotHandle.style.borderColor = '#ff8c00';
+                    } else {
+                        rotHandle.style.background = 'rgba(255, 165, 0, 0.95)';
+                        rotHandle.style.color = '#fff';
+                        rotHandle.style.borderColor = '#fff';
+                    }
                     obj.set('angle', newAngle);
                     canvas.renderAll();
                     updateMobileHandlePositions();
@@ -2866,6 +2897,9 @@
                 rotHandle.addEventListener('touchend', function(e) {
                     if (handleDragState && handleDragState.obj === obj && handleDragState.type === 'rotate') saveState();
                     handleDragState = null;
+                    rotHandle.style.background = 'rgba(255, 165, 0, 0.95)';
+                    rotHandle.style.color = '#fff';
+                    rotHandle.style.borderColor = '#fff';
                 });
                 handleContainer.appendChild(rotHandle);
                 mobileHandles.push(rotHandle);
