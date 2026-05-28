@@ -524,6 +524,7 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -925,8 +926,7 @@
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
                         <button class="btn-icon" id="addLayerBtn"><i class="fas fa-plus"></i> Add Layer</button>
-                        <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
-                        <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
+                                <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
                         <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
                     </div>
                 </div>
@@ -1569,6 +1569,16 @@
                 lastTouchEnd = now;
             }, { passive: false });
             canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
+            canvas.upperCanvasEl.addEventListener('touchend', (e) => {
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        const active = canvas.getActiveObject();
+                        if (!active || active.type !== 'i-text' || !active.isEditing) {
+                            createMobileHandles();
+                        }
+                    }, 80);
+                }
+            }, { passive: true });
         }
 
         async function handleVideoUpload(e) {
@@ -2143,7 +2153,6 @@
             document.getElementById('flipVBtn').addEventListener('click', flipVertical);
             document.getElementById('lockBtn').addEventListener('click', lockObject);
             document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
-            document.getElementById('groupBtn').addEventListener('click', groupSelected);
             document.getElementById('ungroupBtn').addEventListener('click', ungroupSelected);
             document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
@@ -2329,7 +2338,7 @@
                 else if (obj.isVideo) { icon = 'fa-video'; name = 'Video'; }
                 else if (obj.isAudio) { icon = 'fa-music'; name = 'Audio'; }
                 item.innerHTML = `<span><i class="fas ${icon}"></i> ${name}</span><div class="layer-actions">${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;
-                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); } });
+                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50); } });
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteObjectByIndex(index); });
@@ -3031,7 +3040,7 @@
                 toggle = document.createElement('div');
                 toggle.className = 'mobile-tools-toggle collapsed';
                 toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>';
+                toggle.innerHTML = '<span><i class="fas fa-tools"></i> Tools</span><i class="fas fa-chevron-down"></i>';
                 canvasArea.appendChild(toggle);
                 toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
