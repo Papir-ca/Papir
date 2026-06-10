@@ -1535,7 +1535,7 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
     
     const { data: sourceCards } = await supabaseAdmin
       .from('cards')
-      .select('message_type, message_text, media_url, file_name, file_size, file_type')
+      .select('message_type, message_text, media_url, overlay_url, video_url, audio_url, has_video_overlay, has_audio_overlay, file_name, file_size, file_type')
       .eq('batch_id', batch_id)
       .eq('status', 'active')
       .order('batch_order', { ascending: true })
@@ -2015,16 +2015,20 @@ app.post('/api/create-payment-intent', async (req, res) => {
     if (!quantity || quantity < 1) {
       return res.status(400).json({ success: false, error: 'Invalid quantity' });
     }
-    const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
-    let unitPrice = pricing[1];
-    let totalAmount = unitPrice * quantity;
-    const tiers = Object.keys(pricing).map(Number).sort((a, b) => b - a);
-    for (const tier of tiers) {
-      if (quantity >= tier) {
-        totalAmount = pricing[tier] * quantity;
-        unitPrice = pricing[tier];
-        break;
+    const tierTotals = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
+    const tiers = Object.keys(tierTotals).map(Number).sort((a, b) => b - a);
+    let totalAmount;
+    if (tierTotals[quantity]) {
+      totalAmount = tierTotals[quantity];
+    } else {
+      let unitPrice = tierTotals[1];
+      for (const tier of tiers) {
+        if (quantity >= tier) {
+          unitPrice = Math.round(tierTotals[tier] / tier);
+          break;
+        }
       }
+      totalAmount = unitPrice * quantity;
     }
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
