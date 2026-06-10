@@ -2018,10 +2018,12 @@ app.post('/api/create-payment-intent', async (req, res) => {
     const tierTotals = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
     const tiers = Object.keys(tierTotals).map(Number).sort((a, b) => b - a);
     let totalAmount;
+    let unitPrice;
     if (tierTotals[quantity]) {
       totalAmount = tierTotals[quantity];
+      unitPrice = Math.round(tierTotals[quantity] / quantity);
     } else {
-      let unitPrice = tierTotals[1];
+      unitPrice = tierTotals[1];
       for (const tier of tiers) {
         if (quantity >= tier) {
           unitPrice = Math.round(tierTotals[tier] / tier);
