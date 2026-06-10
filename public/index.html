@@ -422,6 +422,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <!-- Header -->
@@ -437,9 +438,9 @@
                 <a href="#process">How It Works</a>
                 <a href="#features">What You Add</a>
                 <a href="#use-cases">Uses</a>
-                <!-- CSP‑compliant My Batches link (no inline onclick) -->
+                <!-- CSP‑compliant My Cards link (no inline onclick) -->
                 <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;">
-                    <i class="fas fa-folder-open"></i> My Batches
+                    <i class="fas fa-folder-open"></i> My Cards
                 </a>
             </nav>
         </div>
@@ -614,13 +615,13 @@
     <div id="findBatchesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: #1a1a2e; border: 2px solid #BCAE83; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; color: white; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
             <button id="closeModalBtn" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
-            <h2 style="color: #BCAE83; margin-bottom: 10px; font-size: 1.5rem;">Find Your Batches</h2>
+            <h2 style="color: #BCAE83; margin-bottom: 10px; font-size: 1.5rem;">Find Your Cards</h2>
             <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">Enter the email used during purchase:</p>
             <div id="searchForm">
                 <input type="email" id="findEmailInput" placeholder="you@example.com" 
                        style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #16213e; color: white; margin-bottom: 15px; font-size: 1rem;">
                 <button id="searchBatchesBtn" style="width: 100%; padding: 12px; background: #BCAE83; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem;">
-                    <i class="fas fa-search"></i> Find My Batches
+                    <i class="fas fa-search"></i> Find My Cards
                 </button>
             </div>
             <div id="searchLoading" style="display: none; text-align: center; padding: 20px;">
@@ -667,7 +668,7 @@
                                 '<span style="background: #06D6A0; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">' + batch.cards_created + ' cards</span></div>' +
                                 '<p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">' + date + '</p>' +
                                 '<a href="/batch-manager?batch=' + encodeURIComponent(batch.batch_id) + '" ' +
-                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">Manage Batch →</a>' +
+                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">View Cards →</a>' +
                                 '</div>';
                     });
                     resultsDiv.innerHTML = html;
@@ -694,7 +695,7 @@
 
         // ========== CSP‑COMPLIANT EVENT LISTENERS ==========
         document.addEventListener('DOMContentLoaded', function() {
-            // My Batches nav link
+            // My Cards nav link
             const myBatchesNav = document.getElementById('myBatchesNav');
             if (myBatchesNav) {
                 myBatchesNav.addEventListener('click', function(e) {

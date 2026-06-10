@@ -183,6 +183,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -273,13 +274,20 @@
                 const qty = parseInt(urlParams.get('qty')) || 2;
                 selectedQty = qty;
                 // Calculate total price using bulk pricing
-                const pricing = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
-                let totalAmount = 299 * qty;
-                for (const tier of Object.keys(pricing).map(Number).sort((a,b)=>b-a)) {
-                    if (qty >= tier) {
-                        totalAmount = pricing[tier] * qty;
-                        break;
+                const tierTotals = { 1: 299, 5: 1199, 10: 1999, 25: 4499 };
+                const tiers = Object.keys(tierTotals).map(Number).sort((a,b)=>b-a);
+                let totalAmount;
+                if (tierTotals[qty]) {
+                    totalAmount = tierTotals[qty];
+                } else {
+                    let unitPrice = tierTotals[1];
+                    for (const tier of tiers) {
+                        if (qty >= tier) {
+                            unitPrice = Math.round(tierTotals[tier] / tier);
+                            break;
+                        }
                     }
+                    totalAmount = unitPrice * qty;
                 }
                 selectedPrice = totalAmount;
                 document.querySelector('.subtitle').textContent = `Batch of ${qty} Cards – Total $${(selectedPrice/100).toFixed(2)}`;

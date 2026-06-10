@@ -177,6 +177,7 @@
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -366,7 +367,7 @@
             document.getElementById('batchIdRow').style.display = 'flex';
             document.getElementById('batchIdDisplay').textContent = data.batchId;
             document.getElementById('actionBtn').href = `batch-manager.html?batch=${encodeURIComponent(data.batchId)}`;
-            document.getElementById('actionBtn').innerHTML = '<i class="fas fa-layer-group"></i> Manage Batch';
+            document.getElementById('actionBtn').innerHTML = '<i class="fas fa-layer-group"></i> View My Cards';
             document.getElementById('successSubtitle').textContent = `Your batch of ${data.quantity} cards is ready.`;
         } else if (data.cardId) {
             document.getElementById('cardIdRow').style.display = 'flex';

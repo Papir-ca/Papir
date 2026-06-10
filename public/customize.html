@@ -1,4 +1,3 @@
-aaa
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,12 +27,7 @@ aaa
         .header-left { display: flex; align-items: center; gap: 15px; }
         .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
-        .mode-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 3px; }
-        .mode-option { padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: 600; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 0.85rem; }
-        .mode-option.active { background: var(--primary-teal); color: #1a1a2e; }
-        .price-display { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: 2px solid var(--primary-teal); font-size: 0.9rem; }
-        .batch-controls { display: none; background: rgba(6, 214, 160, 0.1); border: 2px solid var(--primary-teal); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-        .batch-controls.active { display: block; }
+
         .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
         .tools-panel { width: 65px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; }
         .tool-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; position: relative; }
@@ -378,7 +372,6 @@ aaa
             }
 
             /* ===== HIDE DESKTOP EXTRAS ON MOBILE ===== */
-            #canvasSize, #fitToScreenBtn { display: none !important; }
 
             /* ===== CHECKOUT ===== */
             .checkout-section { margin-top: 8px !important; }
@@ -388,12 +381,8 @@ aaa
             .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
             #mobileResetBtn { display: inline-flex !important; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .mode-switch { transform: scale(0.85); flex-shrink: 0; }
-            .price-display { font-size: 0.8rem; padding: 4px 10px; flex-shrink: 0; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .mode-switch { transform: scale(0.8); }
-            .batch-controls { padding: 8px; margin-bottom: 2px; }
             .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
             .control-row { flex-wrap: wrap; }
             .control-group { min-width: 120px; }
@@ -529,8 +518,6 @@ aaa
 </style>
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -540,44 +527,13 @@ aaa
                 <h1 style="font-size: 1.3rem;"><i class="fas fa-magic"></i> Studio</h1>
                 <span class="template-badge" id="templateName">Design</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="mode-switch">
-                    <button class="mode-option active" id="singleModeBtn" data-mode="single">Single</button>
-                    <button class="mode-option" id="batchModeBtn" data-mode="batch">Batch</button>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
-                    <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
-                    <button class="btn-icon" id="mobileResetBtn" title="Reset Design" onclick="resetDesign()"><i class="fas fa-undo"></i> Reset</button>
-                </div>
-                <div class="price-display" id="priceDisplay">$2.99</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
+                <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
+                <button class="btn-icon" id="mobileResetBtn" title="Reset Design" onclick="resetDesign()"><i class="fas fa-undo"></i> Reset</button>
             </div>
         </div>
 
-        <div class="batch-controls" id="batchControls">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="color: var(--primary-teal); margin: 0; font-size: 1rem;">Batch Order</h3>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">Perfect for events & invitations</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 1.4rem; color: var(--primary-teal); font-weight: bold;" id="totalPrice">$5.98</div>
-                    <div style="font-size: 0.75rem;">$2.99 × <span id="qtyDisplay">2</span> cards</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
-                <span style="font-size: 0.85rem;">Quantity:</span>
-                <button class="qty-btn" id="qtyMinus" data-change="-1"><i class="fas fa-minus"></i></button>
-                <input type="number" id="qtyInput" value="2" min="2" max="2000" style="width: 60px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
-                <button class="qty-btn" id="qtyPlus" data-change="1"><i class="fas fa-plus"></i></button>
-                <span style="font-size: 0.8rem; opacity: 0.6;">Min: 2 | Max: 2000</span>
-            </div>
-            <div style="margin-top: 10px;">
-                <label style="font-size: 0.85rem; display: block; margin-bottom: 5px;">Batch ID (Optional):</label>
-                <input type="text" id="customBatchId" class="text-input" placeholder="e.g., WEDDING-2024" style="font-size: 0.85rem;">
-                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 4px;">Leave blank for auto-generated ID</div>
-            </div>
-        </div>
 
         <div class="design-layout">
             <div class="tools-panel">
@@ -596,7 +552,6 @@ aaa
                 <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
                 <div class="tool-divider"></div>
                 <button class="tool-btn" data-tool="grid" title="Toggle Grid (G)"><i class="fas fa-border-all"></i></button>
-                <button class="tool-btn" data-tool="rulers" title="Toggle Rulers"><i class="fas fa-ruler-combined"></i></button>
                 <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
             </div>
 
@@ -987,6 +942,12 @@ aaa
                             <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
                         </div>
                     </div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
+                        <span style="font-size: 0.85rem;">Quantity:</span>
+                        <button class="qty-btn" id="qtyMinus"><i class="fas fa-minus"></i></button>
+                        <input type="number" id="qtyInput" value="1" min="1" max="2000" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
+                        <button class="qty-btn" id="qtyPlus"><i class="fas fa-plus"></i></button>
+                    </div>
                     <button class="checkout-btn" id="checkoutBtn"><i class="fas fa-lock"></i> Secure Checkout</button>
                     <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; opacity: 0.6;"><i class="fas fa-shield-alt"></i> SSL Secure Payment</div>
                 </div>
@@ -1035,7 +996,6 @@ aaa
 
         let selectedObject = null;
         let templateConfig = null;
-        let isBatchMode = false;
         let currentZoom = 1;
         let undoStack = [];
         let redoStack = [];
@@ -1294,36 +1254,20 @@ aaa
         }
 
         // ================== WORKING SINGLE/BATCH FUNCTIONS (from old code) ==================
-        function updatePrice() {
-            const qty = parseInt(document.getElementById('qtyInput').value) || 2;
-            const total = (qty * 2.99).toFixed(2);
-            document.getElementById('totalPrice').textContent = '$' + total;
-            document.getElementById('priceDisplay').textContent = '$' + total;
-        }
 
         function updateCheckoutDisplay() {
-            const qty = isBatchMode ? (parseInt(document.getElementById('qtyInput').value) || 2) : 1;
+            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const total = (qty * 2.99).toFixed(2);
             document.getElementById('checkoutTotal').textContent = '$' + total;
         }
 
-        function enableBatchMode() {
-            isBatchMode = true;
-            document.getElementById('batchControls').classList.add('active');
-            document.getElementById('singleModeBtn').classList.remove('active');
-            document.getElementById('batchModeBtn').classList.add('active');
-            updatePrice();
-            updateCheckoutDisplay();
-        }
 
         function updateQty(change) {
             const input = document.getElementById('qtyInput');
             let val = parseInt(input.value) + change;
-            if (val < 2) val = 2;
+            if (val < 1) val = 1;
             if (val > 2000) val = 2000;
             input.value = val;
-            document.getElementById('qtyDisplay').textContent = val;
-            updatePrice();
             updateCheckoutDisplay();
         }
 
@@ -1331,23 +1275,14 @@ aaa
             document.getElementById('qtyMinus').addEventListener('click', () => updateQty(-1));
             document.getElementById('qtyPlus').addEventListener('click', () => updateQty(1));
             document.getElementById('qtyInput').addEventListener('change', function() {
-                document.getElementById('qtyDisplay').textContent = this.value;
-                updatePrice();
+                let val = parseInt(this.value) || 1;
+                if (val < 1) val = 1;
+                if (val > 2000) val = 2000;
+                this.value = val;
                 updateCheckoutDisplay();
             });
         }
 
-        function setupModeSwitch() {
-            document.getElementById('singleModeBtn').addEventListener('click', function() {
-                isBatchMode = false;
-                this.classList.add('active');
-                document.getElementById('batchModeBtn').classList.remove('active');
-                document.getElementById('batchControls').classList.remove('active');
-                document.getElementById('priceDisplay').textContent = '$2.99';
-                updateCheckoutDisplay();
-            });
-            document.getElementById('batchModeBtn').addEventListener('click', enableBatchMode);
-        }
         // =================================================================================
 
         function setupMobileContextMenu() {
@@ -1732,7 +1667,6 @@ aaa
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
                 case 'grid': toggleGrid(); break;
-                case 'rulers': document.body.classList.toggle('show-rulers'); break;
             }
         }
 
@@ -2168,14 +2102,10 @@ aaa
             // Safely attach zoom controls only if the elements exist
             const zoomIn = document.getElementById('zoomInBtn');
             const zoomOut = document.getElementById('zoomOutBtn');
-            const fitToScreen = document.getElementById('fitToScreenBtn');
-            const resizeCanvasBtn = document.getElementById('resizeCanvasBtn');
             const zoomDisplay = document.getElementById('zoomDisplay');
 
             if (zoomIn) zoomIn.addEventListener('click', () => zoom(0.1));
             if (zoomOut) zoomOut.addEventListener('click', () => zoom(-0.1));
-            if (fitToScreen) fitToScreen.addEventListener('click', fitToScreen);
-            if (resizeCanvasBtn) resizeCanvasBtn.addEventListener('click', resizeCanvas);
             if (zoomDisplay) {
                 zoomDisplay.addEventListener('change', function() {
                     let v = parseInt(this.value.replace('%', ''));
@@ -2189,7 +2119,6 @@ aaa
             }
         }
 
-        // setupQtyControls and setupModeSwitch are already defined above (working versions)
 
         function bringToFront() {
             const obj = canvas.getActiveObject() || selectedObject;
@@ -2419,35 +2348,7 @@ aaa
             const zd = document.getElementById('zoomDisplay');
             if (zd) zd.value = Math.round(currentZoom * 100) + '%';
         }
-        function resetZoom() {
-            currentZoom = 1;
-            canvas.setZoom(1);
-            const zd = document.getElementById('zoomDisplay');
-            if (zd) zd.value = '100%';
-        }
-        function fitToScreen() {
-            const container = document.querySelector('.canvas-container');
-            if (!container) return;
-            const scaleX = (container.clientWidth - 60) / 600;
-            const scaleY = (container.clientHeight - 60) / 450;
-            currentZoom = Math.min(scaleX, scaleY, 1);
-            canvas.setZoom(currentZoom);
-            const zd = document.getElementById('zoomDisplay');
-            if (zd) zd.textContent = Math.round(currentZoom * 100) + '%';
-        }
-        function resizeCanvas() {
-            const widthInput = document.getElementById('canvasWidth');
-            const heightInput = document.getElementById('canvasHeight');
-            if (!widthInput || !heightInput) return;
-            const width = parseInt(widthInput.value);
-            const height = parseInt(heightInput.value);
-            canvas.setWidth(width);
-            canvas.setHeight(height);
-            canvas.renderAll();
-            const sizeSpan = document.getElementById('canvasSize');
-            if (sizeSpan) sizeSpan.textContent = `${width} × ${height} px`;
-            saveState();
-        }
+
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
                 canvas.getObjects().forEach(obj => {
@@ -2620,7 +2521,7 @@ aaa
             btn.disabled = true;
             try {
                 const BACKEND_URL = '';
-                const qty = isBatchMode ? parseInt(document.getElementById('qtyInput').value) || 2 : 1;
+                const qty = parseInt(document.getElementById('qtyInput').value) || 1;
 
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
@@ -2725,14 +2626,13 @@ aaa
                     localStorage.setItem('pendingQty', '1');
                     window.location.href = `checkout.html?card_id=${encodeURIComponent(cardId)}&qty=1`;
                 } else {
-                    const customBatchId = document.getElementById('customBatchId').value.trim();
-                    const batchId = customBatchId || 'BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+                    const batchId = 'BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
                     const templateCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
                     const totalAmount = (qty * 2.99).toFixed(2);
                     const batchRes = await fetch(`${BACKEND_URL}/api/batches`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            batch_id: batchId, batch_name: customBatchId || `Batch ${new Date().toLocaleDateString()}`,
+                            batch_id: batchId, batch_name: `Batch ${new Date().toLocaleDateString()}`,
                             total_cards_purchased: qty, cards_created: 0, max_cards_allowed: qty,
                             status: 'pending_payment', unit_price: 2.99, total_amount: parseFloat(totalAmount),
                             template_card_id: templateCardId
@@ -2765,16 +2665,6 @@ aaa
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
-        }
-
-        /* ===== LOCK BACKGROUND OBJECTS ===== */
-        function lockBackgroundObjects() {
-            canvas.getObjects().forEach(obj => {
-                if (obj.isBackground || obj.isTexture) {
-                    obj.set({ selectable: false, evented: false, hoverCursor: 'default' });
-                }
-            });
-            canvas.renderAll();
         }
 
         /* ===== MOBILE OBJECT HANDLES ===== */
@@ -3282,11 +3172,7 @@ aaa
                         document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                         document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                         if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
-                            enableBatchMode();
-                            if (templateConfig.batchSize) {
-                                document.getElementById('qtyInput').value = templateConfig.batchSize;
-                                updatePrice();
-                            }
+                            document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
                         }
                         await loadTemplateDesign();
                         saveState();
@@ -3302,17 +3188,15 @@ aaa
                 canvas.renderAll();
             }
             updateCheckoutDisplay();
-            lockBackgroundObjects();
             lockMobileObjects(false);
             setupEventListeners();
             setupMobileContextMenu();
             createMobileHandles();
             setupTabs();
             setupBackgroundOptions();
-            setupQtyControls();    // uses the working version
+            setupQtyControls();
             setupZoomControls();
             setupArrangeControls();
-            setupModeSwitch();     // uses the working version
             checkForSavedProgress();
             startAutoSave();
         }
