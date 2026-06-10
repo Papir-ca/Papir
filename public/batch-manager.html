@@ -521,15 +521,30 @@
                                 <div class="card-id">${card.card_id}</div>
                                 <div class="qr-wrap"><img src="${qrUrl}" alt="QR"></div>
                                 <div class="card-actions-mini">
-                                    <button class="mini-btn view" onclick="window.open('${viewerUrl}', '_blank')"><i class="fas fa-eye"></i> View</button>
-                                    <button class="mini-btn copy" onclick="navigator.clipboard.writeText('${viewerUrl}').then(()=>notify('Copied!'))"><i class="fas fa-copy"></i> Copy</button>
-                                    <button class="mini-btn download" onclick="downloadQR('${qrUrl}', '${card.card_id}')"><i class="fas fa-download"></i> QR</button>
+                                    <button class="mini-btn view" data-action="view" data-url="${viewerUrl}"><i class="fas fa-eye"></i> View</button>
+                                    <button class="mini-btn copy" data-action="copy" data-url="${viewerUrl}"><i class="fas fa-copy"></i> Copy</button>
+                                    <button class="mini-btn download" data-action="download" data-qr="${qrUrl}" data-card="${card.card_id}"><i class="fas fa-download"></i> QR</button>
                                 </div>
                             </div>
                         `;
                     });
                 }
                 els.detailCardsGrid.innerHTML = cardsHtml;
+
+                // Bind card action buttons (CSP-safe, no inline onclick)
+                document.querySelectorAll('#detailCardsGrid .mini-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = btn.dataset.action;
+                        if (action === 'view') {
+                            window.open(btn.dataset.url, '_blank');
+                        } else if (action === 'copy') {
+                            navigator.clipboard.writeText(btn.dataset.url).then(() => notify('Link copied!'));
+                        } else if (action === 'download') {
+                            downloadQR(btn.dataset.qr, btn.dataset.card);
+                        }
+                    });
+                });
 
                 // Preview thumb
                 const thumbUrl = batch.thumbnail_url || (cards.length > 0 && cards[0].media_url ? cards[0].media_url : '');
