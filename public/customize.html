@@ -110,7 +110,6 @@
         
         /* ===== FABRIC.JS TEXT EDITING FIX FOR TOUCH ===== */
         .canvas-container textarea {
-            position: fixed !important;
             font-size: 16px !important;
             line-height: 1.2 !important;
             padding: 0 !important;
@@ -623,9 +622,11 @@
             }
         }
 
+        @media (min-width: 769px) and (pointer: fine) {
+            #toggleHandlesBtn { display: none !important; }
+        }
         @media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
-            #toggleHandlesBtn { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -634,7 +635,6 @@
             #resetDesignBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
         }
 </style>
-<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -1091,7 +1091,7 @@
                 hasControls: true, hasBorders: true,
                 transparentCorners: false,
                 cornerColor: '#3b82f6', cornerStrokeColor: '#1d4ed8',
-                cornerSize: window.innerWidth < 768 ? 20 : 10,
+                cornerSize: window.matchMedia('(pointer: coarse)').matches ? 20 : 10,
                 borderColor: '#3b82f6', padding: 2,
                 selectable: true, evented: true,
                 lockScalingX: false, lockScalingY: false,
@@ -1450,7 +1450,7 @@
             }
 
             canvasEl.addEventListener('touchstart', function(e) {
-                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
@@ -1543,7 +1543,7 @@
                 updateMobileHandlePositions(); 
                 if (showGrid) updateGridOverlayPosition();
                 // Safety net: ensure mobile handles always exist when not editing text
-                if ((window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
+                if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
                     if (!editing) createMobileHandles();
@@ -1617,14 +1617,16 @@
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.enterEditing();
                     if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
                 }
             });
             canvas.on('mouse:up', function() {
-                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+                const active = canvas.getActiveObject();
+                if (active && active.type === 'i-text' && active.isEditing) return;
                 setTimeout(createMobileHandles, 50);
             });
 
@@ -2831,7 +2833,7 @@
         }
 
         function createMobileHandles() {
-            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+            if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
             if (!showHandles) { clearMobileHandles(); return; }
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
@@ -2988,7 +2990,7 @@
         }
 
         function updateMobileHandlePositions() {
-            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+            if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
             canvas.getObjects().forEach((obj, index) => {
                 const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && parseInt(h.dataset.index) === index);
                 if (handle && obj) {
@@ -3065,7 +3067,7 @@
 
         /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
-            if (window.innerWidth > 768) return;
+            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
             // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
             const canvasContainer = document.querySelector('.canvas-container');
@@ -3239,13 +3241,16 @@
             // Resize handler
             function handleResize() {
                 applyMobileSpacingFix();
-                const isMobile = window.innerWidth <= 768;
+                const isNarrow = window.innerWidth <= 768;
+                const isTouch = window.matchMedia('(pointer: coarse)').matches;
                 const toolsPanel = document.querySelector('.tools-panel');
                 const toggleEl = document.getElementById('mobileToolsToggle');
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
-                if (!isMobile) {
+
+                // Layout changes based on screen width
+                if (!isNarrow) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
                     if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
                     if (tabs) tabs.style.display = '';
@@ -3257,7 +3262,6 @@
                         if (target) target.classList.add('active');
                     }
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-                    lockMobileObjects(false);
                 } else {
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
@@ -3269,16 +3273,37 @@
                         const c = h.querySelector('.accordion-chevron');
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
+                }
+
+                // Touch behavior based on pointer type, NOT width
+                // This ensures tablets in landscape still get touch features
+                if (isTouch) {
                     lockMobileObjects(true);
                     const lockToggleEl = document.getElementById('mobileLockToggle');
-                    if (lockToggleEl) {
+                    if (lockToggleEl && isNarrow) {
                         lockToggleEl.classList.remove('unlocked');
                         lockToggleEl.classList.add('locked');
                         lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                     }
+                    // Recreate handles after any layout change so they don't disappear
+                    setTimeout(() => {
+                        if (showHandles) createMobileHandles();
+                    }, 150);
+                } else {
+                    lockMobileObjects(false);
+                    clearMobileHandles();
                 }
             }
             window.addEventListener('resize', handleResize);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    applyMobileSpacingFix();
+                    handleResize();
+                    if (window.matchMedia('(pointer: coarse)').matches && showHandles) {
+                        createMobileHandles();
+                    }
+                }, 300);
+            });
             handleResize();
         }
 
