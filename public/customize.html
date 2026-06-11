@@ -1104,6 +1104,7 @@
         canvas.on('object:added', (e) => {
             if (e.target && !e.target.isBackground && !e.target.isTexture) {
                 ensureObjectControls(e.target);
+                if (!e.target.__handleId) e.target.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
             }
         });
 
@@ -1425,7 +1426,6 @@
                 }
                 menu.style.display = 'block';
                 backdrop.style.display = 'block';
-                // Position menu near touch but keep on screen
                 const menuRect = menu.getBoundingClientRect();
                 let left = x - menuRect.width / 2;
                 let top = y - menuRect.height - 10;
@@ -1442,8 +1442,23 @@
                 backdrop.style.display = 'none';
             }
 
+            function onDocumentTouch(e) {
+                if (menu.style.display !== 'block') return;
+                const touch = e.touches[0];
+                const menuRect = menu.getBoundingClientRect();
+                if (touch.clientX < menuRect.left || touch.clientX > menuRect.right ||
+                    touch.clientY < menuRect.top || touch.clientY > menuRect.bottom) {
+                    hideMenu();
+                }
+            }
+            document.addEventListener('touchstart', onDocumentTouch, { passive: true });
+
             canvasEl.addEventListener('touchstart', function(e) {
                 if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+                if (menu.style.display === 'block') {
+                    hideMenu();
+                    return;
+                }
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
@@ -1451,7 +1466,6 @@
                 touchTimer = setTimeout(() => {
                     touchTimer = null;
                     if (!touchMoved) {
-                        // Select object under touch
                         const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
                         const objects = canvas.getObjects();
                         let target = null;
@@ -1506,7 +1520,12 @@
                         case 'editText':
                             if (selectedObject && selectedObject.type === 'i-text') {
                                 selectedObject.enterEditing();
-                                if (selectedObject.hiddenTextarea) selectedObject.hiddenTextarea.focus();
+                                setTimeout(() => {
+                                    if (selectedObject && selectedObject.hiddenTextarea) {
+                                        selectedObject.hiddenTextarea.focus();
+                                        selectedObject.hiddenTextarea.click();
+                                    }
+                                }, 50);
                             }
                             break;
                         case 'front': bringToFront(); break;
@@ -1535,7 +1554,6 @@
             canvas.on('after:render', function() { 
                 updateMobileHandlePositions(); 
                 if (showGrid) updateGridOverlayPosition();
-                // Safety net: ensure mobile handles always exist when not editing text
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
@@ -1610,7 +1628,7 @@
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.enterEditing();
                     if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
@@ -1620,6 +1638,10 @@
                 if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
                 const active = canvas.getActiveObject();
                 if (active && active.type === 'i-text' && active.isEditing) return;
+                const menu = document.getElementById('mobileContextMenu');
+                if (menu && menu.style.display === 'block') menu.style.display = 'none';
+                const backdrop = document.getElementById('ctxBackdrop');
+                if (backdrop) backdrop.style.display = 'none';
                 setTimeout(createMobileHandles, 50);
             });
 
@@ -2838,20 +2860,21 @@
                 handleContainer.className = 'mobile-handle-container';
                 container.appendChild(handleContainer);
             }
-            canvas.getObjects().forEach((obj, index) => {
+            let handleNum = 1;
+            canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture) return;
-                // Selection/move handle (top-left)
+                if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
+                const hid = obj.__handleId;
                 const handle = document.createElement('div');
                 handle.className = 'mobile-object-handle';
-                handle.dataset.index = index;
-                handle.textContent = index + 1;
+                handle.dataset.handleId = hid;
+                handle.textContent = handleNum++;
                 const pos = getHandlePosition(obj);
                 handle.style.left = pos.left + 'px';
                 handle.style.top = pos.top + 'px';
-                // Rotation handle (top-right)
                 const rotHandle = document.createElement('div');
                 rotHandle.className = 'mobile-rotate-handle';
-                rotHandle.dataset.index = index;
+                rotHandle.dataset.handleId = hid;
                 rotHandle.innerHTML = '<i class="fas fa-sync-alt" style="font-size:7px;"></i>';
                 const rotPos = getRotateHandlePosition(obj);
                 rotHandle.style.left = rotPos.left + 'px';
@@ -2874,7 +2897,6 @@
                     const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
                     const currentAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
                     let newAngle = rotStartObjAngle + (currentAngle - rotStartAngle);
-                    // Snap to 45° increments: 0, 45, 90, 135, 180, 225, 270, 315
                     const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315];
                     const snapThreshold = 6;
                     let isSnapped = false;
@@ -2888,7 +2910,6 @@
                             break;
                         }
                     }
-                    // Visual feedback: white flash when snapped
                     if (isSnapped) {
                         rotHandle.style.background = '#fff';
                         rotHandle.style.color = '#ff8c00';
@@ -2916,7 +2937,6 @@
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
                     const touch = e.touches[0];
-                    // Temporarily make selectable so we can activate it
                     if (!obj.selectable) obj.set({ selectable: true, evented: true });
                     canvas.setActiveObject(obj);
                     selectedObject = obj;
@@ -2941,7 +2961,6 @@
                     if (!handleDragState || handleDragState.obj !== obj) return;
                     e.preventDefault(); e.stopPropagation();
                     if (e.touches.length === 2) {
-                        // Pinch to resize
                         const dx = e.touches[0].clientX - e.touches[1].clientX;
                         const dy = e.touches[0].clientY - e.touches[1].clientY;
                         const dist = Math.sqrt(dx*dx + dy*dy);
@@ -2987,14 +3006,16 @@
 
         function updateMobileHandlePositions() {
             if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
-            canvas.getObjects().forEach((obj, index) => {
-                const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && parseInt(h.dataset.index) === index);
+            canvas.getObjects().forEach((obj) => {
+                if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
+                const hid = obj.__handleId;
+                const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && h.dataset.handleId === hid);
                 if (handle && obj) {
                     const pos = getHandlePosition(obj);
                     handle.style.left = pos.left + 'px';
                     handle.style.top = pos.top + 'px';
                 }
-                const rotHandle = mobileHandles.find(h => h.classList.contains('mobile-rotate-handle') && parseInt(h.dataset.index) === index);
+                const rotHandle = mobileHandles.find(h => h.classList.contains('mobile-rotate-handle') && h.dataset.handleId === hid);
                 if (rotHandle && obj) {
                     const pos = getRotateHandlePosition(obj);
                     rotHandle.style.left = pos.left + 'px';
@@ -3007,8 +3028,8 @@
             const active = canvas.getActiveObject();
             mobileHandles.forEach(h => {
                 if (!h.classList.contains('mobile-object-handle')) return;
-                const idx = parseInt(h.dataset.index);
-                const obj = canvas.getObjects()[idx];
+                const hid = h.dataset.handleId;
+                const obj = canvas.getObjects().find(o => o.__handleId === hid);
                 if (obj && active === obj) h.classList.add('selected');
                 else h.classList.remove('selected');
             });
@@ -3048,7 +3069,6 @@
 
             canvas.getObjects().forEach(obj => {
                 if (lock) {
-                    // Never lock the text object currently being edited
                     if (obj.type === 'i-text' && obj.isEditing) return;
                     obj._wasSelectable = obj.selectable;
                     obj._wasEvented = obj.evented;
@@ -3260,7 +3280,6 @@
                 const activeObj = canvas.getActiveObject();
                 const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
 
-                // Layout changes based on screen width
                 if (!isNarrow) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
                     if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
@@ -3286,11 +3305,9 @@
                     });
                 }
 
-                // Touch behavior based on pointer type, NOT width
-                // This ensures tablets in landscape still get touch features
                 if (isTouch && !isEditing) {
                     lockMobileObjects(true);
-                    clearMobileHandles(); // clear stale handles so UI stays consistent
+                    clearMobileHandles();
                     const lockToggleEl = document.getElementById('mobileLockToggle');
                     if (lockToggleEl && isNarrow) {
                         lockToggleEl.classList.remove('unlocked');
@@ -3302,7 +3319,6 @@
                     clearMobileHandles();
                 }
 
-                // Recreate handles after any layout change so they don't disappear
                 if (isTouch && !isEditing && showHandles) {
                     setTimeout(() => {
                         createMobileHandles();
@@ -3314,9 +3330,6 @@
                 setTimeout(() => {
                     applyMobileSpacingFix();
                     handleResize();
-                    if (window.matchMedia('(pointer: coarse)').matches && showHandles) {
-                        createMobileHandles();
-                    }
                 }, 300);
             });
             handleResize();
@@ -3373,7 +3386,6 @@
             if (showHandles) {
                 this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
                 this.title = 'Hide Handles';
-                // Unlock objects so handles can be created and interacted with
                 lockMobileObjects(false);
                 const lockToggleEl = document.getElementById('mobileLockToggle');
                 if (lockToggleEl) {
