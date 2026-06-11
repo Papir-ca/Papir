@@ -1,4 +1,3 @@
-aaaa
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1520,13 +1519,14 @@ aaaa
                     switch(action) {
                         case 'editText':
                             if (selectedObject && selectedObject.type === 'i-text') {
+                                selectedObject.set({ selectable: true, evented: true });
                                 selectedObject.enterEditing();
                                 setTimeout(() => {
                                     if (selectedObject && selectedObject.hiddenTextarea) {
                                         selectedObject.hiddenTextarea.focus();
                                         selectedObject.hiddenTextarea.click();
                                     }
-                                }, 50);
+                                }, 200);
                             }
                             break;
                         case 'front': bringToFront(); break;
@@ -1629,10 +1629,16 @@ aaaa
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
+                    e.target.set({ selectable: true, evented: true });
                     e.target.enterEditing();
-                    if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
+                    setTimeout(() => {
+                        if (e.target && e.target.hiddenTextarea) {
+                            e.target.hiddenTextarea.focus();
+                            e.target.hiddenTextarea.click();
+                        }
+                    }, 200);
                 }
             });
             canvas.on('mouse:up', function() {
@@ -1653,6 +1659,7 @@ aaaa
 
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
                 const now = Date.now();
                 if (now - lastTouchEnd <= 300) e.preventDefault();
                 lastTouchEnd = now;
@@ -1989,6 +1996,9 @@ aaaa
                     canvas.renderAll();
                 }
             });
+            document.getElementById('textContent').addEventListener('touchstart', function(e) {
+                this.focus();
+            }, { passive: true });
             document.getElementById('fontFamily').addEventListener('change', async function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     if (document.fonts) {
@@ -2818,10 +2828,9 @@ aaaa
             const scaleY = canvasRect.height / canvas.height;
             const offsetX = canvasRect.left - containerRect.left;
             const offsetY = canvasRect.top - containerRect.top;
-            const halfW = (obj.width * (obj.scaleX || 1)) / 2;
-            const halfH = (obj.height * (obj.scaleY || 1)) / 2;
-            const x = offsetX + (obj.left + halfW) * scaleX + 10;
-            const y = offsetY + (obj.top - halfH) * scaleY - 10;
+            const bounds = obj.getBoundingRect(true, true);
+            const x = offsetX + (bounds.left + bounds.width) * scaleX + 15;
+            const y = offsetY + bounds.top * scaleY - 15;
             return { left: x, top: y };
         }
 
@@ -2833,18 +2842,9 @@ aaaa
             const scaleY = canvasRect.height / canvas.height;
             const offsetX = canvasRect.left - containerRect.left;
             const offsetY = canvasRect.top - containerRect.top;
-            let x, y;
-            if (obj.type === 'line') {
-                x = offsetX + obj.x1 * scaleX;
-                y = offsetY + obj.y1 * scaleY;
-            } else {
-                const halfW = (obj.width * (obj.scaleX || 1)) / 2;
-                const halfH = (obj.height * (obj.scaleY || 1)) / 2;
-                x = offsetX + (obj.left - halfW) * scaleX;
-                y = offsetY + (obj.top - halfH) * scaleY;
-            }
-            // Offset handle left so it sits clearly in front of (just before) the layer
-            x -= 18;
+            const bounds = obj.getBoundingRect(true, true);
+            const x = offsetX + bounds.left * scaleX - 18;
+            const y = offsetY + bounds.top * scaleY;
             return { left: x, top: y };
         }
 
@@ -3280,6 +3280,7 @@ aaaa
                 const tabContents = document.querySelectorAll('.tab-content');
                 const activeObj = canvas.getActiveObject();
                 const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
+                const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
                 if (!isNarrow) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
@@ -3305,6 +3306,8 @@ aaaa
                         if (c) c.style.transform = 'rotate(0deg)';
                     });
                 }
+
+                if (htmlFocused) return;
 
                 if (isTouch && !isEditing) {
                     lockMobileObjects(true);
