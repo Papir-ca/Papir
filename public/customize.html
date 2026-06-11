@@ -111,13 +111,6 @@
         /* ===== FABRIC.JS TEXT EDITING FIX FOR TOUCH ===== */
         .canvas-container textarea {
             font-size: 16px !important;
-            line-height: 1.2 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            outline: none !important;
-            background: transparent !important;
-            color: transparent !important;
             caret-color: black !important;
             z-index: 1000 !important;
             pointer-events: auto !important;
@@ -2846,7 +2839,7 @@
                 container.appendChild(handleContainer);
             }
             canvas.getObjects().forEach((obj, index) => {
-                if (obj.isBackground || obj.isTexture || !obj.selectable) return;
+                if (obj.isBackground || obj.isTexture) return;
                 // Selection/move handle (top-left)
                 const handle = document.createElement('div');
                 handle.className = 'mobile-object-handle';
@@ -2867,6 +2860,7 @@
                 let rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
+                    if (!obj.selectable) obj.set({ selectable: true, evented: true });
                     const touch = e.touches[0];
                     const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
                     rotStartAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
@@ -2922,6 +2916,8 @@
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
                     const touch = e.touches[0];
+                    // Temporarily make selectable so we can activate it
+                    if (!obj.selectable) obj.set({ selectable: true, evented: true });
                     canvas.setActiveObject(obj);
                     selectedObject = obj;
                     updateControls();
@@ -3047,21 +3043,32 @@
         /* ===== MOBILE LOCK/UNLOCK ===== */
         function lockMobileObjects(lock) {
             if (!canvas) return;
+            const activeObj = canvas.getActiveObject();
+            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
+
             canvas.getObjects().forEach(obj => {
                 if (lock) {
+                    // Never lock the text object currently being edited
+                    if (obj.type === 'i-text' && obj.isEditing) return;
                     obj._wasSelectable = obj.selectable;
                     obj._wasEvented = obj.evented;
                     obj.set({ selectable: false, evented: false });
                 } else {
                     if (obj._wasSelectable !== undefined) {
                         obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
+                        delete obj._wasSelectable;
+                        delete obj._wasEvented;
                     } else {
                         obj.set({ selectable: true, evented: true });
                     }
                 }
             });
-            if (lock) { canvas.selection = false; canvas.discardActiveObject(); }
-            else { canvas.selection = true; }
+            if (lock) {
+                canvas.selection = false;
+                if (!isEditing) canvas.discardActiveObject();
+            } else {
+                canvas.selection = true;
+            }
             canvas.renderAll();
         }
 
@@ -3229,11 +3236,13 @@
                         this.classList.remove('locked');
                         this.classList.add('unlocked');
                         this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        if (showHandles) setTimeout(createMobileHandles, 100);
                     } else {
                         lockMobileObjects(true);
                         this.classList.remove('unlocked');
                         this.classList.add('locked');
                         this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                        clearMobileHandles();
                     }
                 });
             }
@@ -3248,6 +3257,8 @@
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
+                const activeObj = canvas.getActiveObject();
+                const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
 
                 // Layout changes based on screen width
                 if (!isNarrow) {
@@ -3277,21 +3288,25 @@
 
                 // Touch behavior based on pointer type, NOT width
                 // This ensures tablets in landscape still get touch features
-                if (isTouch) {
+                if (isTouch && !isEditing) {
                     lockMobileObjects(true);
+                    clearMobileHandles(); // clear stale handles so UI stays consistent
                     const lockToggleEl = document.getElementById('mobileLockToggle');
                     if (lockToggleEl && isNarrow) {
                         lockToggleEl.classList.remove('unlocked');
                         lockToggleEl.classList.add('locked');
                         lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                     }
-                    // Recreate handles after any layout change so they don't disappear
-                    setTimeout(() => {
-                        if (showHandles) createMobileHandles();
-                    }, 150);
-                } else {
+                } else if (!isTouch) {
                     lockMobileObjects(false);
                     clearMobileHandles();
+                }
+
+                // Recreate handles after any layout change so they don't disappear
+                if (isTouch && !isEditing && showHandles) {
+                    setTimeout(() => {
+                        createMobileHandles();
+                    }, 150);
                 }
             }
             window.addEventListener('resize', handleResize);
@@ -3358,12 +3373,22 @@
             if (showHandles) {
                 this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
                 this.title = 'Hide Handles';
+                // Unlock objects so handles can be created and interacted with
+                lockMobileObjects(false);
+                const lockToggleEl = document.getElementById('mobileLockToggle');
+                if (lockToggleEl) {
+                    lockToggleEl.classList.remove('locked');
+                    lockToggleEl.classList.add('unlocked');
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                }
                 canvas.discardActiveObject();
                 canvas.renderAll();
                 setTimeout(() => {
                     const active = canvas.getActiveObject();
                     if (!active && canvas.getObjects().length > 0) {
-                        canvas.setActiveObject(canvas.getObjects()[canvas.getObjects().length - 1]);
+                        const lastObj = canvas.getObjects()[canvas.getObjects().length - 1];
+                        lastObj.set({ selectable: true, evented: true });
+                        canvas.setActiveObject(lastObj);
                         selectedObject = canvas.getActiveObject();
                         updateControls();
                         showSelectionControls();
