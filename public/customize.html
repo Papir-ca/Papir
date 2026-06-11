@@ -1512,33 +1512,41 @@
             backdrop.addEventListener('touchstart', hideMenu);
             backdrop.addEventListener('click', hideMenu);
 
+            function handleMenuAction(action) {
+                switch(action) {
+                    case 'editText':
+                        if (selectedObject && selectedObject.type === 'i-text') {
+                            selectedObject.set({ selectable: true, evented: true });
+                            selectedObject.enterEditing();
+                            setTimeout(() => {
+                                if (selectedObject && selectedObject.hiddenTextarea) {
+                                    selectedObject.hiddenTextarea.focus();
+                                    selectedObject.hiddenTextarea.click();
+                                }
+                            }, 200);
+                        }
+                        break;
+                    case 'front': bringToFront(); break;
+                    case 'forward': bringForward(); break;
+                    case 'backward': sendBackward(); break;
+                    case 'back': sendToBack(); break;
+                    case 'duplicate': duplicateObject(); break;
+                    case 'lock': lockObject(); break;
+                    case 'delete': deleteSelected(); break;
+                }
+                hideMenu();
+            }
             menu.querySelectorAll('.ctx-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const action = this.dataset.action;
-                    switch(action) {
-                        case 'editText':
-                            if (selectedObject && selectedObject.type === 'i-text') {
-                                selectedObject.set({ selectable: true, evented: true });
-                                selectedObject.enterEditing();
-                                setTimeout(() => {
-                                    if (selectedObject && selectedObject.hiddenTextarea) {
-                                        selectedObject.hiddenTextarea.focus();
-                                        selectedObject.hiddenTextarea.click();
-                                    }
-                                }, 200);
-                            }
-                            break;
-                        case 'front': bringToFront(); break;
-                        case 'forward': bringForward(); break;
-                        case 'backward': sendBackward(); break;
-                        case 'back': sendToBack(); break;
-                        case 'duplicate': duplicateObject(); break;
-                        case 'lock': lockObject(); break;
-                        case 'delete': deleteSelected(); break;
-                    }
-                    hideMenu();
+                    e.preventDefault();
+                    handleMenuAction(this.dataset.action);
                 });
+                item.addEventListener('touchend', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleMenuAction(this.dataset.action);
+                }, { passive: false });
             });
         }
 
@@ -1659,7 +1667,7 @@
 
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('.mobile-context-menu')) return;
                 const now = Date.now();
                 if (now - lastTouchEnd <= 300) e.preventDefault();
                 lastTouchEnd = now;
