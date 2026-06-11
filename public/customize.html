@@ -108,6 +108,13 @@
         #audioUploadSection .upload-area { border-color: var(--primary-gold); }
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
+        .mobile-handle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        .mobile-object-handle { position: absolute; width: 24px; height: 24px; background: rgba(6, 214, 160, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: transform 0.1s, background 0.1s; }
+        .mobile-object-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--primary-gold); }
+        .mobile-object-handle.selected { background: var(--primary-gold); border-color: var(--primary-teal); box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4); }
+        .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
+        .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
+
         @media (max-width: 768px) {
             /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
             .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
@@ -214,6 +221,7 @@
             }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .grid-overlay { display: none; }
+            #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; min-width: 110px; font-size: 0.75rem; }
 
             /* ===== TOOLS PANEL ===== */
             .tools-panel { 
@@ -449,11 +457,7 @@
                 background: rgba(255,255,255,0.1);
                 margin: 4px 0;
             }
-            .mobile-handle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
-            .mobile-object-handle { position: absolute; width: 24px; height: 24px; background: rgba(6, 214, 160, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: transform 0.1s, background 0.1s; }
-            .mobile-object-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--primary-gold); }
-            .mobile-object-handle.selected { background: var(--primary-gold); border-color: var(--primary-teal); box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4); }
-            .ctx-backdrop {
+                        .ctx-backdrop {
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0,0,0,0.4);
@@ -506,8 +510,90 @@
                 aspect-ratio: 600 / 450 !important;
             }
         }
-@media (min-width: 769px) {
+
+        /* ===== TOUCH-FRIENDLY DESKTOP (tablets, touch laptops) ===== */
+        @media (min-width: 769px) and (pointer: coarse) {
+            #toggleHandlesBtn {
+                display: inline-flex !important;
+                background: rgba(6, 214, 160, 0.2) !important;
+                border-color: var(--primary-teal) !important;
+            }
+            .tool-btn {
+                width: 56px;
+                height: 56px;
+                font-size: 1.3rem;
+            }
+            .btn-icon, .btn-icon.small {
+                padding: 14px 18px;
+                min-height: 48px;
+                font-size: 0.95rem;
+            }
+            .layer-item {
+                padding: 16px 12px;
+            }
+            .layer-btn {
+                padding: 10px;
+                font-size: 1rem;
+            }
+            .text-input, select, input[type="number"] {
+                padding: 14px;
+                font-size: 16px;
+            }
+            .qty-btn {
+                width: 40px;
+                height: 40px;
+            }
+            .checkout-btn {
+                padding: 16px;
+                font-size: 1.1rem;
+            }
+            .upload-area {
+                padding: 30px 20px;
+            }
+            .color-preset {
+                width: 36px;
+                height: 36px;
+            }
+            input[type="color"] {
+                width: 52px;
+                height: 48px;
+            }
+            .tab {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+            .canvas-container {
+                padding: 8px;
+            }
+            #designCanvas {
+                border-radius: 4px;
+            }
+            .canvas-toolbar .btn-icon.small {
+                min-height: 40px;
+                padding: 8px 12px;
+            }
+            .property-section h4 {
+                padding: 10px 0;
+            }
+            .effect-toggle {
+                padding: 12px;
+            }
+            .toggle-switch {
+                width: 48px;
+                height: 26px;
+            }
+            .toggle-switch::after {
+                width: 22px;
+                height: 22px;
+            }
+            .effect-toggle.active .toggle-switch::after {
+                left: 24px;
+            }
+        }
+
+        @media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
+            #toggleHandlesBtn { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -516,6 +602,7 @@
             #resetDesignBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
         }
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -561,6 +648,7 @@
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
+                        <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                         <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
                         <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
@@ -997,6 +1085,7 @@
         let selectedObject = null;
         let templateConfig = null;
         let currentZoom = 1;
+        let showHandles = true;
         let undoStack = [];
         let redoStack = [];
         let snapToGrid = false;
@@ -1329,7 +1418,7 @@
             }
 
             canvasEl.addEventListener('touchstart', function(e) {
-                if (window.innerWidth > 768) return;
+                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
@@ -1422,7 +1511,7 @@
                 updateMobileHandlePositions(); 
                 if (showGrid) updateGridOverlayPosition();
                 // Safety net: ensure mobile handles always exist when not editing text
-                if (window.innerWidth <= 768 && mobileHandles.length === 0) {
+                if ((window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
                     if (!editing) createMobileHandles();
@@ -1496,14 +1585,14 @@
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (window.innerWidth > 768) return;
+                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.enterEditing();
                     if (e.target.hiddenTextarea) e.target.hiddenTextarea.focus();
                 }
             });
             canvas.on('mouse:up', function() {
-                if (window.innerWidth > 768) return;
+                if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
                 setTimeout(createMobileHandles, 50);
             });
 
@@ -1630,14 +1719,14 @@
             updateControls();
             showSelectionControls();
             updateLayerList();
-            if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50);
+            if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
         function handleDeselection() {
             selectedObject = null;
             showNoSelection();
             updateLayerList();
-            if (window.innerWidth <= 768) setTimeout(createMobileHandles, 50);
+            if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
         function handleObjectMoving(e) {
@@ -2710,7 +2799,8 @@
         }
 
         function createMobileHandles() {
-            if (window.innerWidth > 768) return;
+            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+            if (!showHandles) { clearMobileHandles(); return; }
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2865,7 +2955,7 @@
         }
 
         function updateMobileHandlePositions() {
-            if (window.innerWidth > 768) return;
+            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
             canvas.getObjects().forEach((obj, index) => {
                 const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && parseInt(h.dataset.index) === index);
                 if (handle && obj) {
@@ -3205,6 +3295,18 @@
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
         document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
         document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
+        document.getElementById('toggleHandlesBtn').addEventListener('click', function() {
+            showHandles = !showHandles;
+            if (showHandles) {
+                this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
+                this.title = 'Hide Handles';
+                createMobileHandles();
+            } else {
+                this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
+                this.title = 'Show Handles';
+                clearMobileHandles();
+            }
+        });
 
         init();
         console.log('✅ init() completed successfully');
