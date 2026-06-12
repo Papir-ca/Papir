@@ -487,6 +487,9 @@
                 z-index: 9998;
                 display: none;
             }
+        @media (min-width: 769px) and (pointer: fine) {
+            .mobile-context-menu, .ctx-backdrop { display: none !important; }
+        }
         }
         @media (max-width: 768px) and (orientation: landscape) {
             .canvas-area {
