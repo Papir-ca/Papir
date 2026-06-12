@@ -97,8 +97,7 @@
         .hidden { display: none !important; }
         .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .grid-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px; opacity: 0; transition: opacity 0.3s; }
-        .grid-overlay.show { opacity: 1; }
+
         .upload-area { border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
         .upload-area:hover { border-color: var(--primary-gold); background: rgba(255,255,255,0.05); }
         .upload-area i { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-gold); }
@@ -655,15 +654,9 @@
                 <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
                 <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
                 <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="far fa-square"></i></button>
-                <button class="tool-btn" data-tool="circle" title="Circle (C)"><i class="far fa-circle"></i></button>
-                <button class="tool-btn" data-tool="triangle" title="Triangle"><i class="fas fa-play" style="transform: rotate(-90deg);"></i></button>
-                <button class="tool-btn" data-tool="line" title="Line (L)"><i class="fas fa-minus"></i></button>
-                <div class="tool-divider"></div>
                 <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
                 <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
                 <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="grid" title="Toggle Grid (G)"><i class="fas fa-border-all"></i></button>
                 <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
             </div>
 
@@ -676,13 +669,10 @@
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                         <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
-                        <button class="btn-icon small" id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                        <input type="text" id="zoomDisplay" value="100%" style="min-width: 45px; width: 50px; text-align: center; font-size: 0.85rem; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px;">
-                        <button class="btn-icon small" id="zoomInBtn"><i class="fas fa-plus"></i></button>
+
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
-                    <div class="grid-overlay" id="gridOverlay"></div>
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
             </div>
@@ -694,7 +684,6 @@
                 <div class="tabs">
                     <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
-                    <button class="tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
                 </div>
                 <div class="tab-content active" id="designTab">
                     <div id="noSelection" class="empty-state">
@@ -808,22 +797,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Letter Spacing</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="charSpacing" min="-50" max="200" value="0">
-                                            <span class="slider-value">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="control-group">
-                                        <label>Line Height</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="lineHeight" min="0.5" max="3" step="0.1" value="1.16">
-                                            <span class="slider-value">1.2</span>
-                                        </div>
-                                    </div>
-                                </div>
+
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
@@ -843,45 +817,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="effect-toggle" id="textStrokeToggle">
-                                    <span><i class="fas fa-border-style"></i> Text Outline</span>
-                                    <div class="toggle-switch"></div>
-                                </div>
-                                <div id="strokeControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 10px;">
-                                    <div class="control-row">
-                                        <input type="color" id="strokeColor" value="#000000" style="width: 40px;">
-                                        <div class="control-group" style="flex: 1;">
-                                            <label>Stroke Width</label>
-                                            <div class="slider-container">
-                                                <input type="range" class="slider" id="strokeWidth" min="0" max="10" value="0">
-                                                <span class="slider-value">0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="effect-toggle" id="shadowToggle">
-                                    <span><i class="fas fa-cloud"></i> Drop Shadow</span>
-                                    <div class="toggle-switch"></div>
-                                </div>
-                                <div id="shadowControls" style="display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;">
-                                    <div class="control-row">
-                                        <input type="color" id="shadowColor" value="#000000" style="width: 40px;">
-                                        <div class="control-group" style="flex: 1;">
-                                            <label>Blur</label>
-                                            <input type="range" class="slider" id="shadowBlur" min="0" max="50" value="10">
-                                        </div>
-                                    </div>
-                                    <div class="control-row">
-                                        <div class="control-group">
-                                            <label>Offset X</label>
-                                            <input type="number" id="shadowOffsetX" value="5" style="width: 60px;">
-                                        </div>
-                                        <div class="control-group">
-                                            <label>Offset Y</label>
-                                            <input type="number" id="shadowOffsetY" value="5" style="width: 60px;">
-                                        </div>
-                                    </div>
-                                </div>
+
+
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-bold"></i> Text Style</h4>
@@ -889,8 +826,6 @@
                                     <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
                                     <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
                                     <button class="btn-icon" id="underlineBtn"><i class="fas fa-underline"></i> Underline</button>
-                                    <button class="btn-icon" id="overlineBtn"><i class="fas fa-text-width"></i> Overline</button>
-                                    <button class="btn-icon" id="linethroughBtn"><i class="fas fa-strikethrough"></i> Strike</button>
                                 </div>
                                 <div class="btn-group" style="margin-top: 8px;">
                                     <button class="btn-icon" data-align="left"><i class="fas fa-align-left"></i></button>
@@ -934,58 +869,18 @@
                                 <h4><i class="fas fa-layer-group"></i> Arrange</h4>
                                 <div class="btn-group">
                                     <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
-                                    <button class="btn-icon" id="bringForwardBtn"><i class="fas fa-arrow-up" style="font-size: 0.7em;"></i> Forward</button>
-                                    <button class="btn-icon" id="sendBackwardBtn"><i class="fas fa-arrow-down" style="font-size: 0.7em;"></i> Backward</button>
                                     <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
                                 </div>
                             </div>
                             <div class="property-section">
                                 <h4><i class="fas fa-magic"></i> Effects</h4>
                                 <div class="btn-group">
-                                    <button class="btn-icon" id="flipHBtn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
-                                    <button class="btn-icon" id="flipVBtn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
-                                    <button class="btn-icon" id="lockBtn"><i class="fas fa-lock"></i> Lock</button>
                                     <button class="btn-icon" id="duplicateBtn"><i class="fas fa-copy"></i> Duplicate</button>
                                 </div>
                             </div>
-                            <div id="shapeControls" style="display: none;">
-                                <div class="property-section">
-                                    <h4><i class="fas fa-shapes"></i> Shape Properties</h4>
-                                    <div class="control-row">
-                                        <div class="control-group"><label>Fill Color</label><input type="color" id="shapeFill" value="#BCAE83"></div>
-                                        <div class="control-group"><label>Stroke Color</label><input type="color" id="shapeStroke" value="#000000"></div>
-                                    </div>
-                                    <div class="control-row">
-                                        <div class="control-group">
-                                            <label>Stroke Width</label>
-                                            <input type="range" class="slider" id="shapeStrokeWidth" min="0" max="20" value="0">
-                                        </div>
-                                    </div>
-                                    <div class="control-row" id="cornerRadiusRow" style="display: none;">
-                                        <div class="control-group">
-                                            <label>Corner Radius</label>
-                                            <input type="range" class="slider" id="cornerRadius" min="0" max="50" value="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
-                        <!-- NEW: Media Playback Controls -->
-                        <div id="mediaPlaybackControls" style="display: none;">
-                            <div class="property-section">
-                                <h4><i class="fas fa-play-circle"></i> Media Playback</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="mediaPlayPauseBtn"><i class="fas fa-play"></i> <span>Play</span></button>
-                                    <button class="btn-icon" id="mediaMuteBtn"><i class="fas fa-volume-up"></i> <span>Mute</span></button>
-                                </div>
-                                <div class="btn-group" style="margin-top: 10px;">
-                                    <button class="btn-icon danger" id="mediaDeleteBtn"><i class="fas fa-trash"></i> Remove from Canvas</button>
-                                </div>
-                                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">
-                                    <i class="fas fa-keyboard"></i> Space: Play/Pause | M: Mute | Del: Remove
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
                 <div class="tab-content" id="layersTab">
@@ -997,53 +892,9 @@
                         <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
-                    <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn-icon" id="addLayerBtn"><i class="fas fa-plus"></i> Add Layer</button>
-                        <button class="btn-icon" id="groupBtn"><i class="fas fa-object-group"></i> Group</button>
-                        <button class="btn-icon" id="ungroupBtn"><i class="fas fa-object-ungroup"></i> Ungroup</button>
-                        <button class="btn-icon danger" id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
-                    </div>
+
                 </div>
-                <div class="tab-content" id="settingsTab">
-                    <div class="property-section">
-                        <h4><i class="fas fa-border-all"></i> Grid & Guides</h4>
-                        <div class="effect-toggle" id="snapToggle">
-                            <span><i class="fas fa-magnet"></i> Snap to Grid</span>
-                            <div class="toggle-switch"></div>
-                        </div>
-                        <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 6px;"><i class="fas fa-info-circle"></i> Grid visible when snap is on</div>
-                        <div class="control-row" style="margin-top: 10px;">
-                            <div class="control-group">
-                                <label>Grid Size (px)</label>
-                                <div class="slider-container">
-                                    <input type="range" class="slider" id="gridSize" min="10" max="100" value="20">
-                                    <span class="slider-value" id="gridSizeVal">20</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="property-section">
-                        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
-                        <div style="font-size: 0.8rem; line-height: 1.8; opacity: 0.9;">
-                            <div><strong>V</strong> - Select tool</div>
-                            <div><strong>T</strong> - Text tool</div>
-                            <div><strong>I</strong> - Image tool</div>
-                            <div><strong>R</strong> - Rectangle</div>
-                            <div><strong>C</strong> - Circle</div>
-                            <div><strong>L</strong> - Line</div>
-                            <div><strong>G</strong> - Toggle grid</div>
-                            <div><strong>Delete</strong> - Remove selected</div>
-                            <div><strong>Ctrl+D</strong> - Duplicate</div>
-                            <div><strong>Ctrl+G</strong> - Group</div>
-                            <div><strong>Ctrl+Shift+G</strong> - Ungroup</div>
-                            <div><strong>Ctrl+Z</strong> - Undo</div>
-                            <div><strong>Ctrl+Y</strong> - Redo</div>
-                            <div><strong>Arrows</strong> - Nudge 1px (Shift for 10px)</div>
-                            <div><strong>Space</strong> - Play/Pause media</div>
-                            <div><strong>M</strong> - Mute/Unmute media</div>
-                        </div>
-                    </div>
-                </div>
+
                 <div class="checkout-section">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <div>
@@ -1115,8 +966,8 @@
         let undoStack = [];
         let redoStack = [];
         let snapToGrid = false;
-        let gridSize = 20;
-        let showGrid = false;
+        
+        
 
         function showNotification(message, type) {
             console.log(`[${type || 'info'}] ${message}`);
@@ -1184,7 +1035,7 @@
                 await addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
                     fontSize: layout.namesSize || 48, fontFamily: config.defaultFont || 'Montserrat',
                     fill: config.textColor || '#333', fontWeight: layout.namesWeight || 'bold',
-                    charSpacing: layout.namesSpacing || 0
+
                 });
             }
             if (config.sampleText.subtext) {
@@ -1531,7 +1382,7 @@
                     case 'backward': sendBackward(); break;
                     case 'back': sendToBack(); break;
                     case 'duplicate': duplicateObject(); break;
-                    case 'lock': lockObject(); break;
+
                     case 'delete': deleteSelected(); break;
                 }
                 hideMenu();
@@ -1562,7 +1413,7 @@
             canvas.on('object:moving', handleObjectMoving);
             canvas.on('after:render', function() { 
                 updateMobileHandlePositions(); 
-                if (showGrid) updateGridOverlayPosition();
+
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
@@ -1606,7 +1457,6 @@
 
             setupTextControls();
             setupTransformControls();
-            setupEffectsControls();
 
             const fileInput = document.getElementById('fileInput');
             const uploadArea = document.getElementById('uploadArea');
@@ -1632,8 +1482,7 @@
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
-            const addLayerBtn = document.getElementById('addLayerBtn');
-            if (addLayerBtn) addLayerBtn.addEventListener('click', addNewText);
+
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
@@ -1660,10 +1509,7 @@
                 setTimeout(createMobileHandles, 50);
             });
 
-            // Media playback button listeners
-            document.getElementById('mediaPlayPauseBtn').addEventListener('click', toggleMediaPlayPause);
-            document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
-            document.getElementById('mediaDeleteBtn').addEventListener('click', deleteSelected);
+
 
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
@@ -1810,17 +1656,12 @@
             switch(tool) {
                 case 'select': canvas.isDrawingMode = false; break;
                 case 'text': addNewText(); break;
-                case 'rect': addShape('rect'); break;
-                case 'circle': addShape('circle'); break;
-                case 'triangle': addShape('triangle'); break;
-                case 'line': addLine(); break;
                 case 'image': document.getElementById('fileInput').click(); break;
                 case 'video': document.getElementById('videoInput').click(); break;
                 case 'audio': document.getElementById('audioInput').click(); break;
                 case 'delete': deleteSelected(); break;
                 case 'undo': undo(); break;
                 case 'redo': redo(); break;
-                case 'grid': toggleGrid(); break;
             }
         }
 
@@ -1837,38 +1678,9 @@
             saveState();
         }
 
-        function addShape(type) {
-            let shape;
-            const options = {
-                left: 300, top: 225,
-                fill: templateConfig?.config?.accentColor || '#BCAE83',
-                originX: 'center', originY: 'center',
-                hasControls: true, hasBorders: true, padding: 12
-            };
-            switch(type) {
-                case 'rect': shape = new fabric.Rect({ ...options, width: 100, height: 100 }); break;
-                case 'circle': shape = new fabric.Circle({ ...options, radius: 50 }); break;
-                case 'triangle': shape = new fabric.Triangle({ ...options, width: 100, height: 100 }); break;
-            }
-            if (shape) {
-                canvas.add(shape);
-                canvas.setActiveObject(shape);
-                canvas.renderAll();
-                saveState();
-            }
-        }
+        
 
-        function addLine() {
-            const line = new fabric.Line([250, 225, 350, 225], {
-                stroke: templateConfig?.config?.accentColor || '#333333',
-                strokeWidth: 3, originX: 'center', originY: 'center',
-                hasControls: true, hasBorders: true, padding: 15
-            });
-            canvas.add(line);
-            canvas.setActiveObject(line);
-            canvas.renderAll();
-            saveState();
-        }
+        
 
         function deleteSelected() {
             const active = canvas.getActiveObject();
@@ -1900,102 +1712,32 @@
                 document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Montserrat';
                 document.getElementById('fontSize').value = selectedObject.fontSize;
                 document.getElementById('fontSizeVal').textContent = selectedObject.fontSize;
-                document.getElementById('charSpacing').value = selectedObject.charSpacing || 0;
-                document.getElementById('lineHeight').value = selectedObject.lineHeight || 1.16;
                 document.getElementById('textColor').value = selectedObject.fill || '#333333';
 
                 document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
                 document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
                 document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-                document.getElementById('linethroughBtn').classList.toggle('active', selectedObject.linethrough);
-                document.getElementById('overlineBtn').classList.toggle('active', selectedObject.overline);
-
                 document.querySelectorAll('[data-align]').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
                 });
 
-                document.getElementById('textStrokeToggle').classList.toggle('active', selectedObject.stroke && selectedObject.strokeWidth > 0);
-                document.getElementById('strokeControls').style.display = (selectedObject.stroke && selectedObject.strokeWidth > 0) ? 'block' : 'none';
-                if (selectedObject.stroke) {
-                    document.getElementById('strokeColor').value = selectedObject.stroke;
-                    document.getElementById('strokeWidth').value = selectedObject.strokeWidth;
-                }
 
-                document.getElementById('shadowToggle').classList.toggle('active', selectedObject.shadow);
-                document.getElementById('shadowControls').style.display = selectedObject.shadow ? 'block' : 'none';
-                if (selectedObject.shadow) {
-                    document.getElementById('shadowColor').value = selectedObject.shadow.color;
-                    document.getElementById('shadowBlur').value = selectedObject.shadow.blur;
-                    document.getElementById('shadowOffsetX').value = selectedObject.shadow.offsetX;
-                    document.getElementById('shadowOffsetY').value = selectedObject.shadow.offsetY;
-                }
             } else {
                 document.getElementById('textControls').style.display = 'none';
             }
 
-            if (['rect', 'circle', 'triangle'].includes(selectedObject.type)) {
-                document.getElementById('shapeControls').style.display = 'block';
-                document.getElementById('shapeFill').value = selectedObject.fill || '#BCAE83';
-                document.getElementById('shapeStroke').value = selectedObject.stroke || '#000000';
-                document.getElementById('shapeStrokeWidth').value = selectedObject.strokeWidth || 0;
-                document.getElementById('cornerRadiusRow').style.display = selectedObject.type === 'rect' ? 'block' : 'none';
-                if (selectedObject.type === 'rect') {
-                    document.getElementById('cornerRadius').value = selectedObject.rx || 0;
-                }
-            } else {
-                document.getElementById('shapeControls').style.display = 'none';
-            }
 
-            // Media playback controls
-            const mediaControls = document.getElementById('mediaPlaybackControls');
-            if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                mediaControls.style.display = 'block';
-                updateMediaButtons();
-            } else {
-                mediaControls.style.display = 'none';
-            }
 
-            updateLockButton();
+
+
+            
         }
 
-        function updateMediaButtons() {
-            if (!selectedObject) return;
-            const playBtn = document.getElementById('mediaPlayPauseBtn');
-            const muteBtn = document.getElementById('mediaMuteBtn');
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                const video = selectedObject.videoElement;
-                playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
-                muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                const audio = selectedObject.audioElement;
-                playBtn.innerHTML = audio.paused ? '<i class="fas fa-play"></i> <span>Play</span>' : '<i class="fas fa-pause"></i> <span>Pause</span>';
-                muteBtn.innerHTML = audio.muted ? '<i class="fas fa-volume-mute"></i> <span>Unmute</span>' : '<i class="fas fa-volume-up"></i> <span>Mute</span>';
-            }
-        }
+        
 
-        function toggleMediaPlayPause() {
-            if (!selectedObject) return;
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                const video = selectedObject.videoElement;
-                if (video.paused) video.play().catch(() => {});
-                else video.pause();
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                const audio = selectedObject.audioElement;
-                if (audio.paused) audio.play().catch(() => {});
-                else audio.pause();
-            }
-            setTimeout(updateMediaButtons, 50);
-        }
+        
 
-        function toggleMediaMute() {
-            if (!selectedObject) return;
-            if (selectedObject.isVideo && selectedObject.videoElement) {
-                selectedObject.videoElement.muted = !selectedObject.videoElement.muted;
-            } else if (selectedObject.isAudio && selectedObject.audioElement) {
-                selectedObject.audioElement.muted = !selectedObject.audioElement.muted;
-            }
-            updateMediaButtons();
-        }
+        
 
         function setupTextControls() {
             document.getElementById('textContent').addEventListener('input', function() {
@@ -2024,18 +1766,7 @@
                     canvas.renderAll();
                 }
             });
-            document.getElementById('charSpacing').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('charSpacing', parseInt(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('lineHeight').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('lineHeight', parseFloat(this.value));
-                    canvas.renderAll();
-                }
-            });
+
             document.getElementById('textColor').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('fill', this.value);
@@ -2079,22 +1810,7 @@
                     saveState();
                 }
             });
-            document.getElementById('linethroughBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('linethrough', !selectedObject.linethrough);
-                    this.classList.toggle('active', selectedObject.linethrough);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('overlineBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('overline', !selectedObject.overline);
-                    this.classList.toggle('active', selectedObject.overline);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
+
             document.querySelectorAll('[data-align]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (selectedObject && selectedObject.type === 'i-text') {
@@ -2142,139 +1858,18 @@
                     canvas.renderAll();
                 }
             });
-            document.getElementById('shapeFill').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('fill', this.value); canvas.renderAll(); }
-            });
-            document.getElementById('shapeStroke').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('stroke', this.value); canvas.renderAll(); }
-            });
-            document.getElementById('shapeStrokeWidth').addEventListener('input', function() {
-                if (selectedObject) { selectedObject.set('strokeWidth', parseInt(this.value)); canvas.renderAll(); }
-            });
-            document.getElementById('cornerRadius').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'rect') {
-                    selectedObject.set({ rx: parseInt(this.value), ry: parseInt(this.value) });
-                    canvas.renderAll();
-                }
-            });
+
         }
 
-        function setupEffectsControls() {
-            document.getElementById('textStrokeToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                const show = this.classList.contains('active');
-                document.getElementById('strokeControls').style.display = show ? 'block' : 'none';
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    if (show) {
-                        selectedObject.set({
-                            stroke: document.getElementById('strokeColor').value,
-                            strokeWidth: parseInt(document.getElementById('strokeWidth').value)
-                        });
-                    } else {
-                        selectedObject.set({ strokeWidth: 0 });
-                    }
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('strokeColor').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('stroke', this.value);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('strokeWidth').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('strokeWidth', parseInt(this.value));
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('shadowToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                const show = this.classList.contains('active');
-                document.getElementById('shadowControls').style.display = show ? 'block' : 'none';
-                if (selectedObject) {
-                    if (show) {
-                        selectedObject.set('shadow', new fabric.Shadow({
-                            color: document.getElementById('shadowColor').value,
-                            blur: parseInt(document.getElementById('shadowBlur').value),
-                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
-                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
-                        }));
-                    } else {
-                        selectedObject.set('shadow', null);
-                    }
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            ['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].forEach(id => {
-                document.getElementById(id).addEventListener('input', function() {
-                    if (selectedObject && selectedObject.shadow) {
-                        selectedObject.shadow.set({
-                            color: document.getElementById('shadowColor').value,
-                            blur: parseInt(document.getElementById('shadowBlur').value),
-                            offsetX: parseInt(document.getElementById('shadowOffsetX').value),
-                            offsetY: parseInt(document.getElementById('shadowOffsetY').value)
-                        });
-                        canvas.renderAll();
-                    }
-                });
-            });
-            document.getElementById('snapToggle').addEventListener('click', function() {
-                this.classList.toggle('active');
-                snapToGrid = this.classList.contains('active');
-                if (snapToGrid) {
-                    showGrid = true;
-                    const g = document.getElementById('gridOverlay');
-                    if (g) { g.classList.add('show'); updateGridOverlayPosition(); }
-                } else {
-                    showGrid = false;
-                    const g = document.getElementById('gridOverlay');
-                    if (g) g.classList.remove('show');
-                }
-            });
-            document.getElementById('gridSize').addEventListener('input', function() {
-                gridSize = parseInt(this.value);
-                const v = document.getElementById('gridSizeVal');
-                if (v) v.textContent = this.value;
-            });
-        }
+        
 
         function setupArrangeControls() {
             document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
-            document.getElementById('bringForwardBtn').addEventListener('click', bringForward);
-            document.getElementById('sendBackwardBtn').addEventListener('click', sendBackward);
             document.getElementById('sendToBackBtn').addEventListener('click', sendToBack);
-            document.getElementById('flipHBtn').addEventListener('click', flipHorizontal);
-            document.getElementById('flipVBtn').addEventListener('click', flipVertical);
-            document.getElementById('lockBtn').addEventListener('click', lockObject);
             document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
-            document.getElementById('groupBtn').addEventListener('click', groupSelected);
-            document.getElementById('ungroupBtn').addEventListener('click', ungroupSelected);
-            document.getElementById('clearAllBtn').addEventListener('click', deleteAll);
         }
 
-        function setupZoomControls() {
-            // Safely attach zoom controls only if the elements exist
-            const zoomIn = document.getElementById('zoomInBtn');
-            const zoomOut = document.getElementById('zoomOutBtn');
-            const zoomDisplay = document.getElementById('zoomDisplay');
-
-            if (zoomIn) zoomIn.addEventListener('click', () => zoom(0.1));
-            if (zoomOut) zoomOut.addEventListener('click', () => zoom(-0.1));
-            if (zoomDisplay) {
-                zoomDisplay.addEventListener('change', function() {
-                    let v = parseInt(this.value.replace('%', ''));
-                    if (isNaN(v)) v = 100;
-                    v = Math.max(30, Math.min(300, v));
-                    currentZoom = v / 100;
-                    canvas.setZoom(currentZoom);
-                    this.value = v + '%';
-                });
-                zoomDisplay.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
-            }
-        }
+        
 
 
         function bringToFront() {
@@ -2317,58 +1912,10 @@
             }
             canvas.renderAll(); saveState(); updateLayerList();
         }
-        function flipHorizontal() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => o.set('flipX', !o.flipX));
-            } else {
-                obj.set('flipX', !obj.flipX);
-            }
-            canvas.renderAll(); saveState();
-        }
-        function flipVertical() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => o.set('flipY', !o.flipY));
-            } else {
-                obj.set('flipY', !obj.flipY);
-            }
-            canvas.renderAll(); saveState();
-        }
-        function lockObject() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => {
-                    o.set('selectable', !o.selectable);
-                    o.set('evented', !o.evented);
-                });
-            } else {
-                obj.set('selectable', !obj.selectable);
-                obj.set('evented', !obj.evented);
-            }
-            canvas.discardActiveObject();
-            canvas.renderAll();
-            updateLayerList();
-            updateLockButton();
-        }
-        function updateLockButton() {
-            const btn = document.getElementById('lockBtn');
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (obj && obj.type === 'activeSelection') {
-                const allLocked = obj.getObjects().every(o => !o.selectable);
-                btn.innerHTML = allLocked ? '<i class="fas fa-lock"></i> Unlock All' : '<i class="fas fa-lock"></i> Lock All';
-                btn.classList.toggle('active', allLocked);
-            } else if (obj && !obj.selectable) {
-                btn.innerHTML = '<i class="fas fa-lock"></i> Unlock';
-                btn.classList.add('active');
-            } else {
-                btn.innerHTML = '<i class="fas fa-lock"></i> Lock';
-                btn.classList.remove('active');
-            }
-        }
+        
+        
+        
+        
         function duplicateObject() {
             const obj = canvas.getActiveObject() || selectedObject;
             if (!obj) return;
@@ -2394,23 +1941,8 @@
             }
             canvas.renderAll(); saveState(); updateLayerList();
         }
-        function groupSelected() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'activeSelection') {
-                const group = active.toGroup();
-                canvas.setActiveObject(group);
-                canvas.renderAll();
-                saveState(); updateLayerList();
-            }
-        }
-        function ungroupSelected() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'group') {
-                active.toActiveSelection();
-                canvas.renderAll();
-                saveState(); updateLayerList();
-            }
-        }
+        
+        
 
         function updateLayerList() {
             const list = document.getElementById('layerList');
@@ -2443,36 +1975,10 @@
             if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
         }
 
-        function deleteAll() {
-            if (confirm('Clear all objects? This cannot be undone.')) {
-                canvas.getObjects().forEach(obj => canvas.remove(obj));
-                canvas.discardActiveObject();
-                canvas.renderAll();
-                saveState();
-                createMobileHandles();
-            }
-        }
+        
 
-        function toggleGrid() {
-            showGrid = !showGrid;
-            const grid = document.getElementById('gridOverlay');
-            if (grid) {
-                grid.classList.toggle('show', showGrid);
-                if (showGrid) updateGridOverlayPosition();
-            }
-        }
-        function updateGridOverlayPosition() {
-            const grid = document.getElementById('gridOverlay');
-            const canvasEl = document.getElementById('designCanvas');
-            const container = document.getElementById('canvasContainer');
-            if (!grid || !canvasEl || !container) return;
-            const cRect = canvasEl.getBoundingClientRect();
-            const boxRect = container.getBoundingClientRect();
-            grid.style.width = cRect.width + 'px';
-            grid.style.height = cRect.height + 'px';
-            grid.style.left = (cRect.left - boxRect.left) + 'px';
-            grid.style.top = (cRect.top - boxRect.top) + 'px';
-        }
+        
+        
 
         function handleImageUpload(e) {
             const file = e.target.files[0];
@@ -2502,8 +2008,7 @@
         function zoom(delta) {
             currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
             canvas.setZoom(currentZoom);
-            const zd = document.getElementById('zoomDisplay');
-            if (zd) zd.value = Math.round(currentZoom * 100) + '%';
+
         }
 
         function resetDesign() {
@@ -2554,21 +2059,8 @@
                     case 'v': handleToolClick('select'); break;
                     case 't': handleToolClick('text'); break;
                     case 'i': handleToolClick('image'); break;
-                    case 'r': handleToolClick('rect'); break;
-                    case 'c': handleToolClick('circle'); break;
-                    case 'l': handleToolClick('line'); break;
-                    case 'g': handleToolClick('grid'); break;
                     case ' ':
                         e.preventDefault();
-                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                            toggleMediaPlayPause();
-                        }
-                        break;
-                    case 'm':
-                        if (selectedObject && (selectedObject.isVideo || selectedObject.isAudio)) {
-                            e.preventDefault();
-                            toggleMediaMute();
-                        }
                         break;
                     case 'delete':
                     case 'backspace':
@@ -2581,7 +2073,7 @@
                     case 'z': e.preventDefault(); undo(); break;
                     case 'y': e.preventDefault(); redo(); break;
                     case 'd': e.preventDefault(); duplicateObject(); break;
-                    case 'g': e.preventDefault(); if (e.shiftKey) ungroupSelected(); else groupSelected(); break;
+
                     case 'a': e.preventDefault(); canvas.discardActiveObject(); const sel = new fabric.ActiveSelection(canvas.getObjects(), { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); break;
                 }
             }
@@ -3208,7 +2700,7 @@
                 const tabData = [
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-                    { tabId: 'settings', label: 'Settings', icon: 'fa-cog', contentId: 'settingsTab' }
+
                 ];
                 tabData.forEach(tab => {
                     const header = document.createElement('div');
@@ -3383,7 +2875,6 @@
             setupTabs();
             setupBackgroundOptions();
             setupQtyControls();
-            setupZoomControls();
             setupArrangeControls();
             checkForSavedProgress();
             startAutoSave();
