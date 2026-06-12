@@ -1255,10 +1255,34 @@
         // =================================================================================
 
         function setupMobileContextMenu() {
+            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
             const canvasEl = document.getElementById('designCanvas');
-            const menu = document.getElementById('mobileContextMenu');
-            const backdrop = document.getElementById('ctxBackdrop');
-            if (!canvasEl || !menu || !backdrop) return;
+            if (!canvasEl) return;
+
+            // Create menu dynamically - only on mobile/touch
+            let menu = document.getElementById('mobileContextMenu');
+            let backdrop = document.getElementById('ctxBackdrop');
+            if (!menu) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'ctxBackdrop';
+                backdrop.className = 'ctx-backdrop';
+                document.body.appendChild(backdrop);
+
+                menu = document.createElement('div');
+                menu.id = 'mobileContextMenu';
+                menu.className = 'mobile-context-menu';
+                menu.innerHTML = `
+                    <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
+                    <div class="ctx-divider" id="ctxEditDivider"></div>
+                    <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
+                    <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
+                    <div class="ctx-divider"></div>
+                    <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
+                    <div class="ctx-divider"></div>
+                    <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
+                `;
+                document.body.appendChild(menu);
+            }
 
             let touchTimer = null;
             let touchStartX = 0;
@@ -2921,16 +2945,6 @@
         init();
         console.log('✅ init() completed successfully');
     </script>
-    <div class="ctx-backdrop" id="ctxBackdrop"></div>
-    <div class="mobile-context-menu" id="mobileContextMenu">
-        <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
-        <div class="ctx-divider" id="ctxEditDivider"></div>
-        <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
-        <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
-        <div class="ctx-divider"></div>
-        <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
-        <div class="ctx-divider"></div>
-        <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
-    </div>
+
 </body>
 </html>
