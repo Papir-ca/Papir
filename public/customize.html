@@ -1200,6 +1200,8 @@
             if (undoStack.length > 1) {
                 redoStack.push(undoStack.pop());
                 const prevState = undoStack[undoStack.length - 1];
+                canvas.discardActiveObject();
+                selectedObject = null;
                 canvas.loadFromJSON(prevState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
@@ -1213,6 +1215,8 @@
             if (redoStack.length > 0) {
                 const nextState = redoStack.pop();
                 undoStack.push(nextState);
+                canvas.discardActiveObject();
+                selectedObject = null;
                 canvas.loadFromJSON(nextState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
@@ -1255,7 +1259,7 @@
         // =================================================================================
 
         function setupMobileContextMenu() {
-            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+            if (window.innerWidth > 768) return;
             const canvasEl = document.getElementById('designCanvas');
             if (!canvasEl) return;
 
@@ -1434,8 +1438,7 @@
             createMobileHandles();
         });
 
-            canvas.on('object:moving', handleObjectMoving);
-            canvas.on('after:render', function() { 
+                        canvas.on('after:render', function() { 
                 updateMobileHandlePositions(); 
 
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
@@ -1510,7 +1513,7 @@
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+                if (window.innerWidth > 768) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.set({ selectable: true, evented: true });
                     e.target.enterEditing();
@@ -1523,7 +1526,7 @@
                 }
             });
             canvas.on('mouse:up', function() {
-                if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+                if (window.innerWidth > 768) return;
                 const active = canvas.getActiveObject();
                 if (active && active.type === 'i-text' && active.isEditing) return;
                 const menu = document.getElementById('mobileContextMenu');
@@ -1611,6 +1614,7 @@
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
+                updateLayerList();
             };
             videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
         }
@@ -1645,14 +1649,21 @@
                         if (this.audioElement) this.audioElement.pause();
                     });
                     showNotification('Audio added! Will play when card is viewed.');
-                });
-            };
+                updateLayerList();
+            });
         }
 
         function handleSelection(e) {
-            selectedObject = e.selected[0];
-            updateControls();
-            showSelectionControls();
+            const sel = e.selected;
+            if (sel.length === 1) {
+                selectedObject = sel[0];
+                updateControls();
+                showSelectionControls();
+            } else {
+                selectedObject = null;
+                document.getElementById('selectionControls').style.display = 'none';
+                document.getElementById('noSelection').style.display = 'block';
+            }
             updateLayerList();
             if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
@@ -1664,14 +1675,7 @@
             if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
-        function handleObjectMoving(e) {
-            if (snapToGrid && e.target) {
-                e.target.set({
-                    left: Math.round(e.target.left / gridSize) * gridSize,
-                    top: Math.round(e.target.top / gridSize) * gridSize
-                });
-            }
-        }
+
 
         function handleToolClick(tool) {
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -1698,8 +1702,10 @@
             });
             canvas.add(text);
             canvas.setActiveObject(text);
+            selectedObject = text;
             canvas.renderAll();
             saveState();
+            updateLayerList();
         }
 
         
@@ -1710,13 +1716,23 @@
             const active = canvas.getActiveObject();
             if (active) {
                 if (active.type === 'activeSelection') {
-                    active.getObjects().forEach(obj => canvas.remove(obj));
+                    active.getObjects().forEach(obj => {
+                        if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
+                        if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
+                        if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
+                        canvas.remove(obj);
+                    });
                 } else {
+                    if (active.videoElement) { active.videoElement.pause(); active.videoElement.remove(); }
+                    if (active.audioElement) { active.audioElement.pause(); active.audioElement.remove(); }
+                    if (active._videoFrame) cancelAnimationFrame(active._videoFrame);
                     canvas.remove(active);
                 }
                 canvas.discardActiveObject();
+                selectedObject = null;
                 canvas.renderAll();
                 saveState();
+                updateLayerList();
                 createMobileHandles();
             }
         }
@@ -1727,8 +1743,18 @@
             document.getElementById('posY').value = Math.round(selectedObject.top);
             document.getElementById('objWidth').value = Math.round(selectedObject.width * selectedObject.scaleX);
             document.getElementById('objHeight').value = Math.round(selectedObject.height * selectedObject.scaleY);
-            document.getElementById('rotation').value = Math.round(selectedObject.angle || 0);
-            document.getElementById('opacity').value = Math.round((selectedObject.opacity || 1) * 100);
+            const rotSlider = document.getElementById('rotation');
+            if (rotSlider) {
+                rotSlider.value = Math.round(selectedObject.angle || 0);
+                const rotVal = rotSlider.parentElement.querySelector('.slider-value');
+                if (rotVal) rotVal.textContent = Math.round(selectedObject.angle || 0) + '°';
+            }
+            const opSlider = document.getElementById('opacity');
+            if (opSlider) {
+                opSlider.value = Math.round((selectedObject.opacity || 1) * 100);
+                const opVal = opSlider.parentElement.querySelector('.slider-value');
+                if (opVal) opVal.textContent = Math.round((selectedObject.opacity || 1) * 100) + '%';
+            }
 
             if (selectedObject.type === 'i-text') {
                 document.getElementById('textControls').style.display = 'block';
@@ -1791,11 +1817,21 @@
                     canvas.renderAll();
                 }
             });
+            document.getElementById('fontSize').addEventListener('change', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    saveState();
+                }
+            });
 
             document.getElementById('textColor').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('fill', this.value);
                     canvas.renderAll();
+                }
+            });
+            document.getElementById('textColor').addEventListener('change', function() {
+                if (selectedObject && selectedObject.type === 'i-text') {
+                    saveState();
                 }
             });
             document.getElementById('textColorPresets').addEventListener('click', function(e) {
@@ -1806,6 +1842,7 @@
                     if (selectedObject && selectedObject.type === 'i-text') {
                         selectedObject.set('fill', color);
                         canvas.renderAll();
+                        saveState();
                     }
                 }
             });
@@ -1874,12 +1911,26 @@
                 if (selectedObject) {
                     selectedObject.set('angle', parseInt(this.value));
                     canvas.renderAll();
+                    const valSpan = this.parentElement.querySelector('.slider-value');
+                    if (valSpan) valSpan.textContent = this.value + '°';
+                }
+            });
+            document.getElementById('rotation').addEventListener('change', function() {
+                if (selectedObject) {
+                    saveState();
                 }
             });
             document.getElementById('opacity').addEventListener('input', function() {
                 if (selectedObject) {
                     selectedObject.set('opacity', parseInt(this.value) / 100);
                     canvas.renderAll();
+                    const valSpan = this.parentElement.querySelector('.slider-value');
+                    if (valSpan) valSpan.textContent = this.value + '%';
+                }
+            });
+            document.getElementById('opacity').addEventListener('change', function() {
+                if (selectedObject) {
+                    saveState();
                 }
             });
 
@@ -1906,26 +1957,8 @@
             }
             canvas.renderAll(); saveState(); updateLayerList();
         }
-        function bringForward() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => canvas.bringForward(o));
-            } else {
-                canvas.bringForward(obj);
-            }
-            canvas.renderAll(); saveState(); updateLayerList();
-        }
-        function sendBackward() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => canvas.sendBackwards(o));
-            } else {
-                canvas.sendBackwards(obj);
-            }
-            canvas.renderAll(); saveState(); updateLayerList();
-        }
+
+
         function sendToBack() {
             const obj = canvas.getActiveObject() || selectedObject;
             if (!obj) return;
@@ -2023,17 +2056,14 @@
                     canvas.setActiveObject(img);
                     canvas.renderAll();
                     saveState();
+                    updateLayerList();
                 });
             };
             reader.onerror = () => { alert('Error reading file'); };
             reader.readAsDataURL(file);
         }
 
-        function zoom(delta) {
-            currentZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
-            canvas.setZoom(currentZoom);
 
-        }
 
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
@@ -2044,11 +2074,13 @@
                 });
                 canvas.clear();
                 canvas.backgroundColor = '#ffffff';
+                canvas.discardActiveObject();
+                selectedObject = null;
                 canvas.renderAll();
                 loadTemplateDesign().then(() => {
                     saveState();
-                    createMobileHandles();
                     updateLayerList();
+                    createMobileHandles();
                     showNotification('Design reset to template defaults', 'success');
                 });
             }
@@ -2098,7 +2130,7 @@
                     case 'y': e.preventDefault(); redo(); break;
                     case 'd': e.preventDefault(); duplicateObject(); break;
 
-                    case 'a': e.preventDefault(); canvas.discardActiveObject(); const sel = new fabric.ActiveSelection(canvas.getObjects(), { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); break;
+                    case 'a': e.preventDefault(); canvas.discardActiveObject(); const selectableObjects = canvas.getObjects().filter(obj => !obj.isBackground && !obj.isTexture && obj.selectable !== false); if (selectableObjects.length > 0) { const sel = new fabric.ActiveSelection(selectableObjects, { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); } break;
                 }
             }
             if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
@@ -2136,15 +2168,17 @@
 
         function saveProgress() {
             try {
+                const hasMedia = canvas.getObjects().some(obj => obj.isVideo || obj.isAudio);
                 const designData = {
-                    canvas: canvas.toJSON(),
+                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']),
                     templateConfig: templateConfig,
                     backgroundColor: canvas.backgroundColor,
                     timestamp: Date.now(),
-                    version: '1.0'
+                    version: '1.0',
+                    hasMedia: hasMedia
                 };
                 localStorage.setItem('papirDesignAutosave', JSON.stringify(designData));
-                showNotification('Design saved! You can resume anytime within 24 hours.', 'success');
+                showNotification('Design saved! You can resume anytime within 24 hours.' + (hasMedia ? ' Note: Video/audio will need to be re-added after resume.' : ''), 'success');
                 const btn = document.getElementById('saveProgressBtn');
                 btn.innerHTML = '<i class="fas fa-check"></i> Saved';
                 setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 2000);
@@ -2171,7 +2205,11 @@
                     document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                     document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                 }
-                showNotification('Design loaded! Continue where you left off.', 'success');
+                if (data.hasMedia) {
+                    showNotification('Design loaded! Video/audio objects were saved but may need to be re-uploaded.', 'warning');
+                } else {
+                    showNotification('Design loaded! Continue where you left off.', 'success');
+                }
                 document.getElementById('loadProgressBtn').style.display = 'none';
             } catch (error) {
                 console.error('Load error:', error);
@@ -2373,7 +2411,7 @@
         }
 
         function createMobileHandles() {
-            if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+            if (window.innerWidth > 768) return;
             if (!showHandles) { clearMobileHandles(); return; }
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
@@ -2530,7 +2568,7 @@
         }
 
         function updateMobileHandlePositions() {
-            if (!window.matchMedia('(pointer: coarse)').matches && window.innerWidth > 768) return;
+            if (window.innerWidth > 768) return;
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
                 const hid = obj.__handleId;
@@ -2619,7 +2657,7 @@
 
         /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
-            if (window.innerWidth > 768 && !window.matchMedia('(pointer: coarse)').matches) return;
+            if (window.innerWidth > 768) return;
             // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
             const canvasContainer = document.querySelector('.canvas-container');
