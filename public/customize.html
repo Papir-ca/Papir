@@ -2035,19 +2035,20 @@
                 nameSpan.style.overflow = 'hidden';
                 nameSpan.style.textOverflow = 'ellipsis';
                 nameSpan.style.whiteSpace = 'nowrap';
-                nameSpan.title = 'Click to rename';
+                nameSpan.style.flex = '1';
+                nameSpan.style.minWidth = '0';
                 span.appendChild(nameSpan);
 
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
-                actions.innerHTML = `${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                actions.innerHTML = `${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
 
                 // Click to select object
                 item.addEventListener('click', (e) => {
-                    if (e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+                    if (e.target.tagName === 'INPUT' || e.target.isContentEditable || e.target.closest('.layer-actions')) return;
                     if (obj.selectable) {
                         canvas.setActiveObject(obj);
                         selectedObject = obj;
@@ -2058,9 +2059,8 @@
                     }
                 });
 
-                // Double-click to edit name
-                nameSpan.addEventListener('dblclick', (e) => {
-                    e.stopPropagation();
+                // Edit name function (used by both dblclick and edit button)
+                function startEditName() {
                     const input = document.createElement('input');
                     input.type = 'text';
                     input.value = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || name);
@@ -2069,6 +2069,8 @@
                     input.style.padding = '4px 8px';
                     input.style.width = '100%';
                     input.style.minWidth = '0';
+                    input.style.webkitUserSelect = 'text';
+                    input.style.userSelect = 'text';
                     nameSpan.replaceWith(input);
                     input.focus();
                     input.select();
@@ -2094,7 +2096,27 @@
                             updateLayerList();
                         }
                     });
+                }
+
+                // Double-click to edit name (desktop)
+                nameSpan.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    startEditName();
                 });
+
+                // Edit button click (desktop + mobile)
+                const editBtn = item.querySelector('[data-action="edit"]');
+                if (editBtn) {
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        startEditName();
+                    });
+                    editBtn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        startEditName();
+                    }, { passive: false });
+                }
 
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
