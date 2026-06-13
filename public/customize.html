@@ -968,7 +968,6 @@
         let showHandles = true;
         let undoStack = [];
         let redoStack = [];
-        let snapToGrid = false;
         
         
 
@@ -1651,7 +1650,8 @@
                     showNotification('Audio added! Will play when card is viewed.');
                 updateLayerList();
             });
-        }
+        };
+    }
 
         function handleSelection(e) {
             const sel = e.selected;
@@ -2194,10 +2194,13 @@
             if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
             try {
                 const data = JSON.parse(saved);
+                canvas.discardActiveObject();
+                selectedObject = null;
                 canvas.loadFromJSON(data.canvas, () => { 
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     canvas.renderAll(); 
                     saveState(); 
+                    updateLayerList();
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
