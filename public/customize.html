@@ -2058,7 +2058,17 @@
                 });
 
                 // Edit name function (used by both dblclick and edit button)
+                let nameEditing = false;
                 function startEditName() {
+                    if (nameEditing) return;
+                    nameEditing = true;
+
+                    // Prevent double-creation if span already replaced
+                    if (!nameSpan.parentNode) {
+                        nameEditing = false;
+                        return;
+                    }
+
                     const input = document.createElement('input');
                     input.type = 'text';
                     input.value = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || name);
@@ -2075,13 +2085,16 @@
                     input.spellcheck = false;
                     nameSpan.replaceWith(input);
 
-                    // Delay focus to prevent touch event from causing immediate blur
-                    setTimeout(() => {
-                        input.focus();
-                        input.select();
-                    }, 100);
+                    // Robust focus for mobile: rAF + setTimeout prevents keyboard flash
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            input.focus();
+                            input.setSelectionRange(0, input.value.length);
+                        }, 150);
+                    });
 
                     function saveName() {
+                        nameEditing = false;
                         const newName = input.value.trim();
                         if (newName) {
                             if (obj.type === 'i-text') {
@@ -2094,22 +2107,16 @@
                         saveState();
                     }
 
-                    // Use a flag to prevent blur from firing during initial focus
-                    let isFocused = false;
-                    input.addEventListener('focus', () => {
-                        isFocused = true;
-                    });
-
                     input.addEventListener('blur', () => {
-                        if (isFocused) {
-                            saveName();
-                        }
+                        saveName();
                     });
 
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
+                            e.preventDefault();
                             input.blur();
                         } else if (e.key === 'Escape') {
+                            nameEditing = false;
                             updateLayerList();
                         }
                     });
@@ -2121,22 +2128,29 @@
                     startEditName();
                 });
 
-                // Edit button click (desktop + mobile)
+                // Edit button: unified touch + click handler with deduplication
                 const editBtn = item.querySelector('[data-action="edit"]');
                 if (editBtn) {
+                    let touchFired = false;
                     editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        if (touchFired) {
+                            touchFired = false;
+                            return;
+                        }
                         startEditName();
                     });
                     editBtn.addEventListener('touchstart', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
+                        touchFired = true;
                     }, { passive: false });
                     editBtn.addEventListener('touchend', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         setTimeout(() => {
                             startEditName();
+                            touchFired = false;
                         }, 50);
                     }, { passive: false });
                 }
