@@ -893,6 +893,9 @@
                     </div>
                     <div class="property-section">
                         <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
+                        </div>
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
 
@@ -2010,15 +2013,89 @@
                 const item = document.createElement('div');
                 item.className = 'layer-item' + (obj === selectedObject ? ' active' : '') + (!obj.selectable ? ' locked' : '');
                 let icon = 'fa-square';
-                let name = `Object ${index + 1}`;
-                if (obj.type === 'i-text') { icon = 'fa-font'; name = obj.text ? obj.text.substring(0, 20) : 'Text'; }
-                else if (obj.type === 'image') { icon = 'fa-image'; name = 'Image'; }
-                else if (obj.type === 'group') { icon = 'fa-object-group'; name = 'Group'; }
-                else if (obj.type === 'line') { icon = 'fa-minus'; name = 'Line'; }
-                else if (obj.isVideo) { icon = 'fa-video'; name = 'Video'; }
-                else if (obj.isAudio) { icon = 'fa-music'; name = 'Audio'; }
-                item.innerHTML = `<span><i class="fas ${icon}"></i> ${name}</span><div class="layer-actions">${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;
-                item.addEventListener('click', () => { if (obj.selectable) { canvas.setActiveObject(obj); canvas.renderAll(); } });
+                let name = obj.__layerName || `Object ${index + 1}`;
+                if (obj.type === 'i-text') { icon = 'fa-font'; name = obj.text ? obj.text.substring(0, 30) : 'Text'; }
+                else if (obj.type === 'image') { icon = 'fa-image'; name = obj.__layerName || 'Image'; }
+                else if (obj.type === 'group') { icon = 'fa-object-group'; name = obj.__layerName || 'Group'; }
+                else if (obj.type === 'line') { icon = 'fa-minus'; name = obj.__layerName || 'Line'; }
+                else if (obj.isVideo) { icon = 'fa-video'; name = obj.__layerName || 'Video'; }
+                else if (obj.isAudio) { icon = 'fa-music'; name = obj.__layerName || 'Audio'; }
+
+                const span = document.createElement('span');
+                span.style.display = 'flex';
+                span.style.alignItems = 'center';
+                span.style.gap = '8px';
+                span.style.flex = '1';
+                span.style.minWidth = '0';
+                span.innerHTML = `<i class="fas ${icon}"></i>`;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'layer-name';
+                nameSpan.textContent = name;
+                nameSpan.style.overflow = 'hidden';
+                nameSpan.style.textOverflow = 'ellipsis';
+                nameSpan.style.whiteSpace = 'nowrap';
+                nameSpan.title = 'Click to rename';
+                span.appendChild(nameSpan);
+
+                const actions = document.createElement('div');
+                actions.className = 'layer-actions';
+                actions.innerHTML = `${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+
+                item.appendChild(span);
+                item.appendChild(actions);
+
+                // Click to select object
+                item.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+                    if (obj.selectable) {
+                        canvas.setActiveObject(obj);
+                        selectedObject = obj;
+                        updateControls();
+                        showSelectionControls();
+                        updateLayerList();
+                        canvas.renderAll();
+                    }
+                });
+
+                // Double-click to edit name
+                nameSpan.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || name);
+                    input.className = 'text-input';
+                    input.style.fontSize = '0.85rem';
+                    input.style.padding = '4px 8px';
+                    input.style.width = '100%';
+                    input.style.minWidth = '0';
+                    nameSpan.replaceWith(input);
+                    input.focus();
+                    input.select();
+
+                    function saveName() {
+                        const newName = input.value.trim();
+                        if (newName) {
+                            if (obj.type === 'i-text') {
+                                obj.set('text', newName);
+                                canvas.renderAll();
+                            }
+                            obj.__layerName = newName;
+                        }
+                        updateLayerList();
+                        saveState();
+                    }
+
+                    input.addEventListener('blur', saveName);
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            input.blur();
+                        } else if (e.key === 'Escape') {
+                            updateLayerList();
+                        }
+                    });
+                });
+
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteObjectByIndex(index); });
@@ -2946,6 +3023,7 @@
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
+        document.getElementById('addLayerBtn').addEventListener('click', addNewText);
         document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
         document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
         document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
