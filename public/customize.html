@@ -487,9 +487,6 @@
                 z-index: 9998;
                 display: none;
             }
-        @media (min-width: 769px) and (pointer: fine) {
-            .mobile-context-menu, .ctx-backdrop { display: none !important; }
-        }
         }
         @media (max-width: 768px) and (orientation: landscape) {
             .canvas-area {
@@ -618,6 +615,7 @@
         }
 
         @media (min-width: 769px) and (pointer: fine) {
+            .mobile-context-menu, .ctx-backdrop { display: none !important; }
             #toggleHandlesBtn { display: none !important; }
         }
         @media (min-width: 769px) {
@@ -1651,10 +1649,10 @@
                         if (this.audioElement) this.audioElement.pause();
                     });
                     showNotification('Audio added! Will play when card is viewed.');
-                updateLayerList();
-            });
-        };
-    }
+                    updateLayerList();
+                });
+            };
+        }
 
         function handleSelection(e) {
             const sel = e.selected;
@@ -2071,9 +2069,17 @@
                     input.style.minWidth = '0';
                     input.style.webkitUserSelect = 'text';
                     input.style.userSelect = 'text';
+                    input.autocomplete = 'off';
+                    input.autocorrect = 'off';
+                    input.autocapitalize = 'off';
+                    input.spellcheck = false;
                     nameSpan.replaceWith(input);
-                    input.focus();
-                    input.select();
+
+                    // Delay focus to prevent touch event from causing immediate blur
+                    setTimeout(() => {
+                        input.focus();
+                        input.select();
+                    }, 100);
 
                     function saveName() {
                         const newName = input.value.trim();
@@ -2088,7 +2094,18 @@
                         saveState();
                     }
 
-                    input.addEventListener('blur', saveName);
+                    // Use a flag to prevent blur from firing during initial focus
+                    let isFocused = false;
+                    input.addEventListener('focus', () => {
+                        isFocused = true;
+                    });
+
+                    input.addEventListener('blur', () => {
+                        if (isFocused) {
+                            saveName();
+                        }
+                    });
+
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             input.blur();
@@ -2111,10 +2128,16 @@
                         e.stopPropagation();
                         startEditName();
                     });
+                    editBtn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }, { passive: false });
                     editBtn.addEventListener('touchend', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        startEditName();
+                        setTimeout(() => {
+                            startEditName();
+                        }, 50);
                     }, { passive: false });
                 }
 
@@ -3033,6 +3056,12 @@
             }
             updateCheckoutDisplay();
             lockMobileObjects(false);
+            const lockToggleEl = document.getElementById('mobileLockToggle');
+            if (lockToggleEl && window.innerWidth <= 768) {
+                lockToggleEl.classList.remove('locked');
+                lockToggleEl.classList.add('unlocked');
+                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+            }
             setupEventListeners();
             setupMobileContextMenu();
             createMobileHandles();
