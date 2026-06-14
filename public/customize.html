@@ -150,7 +150,9 @@
                 padding: 0 !important; 
                 margin: 0 !important; 
                 background: transparent !important;
-                position: static !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 5 !important;
                 border: none !important;
                 border-radius: 0 !important;
                 width: 100% !important;
@@ -185,7 +187,7 @@
                 max-width: 100%; 
                 width: 100%; 
                 height: auto !important; 
-                max-height: 55vh;
+                max-height: 50vh;
                 display: block; 
                 margin: 0 auto;
                 box-shadow: none !important;
@@ -197,7 +199,7 @@
             /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
             /* ===== OUTER CANVAS CONTAINER ===== */
             #canvasContainer {
-                max-height: 55vh;
+                max-height: 50vh;
                 overflow: hidden;
                 width: 100% !important;
                 padding: 0 !important;
@@ -718,7 +720,7 @@
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="btn-icon" id="saveProgressBtn" title="Save Progress"><i class="fas fa-save"></i> Save</button>
                 <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
-                <button class="btn-icon" id="mobileResetBtn" title="Reset Design" onclick="resetDesign()"><i class="fas fa-undo"></i> Reset</button>
+                <button class="btn-icon" id="mobileResetBtn" title="Reset Design"><i class="fas fa-undo"></i> Reset</button>
             </div>
         </div>
 
@@ -2185,8 +2187,10 @@
             // Focus after modal is visible
             requestAnimationFrame(() => {
                 setTimeout(() => {
-                    input.focus();
-                    input.setSelectionRange(0, input.value.length);
+                    if (input && document.body.contains(input)) {
+                        input.focus();
+                        input.setSelectionRange(0, input.value.length);
+                    }
                 }, 100);
             });
         }
