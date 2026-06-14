@@ -627,6 +627,82 @@
             .properties-panel .panel-title { display: none !important; }
             #resetDesignBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
         }
+
+        /* ===== LAYER EDIT MODAL ===== */
+        .layer-edit-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .layer-edit-modal.active { display: flex; }
+        .layer-edit-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid var(--primary-gold);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        }
+        .layer-edit-content h3 {
+            margin: 0 0 16px 0;
+            color: var(--primary-gold);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .layer-edit-content input {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 16px;
+            -webkit-appearance: none;
+        }
+        .layer-edit-content input:focus {
+            outline: none;
+            border-color: var(--primary-teal);
+            box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.2);
+        }
+        .layer-edit-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .layer-edit-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .layer-edit-actions .save-btn {
+            background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple));
+            color: white;
+        }
+        .layer-edit-actions .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3);
+        }
+        .layer-edit-actions .cancel-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .layer-edit-actions .cancel-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -925,7 +1001,19 @@
     <input type="file" id="audioInput" accept="audio/*" style="display: none;">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
-    <script>
+        <!-- Layer Edit Modal -->
+    <div id="layerEditModal" class="layer-edit-modal">
+        <div class="layer-edit-content">
+            <h3><i class="fas fa-pencil-alt"></i> Edit Layer Name</h3>
+            <input type="text" id="layerEditInput" placeholder="Enter name..." />
+            <div class="layer-edit-actions">
+                <button class="save-btn" id="layerEditSave"><i class="fas fa-check"></i> Save</button>
+                <button class="cancel-btn" id="layerEditCancel"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<script>
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -2044,9 +2132,9 @@
                 item.appendChild(span);
                 item.appendChild(actions);
 
-                // Click to select object
+                // Click layer item to select object
                 item.addEventListener('click', (e) => {
-                    if (e.target.tagName === 'INPUT' || e.target.isContentEditable || e.target.closest('.layer-actions')) return;
+                    if (e.target.closest('.layer-actions')) return;
                     if (obj.selectable) {
                         canvas.setActiveObject(obj);
                         selectedObject = obj;
@@ -2057,111 +2145,72 @@
                     }
                 });
 
-                // Edit name function (used by both dblclick and edit button)
-                let nameEditing = false;
-                function startEditName() {
-                    if (nameEditing) return;
-                    nameEditing = true;
-
-                    // Prevent double-creation if span already replaced
-                    if (!nameSpan.parentNode) {
-                        nameEditing = false;
-                        return;
-                    }
-
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || name);
-                    input.className = 'text-input';
-                    input.style.fontSize = '0.85rem';
-                    input.style.padding = '4px 8px';
-                    input.style.width = '100%';
-                    input.style.minWidth = '0';
-                    input.style.webkitUserSelect = 'text';
-                    input.style.userSelect = 'text';
-                    input.autocomplete = 'off';
-                    input.autocorrect = 'off';
-                    input.autocapitalize = 'off';
-                    input.spellcheck = false;
-                    nameSpan.replaceWith(input);
-
-                    // Robust focus for mobile: rAF + setTimeout prevents keyboard flash
-                    requestAnimationFrame(() => {
-                        setTimeout(() => {
-                            input.focus();
-                            input.setSelectionRange(0, input.value.length);
-                        }, 150);
-                    });
-
-                    function saveName() {
-                        nameEditing = false;
-                        const newName = input.value.trim();
-                        if (newName) {
-                            if (obj.type === 'i-text') {
-                                obj.set('text', newName);
-                                canvas.renderAll();
-                            }
-                            obj.__layerName = newName;
-                        }
-                        updateLayerList();
-                        saveState();
-                    }
-
-                    input.addEventListener('blur', () => {
-                        saveName();
-                    });
-
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            input.blur();
-                        } else if (e.key === 'Escape') {
-                            nameEditing = false;
-                            updateLayerList();
-                        }
-                    });
-                }
-
-                // Double-click to edit name (desktop)
+                // Double-click name to edit (desktop)
                 nameSpan.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
-                    startEditName();
+                    openLayerEditModal(obj);
                 });
 
-                // Edit button: unified touch + click handler with deduplication
+                // Edit button opens modal
                 const editBtn = item.querySelector('[data-action="edit"]');
                 if (editBtn) {
-                    let touchFired = false;
                     editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (touchFired) {
-                            touchFired = false;
-                            return;
-                        }
-                        startEditName();
+                        openLayerEditModal(obj);
                     });
-                    editBtn.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        touchFired = true;
-                    }, { passive: false });
-                    editBtn.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setTimeout(() => {
-                            startEditName();
-                            touchFired = false;
-                        }, 50);
-                    }, { passive: false });
                 }
 
+                // Delete button
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteObjectByIndex(index); });
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteObjectByIndex(index);
+                    });
                 }
+
                 list.appendChild(item);
             });
         }
+
+        let layerEditTarget = null;
+        function openLayerEditModal(obj) {
+            layerEditTarget = obj;
+            const modal = document.getElementById('layerEditModal');
+            const input = document.getElementById('layerEditInput');
+            if (!modal || !input) return;
+            const currentName = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || '');
+            input.value = currentName;
+            modal.classList.add('active');
+            // Focus after modal is visible
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    input.focus();
+                    input.setSelectionRange(0, input.value.length);
+                }, 100);
+            });
+        }
+        function closeLayerEditModal() {
+            const modal = document.getElementById('layerEditModal');
+            if (modal) modal.classList.remove('active');
+            layerEditTarget = null;
+        }
+        function saveLayerEdit() {
+            if (!layerEditTarget) return;
+            const input = document.getElementById('layerEditInput');
+            const newName = input.value.trim();
+            if (newName) {
+                if (layerEditTarget.type === 'i-text') {
+                    layerEditTarget.set('text', newName);
+                    canvas.renderAll();
+                }
+                layerEditTarget.__layerName = newName;
+            }
+            updateLayerList();
+            saveState();
+            closeLayerEditModal();
+        }
+
 
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
@@ -3083,6 +3132,16 @@
             setupBackgroundOptions();
             setupQtyControls();
             setupArrangeControls();
+            // Layer edit modal listeners
+            document.getElementById('layerEditSave').addEventListener('click', saveLayerEdit);
+            document.getElementById('layerEditCancel').addEventListener('click', closeLayerEditModal);
+            document.getElementById('layerEditInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') saveLayerEdit();
+                if (e.key === 'Escape') closeLayerEditModal();
+            });
+            document.getElementById('layerEditModal').addEventListener('click', (e) => {
+                if (e.target.id === 'layerEditModal') closeLayerEditModal();
+            });
             checkForSavedProgress();
             startAutoSave();
         }
