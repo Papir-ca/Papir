@@ -253,16 +253,14 @@
                 width: 100%; 
                 flex-direction: row; 
                 justify-content: flex-start; 
-                overflow-x: auto; 
+                flex-wrap: wrap;
                 padding: 4px 8px !important; 
                 gap: 6px; 
                 order: 2; 
                 min-height: 0 !important; 
                 margin: 0 !important;
                 transition: max-height 0.35s ease, opacity 0.35s ease;
-                max-height: 120px;
-                position: relative;
-                z-index: 2;
+                max-height: 300px;
             }
             .tools-panel.collapsed { 
                 max-height: 0; 
