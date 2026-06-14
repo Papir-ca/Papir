@@ -264,7 +264,17 @@
                 position: relative;
                 z-index: 2;
             }
-            .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
+            
+            .tools-panel.collapsed { 
+                max-height: 0; 
+                min-height: 0 !important; 
+                opacity: 0; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                overflow: hidden; 
+                border: none; 
+            }
+.tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
             .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
 
             /* ===== TOOLS TOGGLE ===== */
@@ -615,15 +625,7 @@
         }
         @media (min-width: 769px) {
             .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
-            .tools-panel.collapsed { 
-                max-height: 0; 
-                min-height: 0 !important; 
-                opacity: 0; 
-                padding: 0 !important; 
-                margin: 0 !important; 
-                overflow: hidden; 
-                border: none; 
-            }
+            
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
             .properties-panel .panel-header { justify-content: center !important; border-bottom-color: transparent !important; }
