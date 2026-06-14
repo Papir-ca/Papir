@@ -250,56 +250,17 @@
 
             /* ===== TOOLS PANEL ===== */
             .tools-panel { 
-                width: 100%; 
-                flex-direction: row; 
-                justify-content: flex-start; 
-                overflow-x: auto; 
-                padding: 4px 8px !important; 
-                gap: 6px; 
-                order: 2; 
-                min-height: 0 !important; 
-                margin: 0 !important;
-                transition: max-height 0.35s ease, opacity 0.35s ease;
-                max-height: 120px;
-                position: relative;
-                z-index: 2;
+                display: none !important;
             }
             
-            .tools-panel.collapsed { 
-                max-height: 0; 
-                min-height: 0 !important; 
-                opacity: 0; 
-                padding: 0 !important; 
-                margin: 0 !important; 
-                overflow: hidden; 
-                border: none; 
-            }
+
 .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
             .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
 
             /* ===== TOOLS TOGGLE ===== */
             .mobile-tools-toggle { 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                gap: 8px;
-                padding: 12px !important; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin: 0 !important; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                color: white; 
-                border: 1px solid rgba(255,255,255,0.1); 
-                -webkit-tap-highlight-color: transparent; 
-                touch-action: manipulation;
-                width: 100%;
-                box-sizing: border-box;
+                display: none !important;
             }
-            .mobile-tools-toggle:active { opacity: 0.9; }
-            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
 
             /* ===== ACCORDION ===== */
             .mobile-accordion-container { display: block; margin: 0; }
@@ -495,7 +456,42 @@
                 width: 100% !important;
                 box-sizing: border-box !important;
             }
-        }
+            .tools-tab-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 10px 0;
+            }
+            .tools-tab-content .tool-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                border: none;
+                background: transparent;
+                color: rgba(255,255,255,0.7);
+                font-size: 1.1rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .tools-tab-content .tool-btn:hover, .tools-tab-content .tool-btn.active {
+                background: var(--primary-gold);
+                color: white;
+                transform: translateY(-2px);
+            }
+            .tools-tab-content .tool-btn.danger:hover {
+                background: var(--danger);
+            }
+            .tools-tab-content .tool-divider {
+                width: 1px;
+                height: 70%;
+                margin: 0 3px;
+                background: rgba(255,255,255,0.1);
+                align-self: center;
+            }
+
         @media (max-width: 768px) and (orientation: landscape) {
             .canvas-area {
                 display: block !important;
@@ -980,6 +976,20 @@
                         <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
 
+                </div>
+                <div class="tab-content" id="toolsTab">
+                    <div class="tools-tab-content">
+                        <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
+                        <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
+                        <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
+                        <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
+                        <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                        <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
+                    </div>
                 </div>
 
 
@@ -2895,8 +2905,6 @@
             }
             const toolsPanel2 = document.querySelector('.tools-panel');
             if (toolsPanel2) { toolsPanel2.style.margin = '0'; toolsPanel2.style.padding = '4px 8px'; }
-            const mobileToggle2 = document.getElementById('mobileToolsToggle');
-            if (mobileToggle2) { mobileToggle2.style.margin = '0'; mobileToggle2.style.padding = '2px 8px'; }
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
@@ -2926,29 +2934,7 @@
                 });
             }
 
-            // Tools toggle below canvas
-            const canvasArea = document.querySelector('.canvas-area');
-            let toggle = document.getElementById('mobileToolsToggle');
-            if (!toggle && canvasArea) {
-                toggle = document.createElement('div');
-                toggle.className = 'mobile-tools-toggle collapsed';
-                toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<span><i class="fas fa-tools"></i> Tools</span><i class="fas fa-chevron-down"></i>';
-                canvasArea.appendChild(toggle);
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const toolsPanel = document.querySelector('.tools-panel');
-                    const icon = this.querySelector('i.fa-chevron-up, i.fa-chevron-down');
-                    if (toolsPanel) {
-                        toolsPanel.classList.toggle('collapsed');
-                        this.classList.toggle('collapsed');
-                        if (icon) {
-                            icon.classList.toggle('fa-chevron-up');
-                            icon.classList.toggle('fa-chevron-down');
-                        }
-                    }
-                });
-            }
+            // Tools now in accordion tab, no standalone toggle needed
 
             // Mobile accordion for Design/Layers/Settings
             let accordion = document.getElementById('mobileAccordionContainer');
@@ -2959,7 +2945,7 @@
                 const tabData = [
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-
+                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                 ];
                 tabData.forEach(tab => {
                     const header = document.createElement('div');
@@ -3033,7 +3019,6 @@
                 const isNarrow = window.innerWidth <= 768;
                 const isTouch = window.matchMedia('(pointer: coarse)').matches;
                 const toolsPanel = document.querySelector('.tools-panel');
-                const toggleEl = document.getElementById('mobileToolsToggle');
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
@@ -3043,7 +3028,6 @@
 
                 if (!isNarrow) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
-                    if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
                     if (tabs) tabs.style.display = '';
                     if (accordionContainer) accordionContainer.style.display = 'none';
                     tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
@@ -3057,7 +3041,6 @@
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
                     if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    if (toggleEl) toggleEl.classList.add('collapsed');
                     tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
