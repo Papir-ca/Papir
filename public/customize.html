@@ -150,9 +150,7 @@
                 padding: 0 !important; 
                 margin: 0 !important; 
                 background: transparent !important;
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 5 !important;
+                position: static !important;
                 border: none !important;
                 border-radius: 0 !important;
                 width: 100% !important;
@@ -274,30 +272,6 @@
             .tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
             .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
 
-            /* ===== TOOLS TOGGLE ===== */
-            .mobile-tools-toggle { 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                gap: 8px;
-                padding: 12px !important; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin: 0 !important; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                color: white; 
-                border: 1px solid rgba(255,255,255,0.1); 
-                -webkit-tap-highlight-color: transparent; 
-                touch-action: manipulation;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .mobile-tools-toggle:active { opacity: 0.9; }
-            .mobile-tools-toggle i { transition: transform 0.2s; pointer-events: none; }
-            .mobile-tools-toggle.collapsed i.fa-chevron-up { transform: rotate(180deg); }
-
             /* ===== ACCORDION ===== */
             .mobile-accordion-container { display: block; margin: 0; }
             .mobile-accordion-header {
@@ -337,6 +311,7 @@
                 height: auto !important;
                 min-height: auto !important;
                 display: block !important;
+                overflow: visible !important;
                 position: relative;
                 z-index: 2;
             }
@@ -394,7 +369,7 @@
             }
 
             /* ===== LESS SENSITIVE ===== */
-            .mobile-tools-toggle, .mobile-accordion-header, .mobile-lock-toggle,
+            .mobile-accordion-header, .mobile-lock-toggle,
             .property-section h4, .btn-icon, .tool-btn, .layer-item, .checkout-btn {
                 touch-action: manipulation; 
                 -webkit-tap-highlight-color: transparent;
@@ -493,10 +468,7 @@
                 display: block !important;
                 width: 100% !important;
             }
-            .mobile-tools-toggle {
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
+
             #canvasContainer {
                 width: 100% !important;
                 height: auto !important;
@@ -619,7 +591,7 @@
             #toggleHandlesBtn { display: none !important; }
         }
         @media (min-width: 769px) {
-            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
+            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
             .tools-panel.collapsed { max-height: none; opacity: 1; overflow: visible; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -2888,8 +2860,7 @@
             }
             const toolsPanel2 = document.querySelector('.tools-panel');
             if (toolsPanel2) { toolsPanel2.style.margin = '0'; toolsPanel2.style.padding = '4px 8px'; }
-            const mobileToggle2 = document.getElementById('mobileToolsToggle');
-            if (mobileToggle2) { mobileToggle2.style.margin = '0'; mobileToggle2.style.padding = '2px 8px'; }
+            /* toggle removed */
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
@@ -2919,29 +2890,7 @@
                 });
             }
 
-            // Tools toggle below canvas
-            const canvasArea = document.querySelector('.canvas-area');
-            let toggle = document.getElementById('mobileToolsToggle');
-            if (!toggle && canvasArea) {
-                toggle = document.createElement('div');
-                toggle.className = 'mobile-tools-toggle collapsed';
-                toggle.id = 'mobileToolsToggle';
-                toggle.innerHTML = '<span><i class="fas fa-tools"></i> Tools</span><i class="fas fa-chevron-down"></i>';
-                canvasArea.appendChild(toggle);
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const toolsPanel = document.querySelector('.tools-panel');
-                    const icon = this.querySelector('i.fa-chevron-up, i.fa-chevron-down');
-                    if (toolsPanel) {
-                        toolsPanel.classList.toggle('collapsed');
-                        this.classList.toggle('collapsed');
-                        if (icon) {
-                            icon.classList.toggle('fa-chevron-up');
-                            icon.classList.toggle('fa-chevron-down');
-                        }
-                    }
-                });
-            }
+            // Tools panel: always visible on mobile, no toggle
 
             // Mobile accordion for Design/Layers/Settings
             let accordion = document.getElementById('mobileAccordionContainer');
@@ -3026,7 +2975,6 @@
                 const isNarrow = window.innerWidth <= 768;
                 const isTouch = window.matchMedia('(pointer: coarse)').matches;
                 const toolsPanel = document.querySelector('.tools-panel');
-                const toggleEl = document.getElementById('mobileToolsToggle');
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
@@ -3036,7 +2984,6 @@
 
                 if (!isNarrow) {
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
-                    if (toggleEl) { toggleEl.classList.remove('collapsed'); toggleEl.style = ''; }
                     if (tabs) tabs.style.display = '';
                     if (accordionContainer) accordionContainer.style.display = 'none';
                     tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
@@ -3049,8 +2996,7 @@
                 } else {
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
-                    if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    if (toggleEl) toggleEl.classList.add('collapsed');
+                    if (toolsPanel) toolsPanel.classList.remove('collapsed');
                     tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
