@@ -672,22 +672,41 @@
             .tools-panel-mobile {
                 display: flex !important;
                 flex-direction: row;
-                flex-wrap: wrap;
                 justify-content: flex-start;
+                overflow-x: auto;
                 gap: 6px;
-                padding: 8px;
+                padding: 10px 0;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+                width: 100%;
             }
             .tools-panel-mobile .tool-btn {
-                width: 48px;
-                height: 48px;
+                width: 42px;
+                height: 42px;
                 flex-shrink: 0;
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+                border-radius: 10px;
+                border: none;
+                background: transparent;
+                color: rgba(255,255,255,0.7);
+                cursor: pointer;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .tools-panel-mobile .tool-btn:hover, .tools-panel-mobile .tool-btn.active {
+                background: var(--primary-gold);
+                color: white;
+                transform: translateY(-2px);
+            }
+            .tools-panel-mobile .tool-btn.danger:hover {
+                background: var(--danger);
             }
             .tools-panel-mobile .tool-divider {
                 width: 1px;
                 height: 70%;
                 margin: 0 3px;
                 background: rgba(255,255,255,0.1);
+                align-self: center;
             }
             .tools-panel { display: none !important; }
         }
@@ -2930,9 +2949,9 @@
                 accordion.id = 'mobileAccordionContainer';
                 accordion.className = 'mobile-accordion-container';
                 const tabData = [
+                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                 ];
                 tabData.forEach(tab => {
                     const header = document.createElement('div');
