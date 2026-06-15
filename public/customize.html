@@ -765,6 +765,20 @@
                     <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
+                <div class="tab-content" id="toolsTab">
+                    <div class="tools-tab-content">
+                        <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
+                        <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
+                        <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
+                        <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
+                        <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                        <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
                 <div class="tab-content active" id="designTab">
                     <div id="noSelection" class="empty-state">
                         <p style="font-size: 0.85rem; opacity: 0.7; text-align: center; padding: 10px 0;">Select an element to edit or use tools to add new elements</p>
@@ -977,20 +991,7 @@
                     </div>
 
                 </div>
-                <div class="tab-content" id="toolsTab">
-                    <div class="tools-tab-content">
-                        <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
-                        <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
-                        <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
-                        <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
-                        <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
-                        <div class="tool-divider"></div>
-                        <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                        <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                        <div class="tool-divider"></div>
-                        <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
+                
 
 
                 <div class="checkout-section">
