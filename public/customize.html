@@ -2992,6 +2992,11 @@
                                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                                 if (accordionContainer) {
                                     accordionContainer.appendChild(this);
+                                    // Move content div right after the header
+                                    const contentDiv = document.getElementById(targetId);
+                                    if (contentDiv) {
+                                        accordionContainer.appendChild(contentDiv);
+                                    }
                                 }
                             }
                         }
@@ -3003,7 +3008,9 @@
                 accordionHeaders.forEach(header => {
                     const contentId = header.dataset.target;
                     const contentDiv = document.getElementById(contentId);
-                    if (contentDiv) {
+                    if (contentDiv && header.nextSibling) {
+                        accordion.insertBefore(contentDiv, header.nextSibling);
+                    } else if (contentDiv) {
                         accordion.appendChild(contentDiv);
                     }
                 });
