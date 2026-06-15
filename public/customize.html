@@ -2999,6 +2999,14 @@
                     accordion.appendChild(header);
                     accordionHeaders.push(header);
                 });
+                // Move each content div to be right after its header in the accordion
+                accordionHeaders.forEach(header => {
+                    const contentId = header.dataset.target;
+                    const contentDiv = document.getElementById(contentId);
+                    if (contentDiv) {
+                        accordion.appendChild(contentDiv);
+                    }
+                });
                 const propertiesPanel = document.querySelector('.properties-panel');
                 const tabs = propertiesPanel.querySelector('.tabs');
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
