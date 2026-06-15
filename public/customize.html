@@ -2943,14 +2943,16 @@
                 accordion.id = 'mobileAccordionContainer';
                 accordion.className = 'mobile-accordion-container';
                 const tabData = [
+                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                 ];
+                let accordionHeaders = [];
                 tabData.forEach(tab => {
                     const header = document.createElement('div');
                     header.className = 'mobile-accordion-header';
                     header.dataset.target = tab.contentId;
+                    header.dataset.tabId = tab.tabId;
                     header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
                     header.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -2959,6 +2961,7 @@
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
                         const isActive = this.classList.contains('active');
+                        const tabId = this.dataset.tabId;
 
                         if (isActive) {
                             // Close this one only
@@ -2966,7 +2969,7 @@
                             if (chevron) chevron.style.transform = 'rotate(0deg)';
                             if (targetContent) targetContent.style.display = 'none';
                         } else {
-                            // Close other Design/Layers/Settings accordions
+                            // Close all other accordions
                             document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                                 if (h !== this) {
                                     h.classList.remove('active');
@@ -2983,9 +2986,17 @@
                                 targetContent.style.display = 'block';
                                 setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
                             }
+                            // Move expanded tab to bottom (Tools stays at top)
+                            if (tabId !== 'tools') {
+                                const accordionContainer = document.getElementById('mobileAccordionContainer');
+                                if (accordionContainer) {
+                                    accordionContainer.appendChild(this);
+                                }
+                            }
                         }
                     });
                     accordion.appendChild(header);
+                    accordionHeaders.push(header);
                 });
                 const propertiesPanel = document.querySelector('.properties-panel');
                 const tabs = propertiesPanel.querySelector('.tabs');
