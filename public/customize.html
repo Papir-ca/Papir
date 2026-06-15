@@ -154,11 +154,12 @@
                 top: 0 !important;
                 z-index: 5 !important;
                 border: none !important;
+                border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important;
                 border-radius: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 overflow: visible !important;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+                box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(6, 214, 160, 0.15);
             }
 
             /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
@@ -305,7 +306,12 @@
                 position: relative;
                 z-index: 2;
             }
-            .properties-panel .tab-content { padding: 0 8px; }
+            .properties-panel .tab-content { 
+                padding: 0 8px; 
+                max-height: 60vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
             .properties-panel .checkout-section { margin: 8px !important; }
             .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
             .properties-panel .panel-title { font-size: 0.85rem; }
@@ -2929,9 +2935,19 @@
                     const toWrap = Array.from(section.children).filter(c => c !== h4 && !c.classList.contains('section-content'));
                     toWrap.forEach(c => wrapper.appendChild(c));
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
+                    // Start collapsed on mobile
+                    if (window.innerWidth <= 768) section.classList.add('collapsed');
                     h4.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        if (window.innerWidth <= 768) section.classList.toggle('collapsed');
+                        if (window.innerWidth <= 768) {
+                            const isCollapsed = section.classList.contains('collapsed');
+                            // Close all other sections first (only one open at a time)
+                            document.querySelectorAll('.property-section').forEach(other => {
+                                if (other !== section) other.classList.add('collapsed');
+                            });
+                            // Toggle this section
+                            section.classList.toggle('collapsed', !isCollapsed);
+                        }
                     });
                 });
             }
@@ -2956,9 +2972,19 @@
                     header.dataset.target = tab.contentId;
                     header.dataset.tabId = tab.tabId;
                     header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
+                    let touchStartY = 0;
+                    let touchMoved = false;
+                    header.addEventListener('touchstart', function(e) {
+                        touchStartY = e.touches[0].clientY;
+                        touchMoved = false;
+                    }, { passive: true });
+                    header.addEventListener('touchmove', function(e) {
+                        if (Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
+                    }, { passive: true });
                     header.addEventListener('click', function(e) {
                         e.stopPropagation();
                         if (window.innerWidth > 768) return;
+                        if (touchMoved) return; // Don't trigger if user scrolled
                         const targetId = this.dataset.target;
                         const targetContent = document.getElementById(targetId);
                         const chevron = this.querySelector('.accordion-chevron');
