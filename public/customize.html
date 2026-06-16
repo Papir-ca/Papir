@@ -788,8 +788,7 @@
                 </div>
                 <div class="tab-content active" id="designTab">
                     <div id="noSelection" class="empty-state">
-                        <p style="font-size: 0.85rem; opacity: 0.7; text-align: center; padding: 10px 0;">Select an element to edit or use tools to add new elements</p>
-                        <div class="property-section" style="margin-top: 20px;">
+                        <div class="property-section" style="margin-top: 0;">
                             <h4><i class="fas fa-image"></i> Change Background</h4>
                             <div class="bg-options" id="bgOptions">
                                 <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
@@ -2981,53 +2980,53 @@
                     header.addEventListener('touchmove', function(e) {
                         if (Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
                     }, { passive: true });
-                    header.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        if (window.innerWidth > 768) return;
-                        if (touchMoved) return; // Don't trigger if user scrolled
-                        const targetId = this.dataset.target;
-                        const targetContent = document.getElementById(targetId);
-                        const chevron = this.querySelector('.accordion-chevron');
-                        const isActive = this.classList.contains('active');
-                        const tabId = this.dataset.tabId;
+                    // Only the chevron arrow toggles expand/collapse
+                    const chevronIcon = header.querySelector('.accordion-chevron');
+                    if (chevronIcon) {
+                        chevronIcon.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (window.innerWidth > 768) return;
+                            const targetId = header.dataset.target;
+                            const targetContent = document.getElementById(targetId);
+                            const isActive = header.classList.contains('active');
+                            const tabId = header.dataset.tabId;
 
-                        if (isActive) {
-                            // Close this one only
-                            this.classList.remove('active');
-                            if (chevron) chevron.style.transform = 'rotate(0deg)';
-                            if (targetContent) targetContent.style.display = 'none';
-                        } else {
-                            // Close all other accordions
-                            document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                                if (h !== this) {
-                                    h.classList.remove('active');
-                                    const c = h.querySelector('.accordion-chevron');
-                                    if (c) c.style.transform = 'rotate(0deg)';
-                                    const other = document.getElementById(h.dataset.target);
-                                    if (other) other.style.display = 'none';
+                            if (isActive) {
+                                // Close this one only
+                                header.classList.remove('active');
+                                chevronIcon.style.transform = 'rotate(0deg)';
+                                if (targetContent) targetContent.style.display = 'none';
+                            } else {
+                                // Close all other accordions
+                                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                                    if (h !== header) {
+                                        h.classList.remove('active');
+                                        const c = h.querySelector('.accordion-chevron');
+                                        if (c) c.style.transform = 'rotate(0deg)';
+                                        const other = document.getElementById(h.dataset.target);
+                                        if (other) other.style.display = 'none';
+                                    }
+                                });
+                                // Open this one
+                                header.classList.add('active');
+                                chevronIcon.style.transform = 'rotate(180deg)';
+                                if (targetContent) {
+                                    targetContent.style.display = 'block';
                                 }
-                            });
-                            // Open this one
-                            this.classList.add('active');
-                            if (chevron) chevron.style.transform = 'rotate(180deg)';
-                            if (targetContent) {
-                                targetContent.style.display = 'block';
-                                setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
-                            }
-                            // Move expanded tab to bottom (Tools stays at top)
-                            if (tabId !== 'tools') {
-                                const accordionContainer = document.getElementById('mobileAccordionContainer');
-                                if (accordionContainer) {
-                                    accordionContainer.appendChild(this);
-                                    // Move content div right after the header
-                                    const contentDiv = document.getElementById(targetId);
-                                    if (contentDiv) {
-                                        accordionContainer.appendChild(contentDiv);
+                                // Move expanded tab to bottom (Tools stays at top)
+                                if (tabId !== 'tools') {
+                                    const accordionContainer = document.getElementById('mobileAccordionContainer');
+                                    if (accordionContainer) {
+                                        accordionContainer.appendChild(header);
+                                        const contentDiv = document.getElementById(targetId);
+                                        if (contentDiv) {
+                                            accordionContainer.appendChild(contentDiv);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                     accordion.appendChild(header);
                     accordionHeaders.push(header);
                 });
