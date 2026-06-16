@@ -21,6 +21,7 @@
         }
         /* ===== GLOBAL: Remove all canvas borders ===== */
         .canvas-area, .canvas-container, #designCanvas, #canvasContainer, .lower-canvas, .upper-canvas { border: none !important; outline: none !important; box-shadow: none !important; }
+        html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
         .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
@@ -2952,26 +2953,17 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                     // Start collapsed on mobile
                     if (window.innerWidth <= 768) section.classList.add('collapsed');
-                    // Add chevron to h4
-                    const chevron = document.createElement('i');
-                    chevron.className = 'fas fa-chevron-down section-chevron';
-                    chevron.style.cssText = 'margin-left:auto;font-size:0.75rem;color:var(--primary-gold);transition:transform 0.2s;cursor:pointer;padding:4px 8px;';
-                    h4.style.cssText = (h4.getAttribute('style') || '') + ';display:flex;align-items:center;justify-content:space-between;';
-                    h4.appendChild(chevron);
-                    // Only chevron toggles
-                    chevron.addEventListener('click', function(e) {
+                    // h4 click toggles section (only one open at a time)
+                    h4.addEventListener('click', function(e) {
                         e.stopPropagation();
                         if (window.innerWidth <= 768) {
                             const isCollapsed = section.classList.contains('collapsed');
+                            // Close all other sections first
                             document.querySelectorAll('.property-section').forEach(other => {
-                                if (other !== section) {
-                                    other.classList.add('collapsed');
-                                    const otherChevron = other.querySelector('.section-chevron');
-                                    if (otherChevron) otherChevron.style.transform = 'rotate(0deg)';
-                                }
+                                if (other !== section) other.classList.add('collapsed');
                             });
+                            // Toggle this section
                             section.classList.toggle('collapsed', !isCollapsed);
-                            this.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
                         }
                     });
                 });
@@ -3256,6 +3248,12 @@
             }
         });
 
+        // Prevent pull-to-refresh from closing dropdowns
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.mobile-accordion-container') || e.target.closest('.tab-content')) {
+                e.stopPropagation();
+            }
+        }, { passive: true });
         init();
         console.log('✅ init() completed successfully');
     </script>
