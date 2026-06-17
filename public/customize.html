@@ -18,7 +18,6 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        .canvas-area, .canvas-container, #designCanvas, #canvasContainer, .lower-canvas, .upper-canvas { border: none !important; outline: none !important; box-shadow: none !important; }
         html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
@@ -28,14 +27,13 @@
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
 
         .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
-        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
-        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
+        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; min-height: 0; }
+        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; flex-shrink: 0; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
-        .canvas-container { flex: 1; border-radius: 0 !important; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; }
-        #designCanvas { box-shadow: none !important; border-radius: 0 !important; border: none !important; }
-        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
+        .canvas-container { flex: 1; border-radius: 0 !important; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; min-height: 0; }
+        #designCanvas { width: 600px; height: 450px; max-width: 100%; display: block; background: #ffffff; }
+        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; min-height: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
         .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
         .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
@@ -86,7 +84,6 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* ===== COLOR PALETTES ===== */
         .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .palette-btn { padding: 10px 6px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; font-size: 0.75rem; text-align: center; transition: all 0.2s; font-weight: 600; }
         .palette-btn:hover { transform: scale(1.05); border-color: white; }
@@ -96,34 +93,35 @@
         .palette-dark { background: #1a1a2e; color: var(--primary-gold); border: 1px solid rgba(255,255,255,0.2); }
         .palette-minimal { background: #ffffff; color: #333; border: 1px solid rgba(0,0,0,0.1); }
 
-        /* ===== DIRECT MEDIA BUTTONS ===== */
         .media-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .media-btn { padding: 14px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .media-btn:hover { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
         .media-btn i { font-size: 1rem; }
 
-        /* ===== PREVIEW MODE ===== */
         .preview-btn { background: rgba(6, 214, 160, 0.2); border-color: var(--primary-teal); }
         .preview-btn:hover { background: var(--primary-teal); color: white; }
         .preview-btn.active { background: var(--primary-teal); color: white; }
         .preview-mode .properties-panel { display: none !important; }
-        .preview-mode .canvas-area { flex: 1 !important; width: 100% !important; }
+        .preview-mode .design-layout { gap: 0 !important; }
+        .preview-mode .canvas-area { flex: 1 !important; }
         .preview-mode .canvas-toolbar { opacity: 0.3; }
         .preview-mode .canvas-toolbar:hover { opacity: 1; }
-        .preview-mode .mobile-object-handle, .preview-mode .mobile-rotate-handle { display: none !important; }
 
-        /* ===== DONE BUTTON (text editing) ===== */
         .done-btn { background: var(--primary-teal); color: #1a1a2e; font-weight: 700; border-color: var(--primary-teal); }
         .done-btn:hover { background: #05b386; }
 
-        /* ===== FIRST-RUN HINT ===== */
         .hint-bubble { position: fixed; background: var(--primary-gold); color: #1a1a2e; padding: 10px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: hintPulse 2s infinite; pointer-events: none; display: none; }
         @keyframes hintPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-        /* ===== FABRIC.JS TEXT EDITING FIX FOR TOUCH ===== */
         .canvas-container textarea { font-size: 16px !important; caret-color: black !important; z-index: 1000 !important; pointer-events: auto !important; -webkit-user-select: text !important; user-select: text !important; }
 
-        @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
+        .mobile-context-menu { position: fixed; background: rgba(26, 26, 46, 0.98); border: 1px solid var(--primary-gold); border-radius: 12px; padding: 6px 0; z-index: 9999; display: none; min-width: 200px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
+        .mobile-context-menu .ctx-item { padding: 14px 18px; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        .mobile-context-menu .ctx-item:last-child { border-bottom: none; }
+        .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
+        .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
+        .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
+        .ctx-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 9998; display: none; }
 
         .mobile-handle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
         .mobile-object-handle { position: absolute; width: 24px; height: 24px; background: rgba(6, 214, 160, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: transform 0.1s, background 0.1s; }
@@ -132,33 +130,31 @@
         .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
         .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
 
+        @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
+
         @media (max-width: 768px) {
-            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
-            .design-layout { flex-direction: column; height: auto !important; min-height: auto !important; max-height: none !important; gap: 0 !important; flex: none !important; }
-            .canvas-area { order: 1; display: block !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: rgba(26, 26, 46, 0.95) !important; position: sticky !important; top: 0 !important; z-index: 5 !important; border: none !important; border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important; border-radius: 0 !important; width: 100% !important; max-width: 100% !important; overflow: visible !important; box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(6, 214, 160, 0.15); }
-            .canvas-container { display: block !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; overflow: visible; line-height: 0; text-align: center; border: none !important; border-radius: 0 !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; }
-            #designCanvas { max-width: 100%; width: 100%; height: auto !important; max-height: 50vh; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; min-width: 100% !important; aspect-ratio: 600 / 450 !important; }
-            #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
-            #canvasContainer .canvas-container { width: 100% !important; max-width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; max-height: 55vh !important; margin: 0 !important; position: relative !important; left: 0 !important; right: 0 !important; }
-            .canvas-toolbar { margin: 0 !important; padding: 4px 8px !important; font-size: 0.75rem; min-height: 32px; border-bottom: none !important; width: 100% !important; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.3; font-size: 0.68rem !important; }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: rgba(26, 26, 46, 0.95); position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 200px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; }
+            #designCanvas { max-width: 100%; width: 100%; height: auto; max-height: 50vh; min-height: 200px; display: block; margin: 0 auto; aspect-ratio: 600 / 450; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .grid-overlay { display: none; }
-            #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; min-width: 110px; font-size: 0.75rem; }
-            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0 !important; flex: none !important; height: auto !important; min-height: auto !important; display: block !important; position: relative; z-index: 2; }
-            .properties-panel .tab-content { padding: 0 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block !important; }
-            .properties-panel .tabs { display: none !important; }
-            .properties-panel .checkout-section { margin: 8px !important; }
-            .properties-panel .panel-header { display: none !important; }
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
             .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
             .property-section.collapsed h4::after { transform: rotate(-90deg); }
             .property-section.collapsed .section-content { display: none; }
             .property-section .section-content { padding-top: 6px; }
-            .checkout-section { margin-top: 8px !important; }
+            .checkout-section { margin-top: 8px; }
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
@@ -175,20 +171,12 @@
             .preview-mode .properties-panel { display: none !important; }
             .preview-mode .canvas-area { width: 100% !important; }
             .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
-            .mobile-context-menu { position: fixed; background: rgba(26, 26, 46, 0.98); border: 1px solid var(--primary-gold); border-radius: 12px; padding: 6px 0; z-index: 9999; display: none; min-width: 200px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
-            .mobile-context-menu .ctx-item { padding: 14px 18px; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-            .mobile-context-menu .ctx-item:last-child { border-bottom: none; }
-            .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
-            .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
-            .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
-            .ctx-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 9998; display: none; }
         }
 
         @media (max-width: 768px) and (orientation: landscape) {
-            .canvas-area { display: block !important; width: 100% !important; }
-            #canvasContainer { width: 100% !important; height: auto !important; max-height: 80vh !important; display: flex !important; justify-content: center !important; align-items: center !important; border: none !important; border-radius: 0 !important; position: relative !important; }
-            #canvasContainer .canvas-container { width: 100% !important; height: auto !important; max-width: 100% !important; max-height: 80vh !important; aspect-ratio: 600 / 450 !important; border: none !important; border-radius: 0 !important; margin: 0 auto !important; position: relative !important; }
-            #designCanvas { max-width: 100% !important; width: 100% !important; height: auto !important; max-height: 80vh !important; display: block !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; outline: none !important; border-radius: 0 !important; aspect-ratio: 600 / 450 !important; }
+            .canvas-area { display: block; width: 100%; }
+            .canvas-container { width: 100%; height: auto; min-height: 200px; display: flex; justify-content: center; align-items: center; border: none; border-radius: 0; position: relative; }
+            #designCanvas { max-width: 100%; width: auto; height: auto; max-height: 80vh; min-height: 200px; display: block; margin: 0 auto; aspect-ratio: 600 / 450; }
         }
 
         @media (min-width: 769px) and (pointer: coarse) {
@@ -207,8 +195,6 @@
             #designCanvas { border-radius: 4px; }
             .canvas-toolbar .btn-icon.small { min-height: 40px; padding: 8px 12px; }
             .property-section h4 { padding: 10px 0; }
-            .toggle-switch { width: 48px; height: 26px; }
-            .toggle-switch::after { width: 22px; height: 22px; }
             .media-btn { padding: 16px 10px; }
         }
 
@@ -216,6 +202,7 @@
             .mobile-context-menu, .ctx-backdrop { display: none !important; }
             #toggleHandlesBtn { display: none !important; }
         }
+
         @media (min-width: 769px) {
             #mobileResetBtn { display: none !important; }
             .property-section.collapsed .section-content { display: block !important; }
@@ -274,7 +261,6 @@
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
                 <div class="tab-content active" id="designTab">
-                    <!-- Background - Always Visible -->
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background</h4>
                         <div class="section-content">
@@ -301,7 +287,6 @@
                         </div>
                     </div>
 
-                    <!-- Add Media - Always Visible -->
                     <div class="property-section">
                         <h4><i class="fas fa-photo-video"></i> Add Media</h4>
                         <div class="section-content">
@@ -317,7 +302,6 @@
                         </div>
                     </div>
 
-                    <!-- Text Style - Conditional (text selected) -->
                     <div id="textControls" style="display: none;">
                         <div class="property-section">
                             <h4><i class="fas fa-edit"></i> Text Content</h4>
@@ -399,7 +383,6 @@
                         </div>
                     </div>
 
-                    <!-- Position & Size - Conditional (any object selected) -->
                     <div id="transformControls" style="display: none;">
                         <div class="property-section">
                             <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
@@ -484,7 +467,8 @@
         <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
     </div>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
-<script>
+
+    <script>
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -503,8 +487,7 @@
                 selectable: true, evented: true,
                 lockScalingX: false, lockScalingY: false,
                 lockRotation: false, lockMovementX: false, lockMovementY: false,
-                snapAngle: 45,
-                snapThreshold: 5
+                snapAngle: 45, snapThreshold: 5
             });
             if (obj.setControlVisible) {
                 ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
@@ -548,8 +531,7 @@
                         if (!img) { console.warn('Failed to load texture:', config.textureUrl); resolve(); return; }
                         img.set({
                             left: 0, top: 0,
-                            scaleX: canvas.width / img.width,
-                            scaleY: canvas.height / img.height,
+                            scaleX: canvas.width / img.width, scaleY: canvas.height / img.height,
                             selectable: false, evented: false,
                             originX: 'left', originY: 'top',
                             isTexture: true, hoverCursor: 'default'
@@ -601,6 +583,23 @@
             }
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+        }
+
+        async function loadDemoTemplate() {
+            canvas.clear();
+            canvas.backgroundColor = '#F5F5DC';
+            await addTextElement('Happy Birthday!', 300, 120, {
+                fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
+            });
+            await addTextElement('To someone special', 300, 200, {
+                fontSize: 24, fontFamily: 'Montserrat', fill: '#764ba2'
+            });
+            await addTextElement('Wishing you all the best!', 300, 280, {
+                fontSize: 18, fontFamily: 'Montserrat', fill: '#333'
+            });
+            canvas.renderAll();
+            saveState();
+            updateLayerList();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -1073,7 +1072,6 @@
                 showSelectionControls();
             } else {
                 selectedObject = null;
-                document.getElementById('selectionControls')?.style?.display = 'none';
                 showNoSelection();
             }
             updateLayerList();
@@ -1715,7 +1713,6 @@
             }
         }
 
-        /* ===== PREVIEW MODE ===== */
         function togglePreview() {
             isPreviewMode = !isPreviewMode;
             const btn = document.getElementById('previewBtn');
@@ -1750,7 +1747,6 @@
             }
         }
 
-        /* ===== MOBILE OBJECT HANDLES ===== */
         let mobileHandles = [];
         let handleDragState = null;
 
@@ -1987,55 +1983,6 @@
             menu.style.top = top + 'px';
         }
 
-        function applyMobileSpacingFix() {
-            if (window.innerWidth > 768) return;
-            const canvasArea = document.querySelector('.canvas-area');
-            const canvasContainer = document.querySelector('.canvas-container');
-            const canvasToolbar = document.querySelector('.canvas-toolbar');
-            const designLayout = document.querySelector('.design-layout');
-            const appContainer = document.querySelector('.app-container');
-            const designCanvas = document.getElementById('designCanvas');
-            if (canvasArea) {
-                canvasArea.style.display = 'block';
-                canvasArea.style.flex = 'none';
-                canvasArea.style.height = 'auto';
-                canvasArea.style.minHeight = 'auto';
-                canvasArea.style.padding = '0';
-                canvasArea.style.margin = '0';
-                canvasArea.style.background = 'transparent';
-            }
-            if (canvasContainer) {
-                canvasContainer.style.display = 'block';
-                canvasContainer.style.flex = 'none';
-                canvasContainer.style.height = 'auto';
-                canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.padding = '0';
-                canvasContainer.style.margin = '0';
-                canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundImage = 'none';
-            }
-            if (canvasToolbar) {
-                canvasToolbar.style.margin = '0';
-                canvasToolbar.style.padding = '2px 4px';
-                canvasToolbar.style.borderBottom = 'none';
-            }
-            if (designLayout) {
-                designLayout.style.height = 'auto';
-                designLayout.style.minHeight = 'auto';
-                designLayout.style.flex = 'none';
-                designLayout.style.gap = '0';
-            }
-            if (appContainer) {
-                appContainer.style.height = 'auto';
-                appContainer.style.minHeight = 'auto';
-            }
-            if (designCanvas) {
-                designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0 auto';
-                designCanvas.style.boxShadow = 'none';
-            }
-        }
-
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
@@ -2075,7 +2022,6 @@
                 });
             }
 
-            // Direct media buttons
             document.getElementById('addTextBtn').addEventListener('click', addNewText);
             document.getElementById('addPhotoBtn').addEventListener('click', () => document.getElementById('fileInput').click());
             document.getElementById('addVideoBtn').addEventListener('click', () => document.getElementById('videoInput').click());
@@ -2158,7 +2104,6 @@
         }
 
         function handleResize() {
-            applyMobileSpacingFix();
             const isNarrow = window.innerWidth <= 768;
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
             const tabs = document.querySelector('.tabs');
@@ -2209,10 +2154,11 @@
         }
 
         async function init() {
-            if (document.fonts) await document.fonts.ready;
+            if (document.fonts) {
+                try { await document.fonts.ready; } catch (e) {}
+            }
             setupEventListeners();
             setupMobileContextMenu();
-            applyMobileSpacingFix();
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
@@ -2230,12 +2176,10 @@
                     }
                 } catch (e) {
                     console.error('Error loading template:', e);
-                    canvas.backgroundColor = '#ffffff';
-                    canvas.renderAll();
+                    await loadDemoTemplate();
                 }
             } else {
-                canvas.backgroundColor = '#ffffff';
-                canvas.renderAll();
+                await loadDemoTemplate();
             }
             updateCheckoutDisplay();
             setupTabs();
@@ -2249,7 +2193,7 @@
             startAutoSave();
             handleResize();
             window.addEventListener('resize', handleResize);
-            window.addEventListener('orientationchange', () => { setTimeout(() => { applyMobileSpacingFix(); handleResize(); }, 300); });
+            window.addEventListener('orientationchange', () => { setTimeout(() => { handleResize(); }, 300); });
             setTimeout(showFirstRunHint, 1000);
             console.log('init() completed successfully');
         }
