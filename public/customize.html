@@ -787,7 +787,7 @@
                         <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
-                <div class="tab-content" id="designTab">
+                <div class="tab-content active" id="designTab">
                     <div id="noSelection" class="empty-state">
                         <div class="property-section" style="margin-top: 0;">
                             <h4><i class="fas fa-image"></i> Change Background</h4>
@@ -2953,6 +2953,19 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                     // Start collapsed on mobile
                     if (window.innerWidth <= 768) section.classList.add('collapsed');
+                    // Only arrow (right side of h4) toggles on mobile
+                    h4.addEventListener('click', function(e) {
+                        if (window.innerWidth > 768) return;
+                        const rect = h4.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        // Arrow is on the right side - only toggle if clicking right 40px
+                        if (clickX < rect.width - 40) return;
+                        const isCollapsed = section.classList.contains('collapsed');
+                        document.querySelectorAll('.property-section').forEach(other => {
+                            if (other !== section) other.classList.add('collapsed');
+                        });
+                        section.classList.toggle('collapsed', !isCollapsed);
+                    });
                 });
             }
 
@@ -3194,6 +3207,16 @@
             });
             checkForSavedProgress();
             startAutoSave();
+            // Mobile: ensure all accordion tabs start collapsed
+            if (window.innerWidth <= 768) {
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(h.dataset.target);
+                    if (content) content.style.display = 'none';
+                });
+            }
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
