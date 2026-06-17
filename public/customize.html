@@ -217,6 +217,7 @@
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -525,24 +526,6 @@
             canvas.clear();
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
-            if (config.textureUrl) {
-                await new Promise((resolve) => {
-                    fabric.Image.fromURL(config.textureUrl, (img) => {
-                        if (!img) { console.warn('Failed to load texture:', config.textureUrl); resolve(); return; }
-                        img.set({
-                            left: 0, top: 0,
-                            scaleX: canvas.width / img.width, scaleY: canvas.height / img.height,
-                            selectable: false, evented: false,
-                            originX: 'left', originY: 'top',
-                            isTexture: true, hoverCursor: 'default'
-                        });
-                        canvas.add(img);
-                        canvas.sendToBack(img);
-                        resolve();
-                    }, { crossOrigin: 'anonymous' });
-                });
-            }
-
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
@@ -581,6 +564,7 @@
                     fill: config.accentColor || config.textColor || '#333', fontWeight: layout.dateWeight || 'normal'
                 });
             }
+            applyTemplateTexture(canvas);
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
         }
@@ -620,6 +604,7 @@
                     document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
                     document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
+                    removeTemplateTexture(canvas);
                     canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                     if (this.dataset.gradient) {
                         const colors = this.dataset.colors.split(',');
@@ -634,6 +619,7 @@
             document.getElementById('bgColorPicker').addEventListener('input', function() {
                 document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                 document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
+                removeTemplateTexture(canvas);
                 canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                 canvas.backgroundColor = this.value;
                 canvas.renderAll();
@@ -655,6 +641,7 @@
                     document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
                     document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
+                    removeTemplateTexture(canvas);
                     canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                     canvas.backgroundColor = palette.bg;
                     canvas.renderAll();
@@ -750,6 +737,7 @@
                 canvas.loadFromJSON(prevState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -765,6 +753,7 @@
                 canvas.loadFromJSON(nextState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1406,7 +1395,69 @@
             });
         }
 
-        function deleteObjectByIndex(index) {
+        
+function applyTemplateTexture(canvas) {
+    try {
+        const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
+        const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
+        if (!textureSvg) {
+            console.log('📋 No texture SVG found for this template');
+            return;
+        }
+        console.log('🎨 Applying template texture to canvas...');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            const pattern = new fabric.Pattern({
+                source: img,
+                repeat: 'repeat'
+            });
+            const existing = canvas.getObjects().find(o => o.name === 'templateTextureBg' || o.isTexture);
+            if (existing) canvas.remove(existing);
+            const bgRect = new fabric.Rect({
+                left: 0, top: 0,
+                width: canvas.width || 600,
+                height: canvas.height || 450,
+                fill: pattern,
+                selectable: false, evented: false,
+                name: 'templateTextureBg',
+                isTexture: true,
+                lockMovementX: true, lockMovementY: true,
+                lockRotation: true, lockScalingX: true, lockScalingY: true,
+                hasControls: false, hasBorders: false,
+                hoverCursor: 'default'
+            });
+            canvas.add(bgRect);
+            canvas.sendToBack(bgRect);
+            canvas.setBackgroundColor('transparent', function() {
+                canvas.renderAll();
+            });
+            console.log('✅ Template texture applied successfully');
+        };
+        img.onerror = function() {
+            console.warn('⚠️ Failed to load texture image');
+            if (templateConfig.config && templateConfig.config.backgroundColor) {
+                canvas.setBackgroundColor(templateConfig.config.backgroundColor, function() {
+                    canvas.renderAll();
+                });
+            }
+        };
+        img.src = textureSvg;
+    } catch (err) {
+        console.error('❌ Error applying template texture:', err);
+    }
+}
+
+function removeTemplateTexture(canvas) {
+    const existing = canvas.getObjects().find(o => o.name === 'templateTextureBg' || o.isTexture);
+    if (existing) {
+        canvas.remove(existing);
+        canvas.renderAll();
+        console.log('🗑️ Template texture removed');
+    }
+}
+
+function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
             if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
         }
@@ -1424,6 +1475,7 @@
                 selectedObject = null;
                 canvas.renderAll();
                 loadTemplateDesign().then(() => {
+                    applyTemplateTexture(canvas);
                     saveState();
                     updateLayerList();
                     createMobileHandles();
@@ -1530,6 +1582,7 @@
                 selectedObject = null;
                 canvas.loadFromJSON(data.canvas, () => { 
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
@@ -2171,6 +2224,7 @@
                             document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
                         }
                         await loadTemplateDesign();
+                        applyTemplateTexture(canvas);
                         saveState();
                         updateLayerList();
                     }
