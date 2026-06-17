@@ -2953,17 +2953,25 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                     // Start collapsed on mobile
                     if (window.innerWidth <= 768) section.classList.add('collapsed');
-                    // h4 click toggles section (only one open at a time)
-                    h4.addEventListener('click', function(e) {
+                    // Add chevron to h4, only chevron toggles
+                    const chevron = document.createElement('i');
+                    chevron.className = 'fas fa-chevron-down section-chevron';
+                    chevron.style.cssText = 'margin-left:auto;font-size:0.75rem;color:var(--primary-gold);transition:transform 0.2s;cursor:pointer;';
+                    h4.style.cssText = (h4.getAttribute('style') || '') + ';display:flex;align-items:center;justify-content:space-between;';
+                    h4.appendChild(chevron);
+                    chevron.addEventListener('click', function(e) {
                         e.stopPropagation();
                         if (window.innerWidth <= 768) {
                             const isCollapsed = section.classList.contains('collapsed');
-                            // Close all other sections first
                             document.querySelectorAll('.property-section').forEach(other => {
-                                if (other !== section) other.classList.add('collapsed');
+                                if (other !== section) {
+                                    other.classList.add('collapsed');
+                                    const otherChevron = other.querySelector('.section-chevron');
+                                    if (otherChevron) otherChevron.style.transform = 'rotate(0deg)';
+                                }
                             });
-                            // Toggle this section
                             section.classList.toggle('collapsed', !isCollapsed);
+                            this.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
                         }
                     });
                 });
@@ -3112,7 +3120,7 @@
                     if (tabs) tabs.style.display = 'none';
                     if (accordionContainer) accordionContainer.style.display = 'block';
                     if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
+                    // Don't auto-close accordion tabs on resize - let user control them
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
                         const c = h.querySelector('.accordion-chevron');
