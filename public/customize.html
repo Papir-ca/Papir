@@ -787,7 +787,7 @@
                         <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
-                <div class="tab-content active" id="designTab">
+                <div class="tab-content" id="designTab">
                     <div id="noSelection" class="empty-state">
                         <div class="property-section" style="margin-top: 0;">
                             <h4><i class="fas fa-image"></i> Change Background</h4>
@@ -2953,27 +2953,6 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                     // Start collapsed on mobile
                     if (window.innerWidth <= 768) section.classList.add('collapsed');
-                    // Add chevron to h4, only chevron toggles
-                    const chevron = document.createElement('i');
-                    chevron.className = 'fas fa-chevron-down section-chevron';
-                    chevron.style.cssText = 'margin-left:auto;font-size:0.75rem;color:var(--primary-gold);transition:transform 0.2s;cursor:pointer;';
-                    h4.style.cssText = (h4.getAttribute('style') || '') + ';display:flex;align-items:center;justify-content:space-between;';
-                    h4.appendChild(chevron);
-                    chevron.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        if (window.innerWidth <= 768) {
-                            const isCollapsed = section.classList.contains('collapsed');
-                            document.querySelectorAll('.property-section').forEach(other => {
-                                if (other !== section) {
-                                    other.classList.add('collapsed');
-                                    const otherChevron = other.querySelector('.section-chevron');
-                                    if (otherChevron) otherChevron.style.transform = 'rotate(0deg)';
-                                }
-                            });
-                            section.classList.toggle('collapsed', !isCollapsed);
-                            this.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
-                        }
-                    });
                 });
             }
 
