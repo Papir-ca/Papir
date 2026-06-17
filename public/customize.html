@@ -21,8 +21,9 @@
         }
         /* ===== GLOBAL: Remove all canvas borders ===== */
         .canvas-area, .canvas-container, #designCanvas, #canvasContainer, .lower-canvas, .upper-canvas { border: none !important; outline: none !important; box-shadow: none !important; }
+        html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
-        .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; }
+        .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
         .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
@@ -714,6 +715,7 @@
 
 
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -1594,6 +1596,22 @@
                     if (tool) handleToolClick(tool);
                 }
             });
+            // Tools tab in accordion
+            const toolsTabContent = document.querySelector('.tools-tab-content');
+            if (toolsTabContent) {
+                toolsTabContent.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.tool-btn');
+                    if (btn) {
+                        const tool = btn.dataset.tool;
+                        if (tool) {
+                            // Update active state on both desktop and mobile buttons
+                            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                            document.querySelectorAll(`[data-tool="${tool}"]`).forEach(b => b.classList.add('active'));
+                            handleToolClick(tool);
+                        }
+                    }
+                });
+            }
 
             setupTextControls();
             setupTransformControls();
@@ -2936,17 +2954,18 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                     // Start collapsed on mobile
                     if (window.innerWidth <= 768) section.classList.add('collapsed');
+                    // Only arrow (right side of h4) toggles on mobile
                     h4.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        if (window.innerWidth <= 768) {
-                            const isCollapsed = section.classList.contains('collapsed');
-                            // Close all other sections first (only one open at a time)
-                            document.querySelectorAll('.property-section').forEach(other => {
-                                if (other !== section) other.classList.add('collapsed');
-                            });
-                            // Toggle this section
-                            section.classList.toggle('collapsed', !isCollapsed);
-                        }
+                        if (window.innerWidth > 768) return;
+                        const rect = h4.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        // Arrow is on the right side - only toggle if clicking right 40px
+                        if (clickX < rect.width - 40) return;
+                        const isCollapsed = section.classList.contains('collapsed');
+                        document.querySelectorAll('.property-section').forEach(other => {
+                            if (other !== section) other.classList.add('collapsed');
+                        });
+                        section.classList.toggle('collapsed', !isCollapsed);
                     });
                 });
             }
@@ -3075,11 +3094,23 @@
                 const tabs = document.querySelector('.tabs');
                 const accordionContainer = document.getElementById('mobileAccordionContainer');
                 const tabContents = document.querySelectorAll('.tab-content');
+                const propertiesPanel = document.querySelector('.properties-panel');
+                const checkoutSection = propertiesPanel ? propertiesPanel.querySelector('.checkout-section') : null;
                 const activeObj = canvas.getActiveObject();
                 const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
                 const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
                 if (!isNarrow) {
+                    // DESKTOP: Move tab contents back into properties panel before checkout
+                    if (propertiesPanel && checkoutSection) {
+                        const order = ['toolsTab', 'designTab', 'layersTab'];
+                        order.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el && el.parentElement !== propertiesPanel) {
+                                propertiesPanel.insertBefore(el, checkoutSection);
+                            }
+                        });
+                    }
                     if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
                     if (tabs) tabs.style.display = '';
                     if (accordionContainer) accordionContainer.style.display = 'none';
@@ -3091,10 +3122,25 @@
                     }
                     document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
                 } else {
+                    // MOBILE: Move tab contents into accordion
+                    if (accordionContainer) {
+                        accordionContainer.style.display = 'block';
+                        const headers = accordionContainer.querySelectorAll('.mobile-accordion-header');
+                        headers.forEach(header => {
+                            const contentId = header.dataset.target;
+                            const contentDiv = document.getElementById(contentId);
+                            if (contentDiv && contentDiv.parentElement !== accordionContainer) {
+                                if (header.nextSibling) {
+                                    accordionContainer.insertBefore(contentDiv, header.nextSibling);
+                                } else {
+                                    accordionContainer.appendChild(contentDiv);
+                                }
+                            }
+                        });
+                    }
                     if (tabs) tabs.style.display = 'none';
-                    if (accordionContainer) accordionContainer.style.display = 'block';
                     if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    tabContents.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
+                    // Don't auto-close accordion tabs on resize - let user control them
                     document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                         h.classList.remove('active');
                         const c = h.querySelector('.accordion-chevron');
@@ -3189,6 +3235,16 @@
             });
             checkForSavedProgress();
             startAutoSave();
+            // Mobile: ensure all accordion tabs start collapsed
+            if (window.innerWidth <= 768) {
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(h.dataset.target);
+                    if (content) content.style.display = 'none';
+                });
+            }
         }
 
         document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
@@ -3230,6 +3286,12 @@
             }
         });
 
+        // Prevent pull-to-refresh from closing dropdowns
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.mobile-accordion-container') || e.target.closest('.tab-content')) {
+                e.stopPropagation();
+            }
+        }, { passive: true });
         init();
         console.log('✅ init() completed successfully');
     </script>
