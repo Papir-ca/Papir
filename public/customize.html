@@ -605,6 +605,7 @@
                     this.classList.add('active');
                     document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
                     removeTemplateTexture(canvas);
+                    stopParticleAnimation(canvas);
                     canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                     if (this.dataset.gradient) {
                         const colors = this.dataset.colors.split(',');
@@ -620,6 +621,7 @@
                 document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                 document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
                 removeTemplateTexture(canvas);
+                stopParticleAnimation(canvas);
                 canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                 canvas.backgroundColor = this.value;
                 canvas.renderAll();
@@ -651,7 +653,7 @@
         }
 
         function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']));
+            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
                 undoStack.push(json);
                 if (undoStack.length > 30) undoStack.shift();
@@ -738,6 +740,7 @@
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     applyTemplateTexture(canvas);
+                    restartParticleAnimation(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -754,6 +757,7 @@
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     applyTemplateTexture(canvas);
+                    restartParticleAnimation(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1396,6 +1400,378 @@
         }
 
         
+
+// ============================================================
+// PARTICLE ANIMATION ENGINE — Template-specific living backgrounds
+// ============================================================
+let particleSystem = null;
+let particleAnimationId = null;
+
+const PARTICLE_CONFIGS = {
+    goldDust: {
+        count: 25, shapes: ['circle'], colors: ['#D4AF37', '#FFD700', '#B8860B', '#FFF8DC'],
+        sizeMin: 1.5, sizeMax: 4, speedY: -0.3, speedYVar: 0.4, speedX: 0.15, speedXVar: 0.3,
+        opacityMin: 0.15, opacityMax: 0.45, fadeIn: true, drift: true, lifeMin: 200, lifeMax: 500
+    },
+    subtleDots: {
+        count: 20, shapes: ['circle'], colors: ['#000000', '#333333', '#666666'],
+        sizeMin: 2, sizeMax: 5, speedY: -0.2, speedYVar: 0.3, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.08, opacityMax: 0.2, fadeIn: true, drift: true, lifeMin: 300, lifeMax: 600
+    },
+    floatingPetals: {
+        count: 12, shapes: ['petal'], colors: ['#FFB6C1', '#FFC0CB', '#FF69B4', '#F8BBD9', '#F48FB1'],
+        sizeMin: 6, sizeMax: 14, speedY: 0.4, speedYVar: 0.6, speedX: 0.3, speedXVar: 0.5,
+        opacityMin: 0.25, opacityMax: 0.55, fadeIn: true, drift: true, rotate: true, rotSpeed: 0.5,
+        lifeMin: 400, lifeMax: 800, sway: true, swayAmp: 15, swayFreq: 0.02
+    },
+    floatingLeaves: {
+        count: 14, shapes: ['leaf'], colors: ['#8B4513', '#D2691E', '#CD853F', '#A0522D', '#BC8F8F'],
+        sizeMin: 8, sizeMax: 16, speedY: 0.5, speedYVar: 0.7, speedX: 0.25, speedXVar: 0.4,
+        opacityMin: 0.2, opacityMax: 0.5, fadeIn: true, drift: true, rotate: true, rotSpeed: 1.2,
+        lifeMin: 500, lifeMax: 900, sway: true, swayAmp: 20, swayFreq: 0.015
+    },
+    floatingBubbles: {
+        count: 18, shapes: ['bubble'], colors: ['#00ACC1', '#4DD0E1', '#80DEEA', '#B2EBF2'],
+        sizeMin: 4, sizeMax: 12, speedY: -0.5, speedYVar: 0.6, speedX: 0.1, speedXVar: 0.25,
+        opacityMin: 0.15, opacityMax: 0.35, fadeIn: true, drift: true, lifeMin: 350, lifeMax: 700
+    },
+    floatingHearts: {
+        count: 15, shapes: ['heart'], colors: ['#FF6B6B', '#FF8E8E', '#FFB6C1', '#F48FB1', '#E91E63'],
+        sizeMin: 6, sizeMax: 14, speedY: -0.4, speedYVar: 0.5, speedX: 0.15, speedXVar: 0.3,
+        opacityMin: 0.2, opacityMax: 0.5, fadeIn: true, drift: true, lifeMin: 400, lifeMax: 800
+    },
+    confetti: {
+        count: 30, shapes: ['rect', 'circle'], colors: ['#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', '#FF006E', '#FB5607'],
+        sizeMin: 3, sizeMax: 8, speedY: 0.8, speedYVar: 1.2, speedX: 0.2, speedXVar: 0.4,
+        opacityMin: 0.3, opacityMax: 0.7, fadeIn: false, drift: true, rotate: true, rotSpeed: 2,
+        lifeMin: 200, lifeMax: 500, sway: false
+    },
+    goldSparkle: {
+        count: 20, shapes: ['star'], colors: ['#D4AF37', '#FFD700', '#FFF8DC', '#B8860B'],
+        sizeMin: 4, sizeMax: 10, speedY: -0.2, speedYVar: 0.3, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.2, opacityMax: 0.6, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.05,
+        lifeMin: 300, lifeMax: 600
+    },
+    silverSparkle: {
+        count: 20, shapes: ['star'], colors: ['#C0C0C0', '#E8E8E8', '#A9A9A9', '#D3D3D3'],
+        sizeMin: 4, sizeMax: 10, speedY: -0.2, speedYVar: 0.3, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.2, opacityMax: 0.6, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.05,
+        lifeMin: 300, lifeMax: 600
+    },
+    floatingStars: {
+        count: 18, shapes: ['star'], colors: ['#FFD700', '#FFF8DC', '#FFA500', '#FFEC8B'],
+        sizeMin: 5, sizeMax: 12, speedY: -0.3, speedYVar: 0.4, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.25, opacityMax: 0.6, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.04,
+        lifeMin: 350, lifeMax: 700
+    },
+    neonPulse: {
+        count: 15, shapes: ['circle'], colors: ['#FF006E', '#FB5607', '#FFBE0B', '#8338EC'],
+        sizeMin: 3, sizeMax: 8, speedY: -0.1, speedYVar: 0.2, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.3, opacityMax: 0.7, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.08,
+        lifeMin: 250, lifeMax: 500
+    },
+    whiskeyBubbles: {
+        count: 16, shapes: ['bubble'], colors: ['#D7CCC8', '#8D6E63', '#A1887F', '#BCAAA4'],
+        sizeMin: 3, sizeMax: 10, speedY: -0.4, speedYVar: 0.5, speedX: 0.05, speedXVar: 0.15,
+        opacityMin: 0.15, opacityMax: 0.4, fadeIn: true, drift: true, lifeMin: 400, lifeMax: 800
+    },
+    floatingSquares: {
+        count: 15, shapes: ['rect'], colors: ['#FF9800', '#FFB74D', '#FFCC80', '#FFE0B2'],
+        sizeMin: 4, sizeMax: 10, speedY: 0.3, speedYVar: 0.4, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.15, opacityMax: 0.4, fadeIn: true, drift: true, rotate: true, rotSpeed: 0.8,
+        lifeMin: 400, lifeMax: 800
+    },
+    rubyHearts: {
+        count: 14, shapes: ['heart'], colors: ['#B71C1C', '#C62828', '#EF5350', '#FFCDD2', '#E91E63'],
+        sizeMin: 6, sizeMax: 14, speedY: -0.35, speedYVar: 0.45, speedX: 0.15, speedXVar: 0.3,
+        opacityMin: 0.2, opacityMax: 0.5, fadeIn: true, drift: true, lifeMin: 400, lifeMax: 800
+    },
+    floatingCaps: {
+        count: 12, shapes: ['cap'], colors: ['#F1C40F', '#FFD700', '#FFF8DC', '#DAA520'],
+        sizeMin: 8, sizeMax: 16, speedY: -0.3, speedYVar: 0.5, speedX: 0.2, speedXVar: 0.35,
+        opacityMin: 0.2, opacityMax: 0.5, fadeIn: true, drift: true, rotate: true, rotSpeed: 1,
+        lifeMin: 450, lifeMax: 850, sway: true, swayAmp: 12, swayFreq: 0.02
+    },
+    floatingCrosses: {
+        count: 14, shapes: ['cross'], colors: ['#4CAF50', '#81C784', '#A5D6A7', '#C8E6C9'],
+        sizeMin: 6, sizeMax: 12, speedY: -0.25, speedYVar: 0.35, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.2, opacityMax: 0.45, fadeIn: true, drift: true, lifeMin: 400, lifeMax: 800
+    },
+    floatingBottles: {
+        count: 12, shapes: ['bottle'], colors: ['#8B7355', '#A0826D', '#D2B48C', '#C19A6B'],
+        sizeMin: 7, sizeMax: 14, speedY: -0.3, speedYVar: 0.4, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.2, opacityMax: 0.45, fadeIn: true, drift: true, lifeMin: 450, lifeMax: 900
+    },
+    fallingSnow: {
+        count: 35, shapes: ['snow'], colors: ['#FFFFFF', '#F0F8FF', '#E6E6FA', '#FFF8DC'],
+        sizeMin: 2, sizeMax: 6, speedY: 0.6, speedYVar: 0.8, speedX: 0.2, speedXVar: 0.3,
+        opacityMin: 0.4, opacityMax: 0.8, fadeIn: false, drift: true, lifeMin: 300, lifeMax: 600
+    },
+    floatingCandles: {
+        count: 12, shapes: ['candle'], colors: ['#FFD700', '#FFA500', '#FF8C00', '#FFF8DC'],
+        sizeMin: 6, sizeMax: 12, speedY: -0.2, speedYVar: 0.3, speedX: 0.05, speedXVar: 0.15,
+        opacityMin: 0.3, opacityMax: 0.6, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.06,
+        lifeMin: 400, lifeMax: 800
+    },
+    fireworks: {
+        count: 25, shapes: ['circle', 'star', 'rect'], colors: ['#FFC107', '#FFD54F', '#FF6B6B', '#06D6A0', '#118AB2', '#FF006E'],
+        sizeMin: 2, sizeMax: 7, speedY: -0.5, speedYVar: 1.0, speedX: 0.3, speedXVar: 0.6,
+        opacityMin: 0.3, opacityMax: 0.7, fadeIn: false, drift: true, explode: true, explodeRadius: 40,
+        lifeMin: 150, lifeMax: 350
+    },
+    healingBubbles: {
+        count: 18, shapes: ['bubble'], colors: ['#4DD0E1', '#80DEEA', '#B2EBF2', '#00ACC1'],
+        sizeMin: 4, sizeMax: 12, speedY: -0.4, speedYVar: 0.5, speedX: 0.1, speedXVar: 0.2,
+        opacityMin: 0.15, opacityMax: 0.4, fadeIn: true, drift: true, lifeMin: 400, lifeMax: 800
+    },
+    floatingSmileys: {
+        count: 12, shapes: ['smiley'], colors: ['#FBC02D', '#F9A825', '#F57F17', '#FFD54F'],
+        sizeMin: 8, sizeMax: 16, speedY: -0.3, speedYVar: 0.4, speedX: 0.15, speedXVar: 0.3,
+        opacityMin: 0.25, opacityMax: 0.55, fadeIn: true, drift: true, lifeMin: 450, lifeMax: 900
+    },
+    softLight: {
+        count: 10, shapes: ['orb'], colors: ['#FFFFFF', '#F5F5F5', '#E0E0E0', '#BDBDBD'],
+        sizeMin: 15, sizeMax: 40, speedY: -0.05, speedYVar: 0.1, speedX: 0.05, speedXVar: 0.1,
+        opacityMin: 0.05, opacityMax: 0.15, fadeIn: true, drift: true, pulse: true, pulseSpeed: 0.02,
+        lifeMin: 600, lifeMax: 1200
+    },
+    floatingDoves: {
+        count: 8, shapes: ['dove'], colors: ['#FFFFFF', '#F5F5F5', '#E8E8E8', '#D3D3D3'],
+        sizeMin: 10, sizeMax: 20, speedY: -0.2, speedYVar: 0.3, speedX: 0.3, speedXVar: 0.4,
+        opacityMin: 0.2, opacityMax: 0.45, fadeIn: true, drift: true, lifeMin: 500, lifeMax: 1000,
+        sway: true, swayAmp: 25, swayFreq: 0.01
+    }
+};
+
+function createParticleShape(shape, size, color) {
+    switch(shape) {
+        case 'circle':
+            return new fabric.Circle({ radius: size/2, fill: color, originX: 'center', originY: 'center' });
+        case 'rect':
+            return new fabric.Rect({ width: size, height: size * 0.6, fill: color, originX: 'center', originY: 'center' });
+        case 'star':
+            return new fabric.Path('M0,-' + size + ' L' + size*0.3 + ',-' + size*0.3 + ' L' + size + ',0 L' + size*0.3 + ',' + size*0.3 + ' L0,' + size + ' L-' + size*0.3 + ',' + size*0.3 + ' L-' + size + ',0 L-' + size*0.3 + ',-' + size*0.3 + ' Z', {
+                fill: color, originX: 'center', originY: 'center', scaleX: 0.5, scaleY: 0.5
+            });
+        case 'heart':
+            const s = size * 0.5;
+            return new fabric.Path('M0,' + s + ' C-' + s + ',0 -' + s*1.5 + ',-' + s + ' 0,-' + s*1.5 + ' C' + s*1.5 + ',-' + s + ' ' + s + ',0 0,' + s + ' Z', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'petal':
+            return new fabric.Ellipse({ rx: size/2, ry: size/4, fill: color, originX: 'center', originY: 'center' });
+        case 'leaf':
+            return new fabric.Path('M0,0 Q' + size/2 + ',-' + size/2 + ' ' + size + ',0 Q' + size/2 + ',' + size/2 + ' 0,0', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'bubble':
+            return new fabric.Circle({ radius: size/2, fill: 'transparent', stroke: color, strokeWidth: 1, originX: 'center', originY: 'center' });
+        case 'snow':
+            return new fabric.Circle({ radius: size/2, fill: color, originX: 'center', originY: 'center' });
+        case 'candle':
+            return new fabric.Path('M-' + size/4 + ',0 L-' + size/4 + ',-' + size + ' L' + size/4 + ',-' + size + ' L' + size/4 + ',0 Z', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'smiley':
+            return new fabric.Circle({ radius: size/2, fill: color, originX: 'center', originY: 'center' });
+        case 'orb':
+            return new fabric.Circle({ radius: size/2, fill: color, originX: 'center', originY: 'center' });
+        case 'dove':
+            return new fabric.Path('M0,0 Q-' + size + ',-' + size/2 + ' -' + size*1.5 + ',0 Q-' + size + ',' + size/2 + ' 0,0 Q' + size + ',' + size/2 + ' ' + size*1.5 + ',0 Q' + size + ',-' + size/2 + ' 0,0', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'cap':
+            return new fabric.Path('M-' + size/2 + ',0 L' + size/2 + ',0 L0,-' + size + ' Z', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'cross':
+            const t = size/6;
+            return new fabric.Path('M-' + t + ',-' + size/2 + ' L' + t + ',-' + size/2 + ' L' + t + ',-' + t + ' L' + size/2 + ',-' + t + ' L' + size/2 + ',' + t + ' L' + t + ',' + t + ' L' + t + ',' + size/2 + ' L-' + t + ',' + size/2 + ' L-' + t + ',' + t + ' L-' + size/2 + ',' + t + ' L-' + size/2 + ',-' + t + ' L-' + t + ',-' + t + ' Z', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        case 'bottle':
+            return new fabric.Path('M-' + size/3 + ',0 L-' + size/4 + ',-' + size*0.7 + ' L' + size/4 + ',-' + size*0.7 + ' L' + size/3 + ',0 Z', {
+                fill: color, originX: 'center', originY: 'center'
+            });
+        default:
+            return new fabric.Circle({ radius: size/2, fill: color, originX: 'center', originY: 'center' });
+    }
+}
+
+function startParticleAnimation(canvas, animationType) {
+    if (particleAnimationId) {
+        cancelAnimationFrame(particleAnimationId);
+        particleAnimationId = null;
+    }
+    if (particleSystem) {
+        particleSystem.forEach(p => { if (p.fabricObj) canvas.remove(p.fabricObj); });
+        particleSystem = null;
+    }
+
+    const config = PARTICLE_CONFIGS[animationType];
+    if (!config) {
+        console.log('No particle config for:', animationType);
+        return;
+    }
+
+    console.log('🎬 Starting particle animation:', animationType);
+    const W = canvas.width || 600;
+    const H = canvas.height || 450;
+    particleSystem = [];
+
+    function spawnParticle() {
+        const shape = config.shapes[Math.floor(Math.random() * config.shapes.length)];
+        const color = config.colors[Math.floor(Math.random() * config.colors.length)];
+        const size = config.sizeMin + Math.random() * (config.sizeMax - config.sizeMin);
+        const x = Math.random() * W;
+        const y = config.speedY > 0 ? -size : H + size;
+        const opacity = config.opacityMin + Math.random() * (config.opacityMax - config.opacityMin);
+        const life = config.lifeMin + Math.random() * (config.lifeMax - config.lifeMin);
+        const vx = (Math.random() - 0.5) * config.speedXVar * 2 + config.speedX;
+        const vy = config.speedY + (Math.random() - 0.5) * config.speedYVar;
+        const obj = createParticleShape(shape, size, color);
+        obj.set({
+            left: x, top: y, opacity: config.fadeIn ? 0 : opacity,
+            selectable: false, evented: false, hoverCursor: 'default',
+            name: 'particle', isParticle: true
+        });
+        canvas.add(obj);
+        canvas.sendToBack(obj);
+
+        const p = {
+            fabricObj: obj, x: x, y: y, vx: vx, vy: vy,
+            opacity: opacity, targetOpacity: opacity, age: 0, life: life,
+            size: size, angle: Math.random() * 360, rotSpeed: (Math.random() - 0.5) * (config.rotSpeed || 1) * 2,
+            swayPhase: Math.random() * Math.PI * 2, pulsePhase: Math.random() * Math.PI * 2
+        };
+        particleSystem.push(p);
+    }
+
+    // Initial spawn
+    for (let i = 0; i < config.count; i++) {
+        spawnParticle();
+        const p = particleSystem[particleSystem.length - 1];
+        p.y = Math.random() * H;
+        p.fabricObj.set({ top: p.y, opacity: p.opacity });
+    }
+
+    let lastTime = performance.now();
+    function animate(now) {
+        const dt = Math.min((now - lastTime) / 16.67, 3); // normalize to ~60fps, cap at 3x
+        lastTime = now;
+        const W = canvas.width || 600;
+        const H = canvas.height || 450;
+
+        for (let i = particleSystem.length - 1; i >= 0; i--) {
+            const p = particleSystem[i];
+            if (!p.fabricObj || p.fabricObj.canvas !== canvas) {
+                particleSystem.splice(i, 1);
+                continue;
+            }
+
+            p.age += dt;
+            if (p.age >= p.life) {
+                canvas.remove(p.fabricObj);
+                particleSystem.splice(i, 1);
+                spawnParticle();
+                continue;
+            }
+
+            // Movement
+            let dx = p.vx * dt;
+            let dy = p.vy * dt;
+
+            if (config.sway) {
+                p.swayPhase += config.swayFreq * dt;
+                dx += Math.sin(p.swayPhase) * config.swayAmp * 0.01 * dt;
+            }
+
+            if (config.explode) {
+                const progress = p.age / p.life;
+                if (progress < 0.3) {
+                    dx *= (1 - progress / 0.3);
+                    dy *= (1 - progress / 0.3);
+                } else {
+                    dx *= 0.5;
+                    dy *= 0.5;
+                }
+            }
+
+            p.x += dx;
+            p.y += dy;
+
+            // Rotation
+            if (config.rotate) {
+                p.angle += p.rotSpeed * dt;
+                p.fabricObj.set('angle', p.angle);
+            }
+
+            // Pulse opacity
+            let currentOpacity = p.targetOpacity;
+            if (config.pulse) {
+                p.pulsePhase += config.pulseSpeed * dt;
+                currentOpacity = p.targetOpacity * (0.6 + 0.4 * Math.sin(p.pulsePhase));
+            }
+
+            // Fade in/out
+            const progress = p.age / p.life;
+            if (config.fadeIn && progress < 0.15) {
+                currentOpacity = p.targetOpacity * (progress / 0.15);
+            } else if (progress > 0.8) {
+                currentOpacity = p.targetOpacity * ((1 - progress) / 0.2);
+            }
+
+            p.fabricObj.set({
+                left: p.x, top: p.y,
+                opacity: Math.max(0, Math.min(1, currentOpacity))
+            });
+
+            // Wrap around for continuous flow
+            if (p.y < -p.size * 2 && p.vy < 0) {
+                p.y = H + p.size * 2;
+                p.x = Math.random() * W;
+                p.age = 0;
+                p.fabricObj.set({ left: p.x, top: p.y });
+            } else if (p.y > H + p.size * 2 && p.vy > 0) {
+                p.y = -p.size * 2;
+                p.x = Math.random() * W;
+                p.age = 0;
+                p.fabricObj.set({ left: p.x, top: p.y });
+            }
+        }
+
+        canvas.renderAll();
+        particleAnimationId = requestAnimationFrame(animate);
+    }
+
+    particleAnimationId = requestAnimationFrame(animate);
+}
+
+function stopParticleAnimation(canvas) {
+    if (particleAnimationId) {
+        cancelAnimationFrame(particleAnimationId);
+        particleAnimationId = null;
+    }
+    if (particleSystem) {
+        particleSystem.forEach(p => { if (p.fabricObj) canvas.remove(p.fabricObj); });
+        particleSystem = null;
+    }
+    console.log('🛑 Particle animation stopped');
+}
+
+function restartParticleAnimation(canvas) {
+    try {
+        const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
+        const animationType = templateConfig.config && templateConfig.config.animationType;
+        if (animationType) {
+            startParticleAnimation(canvas, animationType);
+        }
+    } catch (e) {
+        console.error('Error restarting particles:', e);
+    }
+}
+
+// ============================================================
 function applyTemplateTexture(canvas) {
     try {
         const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
@@ -1433,6 +1809,10 @@ function applyTemplateTexture(canvas) {
                 canvas.renderAll();
             });
             console.log('✅ Template texture applied successfully');
+            // Start particle animation after texture loads
+            const templateConfig2 = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
+            const animType = templateConfig2.config && templateConfig2.config.animationType;
+            if (animType) startParticleAnimation(canvas, animType);
         };
         img.onerror = function() {
             console.warn('⚠️ Failed to load texture image');
@@ -1449,6 +1829,7 @@ function applyTemplateTexture(canvas) {
 }
 
 function removeTemplateTexture(canvas) {
+    stopParticleAnimation(canvas);
     const existing = canvas.getObjects().find(o => o.name === 'templateTextureBg' || o.isTexture);
     if (existing) {
         canvas.remove(existing);
@@ -1476,6 +1857,7 @@ function deleteObjectByIndex(index) {
                 canvas.renderAll();
                 loadTemplateDesign().then(() => {
                     applyTemplateTexture(canvas);
+                    restartParticleAnimation(canvas);
                     saveState();
                     updateLayerList();
                     createMobileHandles();
@@ -1554,7 +1936,7 @@ function deleteObjectByIndex(index) {
             try {
                 const hasMedia = canvas.getObjects().some(obj => obj.isVideo || obj.isAudio);
                 const designData = {
-                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']),
+                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']),
                     templateConfig: templateConfig,
                     backgroundColor: canvas.backgroundColor,
                     timestamp: Date.now(),
@@ -1583,6 +1965,7 @@ function deleteObjectByIndex(index) {
                 canvas.loadFromJSON(data.canvas, () => { 
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     applyTemplateTexture(canvas);
+                    restartParticleAnimation(canvas);
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
@@ -1784,7 +2167,8 @@ function deleteObjectByIndex(index) {
                 app.classList.remove('preview-mode');
                 btn.classList.remove('active');
                 btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
-                if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) {
+                restartParticleAnimation(canvas);
+            if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) {
                     setTimeout(createMobileHandles, 100);
                 }
             }
@@ -2225,6 +2609,7 @@ function deleteObjectByIndex(index) {
                         }
                         await loadTemplateDesign();
                         applyTemplateTexture(canvas);
+                        restartParticleAnimation(canvas);
                         saveState();
                         updateLayerList();
                     }
