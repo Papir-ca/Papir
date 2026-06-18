@@ -2229,16 +2229,8 @@ function deleteObjectByIndex(index) {
                 handleContainer.className = 'mobile-handle-container';
                 container.appendChild(handleContainer);
             }
-            const activeObj = canvas.getActiveObject();
-            if (!activeObj) return;
-            let targets = [];
-            if (activeObj.type === 'activeSelection') {
-                targets = activeObj.getObjects().filter(o => !o.isBackground && !o.isTexture);
-            } else if (!activeObj.isBackground && !activeObj.isTexture) {
-                targets = [activeObj];
-            }
             let handleNum = 1;
-            targets.forEach((obj) => {
+            canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture) return;
                 if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
                 const hid = obj.__handleId;
@@ -2435,7 +2427,6 @@ function deleteObjectByIndex(index) {
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
             canvas.on('after:render', function() { 
-                updateMobileHandlePositions(); 
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
@@ -2444,6 +2435,9 @@ function deleteObjectByIndex(index) {
             });
             canvas.on('object:added', createMobileHandles);
             canvas.on('object:removed', createMobileHandles);
+            canvas.on('object:moving', updateMobileHandlePositions);
+            canvas.on('object:scaling', updateMobileHandlePositions);
+            canvas.on('object:rotating', updateMobileHandlePositions);
 
             if ('ontouchstart' in window) {
                 canvas.on('mouse:down', function(e) {
