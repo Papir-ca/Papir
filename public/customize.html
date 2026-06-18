@@ -151,9 +151,14 @@
                 width: 100%; 
                 position: relative;
             }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { 
+                width: 100%; 
+                height: auto; 
+                aspect-ratio: 600 / 450;
+            }
             #designCanvas { 
-                width: 100% !important; 
-                height: auto !important; 
+                width: 100%; 
+                height: auto; 
                 aspect-ratio: 600 / 450;
                 display: block; 
                 margin: 0 auto; 
@@ -190,7 +195,7 @@
             .media-btn { padding: 16px 8px; font-size: 0.9rem; }
             .palette-grid { grid-template-columns: repeat(2, 1fr); }
             .preview-mode .properties-panel { display: none !important; }
-            .preview-mode .canvas-area { width: 100% !important; }
+            .preview-mode .canvas-area { width: 100%; }
             .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
         }
 
@@ -2271,9 +2276,45 @@ function deleteObjectByIndex(index) {
             handleResize();
             window.addEventListener('resize', handleResize);
             window.addEventListener('resize', handleMobileResize);
+            window.addEventListener('resize', adjustCanvasForMobile);
             window.addEventListener('orientationchange', () => { setTimeout(() => { handleResize(); }, 300); });
             setTimeout(showFirstRunHint, 1000);
             console.log('init() completed successfully');
+            adjustCanvasForMobile();
+        }
+
+        function adjustCanvasForMobile() {
+            if (window.innerWidth > 768) return;
+            const canvasEl = document.getElementById('designCanvas');
+            const container = document.getElementById('canvasContainer');
+            if (!canvasEl || !container) return;
+
+            // Get the available width (container width minus any padding)
+            const containerWidth = container.clientWidth;
+            const scale = containerWidth / 600;
+            const newHeight = Math.round(450 * scale);
+
+            // Set the CSS dimensions (not internal resolution)
+            canvasEl.style.width = containerWidth + 'px';
+            canvasEl.style.height = newHeight + 'px';
+
+            // Fabric.js creates a wrapper - find it and resize it too
+            const wrapper = canvasEl.parentElement;
+            if (wrapper && wrapper.classList.contains('canvas-container')) {
+                wrapper.style.width = containerWidth + 'px';
+                wrapper.style.height = newHeight + 'px';
+            }
+
+            // Also resize the upper-canvas (event layer)
+            const upperCanvas = container.querySelector('.upper-canvas');
+            if (upperCanvas) {
+                upperCanvas.style.width = containerWidth + 'px';
+                upperCanvas.style.height = newHeight + 'px';
+            }
+
+            // Recalculate handle positions
+            clearMobileHandles();
+            setTimeout(createMobileHandles, 50);
         }
 
         function handleMobileResize() {
