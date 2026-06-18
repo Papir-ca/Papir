@@ -1339,7 +1339,7 @@
             if (!list) return;
             list.innerHTML = '';
             canvas.getObjects().forEach((obj, index) => {
-                if (obj.isBackground || obj.isTexture) return;
+                if (obj.isBackground || obj.isTexture || obj.isParticle) return;
                 const item = document.createElement('div');
                 item.className = 'layer-item' + (obj === selectedObject ? ' active' : '');
                 let icon = 'fa-square';
@@ -1637,7 +1637,13 @@ function startParticleAnimation(canvas, animationType) {
             name: 'particle', isParticle: true
         });
         canvas.add(obj);
-        canvas.sendToBack(obj);
+        const textureObj = canvas.getObjects().find(o => o.name === 'templateTextureBg' || o.isTexture);
+        if (textureObj) {
+            const idx = canvas.getObjects().indexOf(textureObj);
+            if (idx !== -1) canvas.moveTo(obj, idx + 1);
+        } else {
+            canvas.sendToBack(obj);
+        }
 
         const p = {
             fabricObj: obj, x: x, y: y, vx: vx, vy: vy,
@@ -2369,7 +2375,7 @@ function deleteObjectByIndex(index) {
         function updateMobileHandlePositions() {
             if (window.innerWidth > 768) return;
             canvas.getObjects().forEach((obj) => {
-                if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
+                if (obj.isBackground || obj.isTexture || obj.isParticle || !obj.__handleId) return;
                 const hid = obj.__handleId;
                 const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && h.dataset.handleId === hid);
                 if (handle && obj) {
@@ -2427,6 +2433,7 @@ function deleteObjectByIndex(index) {
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
             canvas.on('after:render', function() { 
+                updateMobileHandlePositions(); 
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
@@ -2435,9 +2442,6 @@ function deleteObjectByIndex(index) {
             });
             canvas.on('object:added', createMobileHandles);
             canvas.on('object:removed', createMobileHandles);
-            canvas.on('object:moving', updateMobileHandlePositions);
-            canvas.on('object:scaling', updateMobileHandlePositions);
-            canvas.on('object:rotating', updateMobileHandlePositions);
 
             if ('ontouchstart' in window) {
                 canvas.on('mouse:down', function(e) {
