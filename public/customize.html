@@ -1339,7 +1339,7 @@
             if (!list) return;
             list.innerHTML = '';
             canvas.getObjects().forEach((obj, index) => {
-                if (obj.isBackground || obj.isTexture) return;
+                if (obj.isBackground || obj.isTexture || obj.isParticle) return;
                 const item = document.createElement('div');
                 item.className = 'layer-item' + (obj === selectedObject ? ' active' : '');
                 let icon = 'fa-square';
@@ -2369,7 +2369,7 @@ function deleteObjectByIndex(index) {
         function updateMobileHandlePositions() {
             if (window.innerWidth > 768) return;
             canvas.getObjects().forEach((obj) => {
-                if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
+                if (obj.isBackground || obj.isTexture || obj.isParticle || !obj.__handleId) return;
                 const hid = obj.__handleId;
                 const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && h.dataset.handleId === hid);
                 if (handle && obj) {
