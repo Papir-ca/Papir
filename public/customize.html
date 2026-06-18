@@ -2237,7 +2237,7 @@ function deleteObjectByIndex(index) {
             }
             let handleNum = 1;
             canvas.getObjects().forEach((obj) => {
-                if (obj.isBackground || obj.isTexture) return;
+                if (obj.isBackground || obj.isTexture || obj.isParticle) return;
                 if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
                 const hid = obj.__handleId;
                 const handle = document.createElement('div');
@@ -2433,7 +2433,6 @@ function deleteObjectByIndex(index) {
             canvas.on('selection:cleared', handleDeselection);
             canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
             canvas.on('after:render', function() { 
-                updateMobileHandlePositions(); 
                 if (showHandles && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
