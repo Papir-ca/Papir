@@ -84,6 +84,11 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
+        .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .bg-option:hover { transform: scale(1.05); }
+        .bg-option.active { border-color: var(--primary-teal); }
+
         .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .palette-btn { padding: 10px 6px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; font-size: 0.75rem; text-align: center; transition: all 0.2s; font-weight: 600; }
         .palette-btn:hover { transform: scale(1.05); border-color: white; }
@@ -130,40 +135,28 @@
         .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
         .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
 
+        .layer-edit-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .layer-edit-modal.active { display: flex; }
+        .layer-edit-content { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid var(--primary-gold); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+        .layer-edit-content h3 { margin: 0 0 16px 0; color: var(--primary-gold); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .layer-edit-content input { width: 100%; padding: 14px; font-size: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; margin-bottom: 16px; -webkit-appearance: none; }
+        .layer-edit-content input:focus { outline: none; border-color: var(--primary-teal); box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.2); }
+        .layer-edit-actions { display: flex; gap: 10px; }
+        .layer-edit-actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+        .layer-edit-actions .save-btn { background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; }
+        .layer-edit-actions .save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3); }
+        .layer-edit-actions .cancel-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .layer-edit-actions .cancel-btn:hover { background: rgba(255,255,255,0.15); }
+
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
 
         @media (max-width: 768px) {
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: rgba(26, 26, 46, 0.95); position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { 
-                flex: none; 
-                height: auto; 
-                min-height: 180px; 
-                padding: 0; 
-                margin: 0; 
-                background: transparent; 
-                overflow: hidden; 
-                line-height: 0; 
-                text-align: center; 
-                border: none; 
-                border-radius: 0; 
-                width: 100%; 
-                position: relative;
-            }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { 
-                width: 100%; 
-                height: auto; 
-                aspect-ratio: 600 / 450;
-            }
-            #designCanvas { 
-                width: 100%; 
-                height: auto; 
-                aspect-ratio: 600 / 450;
-                display: block; 
-                margin: 0 auto; 
-                max-width: 100%;
-            }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
             .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
@@ -197,6 +190,14 @@
             .preview-mode .properties-panel { display: none !important; }
             .preview-mode .canvas-area { width: 100%; }
             .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
         }
 
         @media (max-width: 768px) and (orientation: landscape) {
@@ -242,11 +243,10 @@
             .preview-mode .properties-panel { display: none !important; }
             .preview-mode .design-layout { gap: 0 !important; }
             .preview-mode .canvas-area { flex: 1 !important; }
+            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
-<base target="_blank">
-<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -293,7 +293,7 @@
                 </div>
                 <div class="tab-content active" id="designTab">
                     <div class="property-section">
-                        <h4><i class="fas fa-image"></i> Background</h4>
+                        <h4><i class="fas fa-image"></i> Background & Media</h4>
                         <div class="section-content">
                             <div class="bg-options" id="bgOptions">
                                 <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
@@ -315,21 +315,24 @@
                                 <button class="palette-btn palette-dark" data-palette="dark"><i class="fas fa-moon"></i> Dark</button>
                                 <button class="palette-btn palette-minimal" data-palette="minimal"><i class="fas fa-minus"></i> Minimal</button>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="property-section">
-                        <h4><i class="fas fa-photo-video"></i> Add Media</h4>
-                        <div class="section-content">
-                            <div class="media-grid">
-                                <button class="media-btn" id="addTextBtn"><i class="fas fa-font"></i> Add Text</button>
-                                <button class="media-btn" id="addPhotoBtn"><i class="fas fa-image"></i> Add Photo</button>
-                                <button class="media-btn" id="addVideoBtn"><i class="fas fa-video"></i> Add Video</button>
-                                <button class="media-btn" id="addAudioBtn"><i class="fas fa-music"></i> Add Audio</button>
+                            <!-- Add Media nested inside Background -->
+                            <div class="property-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; border-bottom: none;">
+                                <h4 style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 6px 0; margin-bottom: 8px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;" id="addMediaToggle">
+                                    <span><i class="fas fa-photo-video"></i> Add Media</span>
+                                </h4>
+                                <div class="section-content" id="addMediaContent">
+                                    <div class="media-grid">
+                                        <button class="media-btn" id="addTextBtn"><i class="fas fa-font"></i> Add Text</button>
+                                        <button class="media-btn" id="addPhotoBtn"><i class="fas fa-image"></i> Add Photo</button>
+                                        <button class="media-btn" id="addVideoBtn"><i class="fas fa-video"></i> Add Video</button>
+                                        <button class="media-btn" id="addAudioBtn"><i class="fas fa-music"></i> Add Audio</button>
+                                    </div>
+                                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                                    <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                                    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+                                </div>
                             </div>
-                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                            <input type="file" id="videoInput" accept="video/*" style="display: none;">
-                            <input type="file" id="audioInput" accept="audio/*" style="display: none;">
                         </div>
                     </div>
 
@@ -453,12 +456,14 @@
                 </div>
 
                 <div class="tab-content" id="layersTab">
-                    <div class="property-section">
-                        <h4><i class="fas fa-layer-group"></i> Layers</h4>
-                        <div class="section-content">
-                            <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
-                        </div>
+                    <div class="mobile-lock-toggle locked" id="mobileLockToggle">
+                        <span><i class="fas fa-lock"></i> Objects Locked</span>
+                        <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
                     </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
+                    </div>
+                    <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                 </div>
 
                 <div class="checkout-section">
@@ -499,7 +504,20 @@
     </div>
     <div class="ctx-backdrop" id="ctxBackdrop"></div>
 
-    <script>
+    <!-- Layer Edit Modal -->
+    <div id="layerEditModal" class="layer-edit-modal">
+        <div class="layer-edit-content">
+            <h3><i class="fas fa-pencil-alt"></i> Edit Layer Name</h3>
+            <input type="text" id="layerEditInput" placeholder="Enter name..." />
+            <div class="layer-edit-actions">
+                <button class="save-btn" id="layerEditSave"><i class="fas fa-check"></i> Save</button>
+                <button class="cancel-btn" id="layerEditCancel"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -542,6 +560,9 @@
         let undoStack = [];
         let redoStack = [];
         let isPreviewMode = false;
+        let layerEditTarget = null;
+        let mobileHandles = [];
+        let handleDragState = null;
 
         function showNotification(message, type) {
             console.log(`[${type || 'info'}] ${message}`);
@@ -1396,7 +1417,7 @@
 
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
-                actions.innerHTML = `<button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                actions.innerHTML = `<button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
@@ -1413,6 +1434,19 @@
                     }
                 });
 
+                nameSpan.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    openLayerEditModal(obj);
+                });
+
+                const editBtn = item.querySelector('[data-action="edit"]');
+                if (editBtn) {
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openLayerEditModal(obj);
+                    });
+                }
+
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => {
@@ -1425,63 +1459,90 @@
             });
         }
 
-        
-
-// ============================================================
-function applyTemplateTexture(canvas) {
-    try {
-        const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
-        const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
-        if (!textureSvg) {
-            console.log('📋 No texture SVG found for this template');
-            return;
+        function openLayerEditModal(obj) {
+            layerEditTarget = obj;
+            const modal = document.getElementById('layerEditModal');
+            const input = document.getElementById('layerEditInput');
+            if (!modal || !input) return;
+            const currentName = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || '');
+            input.value = currentName;
+            modal.classList.add('active');
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (input && document.body.contains(input)) {
+                        input.focus();
+                        input.setSelectionRange(0, input.value.length);
+                    }
+                }, 100);
+            });
         }
-        console.log('🎨 Applying template texture to canvas...');
-
-        // Remove old SVG layer if exists
-        const oldSvg = document.getElementById('templateSvgBg');
-        if (oldSvg) oldSvg.remove();
-
-        // Remove old Fabric texture objects
-        const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
-        existing.forEach(o => canvas.remove(o));
-
-        // Apply as CSS background-image on the canvas element
-        const canvasEl = document.getElementById('designCanvas');
-        if (canvasEl) {
-            canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
-            canvasEl.style.backgroundRepeat = 'repeat';
-            canvasEl.style.backgroundSize = 'auto';
-            canvasEl.style.backgroundColor = 'transparent';
+        function closeLayerEditModal() {
+            const modal = document.getElementById('layerEditModal');
+            if (modal) modal.classList.remove('active');
+            layerEditTarget = null;
+        }
+        function saveLayerEdit() {
+            if (!layerEditTarget) return;
+            const input = document.getElementById('layerEditInput');
+            const newName = input.value.trim();
+            if (newName) {
+                if (layerEditTarget.type === 'i-text') {
+                    layerEditTarget.set('text', newName);
+                    canvas.renderAll();
+                }
+                layerEditTarget.__layerName = newName;
+            }
+            updateLayerList();
+            saveState();
+            closeLayerEditModal();
         }
 
-        // Make canvas background transparent so texture shows through
-        canvas.setBackgroundColor('transparent', function() {
-            canvas.renderAll();
-        });
-        console.log('✅ Template texture applied successfully');
-    } catch (err) {
-        console.error('❌ Error applying template texture:', err);
-    }
-}
-
-function removeTemplateTexture(canvas) {
-    const canvasEl = document.getElementById('designCanvas');
-    if (canvasEl) {
-        canvasEl.style.backgroundImage = '';
-        canvasEl.style.backgroundRepeat = '';
-    }
-    const oldSvg = document.getElementById('templateSvgBg');
-    if (oldSvg) oldSvg.remove();
-    const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
-    existing.forEach(o => canvas.remove(o));
-    canvas.renderAll();
-    console.log('🗑️ Template texture removed');
-}
-
-function deleteObjectByIndex(index) {
+        function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
             if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
+        }
+
+        function applyTemplateTexture(canvas) {
+            try {
+                const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
+                const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
+                if (!textureSvg) {
+                    console.log('No texture SVG found for this template');
+                    return;
+                }
+                console.log('Applying template texture to canvas...');
+                const oldSvg = document.getElementById('templateSvgBg');
+                if (oldSvg) oldSvg.remove();
+                const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
+                existing.forEach(o => canvas.remove(o));
+                const canvasEl = document.getElementById('designCanvas');
+                if (canvasEl) {
+                    canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
+                    canvasEl.style.backgroundRepeat = 'repeat';
+                    canvasEl.style.backgroundSize = 'auto';
+                    canvasEl.style.backgroundColor = 'transparent';
+                }
+                canvas.setBackgroundColor('transparent', function() {
+                    canvas.renderAll();
+                });
+                console.log('Template texture applied successfully');
+            } catch (err) {
+                console.error('Error applying template texture:', err);
+            }
+        }
+
+        function removeTemplateTexture(canvas) {
+            const canvasEl = document.getElementById('designCanvas');
+            if (canvasEl) {
+                canvasEl.style.backgroundImage = '';
+                canvasEl.style.backgroundRepeat = '';
+            }
+            const oldSvg = document.getElementById('templateSvgBg');
+            if (oldSvg) oldSvg.remove();
+            const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
+            existing.forEach(o => canvas.remove(o));
+            canvas.renderAll();
+            console.log('Template texture removed');
         }
 
         function resetDesign() {
@@ -1822,9 +1883,6 @@ function deleteObjectByIndex(index) {
             }
         }
 
-        let mobileHandles = [];
-        let handleDragState = null;
-
         function getRotateHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
             const canvasRect = canvasEl.getBoundingClientRect();
@@ -1836,7 +1894,6 @@ function deleteObjectByIndex(index) {
             const bounds = obj.getBoundingRect(true, true);
             let x = offsetX + (bounds.left + bounds.width) * scaleX + 15;
             let y = offsetY + bounds.top * scaleY - 15;
-            // Clamp to stay within visible container bounds
             x = Math.max(4, Math.min(x, containerRect.width - 24));
             y = Math.max(4, Math.min(y, containerRect.height - 24));
             return { left: x, top: y };
@@ -1853,7 +1910,6 @@ function deleteObjectByIndex(index) {
             const bounds = obj.getBoundingRect(true, true);
             let x = offsetX + bounds.left * scaleX - 18;
             let y = offsetY + bounds.top * scaleY;
-            // Clamp to stay within visible container bounds
             x = Math.max(4, Math.min(x, containerRect.width - 28));
             y = Math.max(4, Math.min(y, containerRect.height - 28));
             return { left: x, top: y };
@@ -2064,6 +2120,305 @@ function deleteObjectByIndex(index) {
             menu.style.top = top + 'px';
         }
 
+        function lockMobileObjects(lock) {
+            if (!canvas) return;
+            const activeObj = canvas.getActiveObject();
+            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
+
+            canvas.getObjects().forEach(obj => {
+                if (lock) {
+                    if (obj.type === 'i-text' && obj.isEditing) return;
+                    obj._wasSelectable = obj.selectable;
+                    obj._wasEvented = obj.evented;
+                    obj.set({ selectable: false, evented: false });
+                } else {
+                    if (obj._wasSelectable !== undefined) {
+                        obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
+                        delete obj._wasSelectable;
+                        delete obj._wasEvented;
+                    } else {
+                        obj.set({ selectable: true, evented: true });
+                    }
+                }
+            });
+            if (lock) {
+                canvas.selection = false;
+                if (!isEditing) canvas.discardActiveObject();
+            } else {
+                canvas.selection = true;
+            }
+            canvas.renderAll();
+        }
+
+        function applyMobileSpacingFix() {
+            if (window.innerWidth > 768) return;
+            const canvasArea = document.querySelector('.canvas-area');
+            const canvasContainer = document.querySelector('.canvas-container');
+            const canvasToolbar = document.querySelector('.canvas-toolbar');
+            const designLayout = document.querySelector('.design-layout');
+            const appContainer = document.querySelector('.app-container');
+            const designCanvas = document.getElementById('designCanvas');
+
+            if (canvasArea) {
+                canvasArea.style.display = 'block';
+                canvasArea.style.flex = 'none';
+                canvasArea.style.height = 'auto';
+                canvasArea.style.minHeight = 'auto';
+                canvasArea.style.padding = '0';
+                canvasArea.style.margin = '0';
+                canvasArea.style.background = 'transparent';
+            }
+            if (canvasContainer) {
+                canvasContainer.style.display = 'block';
+                canvasContainer.style.flex = 'none';
+                canvasContainer.style.height = 'auto';
+                canvasContainer.style.minHeight = 'auto';
+                canvasContainer.style.padding = '0';
+                canvasContainer.style.margin = '0';
+                canvasContainer.style.background = 'transparent';
+                canvasContainer.style.backgroundImage = 'none';
+            }
+            if (canvasToolbar) {
+                canvasToolbar.style.margin = '0';
+                canvasToolbar.style.padding = '2px 4px';
+                canvasToolbar.style.borderBottom = 'none';
+            }
+            if (designLayout) {
+                designLayout.style.height = 'auto';
+                designLayout.style.minHeight = 'auto';
+                designLayout.style.flex = 'none';
+                designLayout.style.gap = '0';
+            }
+            if (appContainer) {
+                appContainer.style.height = 'auto';
+                appContainer.style.minHeight = 'auto';
+            }
+            if (designCanvas) {
+                designCanvas.style.display = 'block';
+                designCanvas.style.margin = '0 auto';
+                designCanvas.style.boxShadow = 'none';
+            }
+        }
+
+        function handleResize() {
+            applyMobileSpacingFix();
+            const isNarrow = window.innerWidth <= 768;
+            const isTouch = window.matchMedia('(pointer: coarse)').matches;
+            const tabs = document.querySelector('.tabs');
+            const accordionContainer = document.getElementById('mobileAccordionContainer');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const propertiesPanel = document.querySelector('.properties-panel');
+            const checkoutSection = propertiesPanel ? propertiesPanel.querySelector('.checkout-section') : null;
+            const activeObj = canvas.getActiveObject();
+            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
+            const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
+
+            if (!isNarrow) {
+                if (propertiesPanel && checkoutSection) {
+                    const order = ['designTab', 'layersTab'];
+                    order.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && el.parentElement !== propertiesPanel) {
+                            propertiesPanel.insertBefore(el, checkoutSection);
+                        }
+                    });
+                }
+                if (tabs) tabs.style.display = '';
+                if (accordionContainer) accordionContainer.style.display = 'none';
+                tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
+                const activeTab = document.querySelector('.tab.active');
+                if (activeTab) {
+                    const target = document.getElementById(activeTab.dataset.tab + 'Tab');
+                    if (target) target.classList.add('active');
+                }
+                document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+            } else {
+                if (accordionContainer) {
+                    accordionContainer.style.display = 'block';
+                    const headers = accordionContainer.querySelectorAll('.mobile-accordion-header');
+                    headers.forEach(header => {
+                        const contentId = header.dataset.target;
+                        const contentDiv = document.getElementById(contentId);
+                        if (contentDiv && contentDiv.parentElement !== accordionContainer) {
+                            if (header.nextSibling) {
+                                accordionContainer.insertBefore(contentDiv, header.nextSibling);
+                            } else {
+                                accordionContainer.appendChild(contentDiv);
+                            }
+                        }
+                    });
+                }
+                if (tabs) tabs.style.display = 'none';
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                });
+            }
+
+            if (htmlFocused) return;
+
+            if (isTouch && !isEditing) {
+                lockMobileObjects(true);
+                clearMobileHandles();
+                const lockToggleEl = document.getElementById('mobileLockToggle');
+                if (lockToggleEl && isNarrow) {
+                    lockToggleEl.classList.remove('unlocked');
+                    lockToggleEl.classList.add('locked');
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                }
+            } else if (!isTouch) {
+                lockMobileObjects(false);
+                clearMobileHandles();
+            }
+
+            if (isTouch && !isEditing && showHandles) {
+                setTimeout(() => { createMobileHandles(); }, 150);
+            }
+        }
+
+        function setupMobileUI() {
+            // Process ALL property sections individually - wrap content and add arrow-only toggle
+            document.querySelectorAll('.property-section').forEach(section => {
+                const h4 = section.querySelector('h4');
+                if (!h4) return;
+
+                // Skip if already processed
+                if (section.dataset.mobileSetup === 'done') return;
+                section.dataset.mobileSetup = 'done';
+
+                // Wrap non-h4 children in section-content if not already wrapped
+                let wrapper = section.querySelector('.section-content');
+                if (!wrapper) {
+                    wrapper = document.createElement('div');
+                    wrapper.className = 'section-content';
+                    const toWrap = Array.from(section.children).filter(c => c !== h4 && !c.classList.contains('section-content'));
+                    toWrap.forEach(c => wrapper.appendChild(c));
+                    if (wrapper.children.length > 0) section.appendChild(wrapper);
+                }
+
+                // Start collapsed on mobile
+                if (window.innerWidth <= 768) section.classList.add('collapsed');
+
+                // Only arrow (right side) toggles
+                h4.addEventListener('click', function(e) {
+                    if (window.innerWidth > 768) return;
+                    const rect = h4.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    if (clickX < rect.width - 40) return;
+                    const isCollapsed = section.classList.contains('collapsed');
+                    // Close siblings at same level only
+                    const parent = section.parentElement;
+                    if (parent) {
+                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
+                        siblings.forEach(other => other.classList.add('collapsed'));
+                    }
+                    section.classList.toggle('collapsed', !isCollapsed);
+                });
+            });
+
+            // Mobile accordion for Design/Layers tabs
+            let accordion = document.getElementById('mobileAccordionContainer');
+            if (!accordion) {
+                accordion = document.createElement('div');
+                accordion.id = 'mobileAccordionContainer';
+                accordion.className = 'mobile-accordion-container';
+                const tabData = [
+                    { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
+                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
+                ];
+                let accordionHeaders = [];
+                tabData.forEach(tab => {
+                    const header = document.createElement('div');
+                    header.className = 'mobile-accordion-header';
+                    header.dataset.target = tab.contentId;
+                    header.dataset.tabId = tab.tabId;
+                    header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
+                    let touchStartY = 0;
+                    let touchMoved = false;
+                    header.addEventListener('touchstart', function(e) {
+                        touchStartY = e.touches[0].clientY;
+                        touchMoved = false;
+                    }, { passive: true });
+                    header.addEventListener('touchmove', function(e) {
+                        if (Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
+                    }, { passive: true });
+                    const chevronIcon = header.querySelector('.accordion-chevron');
+                    if (chevronIcon) {
+                        chevronIcon.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (window.innerWidth > 768) return;
+                            const targetId = header.dataset.target;
+                            const targetContent = document.getElementById(targetId);
+                            const isActive = header.classList.contains('active');
+                            if (isActive) {
+                                header.classList.remove('active');
+                                chevronIcon.style.transform = 'rotate(0deg)';
+                                if (targetContent) targetContent.style.display = 'none';
+                            } else {
+                                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                                    if (h !== header) {
+                                        h.classList.remove('active');
+                                        const c = h.querySelector('.accordion-chevron');
+                                        if (c) c.style.transform = 'rotate(0deg)';
+                                        const other = document.getElementById(h.dataset.target);
+                                        if (other) other.style.display = 'none';
+                                    }
+                                });
+                                header.classList.add('active');
+                                chevronIcon.style.transform = 'rotate(180deg)';
+                                if (targetContent) targetContent.style.display = 'block';
+                            }
+                        });
+                    }
+                    accordion.appendChild(header);
+                    accordionHeaders.push(header);
+                });
+                accordionHeaders.forEach(header => {
+                    const contentId = header.dataset.target;
+                    const contentDiv = document.getElementById(contentId);
+                    if (contentDiv && header.nextSibling) {
+                        accordion.insertBefore(contentDiv, header.nextSibling);
+                    } else if (contentDiv) {
+                        accordion.appendChild(contentDiv);
+                    }
+                });
+                const propertiesPanel = document.querySelector('.properties-panel');
+                const tabs = propertiesPanel.querySelector('.tabs');
+                if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
+            }
+
+            // Mobile lock/unlock toggle
+            const lockToggle = document.getElementById('mobileLockToggle');
+            if (lockToggle) {
+                lockToggle.addEventListener('click', function() {
+                    const isLocked = this.classList.contains('locked');
+                    if (isLocked) {
+                        lockMobileObjects(false);
+                        this.classList.remove('locked');
+                        this.classList.add('unlocked');
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        if (showHandles) setTimeout(createMobileHandles, 100);
+                    } else {
+                        lockMobileObjects(true);
+                        this.classList.remove('unlocked');
+                        this.classList.add('locked');
+                        this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                        clearMobileHandles();
+                    }
+                });
+            }
+
+            window.addEventListener('resize', handleResize);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    applyMobileSpacingFix();
+                    handleResize();
+                }, 300);
+            });
+            handleResize();
+        }
+
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
@@ -2184,42 +2539,6 @@ function deleteObjectByIndex(index) {
             canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
         }
 
-        function handleResize() {
-            const isNarrow = window.innerWidth <= 768;
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            const tabs = document.querySelector('.tabs');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const activeObj = canvas.getActiveObject();
-            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
-            const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
-
-            if (!isNarrow) {
-                if (tabs) tabs.style.display = '';
-                tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
-                const activeTab = document.querySelector('.tab.active');
-                if (activeTab) {
-                    const target = document.getElementById(activeTab.dataset.tab + 'Tab');
-                    if (target) target.classList.add('active');
-                }
-                document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-            } else {
-                if (tabs) tabs.style.display = 'none';
-                tabContents.forEach(c => { c.style.display = 'block'; c.classList.remove('active'); });
-            }
-
-            if (htmlFocused) return;
-
-            if (isTouch && !isEditing) {
-                clearMobileHandles();
-            } else if (!isTouch) {
-                clearMobileHandles();
-            }
-
-            if (isTouch && !isEditing && showHandles && !isPreviewMode) {
-                setTimeout(() => { createMobileHandles(); }, 150);
-            }
-        }
-
         function showFirstRunHint() {
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
@@ -2234,12 +2553,43 @@ function deleteObjectByIndex(index) {
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
+        function adjustCanvasForMobile() {
+            if (window.innerWidth > 768) return;
+            const canvasEl = document.getElementById('designCanvas');
+            const container = document.getElementById('canvasContainer');
+            if (!canvasEl || !container) return;
+            const containerWidth = container.clientWidth;
+            const scale = containerWidth / 600;
+            const newHeight = Math.round(450 * scale);
+            canvasEl.style.width = containerWidth + 'px';
+            canvasEl.style.height = newHeight + 'px';
+            const wrapper = canvasEl.parentElement;
+            if (wrapper && wrapper.classList.contains('canvas-container')) {
+                wrapper.style.width = containerWidth + 'px';
+                wrapper.style.height = newHeight + 'px';
+            }
+            const upperCanvas = container.querySelector('.upper-canvas');
+            if (upperCanvas) {
+                upperCanvas.style.width = containerWidth + 'px';
+                upperCanvas.style.height = newHeight + 'px';
+            }
+            clearMobileHandles();
+            setTimeout(createMobileHandles, 50);
+        }
+
+        function handleMobileResize() {
+            if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) {
+                clearMobileHandles();
+                setTimeout(createMobileHandles, 100);
+            }
+        }
+
         async function init() {
             if (document.fonts) {
                 try { await document.fonts.ready; } catch (e) {}
             }
-            setupEventListeners();
-            setupMobileContextMenu();
+            setupMobileUI();
+            applyMobileSpacingFix();
             const urlParams = new URLSearchParams(window.location.search);
             const saved = localStorage.getItem('selectedTemplateConfig');
             if (saved) {
@@ -2252,7 +2602,6 @@ function deleteObjectByIndex(index) {
                             document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
                         }
                         await loadTemplateDesign();
-                        applyTemplateTexture(canvas);
                         saveState();
                         updateLayerList();
                     }
@@ -2264,6 +2613,16 @@ function deleteObjectByIndex(index) {
                 await loadDemoTemplate();
             }
             updateCheckoutDisplay();
+            lockMobileObjects(false);
+            const lockToggleEl = document.getElementById('mobileLockToggle');
+            if (lockToggleEl && window.innerWidth <= 768) {
+                lockToggleEl.classList.remove('locked');
+                lockToggleEl.classList.add('unlocked');
+                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+            }
+            setupEventListeners();
+            setupMobileContextMenu();
+            createMobileHandles();
             setupTabs();
             setupBackgroundOptions();
             setupColorPalettes();
@@ -2271,58 +2630,39 @@ function deleteObjectByIndex(index) {
             setupTextControls();
             setupTransformControls();
             setupArrangeControls();
+            document.getElementById('layerEditSave').addEventListener('click', saveLayerEdit);
+            document.getElementById('layerEditCancel').addEventListener('click', closeLayerEditModal);
+            document.getElementById('layerEditInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') saveLayerEdit();
+                if (e.key === 'Escape') closeLayerEditModal();
+            });
+            document.getElementById('layerEditModal').addEventListener('click', (e) => {
+                if (e.target.id === 'layerEditModal') closeLayerEditModal();
+            });
+            document.getElementById('addLayerBtn').addEventListener('click', addNewText);
             checkForSavedProgress();
             startAutoSave();
-            handleResize();
-            window.addEventListener('resize', handleResize);
             window.addEventListener('resize', handleMobileResize);
             window.addEventListener('resize', adjustCanvasForMobile);
-            window.addEventListener('orientationchange', () => { setTimeout(() => { handleResize(); }, 300); });
             setTimeout(showFirstRunHint, 1000);
             console.log('init() completed successfully');
             adjustCanvasForMobile();
-        }
-
-        function adjustCanvasForMobile() {
-            if (window.innerWidth > 768) return;
-            const canvasEl = document.getElementById('designCanvas');
-            const container = document.getElementById('canvasContainer');
-            if (!canvasEl || !container) return;
-
-            // Get the available width (container width minus any padding)
-            const containerWidth = container.clientWidth;
-            const scale = containerWidth / 600;
-            const newHeight = Math.round(450 * scale);
-
-            // Set the CSS dimensions (not internal resolution)
-            canvasEl.style.width = containerWidth + 'px';
-            canvasEl.style.height = newHeight + 'px';
-
-            // Fabric.js creates a wrapper - find it and resize it too
-            const wrapper = canvasEl.parentElement;
-            if (wrapper && wrapper.classList.contains('canvas-container')) {
-                wrapper.style.width = containerWidth + 'px';
-                wrapper.style.height = newHeight + 'px';
-            }
-
-            // Also resize the upper-canvas (event layer)
-            const upperCanvas = container.querySelector('.upper-canvas');
-            if (upperCanvas) {
-                upperCanvas.style.width = containerWidth + 'px';
-                upperCanvas.style.height = newHeight + 'px';
-            }
-
-            // Recalculate handle positions
-            clearMobileHandles();
-            setTimeout(createMobileHandles, 50);
-        }
-
-        function handleMobileResize() {
-            if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) {
-                clearMobileHandles();
-                setTimeout(createMobileHandles, 100);
+            if (window.innerWidth <= 768) {
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(h.dataset.target);
+                    if (content) content.style.display = 'none';
+                });
             }
         }
+
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.mobile-accordion-container') || e.target.closest('.tab-content')) {
+                e.stopPropagation();
+            }
+        }, { passive: true });
 
         init();
     </script>
