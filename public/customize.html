@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* ========== YOUR ORIGINAL CSS (unchanged) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { 
             --primary-gold: #BCAE83; 
@@ -19,9 +18,7 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        /* ===== GLOBAL: Remove all canvas borders ===== */
-        .canvas-area, .canvas-container, #designCanvas, #canvasContainer, .lower-canvas, .upper-canvas { border: none !important; outline: none !important; box-shadow: none !important; }
-        html, body { overscroll-behavior-y: none; }
+        html, body { overscroll-behavior-y: none; overflow-x: hidden; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
         .design-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 12px 20px; border-radius: 12px; }
@@ -30,20 +27,13 @@
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
 
         .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
-        .tools-panel { width: 65px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; }
-        .tool-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; position: relative; }
-        .tool-btn:hover, .tool-btn.active { background: var(--primary-gold); color: white; transform: translateY(-2px); }
-        .tool-btn.danger:hover { background: var(--danger); }
-        .tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .tool-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.1); margin: 3px 0; }
-        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
-        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
+        .canvas-area { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; min-height: 0; }
+        .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; flex-shrink: 0; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
-        .canvas-container { flex: 1; border-radius: 0 !important; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; }
-        #designCanvas { box-shadow: none !important; border-radius: 0 !important; border: none !important; }
-        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; }
+        .canvas-container { flex: 1; border-radius: 0 !important; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; min-height: 0; }
+        #designCanvas { width: 600px; height: 450px; max-width: 100%; display: block; background: transparent; }
+        .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; overflow-y: auto; color: white; display: flex; flex-direction: column; min-height: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .panel-title { color: var(--primary-gold); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
         .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
         .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
@@ -71,20 +61,9 @@
         .layer-item { background: rgba(255,255,255,0.08); padding: 10px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; transition: all 0.2s; border: 1px solid transparent; }
         .layer-item:hover { background: rgba(255,255,255,0.15); }
         .layer-item.active { border-color: var(--primary-gold); background: rgba(188, 174, 131, 0.15); }
-        .layer-item.locked { opacity: 0.5; }
         .layer-actions { display: flex; gap: 5px; }
         .layer-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 4px; border-radius: 4px; }
         .layer-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-        .effect-toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
-        .effect-toggle:hover { background: rgba(255,255,255,0.1); }
-        .toggle-switch { width: 40px; height: 22px; background: rgba(255,255,255,0.2); border-radius: 11px; position: relative; transition: all 0.3s; }
-        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
-        .effect-toggle.active .toggle-switch { background: var(--primary-teal); }
-        .effect-toggle.active .toggle-switch::after { left: 20px; }
-        .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .bg-option:hover { transform: scale(1.05); }
-        .bg-option.active { border-color: var(--primary-teal); }
         .checkout-section { background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(102, 126, 234, 0.15)); border: 2px solid var(--primary-teal); border-radius: 12px; padding: 15px; margin-top: auto; }
         .checkout-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
         .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4); }
@@ -104,21 +83,48 @@
         .upload-area i { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-gold); }
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
-        #videoUploadSection .upload-area { border-color: var(--primary-teal); }
-        #audioUploadSection .upload-area { border-color: var(--primary-gold); }
 
-        
-        /* ===== FABRIC.JS TEXT EDITING FIX FOR TOUCH ===== */
-        .canvas-container textarea {
-            font-size: 16px !important;
-            caret-color: black !important;
-            z-index: 1000 !important;
-            pointer-events: auto !important;
-            -webkit-user-select: text !important;
-            user-select: text !important;
-        }
 
-@media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
+
+        .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .palette-btn { padding: 10px 6px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; font-size: 0.75rem; text-align: center; transition: all 0.2s; font-weight: 600; }
+        .palette-btn:hover { transform: scale(1.05); border-color: white; }
+        .palette-btn.active { border-color: var(--primary-teal); box-shadow: 0 0 0 2px rgba(6, 214, 160, 0.3); }
+        .palette-elegant { background: #F5F5DC; color: #333; }
+        .palette-vibrant { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .palette-dark { background: #1a1a2e; color: var(--primary-gold); border: 1px solid rgba(255,255,255,0.2); }
+        .palette-minimal { background: #ffffff; color: #333; border: 1px solid rgba(0,0,0,0.1); }
+
+        .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .media-btn { padding: 14px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .media-btn:hover { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
+        .media-btn i { font-size: 1rem; }
+
+        .preview-btn { background: rgba(6, 214, 160, 0.2); border-color: var(--primary-teal); }
+        .preview-btn:hover { background: var(--primary-teal); color: white; }
+        .preview-btn.active { background: var(--primary-teal); color: white; }
+        .preview-mode .properties-panel { display: none !important; }
+        .preview-mode .design-layout { gap: 0 !important; }
+        .preview-mode .canvas-area { flex: 1 !important; }
+        .preview-mode .canvas-toolbar { opacity: 0.3; }
+        .preview-mode .canvas-toolbar:hover { opacity: 1; }
+
+        .done-btn { background: var(--primary-teal); color: #1a1a2e; font-weight: 700; border-color: var(--primary-teal); }
+        .done-btn:hover { background: #05b386; }
+
+        .hint-bubble { position: fixed; background: var(--primary-gold); color: #1a1a2e; padding: 10px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: hintPulse 2s infinite; pointer-events: none; display: none; }
+        @keyframes hintPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+        .canvas-container textarea { font-size: 16px !important; caret-color: black !important; z-index: 1000 !important; pointer-events: auto !important; -webkit-user-select: text !important; user-select: text !important; }
+
+        .mobile-context-menu { position: fixed; background: rgba(26, 26, 46, 0.98); border: 1px solid var(--primary-gold); border-radius: 12px; padding: 6px 0; z-index: 9999; display: none; min-width: 200px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
+        .mobile-context-menu .ctx-item { padding: 14px 18px; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        .mobile-context-menu .ctx-item:last-child { border-bottom: none; }
+        .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
+        .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
+        .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
+        .ctx-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 9998; display: none; }
+
         .mobile-handle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
         .mobile-object-handle { position: absolute; width: 24px; height: 24px; background: rgba(6, 214, 160, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: transform 0.1s, background 0.1s; }
         .mobile-object-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--primary-gold); }
@@ -126,263 +132,45 @@
         .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
         .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
 
+        .layer-edit-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .layer-edit-modal.active { display: flex; }
+        .layer-edit-content { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid var(--primary-gold); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+        .layer-edit-content h3 { margin: 0 0 16px 0; color: var(--primary-gold); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .layer-edit-content input { width: 100%; padding: 14px; font-size: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; margin-bottom: 16px; -webkit-appearance: none; }
+        .layer-edit-content input:focus { outline: none; border-color: var(--primary-teal); box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.2); }
+        .layer-edit-actions { display: flex; gap: 10px; }
+        .layer-edit-actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+        .layer-edit-actions .save-btn { background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple)); color: white; }
+        .layer-edit-actions .save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3); }
+        .layer-edit-actions .cancel-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .layer-edit-actions .cancel-btn:hover { background: rgba(255,255,255,0.15); }
+
+        @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
+
         @media (max-width: 768px) {
-            /* ===== STOP APP FROM FORCING FULL HEIGHT ===== */
-            .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
-
-            /* ===== STOP DESIGN-LAYOUT FROM EXPANDING ===== */
-            .design-layout { 
-                flex-direction: column; 
-                height: auto !important; 
-                min-height: auto !important;
-                max-height: none !important;
-                gap: 0 !important; 
-                flex: none !important;
-            }
-
-            /* ===== CANVAS AREA - SHRINK TO CONTENT ===== */
-            .canvas-area { 
-                order: 1; 
-                display: block !important;
-                flex: none !important; 
-                height: auto !important; 
-                min-height: auto !important;
-                max-height: none !important;
-                padding: 0 !important; 
-                margin: 0 !important; 
-                background: rgba(26, 26, 46, 0.95) !important;
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 5 !important;
-                border: none !important;
-                border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important;
-                border-radius: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow: visible !important;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(6, 214, 160, 0.15);
-            }
-
-            /* ===== CANVAS CONTAINER - SHRINK TO CONTENT ===== */
-            .canvas-container { 
-                display: block !important;
-                flex: none !important; 
-                height: auto !important; 
-                min-height: auto !important;
-                max-height: none !important;
-                padding: 0 !important; 
-                margin: 0 !important; 
-                background: transparent !important;
-                background-color: transparent !important;
-                background-image: none !important;
-                overflow: visible;
-                line-height: 0;
-                text-align: center;
-                border: none !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-
-            /* ===== CANVAS ITSELF ===== */
-            #designCanvas { 
-                max-width: 100%; 
-                width: 100%; 
-                height: auto !important; 
-                max-height: 50vh;
-                display: block; 
-                margin: 0 auto;
-                box-shadow: none !important;
-                border: none !important;
-                border-radius: 0 !important;
-                outline: none !important;
-                min-width: 100% !important;
-            }
-            /* ===== SCALE FABRIC.JS CANVAS TO FIT MOBILE SCREEN ===== */
-            /* ===== OUTER CANVAS CONTAINER ===== */
-            #canvasContainer {
-                max-height: 50vh;
-                overflow: hidden;
-                width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            /* ===== INNER FABRIC.JS WRAPPER ===== */
-            #canvasContainer .canvas-container {
-                width: 100% !important;
-                max-width: 100% !important;
-                height: auto !important;
-                aspect-ratio: 600 / 450 !important;
-                max-height: 55vh !important;
-                margin: 0 !important;
-                position: relative !important;
-                left: 0 !important;
-                right: 0 !important;
-            }
-            /* ===== CANVAS ELEMENTS ===== */
-            #designCanvas {
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-                box-shadow: none !important;
-                aspect-ratio: 600 / 450 !important;
-            }
-            /* ===== TOOLBAR COMPACT ===== */
-            .canvas-toolbar { 
-                margin: 0 !important; 
-                padding: 4px 8px !important; 
-                font-size: 0.75rem; 
-                min-height: 32px;
-                border-bottom: none !important;
-                width: 100% !important;
-                box-sizing: border-box;
-            }
-            .canvas-toolbar .mobile-scroll-hint { display: none !important; }
-            .toolbar-hint {
-                white-space: normal !important;
-                overflow: visible !important;
-                text-overflow: clip !important;
-                line-height: 1.3;
-                font-size: 0.68rem !important;
-            }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: rgba(26, 26, 46, 0.95); position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .grid-overlay { display: none; }
-            #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; min-width: 110px; font-size: 0.75rem; }
-
-            /* ===== TOOLS PANEL ===== */
-            .tools-panel { 
-                display: none !important;
-            }
-            
-
-.tool-btn { width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem; }
-            .tool-divider { width: 1px; height: 70%; margin: 0 3px; }
-
-            /* ===== TOOLS TOGGLE ===== */
-            .mobile-tools-toggle { 
-                display: none !important;
-            }
-
-            /* ===== ACCORDION ===== */
-            .mobile-accordion-container { display: block; margin: 0; }
-            .mobile-accordion-header {
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between;
-                padding: 12px !important; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin: 0 0 2px 0 !important; 
-                cursor: pointer; 
-                font-weight: 600; 
-                font-size: 0.9rem;
-                border: 1px solid rgba(255,255,255,0.1); 
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-                width: 100%;
-            }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active {
-                background: rgba(6, 214, 160, 0.15); 
-                border-color: var(--primary-teal); 
-                color: var(--primary-teal);
-            }
-            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
-
-            /* ===== HIDE DESKTOP TABS ===== */
-            .properties-panel .tabs { display: none !important; }
-
-            /* ===== PROPERTIES PANEL ===== */
-            .properties-panel { 
-                width: 100%; 
-                order: 3; 
-                padding: 0; 
-                margin: 0 !important;
-                flex: none !important;
-                height: auto !important;
-                min-height: auto !important;
-                display: block !important;
-                position: relative;
-                z-index: 2;
-            }
-            .properties-panel .tab-content { 
-                padding: 0 8px; 
-                max-height: 60vh;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-            .properties-panel .checkout-section { margin: 8px !important; }
-            .properties-panel .panel-header { margin-bottom: 4px; padding-bottom: 4px; }
-            .properties-panel .panel-title { font-size: 0.85rem; }
-
-            /* ===== COLLAPSIBLE SECTIONS ===== */
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { 
-                cursor: pointer; 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                padding: 8px 0; 
-                margin-bottom: 0 !important; 
-            }
-            .property-section h4::after { 
-                content: '\f078'; 
-                font-family: 'Font Awesome 6 Free'; 
-                font-weight: 900; 
-                font-size: 0.75rem; 
-                transition: transform 0.2s; 
-                margin-left: 10px; 
-                color: var(--primary-gold); 
-            }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
             .property-section.collapsed h4::after { transform: rotate(-90deg); }
             .property-section.collapsed .section-content { display: none; }
             .property-section .section-content { padding-top: 6px; }
-
-            /* ===== LOCK TOGGLE ===== */
-            .mobile-lock-toggle {
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between;
-                padding: 10px 12px; 
-                background: rgba(255,255,255,0.08); 
-                border-radius: 8px;
-                margin-bottom: 10px; 
-                cursor: pointer; 
-                font-size: 0.85rem;
-                border: 1px solid rgba(255,255,255,0.1); 
-                touch-action: manipulation;
-            }
-            .mobile-lock-toggle.locked { 
-                background: rgba(255, 107, 107, 0.15); 
-                border-color: var(--danger); 
-                color: var(--danger); 
-            }
-            .mobile-lock-toggle.unlocked { 
-                background: rgba(6, 214, 160, 0.15); 
-                border-color: var(--primary-teal); 
-                color: var(--primary-teal); 
-            }
-
-            /* ===== LESS SENSITIVE ===== */
-            .mobile-accordion-header, .mobile-lock-toggle,
-            .property-section h4, .btn-btn, .tool-btn, .layer-item, .checkout-btn {
-                touch-action: manipulation; 
-                -webkit-tap-highlight-color: transparent;
-                user-select: none; 
-                -webkit-user-select: none;
-            }
-
-            /* ===== HIDE DESKTOP EXTRAS ON MOBILE ===== */
-
-            /* ===== CHECKOUT ===== */
-            .checkout-section { margin-top: 8px !important; }
-
-            /* ===== HEADER COMPACT ===== */
+            .checkout-section { margin-top: 8px; }
             .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
-            #mobileResetBtn { display: inline-flex !important; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
             .header-left { width: 100%; justify-content: space-between; gap: 6px; }
             .design-header h1 { font-size: 0.9rem; }
             .back-link { padding: 5px 8px; font-size: 0.75rem; }
@@ -393,163 +181,35 @@
             .layer-btn { padding: 8px; }
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-
-            /* ===== HIDE PROPERTIES LABEL ON MOBILE ===== */
-            .properties-panel .panel-header { display: none !important; }
-
-            /* ===== MOVE RESET BUTTON TO CANVAS TOOLBAR ===== */
-            #resetDesignBtn {
-                position: fixed;
-                top: 8px;
-                right: 8px;
-                z-index: 100;
-                padding: 6px 10px !important;
-                font-size: 0.75rem !important;
-                background: rgba(255,107,107,0.2) !important;
-                border-color: var(--danger) !important;
-                opacity: 0.9;
-            }
-
-            #mobileResetBtn {
-                background: rgba(255, 107, 107, 0.2) !important;
-                border: 1px solid var(--danger) !important;
-                color: #ff6b6b !important;
-            }
-            /* ===== MOBILE CONTEXT MENU ===== */
-            .mobile-context-menu {
-                position: fixed;
-                background: rgba(26, 26, 46, 0.98);
-                border: 1px solid var(--primary-gold);
-                border-radius: 12px;
-                padding: 6px 0;
-                z-index: 9999;
-                display: none;
-                min-width: 200px;
-                box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-                backdrop-filter: blur(10px);
-            }
-            .mobile-context-menu .ctx-item {
-                padding: 14px 18px;
-                color: white;
-                font-size: 0.95rem;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                border-bottom: 1px solid rgba(255,255,255,0.08);
-                transition: background 0.15s;
-                -webkit-tap-highlight-color: transparent;
-                touch-action: manipulation;
-            }
-            .mobile-context-menu .ctx-item:last-child { border-bottom: none; }
-            .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
-            .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
-            .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
-            .mobile-rotate-handle { position: absolute; width: 20px; height: 20px; background: rgba(255, 165, 0, 0.95); border: 2px solid white; border-radius: 50%; pointer-events: auto; touch-action: manipulation; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transform: translate(-50%, -50%); z-index: 101; }
-            .mobile-rotate-handle:active { transform: translate(-50%, -50%) scale(1.3); background: var(--warning); }
-            .mobile-context-menu .ctx-divider {
-                height: 1px;
-                background: rgba(255,255,255,0.1);
-                margin: 4px 0;
-            }
-                        .ctx-backdrop {
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.4);
-                z-index: 9998;
-                display: none;
-            }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
+            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
+            .palette-grid { grid-template-columns: repeat(2, 1fr); }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .canvas-area { width: 100%; }
+            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
         }
-            .mobile-tools-toggle {
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-            .tools-tab-content {
-                display: flex;
-                flex-direction: row;
-                justify-content: center;
-                align-items: center;
-                flex-wrap: nowrap;
-                gap: 4px;
-                padding: 10px 0;
-            }
-            .tools-tab-content .tool-btn {
-                width: 36px;
-                height: 36px;
-                border-radius: 8px;
-                border: none;
-                background: transparent;
-                color: rgba(255,255,255,0.7);
-                font-size: 1rem;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            .tools-tab-content .tool-btn:hover, .tools-tab-content .tool-btn.active {
-                background: var(--primary-gold);
-                color: white;
-                transform: translateY(-2px);
-            }
-            .tools-tab-content .tool-btn.danger:hover {
-                background: var(--danger);
-            }
-            .tools-tab-content .tool-divider {
-                width: 1px;
-                height: 70%;
-                margin: 0 3px;
-                background: rgba(255,255,255,0.1);
-                align-self: center;
-            }
 
         @media (max-width: 768px) and (orientation: landscape) {
-            .canvas-area {
-                display: block !important;
-                width: 100% !important;
-            }
-
-            #canvasContainer {
-                width: 100% !important;
-                height: auto !important;
-                max-height: 80vh !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-                border: none !important;
-                border-radius: 0 !important;
-                position: relative !important;
-            }
-            #canvasContainer .canvas-container {
-                width: 100% !important;
-                height: auto !important;
-                max-width: 100% !important;
-                max-height: 80vh !important;
-                aspect-ratio: 600 / 450 !important;
-                border: none !important;
-                border-radius: 0 !important;
-                margin: 0 auto !important;
-                position: relative !important;
-            }
-            #designCanvas {
-                max-width: 100% !important;
-                width: 100% !important;
-                height: auto !important;
-                max-height: 80vh !important;
-                display: block !important;
-                margin: 0 auto !important;
-                box-shadow: none !important;
-                border: none !important;
-                outline: none !important;
-                border-radius: 0 !important;
-                aspect-ratio: 600 / 450 !important;
-            }
+            .canvas-area { display: block; width: 100%; }
+            .canvas-container { width: 100%; height: auto; min-height: 200px; display: flex; justify-content: center; align-items: center; border: none; border-radius: 0; position: relative; }
+            #designCanvas { max-width: 100%; width: auto; height: auto; max-height: 80vh; min-height: 200px; display: block; margin: 0 auto; aspect-ratio: 600 / 450; }
         }
 
-        /* ===== TOUCH-FRIENDLY DESKTOP (tablets, touch laptops) ===== */
-        
-        /* ===== TABLET / iPad PORTRAIT - Same sticky canvas as mobile ===== */
+        @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
+            #designCanvas { width: 500px; height: 375px; }
+        }
+                /* ===== TABLET / iPad PORTRAIT - Same sticky canvas as mobile ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
             .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
             .design-layout { flex-direction: column !important; height: auto !important; min-height: auto !important; max-height: none !important; gap: 0 !important; flex: none !important; }
-            .tools-panel { display: none !important; }
             .canvas-area { 
                 order: 1 !important; 
                 flex: none !important; 
@@ -643,7 +303,6 @@
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            .tools-panel { display: flex !important; flex-direction: column; width: 65px; }
             .canvas-area { 
                 position: relative !important; 
                 order: auto !important; 
@@ -703,178 +362,43 @@
         }
 
 @media (min-width: 769px) and (pointer: coarse) {
-            #toggleHandlesBtn {
-                display: inline-flex !important;
-                background: rgba(6, 214, 160, 0.2) !important;
-                border-color: var(--primary-teal) !important;
-            }
-            .tool-btn {
-                width: 56px;
-                height: 56px;
-                font-size: 1.3rem;
-            }
-            .btn-icon, .btn-icon.small {
-                padding: 14px 18px;
-                min-height: 48px;
-                font-size: 0.95rem;
-            }
-            .layer-item {
-                padding: 16px 12px;
-            }
-            .layer-btn {
-                padding: 10px;
-                font-size: 1rem;
-            }
-            .text-input, select, input[type="number"] {
-                padding: 14px;
-                font-size: 16px;
-            }
-            .qty-btn {
-                width: 40px;
-                height: 40px;
-            }
-            .checkout-btn {
-                padding: 16px;
-                font-size: 1.1rem;
-            }
-            .upload-area {
-                padding: 30px 20px;
-            }
-            .color-preset {
-                width: 36px;
-                height: 36px;
-            }
-            input[type="color"] {
-                width: 52px;
-                height: 48px;
-            }
-            .tab {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            .canvas-container {
-                padding: 8px;
-            }
-            #designCanvas {
-                border-radius: 4px;
-            }
-            .canvas-toolbar .btn-icon.small {
-                min-height: 40px;
-                padding: 8px 12px;
-            }
-            .property-section h4 {
-                padding: 10px 0;
-            }
-            .effect-toggle {
-                padding: 12px;
-            }
-            .toggle-switch {
-                width: 48px;
-                height: 26px;
-            }
-            .toggle-switch::after {
-                width: 22px;
-                height: 22px;
-            }
-            .effect-toggle.active .toggle-switch::after {
-                left: 24px;
-            }
+            #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; }
+            .btn-icon, .btn-icon.small { padding: 14px 18px; min-height: 48px; font-size: 0.95rem; }
+            .layer-item { padding: 16px 12px; }
+            .layer-btn { padding: 10px; font-size: 1rem; }
+            .text-input, select, input[type="number"] { padding: 14px; font-size: 16px; }
+            .qty-btn { width: 40px; height: 40px; }
+            .checkout-btn { padding: 16px; font-size: 1.1rem; }
+            .upload-area { padding: 30px 20px; }
+            .color-preset { width: 36px; height: 36px; }
+            input[type="color"] { width: 52px; height: 48px; }
+            .tab { padding: 10px 18px; font-size: 0.9rem; }
+            .canvas-container { padding: 8px; }
+            #designCanvas { border-radius: 4px; }
+            .canvas-toolbar .btn-icon.small { min-height: 40px; padding: 8px 12px; }
+            .property-section h4 { padding: 10px 0; }
+            .media-btn { padding: 16px 10px; }
         }
 
         @media (min-width: 769px) and (pointer: fine) {
             .mobile-context-menu, .ctx-backdrop { display: none !important; }
             #toggleHandlesBtn { display: none !important; }
         }
+
         @media (min-width: 769px) {
-            .mobile-tools-toggle, .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle, #mobileResetBtn { display: none !important; }
-            
+            #mobileResetBtn { display: none !important; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
             .properties-panel .panel-header { justify-content: center !important; border-bottom-color: transparent !important; }
             .properties-panel .panel-title { display: none !important; }
             #resetDesignBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .design-layout { gap: 0 !important; }
+            .preview-mode .canvas-area { flex: 1 !important; }
+            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
         }
-
-        /* ===== LAYER EDIT MODAL ===== */
-        .layer-edit-modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .layer-edit-modal.active { display: flex; }
-        .layer-edit-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 2px solid var(--primary-gold);
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-        }
-        .layer-edit-content h3 {
-            margin: 0 0 16px 0;
-            color: var(--primary-gold);
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .layer-edit-content input {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: white;
-            margin-bottom: 16px;
-            -webkit-appearance: none;
-        }
-        .layer-edit-content input:focus {
-            outline: none;
-            border-color: var(--primary-teal);
-            box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.2);
-        }
-        .layer-edit-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .layer-edit-actions button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .layer-edit-actions .save-btn {
-            background: linear-gradient(135deg, var(--primary-teal), var(--accent-purple));
-            color: white;
-        }
-        .layer-edit-actions .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3);
-        }
-        .layer-edit-actions .cancel-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .layer-edit-actions .cancel-btn:hover {
-            background: rgba(255,255,255,0.15);
-        }
-
-
-</style>
-<base target="_blank">
-<base target="_blank">
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -893,31 +417,18 @@
             </div>
         </div>
 
-
         <div class="design-layout">
-            <div class="tools-panel">
-                <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
-                <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
-                <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
-                <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
-                <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
-                <div class="tool-divider"></div>
-                <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                <div class="tool-divider"></div>
-                <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
-            </div>
-
             <div class="canvas-area">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
+                        <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
+                        <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                         <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
-
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
@@ -933,120 +444,71 @@
                     <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
-                <div class="tab-content" id="toolsTab">
-                    <div class="tools-tab-content">
-                        <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
-                        <button class="tool-btn" data-tool="text" title="Add Text (T)"><i class="fas fa-font"></i></button>
-                        <button class="tool-btn" data-tool="image" title="Add Image (I)"><i class="fas fa-image"></i></button>
-                        <button class="tool-btn" data-tool="video" title="Add Video (V)"><i class="fas fa-video"></i></button>
-                        <button class="tool-btn" data-tool="audio" title="Add Audio (A)"><i class="fas fa-music"></i></button>
-                        <div class="tool-divider"></div>
-                        <button class="tool-btn" data-tool="undo" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                        <button class="tool-btn" data-tool="redo" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                        <div class="tool-divider"></div>
-                        <button class="tool-btn danger" data-tool="delete" title="Delete (Del)"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
                 <div class="tab-content active" id="designTab">
-                    <div id="noSelection" class="empty-state">
-                        <div class="property-section" style="margin-top: 0;">
-                            <h4><i class="fas fa-image"></i> Change Background</h4>
-                            <div class="bg-options" id="bgOptions">
-                                <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
-                                <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="true" data-colors="#667eea,#764ba2" title="Purple Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="true" data-colors="#f093fb,#f5576c" title="Pink Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="true" data-colors="#4facfe,#00f2fe" title="Blue Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-gradient="true" data-colors="#43e97b,#38f9d7" title="Green Gradient"></div>
-                                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-gradient="true" data-colors="#fa709a,#fee140" title="Sunset"></div>
-                                <div class="bg-option" style="background: #1a1a2e;" data-color="#1a1a2e" title="Dark"></div>
-                            </div>
+                    <div class="property-section">
+                        <h4><i class="fas fa-image"></i> Background & Media</h4>
+                        <div class="section-content">
+
                             <div class="color-picker-wrapper" style="margin-top: 10px;">
                                 <input type="color" id="bgColorPicker" value="#ffffff">
                                 <span style="font-size: 0.85rem;">Custom Color</span>
                             </div>
-                        </div>
-                        <div class="property-section" id="mediaControls">
-                            <h4><i class="fas fa-photo-video"></i> Add Media</h4>
-                            <div class="btn-group" style="margin-bottom: 10px;">
-                                <button class="btn-icon" id="addImageMode" data-mediatype="image"><i class="fas fa-image"></i> Image</button>
-                                <button class="btn-icon" id="addVideoMode" data-mediatype="video"><i class="fas fa-video"></i> Video</button>
-                                <button class="btn-icon" id="addAudioMode" data-mediatype="audio"><i class="fas fa-music"></i> Audio</button>
+                            <div class="palette-grid" id="colorPalettes">
+                                <button class="palette-btn palette-elegant" data-palette="elegant"><i class="fas fa-gem"></i> Elegant</button>
+                                <button class="palette-btn palette-vibrant" data-palette="vibrant"><i class="fas fa-bolt"></i> Vibrant</button>
+                                <button class="palette-btn palette-dark" data-palette="dark"><i class="fas fa-moon"></i> Dark</button>
+                                <button class="palette-btn palette-minimal" data-palette="minimal"><i class="fas fa-minus"></i> Minimal</button>
                             </div>
-                            <div id="imageUploadSection" style="display: none;">
-                                <div class="upload-area" id="uploadArea"><i class="fas fa-cloud-upload-alt"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop image</div><div style="font-size: 0.7rem; opacity: 0.6;">JPG, PNG, GIF up to 5MB</div></div>
-                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                            </div>
-                            <div id="videoUploadSection" style="display: none;">
-                                <div class="upload-area" id="videoUploadArea"><i class="fas fa-video"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop video</div><div style="font-size: 0.7rem; opacity: 0.6;">MP4, WebM up to 40MB</div></div>
-                                <input type="file" id="videoInput" accept="video/*" style="display: none;">
-                                <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;"><i class="fas fa-info-circle"></i> Video plays as background, text on top</div>
-                            </div>
-                            <div id="audioUploadSection" style="display: none;">
-                                <div class="upload-area" id="audioUploadArea"><i class="fas fa-music"></i><div style="font-size: 0.85rem; margin-top: 5px;">Click or drop audio</div><div style="font-size: 0.7rem; opacity: 0.6;">MP3, WAV up to 40MB</div></div>
-                                <div style="font-size: 0.75rem; color: var(--primary-teal); margin-top: 8px;"><i class="fas fa-info-circle"></i> Audio plays automatically when card is opened</div>
+
+                            <!-- Add Media nested inside Background -->
+                            <div class="property-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; border-bottom: none;">
+                                <h4 style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 6px 0; margin-bottom: 8px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;" id="addMediaToggle">
+                                    <span><i class="fas fa-photo-video"></i> Add Media</span>
+                                </h4>
+                                <div class="section-content" id="addMediaContent">
+                                    <div class="media-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                        <button class="media-btn" id="addPhotoBtn"><i class="fas fa-image"></i> Add Photo</button>
+                                        <button class="media-btn" id="addVideoBtn"><i class="fas fa-video"></i> Add Video</button>
+                                        <button class="media-btn" id="addAudioBtn"><i class="fas fa-music"></i> Add Audio</button>
+                                    </div>
+                                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                                    <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                                    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div id="selectionControls" style="display: none;">
-                        <div id="textControls">
-                            <div class="property-section">
-                                <h4><i class="fas fa-edit"></i> Text Content</h4>
+
+                    <div id="textControls" style="display: none;">
+                        <div class="property-section">
+                            <h4><i class="fas fa-edit"></i> Text Content</h4>
+                            <div class="section-content">
                                 <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
                             </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-font"></i> Typography</h4>
+                        </div>
+                        <div class="property-section">
+                            <h4><i class="fas fa-font"></i> Font</h4>
+                            <div class="section-content">
                                 <select id="fontFamily" style="margin-bottom: 10px;">
-                                    <optgroup label="Serif Fonts">
+                                    <optgroup label="Classic">
                                         <option value="Playfair Display">Playfair Display</option>
                                         <option value="Cormorant Garamond">Cormorant Garamond</option>
-                                        <option value="Merriweather">Merriweather</option>
-                                        <option value="Lora">Lora</option>
-                                        <option value="Libre Baskerville">Libre Baskerville</option>
-                                        <option value="Cinzel">Cinzel</option>
-                                        <option value="PT Serif">PT Serif</option>
-                                        <option value="Noto Serif">Noto Serif</option>
-                                        <option value="Crimson Text">Crimson Text</option>
-                                        <option value="Old Standard TT">Old Standard TT</option>
-                                        <option value="Bitter">Bitter</option>
                                     </optgroup>
-                                    <optgroup label="Sans Serif">
+                                    <optgroup label="Modern">
                                         <option value="Montserrat">Montserrat</option>
-                                        <option value="Raleway">Raleway</option>
                                         <option value="Poppins">Poppins</option>
+                                        <option value="Raleway">Raleway</option>
                                         <option value="Oswald">Oswald</option>
-                                        <option value="Roboto">Roboto</option>
-                                        <option value="Open Sans">Open Sans</option>
-                                        <option value="Lato">Lato</option>
-                                        <option value="Nunito">Nunito</option>
-                                        <option value="Source Sans Pro">Source Sans Pro</option>
-                                        <option value="PT Sans">PT Sans</option>
-                                        <option value="Ubuntu">Ubuntu</option>
-                                        <option value="Work Sans">Work Sans</option>
                                     </optgroup>
-                                    <optgroup label="Script & Decorative">
+                                    <optgroup label="Script">
                                         <option value="Parisienne">Parisienne</option>
                                         <option value="Great Vibes">Great Vibes</option>
-                                        <option value="Pacifico">Pacifico</option>
-                                        <option value="Alex Brush">Alex Brush</option>
-                                        <option value="Sacramento">Sacramento</option>
                                         <option value="Dancing Script">Dancing Script</option>
-                                        <option value="Tangerine">Tangerine</option>
-                                        <option value="Satisfy">Satisfy</option>
-                                        <option value="Courgette">Courgette</option>
-                                        <option value="Kalam">Kalam</option>
-                                        <option value="Amatic SC">Amatic SC</option>
-                                        <option value="Lobster">Lobster</option>
                                     </optgroup>
-                                    <optgroup label="Display & Fun">
+                                    <optgroup label="Display">
                                         <option value="Abril Fatface">Abril Fatface</option>
                                         <option value="Bebas Neue">Bebas Neue</option>
-                                        <option value="Fredoka One">Fredoka One</option>
-                                        <option value="Monoton">Monoton</option>
-                                        <option value="Bangers">Bangers</option>
                                         <option value="Comfortaa">Comfortaa</option>
-                                        <option value="Quicksand">Quicksand</option>
-                                        <option value="Space Mono">Space Mono</option>
                                     </optgroup>
                                 </select>
                                 <div class="control-row">
@@ -1058,13 +520,13 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-fill-drip"></i> Colors & Effects</h4>
+                        </div>
+                        <div class="property-section">
+                            <h4><i class="fas fa-fill-drip"></i> Color</h4>
+                            <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group">
-                                        <label>Text Color</label>
                                         <div class="color-picker-wrapper">
                                             <input type="color" id="textColor" value="#333333">
                                             <div class="color-presets" id="textColorPresets">
@@ -1078,11 +540,11 @@
                                         </div>
                                     </div>
                                 </div>
-
-
                             </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-bold"></i> Text Style</h4>
+                        </div>
+                        <div class="property-section">
+                            <h4><i class="fas fa-bold"></i> Style</h4>
+                            <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
                                     <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
@@ -1096,17 +558,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="transformControls">
-                            <div class="property-section">
-                                <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
-                                <div class="control-row">
-                                    <div class="control-group"><label>X Position</label><input type="number" id="posX" value="300"></div>
-                                    <div class="control-group"><label>Y Position</label><input type="number" id="posY" value="200"></div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group"><label>Width</label><input type="number" id="objWidth" value="100"></div>
-                                    <div class="control-group"><label>Height</label><input type="number" id="objHeight" value="100"></div>
-                                </div>
+                    </div>
+
+                    <div id="transformControls" style="display: none;">
+                        <div class="property-section">
+                            <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
+                            <div class="section-content">
                                 <div class="control-row">
                                     <div class="control-group">
                                         <label>Rotation</label>
@@ -1126,40 +583,31 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-layer-group"></i> Arrange</h4>
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
-                                    <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
-                                </div>
-                            </div>
-                            <div class="property-section">
-                                <h4><i class="fas fa-magic"></i> Effects</h4>
+                        </div>
+                        <div class="property-section">
+                            <h4><i class="fas fa-magic"></i> Actions</h4>
+                            <div class="section-content">
                                 <div class="btn-group">
                                     <button class="btn-icon" id="duplicateBtn"><i class="fas fa-copy"></i> Duplicate</button>
+                                    <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
+                                    <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
+                                    <button class="btn-icon danger" id="deleteBtn"><i class="fas fa-trash-alt"></i> Delete</button>
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
+
                 <div class="tab-content" id="layersTab">
                     <div class="mobile-lock-toggle locked" id="mobileLockToggle">
                         <span><i class="fas fa-lock"></i> Objects Locked</span>
                         <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
                     </div>
-                    <div class="property-section">
-                        <h4><i class="fas fa-layer-group"></i> Layer Manager</h4>
-                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                            <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
-                        </div>
-                        <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
                     </div>
-
+                    <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                 </div>
-                
-
 
                 <div class="checkout-section">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -1184,10 +632,22 @@
             </div>
         </div>
     </div>
-    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Merriweather:wght@400;700&family=Lora:wght@400;600&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&family=Crimson+Text:wght@400;600&family=Old+Standard+TT:wght@400;700&family=Bitter:wght@400;700&family=Montserrat:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600;800&family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Work+Sans:wght@400;600&family=Parisienne&family=Great+Vibes&family=Pacifico&family=Alex+Brush&family=Sacramento&family=Dancing+Script:wght@400;700&family=Tangerine:wght@400;700&family=Satisfy&family=Courgette&family=Kalam:wght@400;700&family=Amatic+SC:wght@400;700&family=Lobster&family=Abril+Fatface&family=Bebas+Neue&family=Fredoka+One&family=Monoton&family=Bangers&family=Comfortaa:wght@400;700&family=Quicksand:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
 
-        <!-- Layer Edit Modal -->
+    <div class="hint-bubble" id="hintBubble">Tap "Add Text" to start creating!</div>
+
+    <div class="mobile-context-menu" id="mobileContextMenu">
+        <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
+        <div class="ctx-divider" id="ctxEditDivider"></div>
+        <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
+        <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
+    </div>
+    <div class="ctx-backdrop" id="ctxBackdrop"></div>
+
+    <!-- Layer Edit Modal -->
     <div id="layerEditModal" class="layer-edit-modal">
         <div class="layer-edit-content">
             <h3><i class="fas fa-pencil-alt"></i> Edit Layer Name</h3>
@@ -1200,6 +660,7 @@
     </div>
 
 <script>
+
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -1218,16 +679,15 @@
                 selectable: true, evented: true,
                 lockScalingX: false, lockScalingY: false,
                 lockRotation: false, lockMovementX: false, lockMovementY: false,
-                snapAngle: 45,
-                snapThreshold: 5
+                snapAngle: 45, snapThreshold: 5
             });
             if (obj.setControlVisible) {
                 ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
             }
             if (obj.type === 'i-text') {
                 obj.off('editing:entered'); obj.off('editing:exited');
-                obj.on('editing:entered', function() { clearMobileHandles(); });
-                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 150); });
+                obj.on('editing:entered', function() { clearMobileHandles(); document.getElementById('doneBtn').classList.remove('hidden'); });
+                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 150); document.getElementById('doneBtn').classList.add('hidden'); });
             }
         }
         canvas.on('object:added', (e) => {
@@ -1239,7 +699,6 @@
 
         let selectedObject = null;
         let templateConfig = null;
-        let currentZoom = 1;
         let showHandles = true;
         let undoStack = [];
         let redoStack = [];
@@ -1247,8 +706,10 @@
         function isMobileLayout() {
             return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.matchMedia('(orientation: portrait)').matches);
         }
-        
-        
+        let isPreviewMode = false;
+        let layerEditTarget = null;
+        let mobileHandles = [];
+        let handleDragState = null;
 
         function showNotification(message, type) {
             console.log(`[${type || 'info'}] ${message}`);
@@ -1263,38 +724,9 @@
             canvas.clear();
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
-            // Load texture background if available
-            if (config.textureUrl) {
-                await new Promise((resolve) => {
-                    fabric.Image.fromURL(config.textureUrl, (img) => {
-                        if (!img) {
-                            console.warn('Failed to load texture:', config.textureUrl);
-                            resolve();
-                            return;
-                        }
-                        img.set({
-                            left: 0,
-                            top: 0,
-                            scaleX: canvas.width / img.width,
-                            scaleY: canvas.height / img.height,
-                            selectable: false,
-                            evented: false,
-                            originX: 'left',
-                            originY: 'top',
-                            isTexture: true,
-                            hoverCursor: 'default'
-                        });
-                        canvas.add(img);
-                        canvas.sendToBack(img);
-                        resolve();
-                    }, { crossOrigin: 'anonymous' });
-                });
-            }
-
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
-            /* Border permanently removed — not visible on desktop or mobile */
             if (config.decorations) {
                 config.decorations.forEach(dec => {
                     if (dec.type === 'line') {
@@ -1315,8 +747,7 @@
             if (config.sampleText.names) {
                 await addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
                     fontSize: layout.namesSize || 48, fontFamily: config.defaultFont || 'Montserrat',
-                    fill: config.textColor || '#333', fontWeight: layout.namesWeight || 'bold',
-
+                    fill: config.textColor || '#333', fontWeight: layout.namesWeight || 'bold'
                 });
             }
             if (config.sampleText.subtext) {
@@ -1331,8 +762,26 @@
                     fill: config.accentColor || config.textColor || '#333', fontWeight: layout.dateWeight || 'normal'
                 });
             }
+            applyTemplateTexture(canvas);
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+        }
+
+        async function loadDemoTemplate() {
+            canvas.clear();
+            canvas.backgroundColor = '#F5F5DC';
+            await addTextElement('Happy Birthday!', 300, 120, {
+                fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
+            });
+            await addTextElement('To someone special', 300, 200, {
+                fontSize: 24, fontFamily: 'Montserrat', fill: '#764ba2'
+            });
+            await addTextElement('Wishing you all the best!', 300, 280, {
+                fontSize: 18, fontFamily: 'Montserrat', fill: '#333'
+            });
+            canvas.renderAll();
+            saveState();
+            updateLayerList();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -1348,37 +797,40 @@
         }
 
         function setupBackgroundOptions() {
-            document.querySelectorAll('.bg-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    // Remove any existing texture backgrounds when switching to solid/gradient
-                    canvas.getObjects().forEach(obj => {
-                        if (obj.isTexture) canvas.remove(obj);
-                    });
-                    if (this.dataset.gradient) {
-                        const colors = this.dataset.colors.split(',');
-                        canvas.backgroundColor = colors[0];
-                    } else {
-                        canvas.backgroundColor = this.dataset.color;
-                    }
-                    canvas.renderAll();
-                    saveState();
-                });
-            });
             document.getElementById('bgColorPicker').addEventListener('input', function() {
-                // Remove any existing texture backgrounds when picking custom color
-                canvas.getObjects().forEach(obj => {
-                    if (obj.isTexture) canvas.remove(obj);
-                });
+                document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
+                removeTemplateTexture(canvas);
+                canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
                 canvas.backgroundColor = this.value;
                 canvas.renderAll();
                 saveState();
             });
         }
 
+        function setupColorPalettes() {
+            const palettes = {
+                elegant: { bg: '#F5F5DC', text: '#333333' },
+                vibrant: { bg: '#667eea', text: '#ffffff' },
+                dark: { bg: '#1a1a2e', text: '#BCAE83' },
+                minimal: { bg: '#ffffff', text: '#333333' }
+            };
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const palette = palettes[this.dataset.palette];
+                    if (!palette) return;
+                    document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+                    removeTemplateTexture(canvas);
+                    canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
+                    canvas.backgroundColor = palette.bg;
+                    canvas.renderAll();
+                    saveState();
+                });
+            });
+        }
+
         function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']));
+            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
                 undoStack.push(json);
                 if (undoStack.length > 30) undoStack.shift();
@@ -1388,17 +840,13 @@
 
         function restoreMediaObjects() {
             canvas.getObjects().forEach(obj => {
-                if (obj.isVideo && obj.videoBlobUrl) {
-                    restoreVideoObject(obj);
-                } else if (obj.isAudio && obj.audioBlobUrl) {
-                    restoreAudioObject(obj);
-                }
+                if (obj.isVideo && obj.videoBlobUrl) restoreVideoObject(obj);
+                else if (obj.isAudio && obj.audioBlobUrl) restoreAudioObject(obj);
             });
         }
 
         function restoreVideoObject(obj) {
             if (!obj.videoBlobUrl || obj.videoElement) return;
-
             const videoEl = document.createElement('video');
             videoEl.src = obj.videoBlobUrl;
             videoEl.crossOrigin = "anonymous";
@@ -1407,21 +855,17 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-
             videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(() => {});
-
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
                 videoCanvas.height = obj.height || videoEl.videoHeight || 480;
                 const ctx = videoCanvas.getContext('2d');
-
                 obj._element = videoCanvas;
                 obj._originalElement = videoCanvas;
                 obj.videoElement = videoEl;
                 obj.videoCanvas = videoCanvas;
                 obj.videoContext = ctx;
-
                 const renderLoop = () => {
                     if (obj.canvas && !obj.isDeleted) {
                         if (videoEl.readyState >= 2) {
@@ -1433,40 +877,29 @@
                     }
                 };
                 obj._videoFrame = requestAnimationFrame(renderLoop);
-
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
-
                 canvas.requestRenderAll();
             };
-
-            videoEl.onerror = () => {
-                console.error('Error restoring video from blob URL');
-            };
+            videoEl.onerror = () => { console.error('Error restoring video from blob URL'); };
         }
 
         function restoreAudioObject(obj) {
             if (!obj.audioBlobUrl || obj.audioElement) return;
-
             const audioEl = document.createElement('audio');
             audioEl.src = obj.audioBlobUrl;
             audioEl.crossOrigin = "anonymous";
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-
             audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
-
-                obj.on('selected', () => {
-                    if (obj.audioElement) obj.audioElement.play().catch(() => {});
-                });
-
+                obj.on('selected', () => { if (obj.audioElement) obj.audioElement.play().catch(() => {}); });
                 obj.on('removed', function() {
                     if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
@@ -1483,6 +916,7 @@
                 canvas.loadFromJSON(prevState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
@@ -1498,20 +932,18 @@
                 canvas.loadFromJSON(nextState, () => { 
                     restoreMediaObjects();
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
                 });
             }
         }
 
-        // ================== WORKING SINGLE/BATCH FUNCTIONS (from old code) ==================
-
         function updateCheckoutDisplay() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const total = (qty * 2.99).toFixed(2);
             document.getElementById('checkoutTotal').textContent = '$' + total;
         }
-
 
         function updateQty(change) {
             const input = document.getElementById('qtyInput');
@@ -1534,37 +966,13 @@
             });
         }
 
-        // =================================================================================
-
         function setupMobileContextMenu() {
             if (!isMobileLayout()) return;
             const canvasEl = document.getElementById('designCanvas');
             if (!canvasEl) return;
-
-            // Create menu dynamically - only on mobile/touch
             let menu = document.getElementById('mobileContextMenu');
             let backdrop = document.getElementById('ctxBackdrop');
-            if (!menu) {
-                backdrop = document.createElement('div');
-                backdrop.id = 'ctxBackdrop';
-                backdrop.className = 'ctx-backdrop';
-                document.body.appendChild(backdrop);
-
-                menu = document.createElement('div');
-                menu.id = 'mobileContextMenu';
-                menu.className = 'mobile-context-menu';
-                menu.innerHTML = `
-                    <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
-                    <div class="ctx-divider" id="ctxEditDivider"></div>
-                    <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
-                    <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
-                    <div class="ctx-divider"></div>
-                    <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
-                    <div class="ctx-divider"></div>
-                    <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
-                `;
-                document.body.appendChild(menu);
-            }
+            if (!menu) return;
 
             let touchTimer = null;
             let touchStartX = 0;
@@ -1573,10 +981,6 @@
             const LONG_PRESS_MS = 500;
 
             function showMenu(x, y) {
-                const lockText = document.getElementById('ctxLockText');
-                if (lockText) {
-                    lockText.textContent = (selectedObject && !selectedObject.selectable) ? 'Unlock' : 'Lock';
-                }
                 const editItem = document.getElementById('ctxEditText');
                 const editDiv = document.getElementById('ctxEditDivider');
                 if (editItem) {
@@ -1615,10 +1019,7 @@
 
             canvasEl.addEventListener('touchstart', function(e) {
                 if (!window.matchMedia('(pointer: coarse)').matches && !isMobileLayout()) return;
-                if (menu.style.display === 'block') {
-                    hideMenu();
-                    return;
-                }
+                if (menu.style.display === 'block') { hideMenu(); return; }
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
@@ -1631,8 +1032,7 @@
                         let target = null;
                         for (let i = objects.length - 1; i >= 0; i--) {
                             if (objects[i].containsPoint(pointer) && objects[i].selectable !== false) {
-                                target = objects[i];
-                                break;
+                                target = objects[i]; break;
                             }
                         }
                         if (target) {
@@ -1643,9 +1043,7 @@
                             updateLayerList();
                             canvas.renderAll();
                         }
-                        if (selectedObject) {
-                            showMenu(touchStartX, touchStartY);
-                        }
+                        if (selectedObject) showMenu(touchStartX, touchStartY);
                     }
                 }, LONG_PRESS_MS);
             }, { passive: true });
@@ -1663,10 +1061,7 @@
             }, { passive: true });
 
             canvasEl.addEventListener('touchend', function() {
-                if (touchTimer) {
-                    clearTimeout(touchTimer);
-                    touchTimer = null;
-                }
+                if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
             });
 
             backdrop.addEventListener('touchstart', hideMenu);
@@ -1695,151 +1090,14 @@
             }
             menu.querySelectorAll('.ctx-item').forEach(item => {
                 item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    e.preventDefault();
+                    e.stopPropagation(); e.preventDefault();
                     handleMenuAction(this.dataset.action);
                 });
                 item.addEventListener('touchend', function(e) {
-                    e.stopPropagation();
-                    e.preventDefault();
+                    e.stopPropagation(); e.preventDefault();
                     handleMenuAction(this.dataset.action);
                 }, { passive: false });
             });
-        }
-
-        function setupEventListeners() {
-            canvas.on('selection:created', handleSelection);
-            canvas.on('selection:updated', handleSelection);
-            canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) {
-            saveState();
-            createMobileHandles();
-        });
-
-                        canvas.on('after:render', function() { 
-                updateMobileHandlePositions(); 
-
-                if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
-                    const active = canvas.getActiveObject();
-                    const editing = active && active.type === 'i-text' && active.isEditing;
-                    if (!editing) createMobileHandles();
-                }
-            });
-            canvas.on('object:added', createMobileHandles);
-            canvas.on('object:removed', createMobileHandles);
-
-            // Mobile tap-to-select fallback (improves touch accuracy)
-            if ('ontouchstart' in window) {
-                canvas.on('mouse:down', function(e) {
-                    if (!e.target) {
-                        const pointer = canvas.getPointer(e.e);
-                        const objects = canvas.getObjects();
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            const obj = objects[i];
-                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
-                                if (canvas.getActiveObject() !== obj) {
-                                    canvas.setActiveObject(obj);
-                                    selectedObject = obj;
-                                    updateControls();
-                                    showSelectionControls();
-                                    updateLayerList();
-                                    canvas.renderAll();
-                                }
-                                break;
-                            }
-                        }
-                    }
-                });
-            }
-
-            document.querySelector('.tools-panel').addEventListener('click', function(e) {
-                const btn = e.target.closest('.tool-btn');
-                if (btn) {
-                    const tool = btn.dataset.tool;
-                    if (tool) handleToolClick(tool);
-                }
-            });
-            // Tools tab in accordion
-            const toolsTabContent = document.querySelector('.tools-tab-content');
-            if (toolsTabContent) {
-                toolsTabContent.addEventListener('click', function(e) {
-                    const btn = e.target.closest('.tool-btn');
-                    if (btn) {
-                        const tool = btn.dataset.tool;
-                        if (tool) {
-                            // Update active state on both desktop and mobile buttons
-                            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                            document.querySelectorAll(`[data-tool="${tool}"]`).forEach(b => b.classList.add('active'));
-                            handleToolClick(tool);
-                        }
-                    }
-                });
-            }
-
-            setupTextControls();
-            setupTransformControls();
-
-            const fileInput = document.getElementById('fileInput');
-            const uploadArea = document.getElementById('uploadArea');
-            uploadArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', handleImageUpload);
-            uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary-gold)'; });
-            uploadArea.addEventListener('dragleave', (e) => { e.preventDefault(); uploadArea.style.borderColor = ''; });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault(); uploadArea.style.borderColor = '';
-                const files = e.dataTransfer.files;
-                if (files.length > 0) handleFile(files[0]);
-            });
-
-            document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
-            document.getElementById('videoUploadArea').addEventListener('click', () => document.getElementById('videoInput').click());
-            document.getElementById('audioUploadArea').addEventListener('click', () => document.getElementById('audioInput').click());
-            document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
-
-            document.getElementById('addImageMode').addEventListener('click', () => document.getElementById('fileInput').click());
-            document.getElementById('addVideoMode').addEventListener('click', () => document.getElementById('videoInput').click());
-            document.getElementById('addAudioMode').addEventListener('click', () => document.getElementById('audioInput').click());
-
-            document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
-            document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
-            document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
-
-            document.addEventListener('keydown', handleKeyboard);
-
-            canvas.on('mouse:down', function(e) {
-                if (!isMobileLayout()) return;
-                if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
-                    e.target.set({ selectable: true, evented: true });
-                    e.target.enterEditing();
-                    setTimeout(() => {
-                        if (e.target && e.target.hiddenTextarea) {
-                            e.target.hiddenTextarea.focus();
-                            e.target.hiddenTextarea.click();
-                        }
-                    }, 200);
-                }
-            });
-            canvas.on('mouse:up', function() {
-                if (!isMobileLayout()) return;
-                const active = canvas.getActiveObject();
-                if (active && active.type === 'i-text' && active.isEditing) return;
-                const menu = document.getElementById('mobileContextMenu');
-                if (menu && menu.style.display === 'block') menu.style.display = 'none';
-                const backdrop = document.getElementById('ctxBackdrop');
-                if (backdrop) backdrop.style.display = 'none';
-                setTimeout(createMobileHandles, 50);
-            });
-
-
-
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('.mobile-context-menu')) return;
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) e.preventDefault();
-                lastTouchEnd = now;
-            }, { passive: false });
-            canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
         }
 
         async function handleVideoUpload(e) {
@@ -1858,7 +1116,7 @@
             document.body.appendChild(videoEl);
             videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(e => {
-                    console.log('Autoplay with sound blocked - user must click to enable audio');
+                    console.log('Autoplay with sound blocked');
                     showNotification('Video added! Click to enable audio if needed.', 'info');
                 });
                 const videoCanvas = document.createElement('canvas');
@@ -1948,6 +1206,32 @@
             };
         }
 
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            e.target.value = '';
+            handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+            if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                fabric.Image.fromURL(f.target.result, (img) => {
+                    const scale = Math.min(200 / img.width, 200 / img.height);
+                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    canvas.renderAll();
+                    saveState();
+                    updateLayerList();
+                });
+            };
+            reader.onerror = () => { alert('Error reading file'); };
+            reader.readAsDataURL(file);
+        }
+
         function handleSelection(e) {
             const sel = e.selected;
             if (sel.length === 1) {
@@ -1956,8 +1240,7 @@
                 showSelectionControls();
             } else {
                 selectedObject = null;
-                document.getElementById('selectionControls').style.display = 'none';
-                document.getElementById('noSelection').style.display = 'block';
+                showNoSelection();
             }
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
@@ -1968,24 +1251,6 @@
             showNoSelection();
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
-        }
-
-
-
-        function handleToolClick(tool) {
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.querySelector(`[data-tool="${tool}"]`);
-            if (btn) btn.classList.add('active');
-            switch(tool) {
-                case 'select': canvas.isDrawingMode = false; break;
-                case 'text': addNewText(); break;
-                case 'image': document.getElementById('fileInput').click(); break;
-                case 'video': document.getElementById('videoInput').click(); break;
-                case 'audio': document.getElementById('audioInput').click(); break;
-                case 'delete': deleteSelected(); break;
-                case 'undo': undo(); break;
-                case 'redo': redo(); break;
-            }
         }
 
         function addNewText() {
@@ -2001,11 +1266,15 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                setTimeout(() => {
+                    text.enterEditing();
+                    setTimeout(() => {
+                        if (text.hiddenTextarea) { text.hiddenTextarea.focus(); text.hiddenTextarea.click(); }
+                    }, 200);
+                }, 100);
+            }
         }
-
-        
-
-        
 
         function deleteSelected() {
             const active = canvas.getActiveObject();
@@ -2034,10 +1303,6 @@
 
         function updateControls() {
             if (!selectedObject) return;
-            document.getElementById('posX').value = Math.round(selectedObject.left);
-            document.getElementById('posY').value = Math.round(selectedObject.top);
-            document.getElementById('objWidth').value = Math.round(selectedObject.width * selectedObject.scaleX);
-            document.getElementById('objHeight').value = Math.round(selectedObject.height * selectedObject.scaleY);
             const rotSlider = document.getElementById('rotation');
             if (rotSlider) {
                 rotSlider.value = Math.round(selectedObject.angle || 0);
@@ -2050,7 +1315,6 @@
                 const opVal = opSlider.parentElement.querySelector('.slider-value');
                 if (opVal) opVal.textContent = Math.round((selectedObject.opacity || 1) * 100) + '%';
             }
-
             if (selectedObject.type === 'i-text') {
                 document.getElementById('textControls').style.display = 'block';
                 document.getElementById('textContent').value = selectedObject.text;
@@ -2058,32 +1322,24 @@
                 document.getElementById('fontSize').value = selectedObject.fontSize;
                 document.getElementById('fontSizeVal').textContent = selectedObject.fontSize;
                 document.getElementById('textColor').value = selectedObject.fill || '#333333';
-
                 document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
                 document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
                 document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-
                 document.querySelectorAll('[data-align]').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
                 });
-
-
             } else {
                 document.getElementById('textControls').style.display = 'none';
             }
-
-
-
-
-
-            
         }
 
-        
-
-        
-
-        
+        function showSelectionControls() {
+            document.getElementById('transformControls').style.display = 'block';
+        }
+        function showNoSelection() {
+            document.getElementById('textControls').style.display = 'none';
+            document.getElementById('transformControls').style.display = 'none';
+        }
 
         function setupTextControls() {
             document.getElementById('textContent').addEventListener('input', function() {
@@ -2092,9 +1348,6 @@
                     canvas.renderAll();
                 }
             });
-            document.getElementById('textContent').addEventListener('touchstart', function(e) {
-                this.focus();
-            }, { passive: true });
             document.getElementById('fontFamily').addEventListener('change', async function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     if (document.fonts) {
@@ -2113,11 +1366,8 @@
                 }
             });
             document.getElementById('fontSize').addEventListener('change', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    saveState();
-                }
+                if (selectedObject && selectedObject.type === 'i-text') saveState();
             });
-
             document.getElementById('textColor').addEventListener('input', function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     selectedObject.set('fill', this.value);
@@ -2125,9 +1375,7 @@
                 }
             });
             document.getElementById('textColor').addEventListener('change', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    saveState();
-                }
+                if (selectedObject && selectedObject.type === 'i-text') saveState();
             });
             document.getElementById('textColorPresets').addEventListener('click', function(e) {
                 const preset = e.target.closest('.color-preset');
@@ -2181,27 +1429,6 @@
         }
 
         function setupTransformControls() {
-            ['posX', 'posY'].forEach(id => {
-                document.getElementById(id).addEventListener('change', function() {
-                    if (selectedObject) {
-                        const prop = id === 'posX' ? 'left' : 'top';
-                        selectedObject.set(prop, parseInt(this.value));
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
-            ['objWidth', 'objHeight'].forEach(id => {
-                document.getElementById(id).addEventListener('change', function() {
-                    if (selectedObject) {
-                        const prop = id === 'objWidth' ? 'scaleX' : 'scaleY';
-                        const original = id === 'objWidth' ? selectedObject.width : selectedObject.height;
-                        selectedObject.set(prop, parseInt(this.value) / original);
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
             document.getElementById('rotation').addEventListener('input', function() {
                 if (selectedObject) {
                     selectedObject.set('angle', parseInt(this.value));
@@ -2211,9 +1438,7 @@
                 }
             });
             document.getElementById('rotation').addEventListener('change', function() {
-                if (selectedObject) {
-                    saveState();
-                }
+                if (selectedObject) saveState();
             });
             document.getElementById('opacity').addEventListener('input', function() {
                 if (selectedObject) {
@@ -2224,23 +1449,16 @@
                 }
             });
             document.getElementById('opacity').addEventListener('change', function() {
-                if (selectedObject) {
-                    saveState();
-                }
+                if (selectedObject) saveState();
             });
-
         }
-
-        
 
         function setupArrangeControls() {
             document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
             document.getElementById('sendToBackBtn').addEventListener('click', sendToBack);
             document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
+            document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
         }
-
-        
-
 
         function bringToFront() {
             const obj = canvas.getActiveObject() || selectedObject;
@@ -2253,7 +1471,6 @@
             canvas.renderAll(); saveState(); updateLayerList();
         }
 
-
         function sendToBack() {
             const obj = canvas.getActiveObject() || selectedObject;
             if (!obj) return;
@@ -2264,10 +1481,7 @@
             }
             canvas.renderAll(); saveState(); updateLayerList();
         }
-        
-        
-        
-        
+
         function duplicateObject() {
             const obj = canvas.getActiveObject() || selectedObject;
             if (!obj) return;
@@ -2293,8 +1507,6 @@
             }
             canvas.renderAll(); saveState(); updateLayerList();
         }
-        
-        
 
         function updateLayerList() {
             const list = document.getElementById('layerList');
@@ -2303,7 +1515,7 @@
             canvas.getObjects().forEach((obj, index) => {
                 if (obj.isBackground || obj.isTexture) return;
                 const item = document.createElement('div');
-                item.className = 'layer-item' + (obj === selectedObject ? ' active' : '') + (!obj.selectable ? ' locked' : '');
+                item.className = 'layer-item' + (obj === selectedObject ? ' active' : '');
                 let icon = 'fa-square';
                 let name = obj.__layerName || `Object ${index + 1}`;
                 if (obj.type === 'i-text') { icon = 'fa-font'; name = obj.text ? obj.text.substring(0, 30) : 'Text'; }
@@ -2333,12 +1545,11 @@
 
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
-                actions.innerHTML = `${!obj.selectable ? '<i class="fas fa-lock" style="font-size: 0.75rem; opacity: 0.6;"></i>' : ''}<button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                actions.innerHTML = `<button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
 
-                // Click layer item to select object
                 item.addEventListener('click', (e) => {
                     if (e.target.closest('.layer-actions')) return;
                     if (obj.selectable) {
@@ -2351,13 +1562,11 @@
                     }
                 });
 
-                // Double-click name to edit (desktop)
                 nameSpan.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     openLayerEditModal(obj);
                 });
 
-                // Edit button opens modal
                 const editBtn = item.querySelector('[data-action="edit"]');
                 if (editBtn) {
                     editBtn.addEventListener('click', (e) => {
@@ -2366,7 +1575,6 @@
                     });
                 }
 
-                // Delete button
                 const deleteBtn = item.querySelector('[data-action="delete"]');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => {
@@ -2379,7 +1587,6 @@
             });
         }
 
-        let layerEditTarget = null;
         function openLayerEditModal(obj) {
             layerEditTarget = obj;
             const modal = document.getElementById('layerEditModal');
@@ -2418,44 +1625,53 @@
             closeLayerEditModal();
         }
 
-
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
             if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
         }
 
-        
-
-        
-        
-
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            handleFile(file);
-        }
-
-        function handleFile(file) {
-            if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-            if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
+        function applyTemplateTexture(canvas) {
+            try {
+                const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
+                const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
+                if (!textureSvg) {
+                    console.log('No texture SVG found for this template');
+                    return;
+                }
+                console.log('Applying template texture to canvas...');
+                const oldSvg = document.getElementById('templateSvgBg');
+                if (oldSvg) oldSvg.remove();
+                const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
+                existing.forEach(o => canvas.remove(o));
+                const canvasEl = document.getElementById('designCanvas');
+                if (canvasEl) {
+                    canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
+                    canvasEl.style.backgroundRepeat = 'repeat';
+                    canvasEl.style.backgroundSize = 'auto';
+                    canvasEl.style.backgroundColor = 'transparent';
+                }
+                canvas.setBackgroundColor('transparent', function() {
                     canvas.renderAll();
-                    saveState();
-                    updateLayerList();
                 });
-            };
-            reader.onerror = () => { alert('Error reading file'); };
-            reader.readAsDataURL(file);
+                console.log('Template texture applied successfully');
+            } catch (err) {
+                console.error('Error applying template texture:', err);
+            }
         }
 
-
+        function removeTemplateTexture(canvas) {
+            const canvasEl = document.getElementById('designCanvas');
+            if (canvasEl) {
+                canvasEl.style.backgroundImage = '';
+                canvasEl.style.backgroundRepeat = '';
+            }
+            const oldSvg = document.getElementById('templateSvgBg');
+            if (oldSvg) oldSvg.remove();
+            const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
+            existing.forEach(o => canvas.remove(o));
+            canvas.renderAll();
+            console.log('Template texture removed');
+        }
 
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
@@ -2470,6 +1686,7 @@
                 selectedObject = null;
                 canvas.renderAll();
                 loadTemplateDesign().then(() => {
+                    applyTemplateTexture(canvas);
                     saveState();
                     updateLayerList();
                     createMobileHandles();
@@ -2477,14 +1694,7 @@
                 });
             }
         }
-        function showSelectionControls() {
-            document.getElementById('selectionControls').style.display = 'block';
-            document.getElementById('noSelection').style.display = 'none';
-        }
-        function showNoSelection() {
-            document.getElementById('selectionControls').style.display = 'none';
-            document.getElementById('noSelection').style.display = 'block';
-        }
+
         function setupTabs() {
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -2504,12 +1714,6 @@
 
             if (!e.ctrlKey && !e.metaKey && !e.altKey) {
                 switch(e.key.toLowerCase()) {
-                    case 'v': handleToolClick('select'); break;
-                    case 't': handleToolClick('text'); break;
-                    case 'i': handleToolClick('image'); break;
-                    case ' ':
-                        e.preventDefault();
-                        break;
                     case 'delete':
                     case 'backspace':
                         if (selectedObject && selectedObject.type !== 'i-text') deleteSelected();
@@ -2521,7 +1725,6 @@
                     case 'z': e.preventDefault(); undo(); break;
                     case 'y': e.preventDefault(); redo(); break;
                     case 'd': e.preventDefault(); duplicateObject(); break;
-
                     case 'a': e.preventDefault(); canvas.discardActiveObject(); const selectableObjects = canvas.getObjects().filter(obj => !obj.isBackground && !obj.isTexture && obj.selectable !== false); if (selectableObjects.length > 0) { const sel = new fabric.ActiveSelection(selectableObjects, { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); } break;
                 }
             }
@@ -2562,7 +1765,7 @@
             try {
                 const hasMedia = canvas.getObjects().some(obj => obj.isVideo || obj.isAudio);
                 const designData = {
-                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture']),
+                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']),
                     templateConfig: templateConfig,
                     backgroundColor: canvas.backgroundColor,
                     timestamp: Date.now(),
@@ -2590,6 +1793,7 @@
                 selectedObject = null;
                 canvas.loadFromJSON(data.canvas, () => { 
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+                    applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
@@ -2773,9 +1977,39 @@
             }
         }
 
-        /* ===== MOBILE OBJECT HANDLES ===== */
-        let mobileHandles = [];
-        let handleDragState = null;
+        function togglePreview() {
+            isPreviewMode = !isPreviewMode;
+            const btn = document.getElementById('previewBtn');
+            const app = document.querySelector('.app-container');
+            if (isPreviewMode) {
+                app.classList.add('preview-mode');
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Exit';
+                canvas.discardActiveObject();
+                selectedObject = null;
+                showNoSelection();
+                clearMobileHandles();
+                canvas.renderAll();
+                showNotification('Preview mode - tap canvas to exit', 'info');
+            } else {
+                app.classList.remove('preview-mode');
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+                if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                    setTimeout(createMobileHandles, 100);
+                }
+            }
+        }
+
+        function exitTextEditing() {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'i-text' && active.isEditing) {
+                active.exitEditing();
+                document.getElementById('doneBtn').classList.add('hidden');
+                canvas.renderAll();
+                setTimeout(createMobileHandles, 100);
+            }
+        }
 
         function getRotateHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -2786,8 +2020,10 @@
             const offsetX = canvasRect.left - containerRect.left;
             const offsetY = canvasRect.top - containerRect.top;
             const bounds = obj.getBoundingRect(true, true);
-            const x = offsetX + (bounds.left + bounds.width) * scaleX + 15;
-            const y = offsetY + bounds.top * scaleY - 15;
+            let x = offsetX + (bounds.left + bounds.width) * scaleX + 15;
+            let y = offsetY + bounds.top * scaleY - 15;
+            x = Math.max(4, Math.min(x, containerRect.width - 24));
+            y = Math.max(4, Math.min(y, containerRect.height - 24));
             return { left: x, top: y };
         }
 
@@ -2800,14 +2036,16 @@
             const offsetX = canvasRect.left - containerRect.left;
             const offsetY = canvasRect.top - containerRect.top;
             const bounds = obj.getBoundingRect(true, true);
-            const x = offsetX + bounds.left * scaleX - 18;
-            const y = offsetY + bounds.top * scaleY;
+            let x = offsetX + bounds.left * scaleX - 18;
+            let y = offsetY + bounds.top * scaleY;
+            x = Math.max(4, Math.min(x, containerRect.width - 28));
+            y = Math.max(4, Math.min(y, containerRect.height - 28));
             return { left: x, top: y };
         }
 
         function createMobileHandles() {
             if (!isMobileLayout()) return;
-            if (!showHandles) { clearMobileHandles(); return; }
+            if (!showHandles || isPreviewMode) { clearMobileHandles(); return; }
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2862,11 +2100,7 @@
                     for (const snap of snapAngles) {
                         const diff = Math.abs(normalized - snap);
                         const wrapDiff = Math.min(diff, 360 - diff);
-                        if (wrapDiff < snapThreshold) {
-                            newAngle = newAngle - normalized + snap;
-                            isSnapped = true;
-                            break;
-                        }
+                        if (wrapDiff < snapThreshold) { newAngle = newAngle - normalized + snap; isSnapped = true; break; }
                     }
                     if (isSnapped) {
                         rotHandle.style.background = '#fff';
@@ -2924,10 +2158,7 @@
                         const dist = Math.sqrt(dx*dx + dy*dy);
                         if (handleDragState.startDist === null) handleDragState.startDist = dist;
                         const scale = dist / handleDragState.startDist;
-                        obj.set({
-                            scaleX: handleDragState.startScaleX * scale,
-                            scaleY: handleDragState.startScaleY * scale
-                        });
+                        obj.set({ scaleX: handleDragState.startScaleX * scale, scaleY: handleDragState.startScaleY * scale });
                         handleDragState.moved = true;
                         canvas.renderAll();
                         updateMobileHandlePositions();
@@ -2997,8 +2228,6 @@
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
             if (!menu || !backdrop || !selectedObject) return;
-            const lockText = document.getElementById('ctxLockText');
-            if (lockText) lockText.textContent = (selectedObject.selectable === false) ? 'Unlock' : 'Lock';
             const editItem = document.getElementById('ctxEditText');
             const editDiv = document.getElementById('ctxEditDivider');
             if (editItem) {
@@ -3019,7 +2248,6 @@
             menu.style.top = top + 'px';
         }
 
-        /* ===== MOBILE LOCK/UNLOCK ===== */
         function lockMobileObjects(lock) {
             if (!canvas) return;
             const activeObj = canvas.getActiveObject();
@@ -3050,10 +2278,8 @@
             canvas.renderAll();
         }
 
-        /* ===== MOBILE UI SETUP ===== */
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
-            // Directly override any stubborn default styles
             const canvasArea = document.querySelector('.canvas-area');
             const canvasContainer = document.querySelector('.canvas-container');
             const canvasToolbar = document.querySelector('.canvas-toolbar');
@@ -3091,8 +2317,6 @@
                 designLayout.style.flex = 'none';
                 designLayout.style.gap = '0';
             }
-            const toolsPanel2 = document.querySelector('.tools-panel');
-            if (toolsPanel2) { toolsPanel2.style.margin = '0'; toolsPanel2.style.padding = '4px 8px'; }
             if (appContainer) {
                 appContainer.style.height = 'auto';
                 appContainer.style.minHeight = 'auto';
@@ -3104,45 +2328,130 @@
             }
         }
 
+        function handleResize() {
+            applyMobileSpacingFix();
+            const isNarrow = isMobileLayout();
+            const isTouch = window.matchMedia('(pointer: coarse)').matches;
+            const tabs = document.querySelector('.tabs');
+            const accordionContainer = document.getElementById('mobileAccordionContainer');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const propertiesPanel = document.querySelector('.properties-panel');
+            const checkoutSection = propertiesPanel ? propertiesPanel.querySelector('.checkout-section') : null;
+            const activeObj = canvas.getActiveObject();
+            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
+            const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
+
+            if (!isNarrow) {
+                if (propertiesPanel && checkoutSection) {
+                    const order = ['designTab', 'layersTab'];
+                    order.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && el.parentElement !== propertiesPanel) {
+                            propertiesPanel.insertBefore(el, checkoutSection);
+                        }
+                    });
+                }
+                if (tabs) tabs.style.display = '';
+                if (accordionContainer) accordionContainer.style.display = 'none';
+                tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
+                const activeTab = document.querySelector('.tab.active');
+                if (activeTab) {
+                    const target = document.getElementById(activeTab.dataset.tab + 'Tab');
+                    if (target) target.classList.add('active');
+                }
+                document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+            } else {
+                if (accordionContainer) {
+                    accordionContainer.style.display = 'block';
+                    const headers = accordionContainer.querySelectorAll('.mobile-accordion-header');
+                    headers.forEach(header => {
+                        const contentId = header.dataset.target;
+                        const contentDiv = document.getElementById(contentId);
+                        if (contentDiv && contentDiv.parentElement !== accordionContainer) {
+                            if (header.nextSibling) {
+                                accordionContainer.insertBefore(contentDiv, header.nextSibling);
+                            } else {
+                                accordionContainer.appendChild(contentDiv);
+                            }
+                        }
+                    });
+                }
+                if (tabs) tabs.style.display = 'none';
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                });
+            }
+
+            if (htmlFocused) return;
+
+            if (isTouch && !isEditing) {
+                lockMobileObjects(true);
+                clearMobileHandles();
+                const lockToggleEl = document.getElementById('mobileLockToggle');
+                if (lockToggleEl && isNarrow) {
+                    lockToggleEl.classList.remove('unlocked');
+                    lockToggleEl.classList.add('locked');
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                }
+            } else if (!isTouch) {
+                lockMobileObjects(false);
+                clearMobileHandles();
+            }
+
+            if (isTouch && !isEditing && showHandles) {
+                setTimeout(() => { createMobileHandles(); }, 150);
+            }
+        }
+
         function setupMobileUI() {
-            // Wrap property sections for collapsible headings
-            if (!document.querySelector('.section-content')) {
-                document.querySelectorAll('.property-section').forEach(section => {
-                    const h4 = section.querySelector('h4');
-                    if (!h4) return;
-                    const wrapper = document.createElement('div');
+            // Process ALL property sections individually - wrap content and add arrow-only toggle
+            document.querySelectorAll('.property-section').forEach(section => {
+                const h4 = section.querySelector('h4');
+                if (!h4) return;
+
+                // Skip if already processed
+                if (section.dataset.mobileSetup === 'done') return;
+                section.dataset.mobileSetup = 'done';
+
+                // Wrap non-h4 children in section-content if not already wrapped
+                let wrapper = section.querySelector('.section-content');
+                if (!wrapper) {
+                    wrapper = document.createElement('div');
                     wrapper.className = 'section-content';
                     const toWrap = Array.from(section.children).filter(c => c !== h4 && !c.classList.contains('section-content'));
                     toWrap.forEach(c => wrapper.appendChild(c));
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
-                    // Start collapsed on mobile
-                    if (isMobileLayout()) section.classList.add('collapsed');
-                    // Only arrow (right side of h4) toggles on mobile
-                    h4.addEventListener('click', function(e) {
-                        if (!isMobileLayout()) return;
-                        const rect = h4.getBoundingClientRect();
-                        const clickX = e.clientX - rect.left;
-                        // Arrow is on the right side - only toggle if clicking right 40px
-                        if (clickX < rect.width - 40) return;
-                        const isCollapsed = section.classList.contains('collapsed');
-                        document.querySelectorAll('.property-section').forEach(other => {
-                            if (other !== section) other.classList.add('collapsed');
-                        });
-                        section.classList.toggle('collapsed', !isCollapsed);
-                    });
+                }
+
+                // Start collapsed on mobile
+                if (isMobileLayout()) section.classList.add('collapsed');
+
+                // Only arrow (right side) toggles
+                h4.addEventListener('click', function(e) {
+                    if (!isMobileLayout()) return;
+                    const rect = h4.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    if (clickX < rect.width - 40) return;
+                    const isCollapsed = section.classList.contains('collapsed');
+                    // Close siblings at same level only
+                    const parent = section.parentElement;
+                    if (parent) {
+                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
+                        siblings.forEach(other => other.classList.add('collapsed'));
+                    }
+                    section.classList.toggle('collapsed', !isCollapsed);
                 });
-            }
+            });
 
-            // Tools now in accordion tab, no standalone toggle needed
-
-            // Mobile accordion for Design/Layers/Settings
+            // Mobile accordion for Design/Layers tabs
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
                 accordion.id = 'mobileAccordionContainer';
                 accordion.className = 'mobile-accordion-container';
                 const tabData = [
-                    { tabId: 'tools', label: 'Tools', icon: 'fa-tools', contentId: 'toolsTab' },
                     { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
                     { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
                 ];
@@ -3162,7 +2471,6 @@
                     header.addEventListener('touchmove', function(e) {
                         if (Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
                     }, { passive: true });
-                    // Only the chevron arrow toggles expand/collapse
                     const chevronIcon = header.querySelector('.accordion-chevron');
                     if (chevronIcon) {
                         chevronIcon.addEventListener('click', function(e) {
@@ -3171,15 +2479,11 @@
                             const targetId = header.dataset.target;
                             const targetContent = document.getElementById(targetId);
                             const isActive = header.classList.contains('active');
-                            const tabId = header.dataset.tabId;
-
                             if (isActive) {
-                                // Close this one only
                                 header.classList.remove('active');
                                 chevronIcon.style.transform = 'rotate(0deg)';
                                 if (targetContent) targetContent.style.display = 'none';
                             } else {
-                                // Close all other accordions
                                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                                     if (h !== header) {
                                         h.classList.remove('active');
@@ -3189,30 +2493,15 @@
                                         if (other) other.style.display = 'none';
                                     }
                                 });
-                                // Open this one
                                 header.classList.add('active');
                                 chevronIcon.style.transform = 'rotate(180deg)';
-                                if (targetContent) {
-                                    targetContent.style.display = 'block';
-                                }
-                                // Move expanded tab to bottom (Tools stays at top)
-                                if (tabId !== 'tools') {
-                                    const accordionContainer = document.getElementById('mobileAccordionContainer');
-                                    if (accordionContainer) {
-                                        accordionContainer.appendChild(header);
-                                        const contentDiv = document.getElementById(targetId);
-                                        if (contentDiv) {
-                                            accordionContainer.appendChild(contentDiv);
-                                        }
-                                    }
-                                }
+                                if (targetContent) targetContent.style.display = 'block';
                             }
                         });
                     }
                     accordion.appendChild(header);
                     accordionHeaders.push(header);
                 });
-                // Move each content div to be right after its header in the accordion
                 accordionHeaders.forEach(header => {
                     const contentId = header.dataset.target;
                     const contentDiv = document.getElementById(contentId);
@@ -3248,91 +2537,6 @@
                 });
             }
 
-            // Resize handler
-            function handleResize() {
-                applyMobileSpacingFix();
-                const isNarrow = isMobileLayout();
-                const isTouch = window.matchMedia('(pointer: coarse)').matches;
-                const toolsPanel = document.querySelector('.tools-panel');
-                const tabs = document.querySelector('.tabs');
-                const accordionContainer = document.getElementById('mobileAccordionContainer');
-                const tabContents = document.querySelectorAll('.tab-content');
-                const propertiesPanel = document.querySelector('.properties-panel');
-                const checkoutSection = propertiesPanel ? propertiesPanel.querySelector('.checkout-section') : null;
-                const activeObj = canvas.getActiveObject();
-                const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
-                const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
-
-                if (!isNarrow) {
-                    // DESKTOP: Move tab contents back into properties panel before checkout
-                    if (propertiesPanel && checkoutSection) {
-                        const order = ['toolsTab', 'designTab', 'layersTab'];
-                        order.forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el && el.parentElement !== propertiesPanel) {
-                                propertiesPanel.insertBefore(el, checkoutSection);
-                            }
-                        });
-                    }
-                    if (toolsPanel) { toolsPanel.classList.remove('collapsed'); toolsPanel.style = ''; }
-                    if (tabs) tabs.style.display = '';
-                    if (accordionContainer) accordionContainer.style.display = 'none';
-                    tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
-                    const activeTab = document.querySelector('.tab.active');
-                    if (activeTab) {
-                        const target = document.getElementById(activeTab.dataset.tab + 'Tab');
-                        if (target) target.classList.add('active');
-                    }
-                    document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-                } else {
-                    // MOBILE: Move tab contents into accordion
-                    if (accordionContainer) {
-                        accordionContainer.style.display = 'block';
-                        const headers = accordionContainer.querySelectorAll('.mobile-accordion-header');
-                        headers.forEach(header => {
-                            const contentId = header.dataset.target;
-                            const contentDiv = document.getElementById(contentId);
-                            if (contentDiv && contentDiv.parentElement !== accordionContainer) {
-                                if (header.nextSibling) {
-                                    accordionContainer.insertBefore(contentDiv, header.nextSibling);
-                                } else {
-                                    accordionContainer.appendChild(contentDiv);
-                                }
-                            }
-                        });
-                    }
-                    if (tabs) tabs.style.display = 'none';
-                    if (toolsPanel) toolsPanel.classList.add('collapsed');
-                    // Don't auto-close accordion tabs on resize - let user control them
-                    document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                        h.classList.remove('active');
-                        const c = h.querySelector('.accordion-chevron');
-                        if (c) c.style.transform = 'rotate(0deg)';
-                    });
-                }
-
-                if (htmlFocused) return;
-
-                if (isTouch && !isEditing) {
-                    lockMobileObjects(true);
-                    clearMobileHandles();
-                    const lockToggleEl = document.getElementById('mobileLockToggle');
-                    if (lockToggleEl && isNarrow) {
-                        lockToggleEl.classList.remove('unlocked');
-                        lockToggleEl.classList.add('locked');
-                        lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
-                    }
-                } else if (!isTouch) {
-                    lockMobileObjects(false);
-                    clearMobileHandles();
-                }
-
-                if (isTouch && !isEditing && showHandles) {
-                    setTimeout(() => {
-                        createMobileHandles();
-                    }, 150);
-                }
-            }
             window.addEventListener('resize', handleResize);
             window.addEventListener('orientationchange', () => {
                 setTimeout(() => {
@@ -3343,8 +2547,176 @@
             handleResize();
         }
 
+        function setupEventListeners() {
+            canvas.on('selection:created', handleSelection);
+            canvas.on('selection:updated', handleSelection);
+            canvas.on('selection:cleared', handleDeselection);
+            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
+            canvas.on('after:render', function() { 
+                updateMobileHandlePositions(); 
+                if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
+                    const active = canvas.getActiveObject();
+                    const editing = active && active.type === 'i-text' && active.isEditing;
+                    if (!editing) createMobileHandles();
+                }
+            });
+            canvas.on('object:added', createMobileHandles);
+            canvas.on('object:removed', createMobileHandles);
+
+            if ('ontouchstart' in window) {
+                canvas.on('mouse:down', function(e) {
+                    if (!e.target) {
+                        const pointer = canvas.getPointer(e.e);
+                        const objects = canvas.getObjects();
+                        for (let i = objects.length - 1; i >= 0; i--) {
+                            const obj = objects[i];
+                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
+                                if (canvas.getActiveObject() !== obj) {
+                                    canvas.setActiveObject(obj);
+                                    selectedObject = obj;
+                                    updateControls();
+                                    showSelectionControls();
+                                    updateLayerList();
+                                    canvas.renderAll();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+
+            const addTextBtn = document.getElementById('addTextBtn');
+            if (addTextBtn) addTextBtn.addEventListener('click', addNewText);
+            document.getElementById('addPhotoBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+            document.getElementById('addVideoBtn').addEventListener('click', () => document.getElementById('videoInput').click());
+            document.getElementById('addAudioBtn').addEventListener('click', () => document.getElementById('audioInput').click());
+
+            document.getElementById('fileInput').addEventListener('change', handleImageUpload);
+            document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
+            document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
+
+            document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
+            document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
+            document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
+            document.getElementById('previewBtn').addEventListener('click', togglePreview);
+            document.getElementById('doneBtn').addEventListener('click', exitTextEditing);
+            document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
+            document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
+            document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
+            document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
+            document.getElementById('toggleHandlesBtn').addEventListener('click', function() {
+                showHandles = !showHandles;
+                if (showHandles) {
+                    this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
+                    this.title = 'Hide Handles';
+                    canvas.discardActiveObject();
+                    canvas.renderAll();
+                    setTimeout(() => {
+                        const active = canvas.getActiveObject();
+                        if (!active && canvas.getObjects().length > 0) {
+                            const lastObj = canvas.getObjects()[canvas.getObjects().length - 1];
+                            lastObj.set({ selectable: true, evented: true });
+                            canvas.setActiveObject(lastObj);
+                            selectedObject = canvas.getActiveObject();
+                            updateControls();
+                            showSelectionControls();
+                            updateLayerList();
+                        }
+                        createMobileHandles();
+                    }, 50);
+                } else {
+                    this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
+                    this.title = 'Show Handles';
+                    clearMobileHandles();
+                }
+            });
+
+            document.addEventListener('keydown', handleKeyboard);
+
+            canvas.on('mouse:down', function(e) {
+                if (!isMobileLayout()) return;
+                if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
+                    e.target.set({ selectable: true, evented: true });
+                    e.target.enterEditing();
+                    setTimeout(() => {
+                        if (e.target && e.target.hiddenTextarea) {
+                            e.target.hiddenTextarea.focus();
+                            e.target.hiddenTextarea.click();
+                        }
+                    }, 200);
+                }
+            });
+            canvas.on('mouse:up', function() {
+                if (!isMobileLayout()) return;
+                const active = canvas.getActiveObject();
+                if (active && active.type === 'i-text' && active.isEditing) return;
+                const menu = document.getElementById('mobileContextMenu');
+                if (menu && menu.style.display === 'block') menu.style.display = 'none';
+                const backdrop = document.getElementById('ctxBackdrop');
+                if (backdrop) backdrop.style.display = 'none';
+                setTimeout(createMobileHandles, 50);
+            });
+
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('.mobile-context-menu')) return;
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) e.preventDefault();
+                lastTouchEnd = now;
+            }, { passive: false });
+            canvas.upperCanvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
+        }
+
+        function showFirstRunHint() {
+            if (sessionStorage.getItem('papirHintShown')) return;
+            const hint = document.getElementById('hintBubble');
+            if (!hint) return;
+            const btn = document.getElementById('addTextBtn');
+            if (!btn) return;
+            const rect = btn.getBoundingClientRect();
+            hint.style.left = (rect.left + rect.width/2 - 80) + 'px';
+            hint.style.top = (rect.bottom + 10) + 'px';
+            hint.style.display = 'block';
+            setTimeout(() => { hint.style.display = 'none'; }, 4000);
+            sessionStorage.setItem('papirHintShown', 'true');
+        }
+
+        function adjustCanvasForMobile() {
+            if (!isMobileLayout()) return;
+            const canvasEl = document.getElementById('designCanvas');
+            const container = document.getElementById('canvasContainer');
+            if (!canvasEl || !container) return;
+            const containerWidth = container.clientWidth;
+            const scale = containerWidth / 600;
+            const newHeight = Math.round(450 * scale);
+            canvasEl.style.width = containerWidth + 'px';
+            canvasEl.style.height = newHeight + 'px';
+            const wrapper = canvasEl.parentElement;
+            if (wrapper && wrapper.classList.contains('canvas-container')) {
+                wrapper.style.width = containerWidth + 'px';
+                wrapper.style.height = newHeight + 'px';
+            }
+            const upperCanvas = container.querySelector('.upper-canvas');
+            if (upperCanvas) {
+                upperCanvas.style.width = containerWidth + 'px';
+                upperCanvas.style.height = newHeight + 'px';
+            }
+            clearMobileHandles();
+            setTimeout(createMobileHandles, 50);
+        }
+
+        function handleMobileResize() {
+            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                clearMobileHandles();
+                setTimeout(createMobileHandles, 100);
+            }
+        }
+
         async function init() {
-            if (document.fonts) await document.fonts.ready;
+            if (document.fonts) {
+                try { await document.fonts.ready; } catch (e) {}
+            }
             setupMobileUI();
             applyMobileSpacingFix();
             const urlParams = new URLSearchParams(window.location.search);
@@ -3364,12 +2736,10 @@
                     }
                 } catch (e) {
                     console.error('Error loading template:', e);
-                    canvas.backgroundColor = '#ffffff';
-                    canvas.renderAll();
+                    await loadDemoTemplate();
                 }
             } else {
-                canvas.backgroundColor = '#ffffff';
-                canvas.renderAll();
+                await loadDemoTemplate();
             }
             updateCheckoutDisplay();
             lockMobileObjects(false);
@@ -3384,9 +2754,11 @@
             createMobileHandles();
             setupTabs();
             setupBackgroundOptions();
+            setupColorPalettes();
             setupQtyControls();
+            setupTextControls();
+            setupTransformControls();
             setupArrangeControls();
-            // Layer edit modal listeners
             document.getElementById('layerEditSave').addEventListener('click', saveLayerEdit);
             document.getElementById('layerEditCancel').addEventListener('click', closeLayerEditModal);
             document.getElementById('layerEditInput').addEventListener('keydown', (e) => {
@@ -3396,9 +2768,14 @@
             document.getElementById('layerEditModal').addEventListener('click', (e) => {
                 if (e.target.id === 'layerEditModal') closeLayerEditModal();
             });
+            document.getElementById('addLayerBtn').addEventListener('click', addNewText);
             checkForSavedProgress();
             startAutoSave();
-            // Mobile: ensure all accordion tabs start collapsed
+            window.addEventListener('resize', handleMobileResize);
+            window.addEventListener('resize', adjustCanvasForMobile);
+            setTimeout(showFirstRunHint, 1000);
+            console.log('init() completed successfully');
+            adjustCanvasForMobile();
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                     h.classList.remove('active');
@@ -3410,54 +2787,13 @@
             }
         }
 
-        document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
-        document.getElementById('addLayerBtn').addEventListener('click', addNewText);
-        document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
-        document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
-        document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
-        document.getElementById('toggleHandlesBtn').addEventListener('click', function() {
-            showHandles = !showHandles;
-            if (showHandles) {
-                this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
-                this.title = 'Hide Handles';
-                lockMobileObjects(false);
-                const lockToggleEl = document.getElementById('mobileLockToggle');
-                if (lockToggleEl) {
-                    lockToggleEl.classList.remove('locked');
-                    lockToggleEl.classList.add('unlocked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-                }
-                canvas.discardActiveObject();
-                canvas.renderAll();
-                setTimeout(() => {
-                    const active = canvas.getActiveObject();
-                    if (!active && canvas.getObjects().length > 0) {
-                        const lastObj = canvas.getObjects()[canvas.getObjects().length - 1];
-                        lastObj.set({ selectable: true, evented: true });
-                        canvas.setActiveObject(lastObj);
-                        selectedObject = canvas.getActiveObject();
-                        updateControls();
-                        showSelectionControls();
-                        updateLayerList();
-                    }
-                    createMobileHandles();
-                }, 50);
-            } else {
-                this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
-                this.title = 'Show Handles';
-                clearMobileHandles();
-            }
-        });
-
-        // Prevent pull-to-refresh from closing dropdowns
         document.body.addEventListener('touchmove', function(e) {
             if (e.target.closest('.mobile-accordion-container') || e.target.closest('.tab-content')) {
                 e.stopPropagation();
             }
         }, { passive: true });
-        init();
-        console.log('✅ init() completed successfully');
-    </script>
 
+        init();
+    </script>
 </body>
 </html>
