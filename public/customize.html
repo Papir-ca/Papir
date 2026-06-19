@@ -2330,7 +2330,7 @@
 
         function handleResize() {
             applyMobileSpacingFix();
-            const isNarrow = isMobileLayout();
+            const isMobile = isMobileLayout();
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
             const tabs = document.querySelector('.tabs');
             const accordionContainer = document.getElementById('mobileAccordionContainer');
@@ -2341,7 +2341,7 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
-            if (!isNarrow) {
+            if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
                     order.forEach(id => {
@@ -2390,7 +2390,7 @@
                 lockMobileObjects(true);
                 clearMobileHandles();
                 const lockToggleEl = document.getElementById('mobileLockToggle');
-                if (lockToggleEl && isNarrow) {
+                if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
                     lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
@@ -2496,6 +2496,14 @@
                                 header.classList.add('active');
                                 chevronIcon.style.transform = 'rotate(180deg)';
                                 if (targetContent) targetContent.style.display = 'block';
+                                // Move expanded tab to bottom (directly under canvas)
+                                const accordionContainer = document.getElementById('mobileAccordionContainer');
+                                if (accordionContainer) {
+                                    accordionContainer.appendChild(header);
+                                    if (targetContent) {
+                                        accordionContainer.appendChild(targetContent);
+                                    }
+                                }
                             }
                         });
                     }
