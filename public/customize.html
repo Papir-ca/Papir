@@ -84,11 +84,6 @@
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,255,255,0.1); }
 
-        .bg-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .bg-option { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .bg-option:hover { transform: scale(1.05); }
-        .bg-option.active { border-color: var(--primary-teal); }
-
         .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .palette-btn { padding: 10px 6px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; font-size: 0.75rem; text-align: center; transition: all 0.2s; font-weight: 600; }
         .palette-btn:hover { transform: scale(1.05); border-color: white; }
@@ -98,7 +93,7 @@
         .palette-dark { background: #1a1a2e; color: var(--primary-gold); border: 1px solid rgba(255,255,255,0.2); }
         .palette-minimal { background: #ffffff; color: #333; border: 1px solid rgba(0,0,0,0.1); }
 
-        .media-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .media-btn { padding: 14px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .media-btn:hover { background: var(--primary-gold); color: #1a1a2e; border-color: var(--primary-gold); }
         .media-btn i { font-size: 1rem; }
@@ -184,7 +179,7 @@
             .layer-btn { padding: 8px; }
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-            .media-grid { grid-template-columns: repeat(2, 1fr); }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
             .media-btn { padding: 16px 8px; font-size: 0.9rem; }
             .palette-grid { grid-template-columns: repeat(2, 1fr); }
             .preview-mode .properties-panel { display: none !important; }
@@ -248,6 +243,7 @@
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -295,9 +291,7 @@
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background & Media</h4>
                         <div class="section-content">
-                            <div class="bg-options" id="bgOptions">
-                                <div class="bg-option" style="background: #FFF;" data-color="#FFFFFF" title="White"></div>
-                                <div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
+<div class="bg-option" style="background: #F5F5DC;" data-color="#F5F5DC" title="Beige"></div>
                                 <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-gradient="true" data-colors="#667eea,#764ba2" title="Purple Gradient"></div>
                                 <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-gradient="true" data-colors="#f093fb,#f5576c" title="Pink Gradient"></div>
                                 <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-gradient="true" data-colors="#4facfe,#00f2fe" title="Blue Gradient"></div>
@@ -322,8 +316,7 @@
                                     <span><i class="fas fa-photo-video"></i> Add Media</span>
                                 </h4>
                                 <div class="section-content" id="addMediaContent">
-                                    <div class="media-grid">
-                                        <button class="media-btn" id="addTextBtn"><i class="fas fa-font"></i> Add Text</button>
+                                    <div class="media-grid" style="grid-template-columns: repeat(3, 1fr);">
                                         <button class="media-btn" id="addPhotoBtn"><i class="fas fa-image"></i> Add Photo</button>
                                         <button class="media-btn" id="addVideoBtn"><i class="fas fa-video"></i> Add Video</button>
                                         <button class="media-btn" id="addAudioBtn"><i class="fas fa-music"></i> Add Audio</button>
@@ -650,25 +643,7 @@
         }
 
         function setupBackgroundOptions() {
-            document.querySelectorAll('.bg-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
-                    removeTemplateTexture(canvas);
-                    canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
-                    if (this.dataset.gradient) {
-                        const colors = this.dataset.colors.split(',');
-                        canvas.backgroundColor = colors[0];
-                    } else {
-                        canvas.backgroundColor = this.dataset.color;
-                    }
-                    canvas.renderAll();
-                    saveState();
-                });
-            });
             document.getElementById('bgColorPicker').addEventListener('input', function() {
-                document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                 document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
                 removeTemplateTexture(canvas);
                 canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
@@ -690,7 +665,6 @@
                     const palette = palettes[this.dataset.palette];
                     if (!palette) return;
                     document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
-                    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
                     this.classList.add('active');
                     removeTemplateTexture(canvas);
                     canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
@@ -2458,7 +2432,8 @@
                 });
             }
 
-            document.getElementById('addTextBtn').addEventListener('click', addNewText);
+            const addTextBtn = document.getElementById('addTextBtn');
+            if (addTextBtn) addTextBtn.addEventListener('click', addNewText);
             document.getElementById('addPhotoBtn').addEventListener('click', () => document.getElementById('fileInput').click());
             document.getElementById('addVideoBtn').addEventListener('click', () => document.getElementById('videoInput').click());
             document.getElementById('addAudioBtn').addEventListener('click', () => document.getElementById('audioInput').click());
