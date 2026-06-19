@@ -148,6 +148,7 @@
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
 
         @media (max-width: 768px) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: rgba(26, 26, 46, 0.95); position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
@@ -197,17 +198,14 @@
             .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .canvas-area { display: block; width: 100%; }
-            .canvas-container { width: 100%; height: auto; min-height: 200px; display: flex; justify-content: center; align-items: center; border: none; border-radius: 0; position: relative; }
-            #designCanvas { max-width: 100%; width: auto; height: auto; max-height: 80vh; min-height: 200px; display: block; margin: 0 auto; aspect-ratio: 600 / 450; }
-        }
+        
 
         @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
                 /* ===== TABLET / iPad PORTRAIT - Same sticky canvas as mobile ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
             .design-layout { flex-direction: column !important; height: auto !important; min-height: auto !important; max-height: none !important; gap: 0 !important; flex: none !important; }
             .canvas-area { 
@@ -599,14 +597,16 @@
                 </div>
 
                 <div class="tab-content" id="layersTab">
-                    <div class="mobile-lock-toggle locked" id="mobileLockToggle">
-                        <span><i class="fas fa-lock"></i> Objects Locked</span>
-                        <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
+                    <div class="layers-scroll-container">
+                        <div class="mobile-lock-toggle locked" id="mobileLockToggle">
+                            <span><i class="fas fa-lock"></i> Objects Locked</span>
+                            <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
+                        </div>
+                        <div id="layerList"></div>
                     </div>
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
-                    </div>
-                    <div id="layerList" style="max-height: 300px; overflow-y: auto;"></div>
                 </div>
 
                 <div class="checkout-section">
