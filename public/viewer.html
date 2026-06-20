@@ -306,18 +306,25 @@
                 }
                 
                 // Apply template texture if available
+                console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
                     try {
                         const tc = JSON.parse(card.template_config);
+                        console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
                             cardMediaContainer.style.backgroundImage = `url("${tc.config.textureSvg}")`;
                             cardMediaContainer.style.backgroundRepeat = 'repeat';
                             cardMediaContainer.style.backgroundSize = 'auto';
                             cardMediaContainer.style.backgroundColor = 'transparent';
+                            console.log('Texture applied successfully');
+                        } else {
+                            console.log('No textureSvg found in template config');
                         }
                     } catch (e) {
                         console.error('Error applying template texture:', e);
                     }
+                } else {
+                    console.log('No template_config on this card');
                 }
 
                 document.getElementById('displayCardId').textContent = card.card_id;
