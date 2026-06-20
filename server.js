@@ -403,7 +403,8 @@ app.post('/api/cards', async (req, res) => {
       overlay_url,
       has_video_overlay,
       has_audio_overlay,
-      payment_intent_id
+      payment_intent_id,
+      template_config
     } = req.body;
     
     console.log(`📨 Saving card: ${card_id}, Type: ${message_type}, Card Type: ${card_type}`);
@@ -447,7 +448,8 @@ app.post('/api/cards', async (req, res) => {
         audio_url: audio_url || null,
         has_video_overlay: has_video_overlay === true,
         has_audio_overlay: has_audio_overlay === true,
-        payment_intent_id: payment_intent_id || null
+        payment_intent_id: payment_intent_id || null,
+      template_config: template_config || null
       };
       if (batch_id) updateData.batch_id = batch_id;
       if (batch_order) updateData.batch_order = batch_order;
@@ -496,7 +498,8 @@ app.post('/api/cards', async (req, res) => {
         audio_url: audio_url || null,
         has_video_overlay: has_video_overlay === true,
         has_audio_overlay: has_audio_overlay === true,
-        payment_intent_id: payment_intent_id || null
+        payment_intent_id: payment_intent_id || null,
+      template_config: template_config || null
       };
       if (batch_id) cardRecord.batch_id = batch_id;
       if (batch_order) cardRecord.batch_order = batch_order;
@@ -1367,7 +1370,8 @@ app.post('/api/activate-after-payment', async (req, res) => {
             card_type: 'ecard',
             created_by_ip: clientIp,
             created_at: now.toISOString(),
-            updated_at: now.toISOString()
+            updated_at: now.toISOString(),
+            template_config: template.template_config || null
           });
         }
         if (cardsToCreate.length > 0) await supabaseAdmin.from('cards').insert(cardsToCreate);
@@ -1387,7 +1391,8 @@ app.post('/api/activate-after-payment', async (req, res) => {
             video_url: template.video_url,
             audio_url: template.audio_url,
             has_video_overlay: template.has_video_overlay,
-            has_audio_overlay: template.has_audio_overlay
+            has_audio_overlay: template.has_audio_overlay,
+            template_config: template.template_config || null
           })
           .eq('card_id', template.card_id);
         
