@@ -144,6 +144,7 @@
         img { max-width: 100%; height: auto; }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -304,6 +305,21 @@
                     }
                 }
                 
+                // Apply template texture if available
+                if (cardMediaContainer && card.template_config) {
+                    try {
+                        const tc = JSON.parse(card.template_config);
+                        if (tc.config && tc.config.textureSvg) {
+                            cardMediaContainer.style.backgroundImage = `url("${tc.config.textureSvg}")`;
+                            cardMediaContainer.style.backgroundRepeat = 'repeat';
+                            cardMediaContainer.style.backgroundSize = 'auto';
+                            cardMediaContainer.style.backgroundColor = 'transparent';
+                        }
+                    } catch (e) {
+                        console.error('Error applying template texture:', e);
+                    }
+                }
+
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
@@ -361,6 +377,13 @@
             const audio = document.getElementById('cardAudio');
             audio.pause();
             audio.src = '';
+            const cardMediaContainer = document.getElementById('cardMediaContainer');
+            if (cardMediaContainer) {
+                cardMediaContainer.style.backgroundImage = '';
+                cardMediaContainer.style.backgroundRepeat = '';
+                cardMediaContainer.style.backgroundSize = '';
+                cardMediaContainer.style.backgroundColor = '';
+            }
         });
 
         document.getElementById('loadCardBtn').addEventListener('click', () => {

@@ -1833,6 +1833,7 @@
             try {
                 const BACKEND_URL = '';
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+                const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
 
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
@@ -1927,7 +1928,8 @@
                             card_id: cardId, message_type: mediaType, message_text: messageText,
                             media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
                             has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard'
+                            status: 'draft', card_type: 'ecard',
+                            template_config: templateConfigData
                         })
                     });
                     const result = await response.json();
@@ -1960,7 +1962,8 @@
                             message_type: mediaType, message_text: messageText,
                             media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
                             has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard', is_batch_template: true, quantity: qty
+                            status: 'draft', card_type: 'ecard', is_batch_template: true, quantity: qty,
+                            template_config: templateConfigData
                         })
                     });
                     const result = await response.json();
