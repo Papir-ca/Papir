@@ -1082,7 +1082,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         media_type: body.media_type || 'image',
         source: body.source || 'customize',
         is_template_design: body.is_template_design ? 'true' : 'false',
-        card_type: 'ecard'
+        card_type: 'ecard',
+        batch_id: body.batch_id || ''
       };
     } 
     // STANDARD FLOW: With items array
@@ -1224,7 +1225,8 @@ app.post('/api/activate-after-payment', async (req, res) => {
           video_url: design_data?.video?.url || null,
           audio_url: design_data?.audio?.url || null,
           has_video_overlay: !!design_data?.video?.url,
-          has_audio_overlay: !!design_data?.audio?.url
+          has_audio_overlay: !!design_data?.audio?.url,
+          template_config: templateConfigForCards
         };
         if (isBatch) {
           cardRecord.batch_id = finalBatchId;
