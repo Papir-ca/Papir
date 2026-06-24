@@ -1226,19 +1226,19 @@
         // 1. Login check FIRST — redirect if not logged in
         if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'admin-login.html';
-        }
-
-        // 2. API key check AFTER login — prompt only if logged in
-        const ADMIN_API_KEY = sessionStorage.getItem('adminApiKey') || '';
-        if (!ADMIN_API_KEY) {
-            const key = prompt('Enter your Admin API Key:');
-            if (key && key.trim()) {
-                sessionStorage.setItem('adminApiKey', key.trim());
-                location.reload();
-            } else {
-                alert('Admin API key is required.');
-                sessionStorage.removeItem('adminLoggedIn');
-                window.location.href = 'admin-login.html';
+        } else {
+            // 2. API key check ONLY after login confirmed
+            const ADMIN_API_KEY = sessionStorage.getItem('adminApiKey') || '';
+            if (!ADMIN_API_KEY) {
+                const key = prompt('Enter your Admin API Key:');
+                if (key && key.trim()) {
+                    sessionStorage.setItem('adminApiKey', key.trim());
+                    location.reload();
+                } else {
+                    alert('Admin API key is required.');
+                    sessionStorage.removeItem('adminLoggedIn');
+                    window.location.href = 'admin-login.html';
+                }
             }
         }
 
