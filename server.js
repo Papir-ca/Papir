@@ -174,6 +174,22 @@ const batchLimiter = rateLimit({
 });
 app.use('/api/batches/', batchLimiter);
 
+// 🔐 Admin API Key Authentication Middleware
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+function requireAdminAuth(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!ADMIN_API_KEY) {
+    console.error('❌ ADMIN_API_KEY environment variable not set');
+    return res.status(503).json({ success: false, error: 'Admin authentication not configured' });
+  }
+  if (token !== ADMIN_API_KEY) {
+    return res.status(401).json({ success: false, error: 'Unauthorized. Invalid or missing admin API key.' });
+  }
+  next();
+}
+app.use('/api/admin', requireAdminAuth);
+
 // 📁 Serve static files FROM 'public' FOLDER
 app.use(express.static('public'));
 
@@ -1226,7 +1242,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
           audio_url: design_data?.audio?.url || null,
           has_video_overlay: !!design_data?.video?.url,
           has_audio_overlay: !!design_data?.audio?.url,
-          template_config: templateConfigForCards
+          template_config: null
         };
         if (isBatch) {
           cardRecord.batch_id = finalBatchId;
@@ -1523,6 +1539,25 @@ app.post('/api/batches/:batch_id/add-cards', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid quantity' });
     }
     
+        // Verify payment_intent_id with Stripe
+    if (!payment_intent_id) {
+      return res.status(400).json({ success: false, error: 'payment_intent_id is required' });
+    }
+    if (!stripe) {
+      return res.status(503).json({ success: false, error: 'Payment verification unavailable - Stripe not configured' });
+    }
+    let paymentIntent;
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
+    } catch (stripeErr) {
+      console.error('🔴 Stripe retrieve error:', stripeErr.message);
+      return res.status(400).json({ success: false, error: 'Invalid payment_intent_id' });
+    }
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(402).json({ success: false, error: 'Payment not completed. Status: ' + paymentIntent.status });
+    }
+    console.log(`🟢 Payment verified: ${payment_intent_id} status=${paymentIntent.status}`);
+
     const { data: batch, error: batchError } = await supabaseAdmin
       .from('batches')
       .select('*')
