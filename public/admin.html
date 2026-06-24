@@ -1661,173 +1661,73 @@
             try {
                 const response = await adminFetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
                 const result = await response.json();
-                
-                if (result.success) {
-                    const container = document.getElementById('abandonedCardsList');
-                    if (result.abandoned.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    result.abandoned.slice(0, 10).forEach(card => {
-                        const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
-                        html += `
-                            <div class="abandoned-item">
-                                <span><strong>${card.card_id}</strong></span>
-                                <span style="color: #f39c12;">${daysOld} days old</span>
-                                <span style="color: #aaa;">${card.message_type}</span>
-                            </div>
-                        `;
-                    });
-                    if (result.abandoned.length > 10) {
-                        html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${result.abandoned.length - 10} more</div>`;
-                    }
-                    container.innerHTML = html;
-                }
-            } catch (error) {
-                console.error('Error loading abandoned cards:', error);
-            }
-        }
-        
-        if (expireCardsBtn) {
-            expireCardsBtn.addEventListener('click', async function() {
-                if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
-                
-                try {
-                    const response = await adminFetch(`${BACKEND_URL}/api/admin/expire-cards`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const result = await response.json();
-                    alert(`Expired ${result.count} cards`);
-                    loadAdminData();
-                } catch (error) {
-                    alert('Error expiring cards');
-                }
-            });
-        }
-        
-        async function loadAdminData(forceRefresh = false) {
-            if (isLoading) return;
-            isLoading = true;
-            
-            const timeoutId = setTimeout(() => {
-                showStatus('Loading is taking longer than expected. Please wait...', 'warning', 0);
-            }, 10000);
-            
-            try {
-                const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
-                
-                if (cardsResponse.status === 429) {
-                    clearTimeout(timeoutId);
-                    showStatus('Rate limited. Please wait 15 seconds and refresh.', 'error');
-                    document.getElementById('cardsTableBody').innerHTML = `
-                        <tr><td colspan="22" style="text-align: center; padding: 40px; color: #f39c12;">
-                            ⚠️ Rate limited. Please wait and <button onclick="location.reload()" style="background: #BCAE83; color: black; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Refresh</button>
-                        </td></tr>
-                    `;
-                    isLoading = false;
+                const container = document.getElementById('abandonedCardsList');
+
+                if (!result.success) {
+                    container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading abandoned cards</div>';
                     return;
                 }
-                
-                const cardsResult = await cardsResponse.json();
-                
-                if (cardsResult.success && cardsResult.cards) {
-                    allCards = cardsResult.cards;
-                    allCardDetails = [...allCards];
-                    
-                    updateStats(allCards);
-                    renderTable();
-                    
-                    loadScanLogs().catch(() => {});
-                    loadAbandonedCards().catch(() => {});
-                    loadMismatchAlerts().catch(() => {});
-                    loadAllLocations().catch(e => console.log('Location load failed:', e));
-                    loadPerformanceStats().catch(() => {});
-                    loadActivityTimeline().catch(() => {});
-                    loadDetailedData().catch(() => {});
+
+                const abandoned = result.abandoned || [];
+                if (abandoned.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
+                    return;
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus('Error loading data: ' + error.message, 'error');
-            } finally {
-                clearTimeout(timeoutId);
-                isLoading = false;
-            }
-        }
-        
-        async function loadDetailedData() {
-            try {
-                console.log('🚀 Loading ALL card details in one request...');
-                
-                const response = await adminFetch(`${BACKEND_URL}/api/admin/cards-all-details`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    allCardDetails = result.cards;
-                    console.log(`✅ Loaded ${allCardDetails.length} cards with complete details`);
-                    renderTable();
+
+                let html = '';
+                abandoned.slice(0, 10).forEach(card => {
+                    const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
+                    html += `
+                        <div class="abandoned-item">
+                            <span><strong>${card.card_id}</strong></span>
+                            <span style="color: #f39c12;">${daysOld} days old</span>
+                            <span style="color: #aaa;">${card.message_type}</span>
+                        </div>
+                    `;
+                });
+                if (abandoned.length > 10) {
+                    html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${abandoned.length - 10} more</div>`;
                 }
+                container.innerHTML = html;
             } catch (error) {
-                console.error('Error loading detailed data:', error);
+                console.error('Error loading abandoned cards:', error);
+                const container = document.getElementById('abandonedCardsList');
+                if (container) container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Failed to load abandoned cards</div>';
             }
         }
 
-        async function loadScanLogs() {
-            try {
-                let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
-                
-                if (customStartDate && customEndDate) {
-                    const start = new Date(customStartDate);
-                    const end = new Date(customEndDate);
-                    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                    url = `${BACKEND_URL}/api/scan-logs?days=${diffDays}`;
-                }
-                
-                const response = await fetch(url);
-                
-                if (response.status === 429) {
-                    console.log('Rate limited for scan logs, will retry...');
-                    setTimeout(loadScanLogs, 5000);
-                    return;
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    allScanLogs = result.logs || [];
-                    updateAnalytics();
-                    updateTopCards();
-                }
-            } catch (error) {
-                console.error('Error loading scan logs:', error);
-                allScanLogs = [];
-            }
-        }
-        
-        async function loadMismatchAlerts() {
+async function loadMismatchAlerts() {
             try {
                 const response = await adminFetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
                 if (response.status === 429) return;
                 const result = await response.json();
-                if (result.success) {
-                    const container = document.getElementById('mismatchAlertsList');
-                    if (result.alerts.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No mismatches detected</div>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    result.alerts.slice(0, 10).forEach(alert => {
-                        html += `<div class="mismatch-item"><div><strong>${alert.card_id}</strong><div style="font-size: 0.8rem; color: #aaa;">Batch: ${alert.batch_id}</div></div><div style="text-align: right;"><div>📦 ${alert.shipping_country} → 🌍 ${alert.activation_country}</div><div style="font-size: 0.7rem; color: #f39c12;">⚠️ MISMATCH</div></div></div>`;
-                    });
-                    container.innerHTML = html;
+                const container = document.getElementById('mismatchAlertsList');
+
+                if (!result.success) {
+                    container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading mismatch alerts</div>';
+                    return;
                 }
-            } catch (error) {}
+
+                const alerts = result.alerts || [];
+                if (alerts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No mismatches detected</div>';
+                    return;
+                }
+
+                let html = '';
+                alerts.slice(0, 10).forEach(alert => {
+                    const shipping = alert.shipping_country || 'Unknown';
+                    const activation = alert.activation_country || 'Unknown';
+                    const batchId = alert.batch_id || 'N/A';
+                    html += `<div class="mismatch-item"><div><strong>${alert.card_id}</strong><div style="font-size: 0.8rem; color: #aaa;">Batch: ${batchId}</div></div><div style="text-align: right;"><div>📦 ${shipping} → 🌍 ${activation}</div><div style="font-size: 0.7rem; color: #f39c12;">⚠️ MISMATCH</div></div></div>`;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading mismatch alerts:', error);
+            }
         }
-        
-        function updateStats(cards) {
+
+function updateStats(cards) {
             document.getElementById('totalCards').textContent = cards.length;
             document.getElementById('pendingCards').textContent = cards.filter(c => c.status === 'pending').length;
             document.getElementById('activeCards').textContent = cards.filter(c => c.status === 'active').length;
