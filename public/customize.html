@@ -18,6 +18,7 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
+        html, body { overscroll-behavior: none; }  /* ← FIX: disables pull‑to‑refresh */
         html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
@@ -2807,5 +2808,65 @@
 
         init();
     </script>
+
+    <!-- ===== FIX: Prevent pull-to-refresh and unwanted scroll resets ===== -->
+    <script>
+        (function() {
+            // Disable pull-to-refresh / overscroll on the whole page
+            document.addEventListener('touchmove', function(e) {
+                const target = e.target;
+                // Allow touchmove only inside these scrollable containers
+                if (target.closest('.layers-scroll-container') ||
+                    target.closest('.tab-content') ||
+                    target.closest('.canvas-container') ||
+                    target.closest('.mobile-accordion-container')) {
+                    return; // let default scroll happen
+                }
+                e.preventDefault(); // block pull-to-refresh everywhere else
+            }, { passive: false });
+
+            // Also prevent bounce on the body
+            document.body.addEventListener('touchmove', function(e) {
+                if (!e.target.closest('.layers-scroll-container') &&
+                    !e.target.closest('.tab-content') &&
+                    !e.target.closest('.canvas-container') &&
+                    !e.target.closest('.mobile-accordion-container')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        })();
+    </script>
+
+    <!-- ===== UNIVERSAL MOBILE HELPERS (unchanged) ===== -->
+    <script>
+        (function() {
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            function setMobileHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            window.addEventListener('resize', setMobileHeight);
+            window.addEventListener('orientationchange', setMobileHeight);
+            setMobileHeight();
+
+            const originalHeight = window.innerHeight;
+            window.addEventListener('resize', () => {
+                if (window.innerHeight < originalHeight * 0.75) {
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        })();
+    </script>
+
 </body>
 </html>
