@@ -889,6 +889,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -1696,7 +1697,123 @@
             }
         }
 
-async function loadMismatchAlerts() {
+if (expireCardsBtn) {
+            expireCardsBtn.addEventListener('click', async function() {
+                if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
+                
+                try {
+                    const response = await adminFetch(`${BACKEND_URL}/api/admin/expire-cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    alert(`Expired ${result.count} cards`);
+                    loadAdminData();
+                } catch (error) {
+                    alert('Error expiring cards');
+                }
+            });
+        }
+        
+        async function loadAdminData(forceRefresh = false) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const timeoutId = setTimeout(() => {
+                showStatus('Loading is taking longer than expected. Please wait...', 'warning', 0);
+            }, 10000);
+            
+            try {
+                const cardsResponse = await fetch(`${BACKEND_URL}/api/cards`);
+                
+                if (cardsResponse.status === 429) {
+                    clearTimeout(timeoutId);
+                    showStatus('Rate limited. Please wait 15 seconds and refresh.', 'error');
+                    document.getElementById('cardsTableBody').innerHTML = `
+                        <tr><td colspan="22" style="text-align: center; padding: 40px; color: #f39c12;">
+                            ⚠️ Rate limited. Please wait and <button onclick="location.reload()" style="background: #BCAE83; color: black; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Refresh</button>
+                        </td></tr>
+                    `;
+                    isLoading = false;
+                    return;
+                }
+                
+                const cardsResult = await cardsResponse.json();
+                
+                if (cardsResult.success && cardsResult.cards) {
+                    allCards = cardsResult.cards;
+                    allCardDetails = [...allCards];
+                    
+                    updateStats(allCards);
+                    renderTable();
+                    
+                    loadScanLogs().catch(() => {});
+                    loadAbandonedCards().catch(() => {});
+                    loadMismatchAlerts().catch(() => {});
+                    loadAllLocations().catch(e => console.log('Location load failed:', e));
+                    loadPerformanceStats().catch(() => {});
+                    loadActivityTimeline().catch(() => {});
+                    loadDetailedData().catch(() => {});
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error loading data: ' + error.message, 'error');
+            } finally {
+                clearTimeout(timeoutId);
+                isLoading = false;
+            }
+        }
+        
+        async function loadDetailedData() {
+            try {
+                console.log('🚀 Loading ALL card details in one request...');
+                
+                const response = await adminFetch(`${BACKEND_URL}/api/admin/cards-all-details`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    allCardDetails = result.cards;
+                    console.log(`✅ Loaded ${allCardDetails.length} cards with complete details`);
+                    renderTable();
+                }
+            } catch (error) {
+                console.error('Error loading detailed data:', error);
+            }
+        }
+
+        async function loadScanLogs() {
+            try {
+                let url = `${BACKEND_URL}/api/scan-logs?days=${currentTimeRange}`;
+                
+                if (customStartDate && customEndDate) {
+                    const start = new Date(customStartDate);
+                    const end = new Date(customEndDate);
+                    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                    url = `${BACKEND_URL}/api/scan-logs?days=${diffDays}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (response.status === 429) {
+                    console.log('Rate limited for scan logs, will retry...');
+                    setTimeout(loadScanLogs, 5000);
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    allScanLogs = result.logs || [];
+                    updateAnalytics();
+                    updateTopCards();
+                }
+            } catch (error) {
+                console.error('Error loading scan logs:', error);
+                allScanLogs = [];
+            }
+        }
+        
+        async function loadMismatchAlerts() {
             try {
                 const response = await adminFetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
                 if (response.status === 429) return;
