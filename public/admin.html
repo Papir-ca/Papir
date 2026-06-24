@@ -1224,11 +1224,12 @@
         const BACKEND_URL = 'https://papir.ca';
 
         // 1. Login check FIRST — redirect if not logged in
+        let ADMIN_API_KEY = '';
         if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'admin-login.html';
         } else {
             // 2. API key check ONLY after login confirmed
-            const ADMIN_API_KEY = sessionStorage.getItem('adminApiKey') || '';
+            ADMIN_API_KEY = sessionStorage.getItem('adminApiKey') || '';
             if (!ADMIN_API_KEY) {
                 const key = prompt('Enter your Admin API Key:');
                 if (key && key.trim()) {
