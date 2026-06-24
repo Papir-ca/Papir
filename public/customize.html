@@ -1248,7 +1248,55 @@
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
+        // ----- SCROLL DETECTION FLAG (mobile only) -----
+        let isScrolling = false;
+        let scrollTimer = null;
+        let touchStartX = 0, touchStartY = 0;
+        let touchStartTarget = null;
+
+        if (isMobileLayout()) {
+            document.addEventListener('touchstart', function(e) {
+                touchStartTarget = e.target;
+                const touch = e.touches[0];
+                if (touch) {
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                }
+                isScrolling = false;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                // If touch started inside canvas, ignore (canvas scroll is blocked)
+                if (touchStartTarget && (touchStartTarget.closest('#canvasContainer') || 
+                    touchStartTarget.closest('.upper-canvas') || 
+                    touchStartTarget.closest('#designCanvas'))) {
+                    return;
+                }
+                const touch = e.touches[0];
+                if (!touch) return;
+                const dx = Math.abs(touch.clientX - touchStartX);
+                const dy = Math.abs(touch.clientY - touchStartY);
+                if (dx > 10 || dy > 10) {
+                    isScrolling = true;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(() => {
+                    isScrolling = false;
+                }, 300);
+            }, { passive: true });
+        }
+
+        // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
+            // If user is scrolling and we have a selected object, restore it
+            if (isScrolling && selectedObject) {
+                canvas.setActiveObject(selectedObject);
+                canvas.renderAll();
+                return;
+            }
             selectedObject = null;
             showNoSelection();
             updateLayerList();
