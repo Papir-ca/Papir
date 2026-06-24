@@ -18,7 +18,7 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        html, body { overscroll-behavior: none; }  /* ← FIX: disables pull‑to‑refresh */
+        html, body { overscroll-behavior: none; }
         html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
@@ -2416,7 +2416,6 @@
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
 
-                // Skip if already processed
                 if (section.dataset.mobileSetup === 'done') return;
                 section.dataset.mobileSetup = 'done';
 
@@ -2433,14 +2432,54 @@
                 // Start collapsed on mobile
                 if (isMobileLayout()) section.classList.add('collapsed');
 
-                // Only arrow (right side) toggles
+                // ----- NEW: Touch‑based toggle (only arrow, ignores drag) -----
+                let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+                h4.addEventListener('touchstart', function(e) {
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    touchMoved = false;
+                }, { passive: true });
+
+                h4.addEventListener('touchmove', function(e) {
+                    const touch = e.touches[0];
+                    const dx = Math.abs(touch.clientX - touchStartX);
+                    const dy = Math.abs(touch.clientY - touchStartY);
+                    if (dx > 10 || dy > 10) touchMoved = true;
+                }, { passive: true });
+
+                h4.addEventListener('touchend', function(e) {
+                    if (touchMoved) return; // ignore drag
+
+                    const rect = h4.getBoundingClientRect();
+                    const touch = e.changedTouches[0];
+                    const clickX = touch.clientX - rect.left;
+                    // Only toggle if tap is on the rightmost 40px (arrow area)
+                    if (clickX < rect.width - 40) return;
+
+                    const section = h4.closest('.property-section');
+                    if (!section) return;
+
+                    const isCollapsed = section.classList.contains('collapsed');
+                    const parent = section.parentElement;
+                    if (parent) {
+                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
+                        siblings.forEach(other => other.classList.add('collapsed'));
+                    }
+                    section.classList.toggle('collapsed', !isCollapsed);
+                }, { passive: true });
+
+                // Fallback for desktop (mouse) – also only arrow
                 h4.addEventListener('click', function(e) {
-                    if (!isMobileLayout()) return;
                     const rect = h4.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
                     if (clickX < rect.width - 40) return;
+
+                    const section = h4.closest('.property-section');
+                    if (!section) return;
+
                     const isCollapsed = section.classList.contains('collapsed');
-                    // Close siblings at same level only
                     const parent = section.parentElement;
                     if (parent) {
                         const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
@@ -2812,20 +2851,17 @@
     <!-- ===== FIX: Prevent pull-to-refresh and unwanted scroll resets ===== -->
     <script>
         (function() {
-            // Disable pull-to-refresh / overscroll on the whole page
             document.addEventListener('touchmove', function(e) {
                 const target = e.target;
-                // Allow touchmove only inside these scrollable containers
                 if (target.closest('.layers-scroll-container') ||
                     target.closest('.tab-content') ||
                     target.closest('.canvas-container') ||
                     target.closest('.mobile-accordion-container')) {
-                    return; // let default scroll happen
+                    return;
                 }
-                e.preventDefault(); // block pull-to-refresh everywhere else
+                e.preventDefault();
             }, { passive: false });
 
-            // Also prevent bounce on the body
             document.body.addEventListener('touchmove', function(e) {
                 if (!e.target.closest('.layers-scroll-container') &&
                     !e.target.closest('.tab-content') &&
@@ -2837,7 +2873,7 @@
         })();
     </script>
 
-    <!-- ===== UNIVERSAL MOBILE HELPERS (unchanged) ===== -->
+    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
     <script>
         (function() {
             let lastTouchEnd = 0;
@@ -2867,6 +2903,5 @@
             });
         })();
     </script>
-
 </body>
 </html>
