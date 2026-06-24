@@ -2848,14 +2848,13 @@
         init();
     </script>
 
-    <!-- ===== FIX: Prevent pull-to-refresh and unwanted scroll resets ===== -->
+    <!-- ===== FIX 1: Prevent pull-to-refresh and unwanted scroll resets ===== -->
     <script>
         (function() {
             document.addEventListener('touchmove', function(e) {
                 const target = e.target;
                 if (target.closest('.layers-scroll-container') ||
                     target.closest('.tab-content') ||
-                    target.closest('.canvas-container') ||
                     target.closest('.mobile-accordion-container')) {
                     return;
                 }
@@ -2870,6 +2869,25 @@
                     e.preventDefault();
                 }
             }, { passive: false });
+
+            // ===== FIX 2: Prevent canvas from scrolling the page (keeps selection active) =====
+            const canvasEl = document.getElementById('designCanvas');
+            if (canvasEl && canvasEl.parentElement) {
+                const upperCanvas = canvasEl.parentElement.querySelector('.upper-canvas');
+                if (upperCanvas) {
+                    upperCanvas.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                    }, { passive: false });
+                }
+                const container = document.getElementById('canvasContainer');
+                if (container) {
+                    container.addEventListener('touchmove', function(e) {
+                        if (e.target.closest('.upper-canvas') || e.target.closest('#designCanvas')) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+                }
+            }
         })();
     </script>
 
