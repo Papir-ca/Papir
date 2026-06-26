@@ -869,7 +869,7 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-            videoEl.onloadedmetadata = () => {
+            const onLoaded = () => {
                 videoEl.play().catch(() => {});
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
@@ -894,13 +894,15 @@
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                     if (this === lastMediaObject) lastMediaObject = null;
                     setTimeout(updateMediaControls, 0);
                 });
                 canvas.requestRenderAll();
+                setTimeout(updateMediaControls, 0);
             };
+            videoEl.onloadedmetadata = onLoaded;
+            if (videoEl.readyState >= 1) onLoaded();
             videoEl.onerror = () => { console.error('Error restoring video from blob URL'); };
         }
 
@@ -912,17 +914,19 @@
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-            audioEl.onloadedmetadata = () => {
+            const onLoaded = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
                 obj.on('selected', () => { if (obj.audioElement) obj.audioElement.play().catch(() => {}); });
                 obj.on('removed', function() {
-                    if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
                     if (this === lastMediaObject) lastMediaObject = null;
                     setTimeout(updateMediaControls, 0);
                 });
+                setTimeout(updateMediaControls, 0);
             };
+            audioEl.onloadedmetadata = onLoaded;
+            if (audioEl.readyState >= 1) onLoaded();
         }
 
         function undo() {
@@ -938,6 +942,7 @@
                     canvas.renderAll(); 
                     updateLayerList(); 
                     updateMediaControls();
+                    setTimeout(updateMediaControls, 500);
                 });
             }
         }
@@ -955,6 +960,7 @@
                     canvas.renderAll(); 
                     updateLayerList(); 
                     updateMediaControls();
+                    setTimeout(updateMediaControls, 500);
                 });
             }
         }
@@ -1146,7 +1152,7 @@
                 const fabricVideo = new fabric.Image(videoCanvas, {
                     left: canvas.width / 2, top: canvas.height / 2,
                     scaleX: 0.5, scaleY: 0.5, originX: 'center', originY: 'center',
-                    opacity: 1.0, hasControls: true, hasBorders: true,
+                    opacity: 0.5, hasControls: true, hasBorders: true,
                     lockScalingX: false, lockScalingY: false, lockRotation: false,
                     lockMovementX: false, lockMovementY: false, hasRotatingPoint: true,
                     transparentCorners: false, cornerColor: '#06D6A0',
@@ -1165,6 +1171,7 @@
                 fabricVideo.videoCanvas = videoCanvas;
                 fabricVideo.videoContext = ctx;
                 canvas.add(fabricVideo);
+                canvas.sendToBack(fabricVideo);
                 canvas.setActiveObject(fabricVideo);
                 lastMediaObject = fabricVideo;
                 canvas.renderAll();
@@ -1183,7 +1190,6 @@
                 fabricVideo.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                     if (this === lastMediaObject) lastMediaObject = null;
                     setTimeout(updateMediaControls, 0);
@@ -1216,13 +1222,13 @@
                     img.audioElement = audioEl;
                     img.audioType = file.type;
                     canvas.add(img);
+                    canvas.sendToBack(img);
                     canvas.setActiveObject(img);
                     lastMediaObject = img;
                     canvas.renderAll();
                     saveState();
                     img.on('selected', () => { audioEl.play().catch(() => {}); });
                     img.on('removed', function() {
-                        if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                         if (this.audioElement) this.audioElement.pause();
                         if (this === lastMediaObject) lastMediaObject = null;
                         setTimeout(updateMediaControls, 0);
@@ -1250,6 +1256,7 @@
                     const scale = Math.min(200 / img.width, 200 / img.height);
                     img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
                     canvas.add(img);
+                    canvas.sendToBack(img);
                     canvas.setActiveObject(img);
                     lastMediaObject = img;
                     canvas.renderAll();
@@ -1270,8 +1277,17 @@
             if (!targetObj) { controls.style.display = 'none'; return; }
             const isVideo = targetObj.isVideo && targetObj.videoElement;
             const isAudio = targetObj.isAudio && targetObj.audioElement;
-            if (!isVideo && !isAudio) { controls.style.display = 'none'; return; }
+            const isImage = targetObj.type === 'image' && !targetObj.isVideo && !targetObj.isAudio;
+            if (!isVideo && !isAudio && !isImage) { controls.style.display = 'none'; return; }
             lastMediaObject = targetObj;
+            if (isImage) {
+                controls.style.display = 'flex';
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                playBtn.onclick = null;
+                muteBtn.onclick = null;
+                return;
+            }
             const mediaEl = isVideo ? targetObj.videoElement : targetObj.audioElement;
             const updateIcons = () => {
                 playBtn.innerHTML = mediaEl.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
@@ -1292,7 +1308,11 @@
                 hideMediaControls();
                 return;
             }
-            const mediaObjects = canvas.getObjects().filter(obj => (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement));
+            const mediaObjects = canvas.getObjects().filter(obj => 
+                (obj.isVideo && obj.videoElement) || 
+                (obj.isAudio && obj.audioElement) ||
+                (obj.type === 'image' && !obj.isVideo && !obj.isAudio)
+            );
             if (mediaObjects.length > 0) {
                 if (!lastMediaObject || !canvas.getObjects().includes(lastMediaObject)) {
                     lastMediaObject = mediaObjects[mediaObjects.length - 1];
@@ -1891,6 +1911,7 @@
                     saveState(); 
                     updateLayerList();
                     updateMediaControls();
+                    setTimeout(updateMediaControls, 500);
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
@@ -2502,6 +2523,7 @@
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
+            updateMediaControls();
         }
 
         function setupMobileUI() {
@@ -2658,7 +2680,7 @@
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
+            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); updateMediaControls(); });
             canvas.on('after:render', function() { 
                 updateMobileHandlePositions(); 
                 if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
@@ -2892,6 +2914,7 @@
                     if (content) content.style.display = 'none';
                 });
             }
+            updateMediaControls();
         }
 
         document.body.addEventListener('touchmove', function(e) {
