@@ -1,4 +1,3 @@
-aaa
 // 🎪 Papir Business Server - PRODUCTION READY
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
