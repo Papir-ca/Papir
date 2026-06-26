@@ -403,6 +403,7 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -716,6 +717,7 @@
         }
         let isPreviewMode = false;
         let layerEditTarget = null;
+        let lastMediaObject = null;
         let mobileHandles = [];
         let handleDragState = null;
 
@@ -730,6 +732,7 @@
             }
             const config = templateConfig.config;
             canvas.clear();
+            lastMediaObject = null;
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
             if (config.defaultFont && document.fonts) {
@@ -773,10 +776,12 @@
             applyTemplateTexture(canvas);
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+            updateMediaControls();
         }
 
         async function loadDemoTemplate() {
             canvas.clear();
+            lastMediaObject = null;
             canvas.backgroundColor = '#F5F5DC';
             await addTextElement('Happy Birthday!', 300, 120, {
                 fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
@@ -790,6 +795,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            updateMediaControls();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -890,6 +896,8 @@
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
+                    if (this === lastMediaObject) lastMediaObject = null;
+                    setTimeout(updateMediaControls, 0);
                 });
                 canvas.requestRenderAll();
             };
@@ -911,6 +919,8 @@
                 obj.on('removed', function() {
                     if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
+                    if (this === lastMediaObject) lastMediaObject = null;
+                    setTimeout(updateMediaControls, 0);
                 });
             };
         }
@@ -927,6 +937,7 @@
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
+                    updateMediaControls();
                 });
             }
         }
@@ -943,6 +954,7 @@
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
+                    updateMediaControls();
                 });
             }
         }
@@ -1134,7 +1146,7 @@
                 const fabricVideo = new fabric.Image(videoCanvas, {
                     left: canvas.width / 2, top: canvas.height / 2,
                     scaleX: 0.5, scaleY: 0.5, originX: 'center', originY: 'center',
-                    opacity: 0.5, hasControls: true, hasBorders: true,
+                    opacity: 1.0, hasControls: true, hasBorders: true,
                     lockScalingX: false, lockScalingY: false, lockRotation: false,
                     lockMovementX: false, lockMovementY: false, hasRotatingPoint: true,
                     transparentCorners: false, cornerColor: '#06D6A0',
@@ -1154,6 +1166,7 @@
                 fabricVideo.videoContext = ctx;
                 canvas.add(fabricVideo);
                 canvas.setActiveObject(fabricVideo);
+                lastMediaObject = fabricVideo;
                 canvas.renderAll();
                 saveState();
                 const renderLoop = () => {
@@ -1172,9 +1185,12 @@
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
                     if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
+                    if (this === lastMediaObject) lastMediaObject = null;
+                    setTimeout(updateMediaControls, 0);
                 });
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
                 updateLayerList();
+                updateMediaControls();
             };
             videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
         }
@@ -1201,15 +1217,19 @@
                     img.audioType = file.type;
                     canvas.add(img);
                     canvas.setActiveObject(img);
+                    lastMediaObject = img;
                     canvas.renderAll();
                     saveState();
                     img.on('selected', () => { audioEl.play().catch(() => {}); });
                     img.on('removed', function() {
                         if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                         if (this.audioElement) this.audioElement.pause();
+                        if (this === lastMediaObject) lastMediaObject = null;
+                        setTimeout(updateMediaControls, 0);
                     });
                     showNotification('Audio added! Will play when card is viewed.');
                     updateLayerList();
+                    updateMediaControls();
                 });
             };
         }
@@ -1231,6 +1251,7 @@
                     img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
                     canvas.add(img);
                     canvas.setActiveObject(img);
+                    lastMediaObject = img;
                     canvas.renderAll();
                     saveState();
                     updateLayerList();
@@ -1245,10 +1266,13 @@
             const playBtn = document.getElementById('mediaPlayBtn');
             const muteBtn = document.getElementById('mediaMuteBtn');
             if (!controls || !playBtn || !muteBtn) return;
-            const isVideo = obj.isVideo && obj.videoElement;
-            const isAudio = obj.isAudio && obj.audioElement;
+            const targetObj = obj || lastMediaObject;
+            if (!targetObj) { controls.style.display = 'none'; return; }
+            const isVideo = targetObj.isVideo && targetObj.videoElement;
+            const isAudio = targetObj.isAudio && targetObj.audioElement;
             if (!isVideo && !isAudio) { controls.style.display = 'none'; return; }
-            const mediaEl = isVideo ? obj.videoElement : obj.audioElement;
+            lastMediaObject = targetObj;
+            const mediaEl = isVideo ? targetObj.videoElement : targetObj.audioElement;
             const updateIcons = () => {
                 playBtn.innerHTML = mediaEl.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
                 muteBtn.innerHTML = mediaEl.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
@@ -1263,17 +1287,37 @@
             if (controls) controls.style.display = 'none';
         }
 
+        function updateMediaControls() {
+            if (isPreviewMode) {
+                hideMediaControls();
+                return;
+            }
+            const mediaObjects = canvas.getObjects().filter(obj => (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement));
+            if (mediaObjects.length > 0) {
+                if (!lastMediaObject || !canvas.getObjects().includes(lastMediaObject)) {
+                    lastMediaObject = mediaObjects[mediaObjects.length - 1];
+                }
+                showMediaControls(lastMediaObject);
+            } else {
+                lastMediaObject = null;
+                hideMediaControls();
+            }
+        }
+
         function handleSelection(e) {
             const sel = e.selected;
             if (sel.length === 1) {
                 selectedObject = sel[0];
                 updateControls();
                 showSelectionControls();
-                showMediaControls(sel[0]);
+                if (sel[0].isVideo || sel[0].isAudio) {
+                    lastMediaObject = sel[0];
+                }
+                updateMediaControls();
             } else {
                 selectedObject = null;
                 showNoSelection();
-                hideMediaControls();
+                updateMediaControls();
             }
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
@@ -1282,7 +1326,7 @@
         function handleDeselection() {
             selectedObject = null;
             showNoSelection();
-            hideMediaControls();
+            updateMediaControls();
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
@@ -1311,11 +1355,12 @@
         }
 
         function deleteSelected() {
-            hideMediaControls();
             const active = canvas.getActiveObject();
             if (active) {
+                if (active === lastMediaObject) lastMediaObject = null;
                 if (active.type === 'activeSelection') {
                     active.getObjects().forEach(obj => {
+                        if (obj === lastMediaObject) lastMediaObject = null;
                         if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
                         if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
                         if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
@@ -1333,6 +1378,7 @@
                 saveState();
                 updateLayerList();
                 createMobileHandles();
+                updateMediaControls();
             }
         }
 
@@ -1662,7 +1708,17 @@
 
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
-            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
+            if (obj) { 
+                if (obj === lastMediaObject) lastMediaObject = null;
+                if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
+                if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
+                if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
+                canvas.remove(obj); 
+                canvas.renderAll(); 
+                saveState(); 
+                createMobileHandles(); 
+                updateMediaControls();
+            }
         }
 
         function applyTemplateTexture(canvas) {
@@ -1715,6 +1771,7 @@
                     if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
                     if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
                 });
+                lastMediaObject = null;
                 canvas.clear();
                 canvas.backgroundColor = '#ffffff';
                 canvas.discardActiveObject();
@@ -1725,6 +1782,7 @@
                     saveState();
                     updateLayerList();
                     createMobileHandles();
+                    updateMediaControls();
                     showNotification('Design reset to template defaults', 'success');
                 });
             }
@@ -1832,6 +1890,7 @@
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
+                    updateMediaControls();
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
@@ -2028,6 +2087,7 @@
                 showNoSelection();
                 clearMobileHandles();
                 canvas.renderAll();
+                updateMediaControls();
                 showNotification('Preview mode - tap canvas to exit', 'info');
             } else {
                 app.classList.remove('preview-mode');
@@ -2036,6 +2096,7 @@
                 if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
                     setTimeout(createMobileHandles, 100);
                 }
+                updateMediaControls();
             }
         }
 
