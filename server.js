@@ -1,9 +1,11 @@
+aaa
 // 🎪 Papir Business Server - PRODUCTION READY
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
 require('dotenv').config();
 
 // ============================================
@@ -173,6 +175,12 @@ const batchLimiter = rateLimit({
   message: 'Too many batch requests, please slow down.'
 });
 app.use('/api/batches/', batchLimiter);
+
+// 📁 Multipart upload middleware (memory storage — no disk writes)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 } // 50 MB max
+});
 
 // 🔐 Admin API Key Authentication Middleware
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
@@ -584,14 +592,15 @@ app.post('/api/cards', async (req, res) => {
 });
 
 // 🖼️ Upload Media Files to Supabase Storage - WITH FILE TYPE VALIDATION
-app.post('/api/upload-media', async (req, res) => {
+app.post('/api/upload-media', upload.single('file'), async (req, res) => {
   try {
-    const { fileData, fileName, fileType, cardId } = req.body;
+    const { fileName, fileType, cardId } = req.body;
+    const file = req.file;
     console.log(`📤 Uploading media: ${fileName} for ${cardId}`);
-    if (!fileData || !fileName || !cardId) {
+    if (!file || !fileName || !cardId) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields: fileData, fileName, cardId' 
+        error: 'Missing required fields: file, fileName, cardId' 
       });
     }
     const allowedTypes = {
@@ -629,17 +638,13 @@ app.post('/api/upload-media', async (req, res) => {
         error: 'Database service temporarily unavailable'
       });
     }
-    let base64Data = fileData;
-    if (fileData.includes(',')) {
-      base64Data = fileData.split(',')[1];
-    }
-    const buffer = Buffer.from(base64Data, 'base64');
+    const buffer = file.buffer;
     const fileSize = buffer.length;
     if (fileSize < 100) {
-      console.error('❌ Buffer too small - Base64 parsing issue');
+      console.error('❌ Buffer too small');
       return res.status(400).json({ 
         success: false, 
-        error: 'File data too small - check Base64 encoding' 
+        error: 'File data too small' 
       });
     }
     const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');

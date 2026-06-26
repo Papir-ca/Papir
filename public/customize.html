@@ -1,3 +1,4 @@
+aaa
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +19,6 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
-        html, body { overscroll-behavior: none; }
         html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
@@ -398,6 +398,7 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -1248,55 +1249,7 @@
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
-        // ----- SCROLL DETECTION FLAG (mobile only) -----
-        let isScrolling = false;
-        let scrollTimer = null;
-        let touchStartX = 0, touchStartY = 0;
-        let touchStartTarget = null;
-
-        if (isMobileLayout()) {
-            document.addEventListener('touchstart', function(e) {
-                touchStartTarget = e.target;
-                const touch = e.touches[0];
-                if (touch) {
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                }
-                isScrolling = false;
-            }, { passive: true });
-
-            document.addEventListener('touchmove', function(e) {
-                // If touch started inside canvas, ignore (canvas scroll is blocked)
-                if (touchStartTarget && (touchStartTarget.closest('#canvasContainer') || 
-                    touchStartTarget.closest('.upper-canvas') || 
-                    touchStartTarget.closest('#designCanvas'))) {
-                    return;
-                }
-                const touch = e.touches[0];
-                if (!touch) return;
-                const dx = Math.abs(touch.clientX - touchStartX);
-                const dy = Math.abs(touch.clientY - touchStartY);
-                if (dx > 10 || dy > 10) {
-                    isScrolling = true;
-                }
-            }, { passive: true });
-
-            document.addEventListener('touchend', function() {
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(() => {
-                    isScrolling = false;
-                }, 300);
-            }, { passive: true });
-        }
-
-        // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
-            // If user is scrolling and we have a selected object, restore it
-            if (isScrolling && selectedObject) {
-                canvas.setActiveObject(selectedObject);
-                canvas.renderAll();
-                return;
-            }
             selectedObject = null;
             showNoSelection();
             updateLayerList();
@@ -1884,6 +1837,33 @@
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
                 const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
 
+                // Helper: convert data URL to File
+                function dataURLtoFile(dataurl, filename) {
+                    const arr = dataurl.split(',');
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while(n--) u8arr[n] = bstr.charCodeAt(n);
+                    return new File([u8arr], filename, {type: mime});
+                }
+
+                // Helper: upload file via multipart FormData
+                async function uploadMedia(file, fileName, fileType, cardId) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('fileName', fileName);
+                    formData.append('fileType', fileType);
+                    formData.append('cardId', cardId);
+                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (!uploadData.success) throw new Error(uploadData.error || 'Upload failed');
+                    return uploadData.url;
+                }
+
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
@@ -1892,17 +1872,7 @@
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
                     const file = video.videoFile;
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) videoUrl = uploadData.url;
+                    videoUrl = await uploadMedia(file, file.name, file.type, 'TEMP-' + Date.now());
                 }
 
                 let audioUrl = '';
@@ -1911,17 +1881,7 @@
                     showNotification('Uploading audio...', 'info');
                     const audio = audioObjects[0];
                     const file = audio.audioFile;
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) audioUrl = uploadData.url;
+                    audioUrl = await uploadMedia(file, file.name, file.type, 'TEMP-' + Date.now());
                 }
 
                 let overlayUrl = '';
@@ -1939,28 +1899,16 @@
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
 
-                    const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const overlayData2 = await overlayRes.json();
-                    if (overlayData2.success) overlayUrl = overlayData2.url;
+                    const overlayFile = dataURLtoFile(overlayData, 'overlay.png');
+                    overlayUrl = await uploadMedia(overlayFile, 'overlay.png', 'image/png', 'TEMP-' + Date.now());
 
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: thumbData, fileName: 'thumbnail.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const thumbData2 = await thumbRes.json();
-                    if (thumbData2.success) thumbnailUrl = thumbData2.url;
+                    const thumbFile = dataURLtoFile(thumbData, 'thumbnail.png');
+                    thumbnailUrl = await uploadMedia(thumbFile, 'thumbnail.png', 'image/png', 'TEMP-' + Date.now());
                 } else {
                     const canvasData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileData: canvasData, fileName: 'card-design.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) thumbnailUrl = uploadData.url;
+                    const canvasFile = dataURLtoFile(canvasData, 'card-design.png');
+                    thumbnailUrl = await uploadMedia(canvasFile, 'card-design.png', 'image/png', 'TEMP-' + Date.now());
                 }
 
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
@@ -2030,7 +1978,7 @@
             }
         }
 
-        function togglePreview() {
+function togglePreview() {
             isPreviewMode = !isPreviewMode;
             const btn = document.getElementById('previewBtn');
             const app = document.querySelector('.app-container');
@@ -2464,6 +2412,7 @@
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
 
+                // Skip if already processed
                 if (section.dataset.mobileSetup === 'done') return;
                 section.dataset.mobileSetup = 'done';
 
@@ -2480,54 +2429,14 @@
                 // Start collapsed on mobile
                 if (isMobileLayout()) section.classList.add('collapsed');
 
-                // ----- NEW: Touch‑based toggle (only arrow, ignores drag) -----
-                let touchStartX = 0, touchStartY = 0, touchMoved = false;
-
-                h4.addEventListener('touchstart', function(e) {
-                    const touch = e.touches[0];
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                    touchMoved = false;
-                }, { passive: true });
-
-                h4.addEventListener('touchmove', function(e) {
-                    const touch = e.touches[0];
-                    const dx = Math.abs(touch.clientX - touchStartX);
-                    const dy = Math.abs(touch.clientY - touchStartY);
-                    if (dx > 10 || dy > 10) touchMoved = true;
-                }, { passive: true });
-
-                h4.addEventListener('touchend', function(e) {
-                    if (touchMoved) return; // ignore drag
-
-                    const rect = h4.getBoundingClientRect();
-                    const touch = e.changedTouches[0];
-                    const clickX = touch.clientX - rect.left;
-                    // Only toggle if tap is on the rightmost 40px (arrow area)
-                    if (clickX < rect.width - 40) return;
-
-                    const section = h4.closest('.property-section');
-                    if (!section) return;
-
-                    const isCollapsed = section.classList.contains('collapsed');
-                    const parent = section.parentElement;
-                    if (parent) {
-                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
-                        siblings.forEach(other => other.classList.add('collapsed'));
-                    }
-                    section.classList.toggle('collapsed', !isCollapsed);
-                }, { passive: true });
-
-                // Fallback for desktop (mouse) – also only arrow
+                // Only arrow (right side) toggles
                 h4.addEventListener('click', function(e) {
+                    if (!isMobileLayout()) return;
                     const rect = h4.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
                     if (clickX < rect.width - 40) return;
-
-                    const section = h4.closest('.property-section');
-                    if (!section) return;
-
                     const isCollapsed = section.classList.contains('collapsed');
+                    // Close siblings at same level only
                     const parent = section.parentElement;
                     if (parent) {
                         const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
@@ -2894,80 +2803,6 @@
         }, { passive: true });
 
         init();
-    </script>
-
-    <!-- ===== FIX 1: Prevent pull-to-refresh and unwanted scroll resets ===== -->
-    <script>
-        (function() {
-            document.addEventListener('touchmove', function(e) {
-                const target = e.target;
-                if (target.closest('.layers-scroll-container') ||
-                    target.closest('.tab-content') ||
-                    target.closest('.mobile-accordion-container')) {
-                    return;
-                }
-                e.preventDefault();
-            }, { passive: false });
-
-            document.body.addEventListener('touchmove', function(e) {
-                if (!e.target.closest('.layers-scroll-container') &&
-                    !e.target.closest('.tab-content') &&
-                    !e.target.closest('.canvas-container') &&
-                    !e.target.closest('.mobile-accordion-container')) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            // ===== FIX 2: Prevent canvas from scrolling the page (keeps selection active) =====
-            const canvasEl = document.getElementById('designCanvas');
-            if (canvasEl && canvasEl.parentElement) {
-                const upperCanvas = canvasEl.parentElement.querySelector('.upper-canvas');
-                if (upperCanvas) {
-                    upperCanvas.addEventListener('touchmove', function(e) {
-                        e.preventDefault();
-                    }, { passive: false });
-                }
-                const container = document.getElementById('canvasContainer');
-                if (container) {
-                    container.addEventListener('touchmove', function(e) {
-                        if (e.target.closest('.upper-canvas') || e.target.closest('#designCanvas')) {
-                            e.preventDefault();
-                        }
-                    }, { passive: false });
-                }
-            }
-        })();
-    </script>
-
-    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
-    <script>
-        (function() {
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, { passive: false });
-
-            function setMobileHeight() {
-                const vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
-            }
-            window.addEventListener('resize', setMobileHeight);
-            window.addEventListener('orientationchange', setMobileHeight);
-            setMobileHeight();
-
-            const originalHeight = window.innerHeight;
-            window.addEventListener('resize', () => {
-                if (window.innerHeight < originalHeight * 0.75) {
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                }
-            });
-        })();
     </script>
 </body>
 </html>
