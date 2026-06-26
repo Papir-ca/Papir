@@ -142,7 +142,362 @@
         body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
         img { max-width: 100%; height: auto; }
+
+        /* ===== CARD REVEAL ANIMATIONS ===== */
+        .reveal-stage {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 15000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .reveal-stage.active { display: flex; }
+
+        /* --- ENVELOPE REVEAL --- */
+        .envelope-reveal {
+            position: relative;
+            width: 260px; height: 180px;
+            perspective: 800px;
+            display: none;
+        }
+        .envelope-reveal.active { display: block; }
+        .envelope-body {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 260px; height: 160px;
+            background: #e8d5b5;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .envelope-body::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 130px solid #d4c4a0;
+            border-right: 130px solid #d4c4a0;
+            border-bottom: 100px solid #c9b896;
+        }
+        .envelope-flap {
+            position: absolute;
+            top: 20px; left: 0;
+            width: 0; height: 0;
+            border-left: 130px solid transparent;
+            border-right: 130px solid transparent;
+            border-top: 100px solid #d4c4a0;
+            transform-origin: top center;
+            z-index: 4;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        .envelope-card {
+            position: absolute;
+            top: 40px; left: 50%;
+            transform: translateX(-50%);
+            width: 220px; height: 140px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+        .envelope-card::after {
+            content: '✉';
+            color: #BCAE83;
+        }
+        .envelope-reveal.animate .envelope-flap {
+            animation: envFlapOpen 0.6s ease forwards;
+        }
+        .envelope-reveal.animate .envelope-card {
+            animation: envCardSlide 1.2s ease 0.5s forwards;
+        }
+        .envelope-reveal.animate .envelope-body {
+            animation: envBodyFade 0.8s ease 1.8s forwards;
+        }
+        @keyframes envFlapOpen {
+            0% { transform: rotateX(0deg); }
+            100% { transform: rotateX(180deg); }
+        }
+        @keyframes envCardSlide {
+            0% { top: 40px; transform: translateX(-50%) scale(0.9); opacity: 0.8; }
+            50% { top: -60px; transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { top: -200px; transform: translateX(-50%) scale(1.8); opacity: 0; }
+        }
+        @keyframes envBodyFade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        /* --- MAILBOX REVEAL --- */
+        .mailbox-reveal {
+            position: relative;
+            width: 200px; height: 280px;
+            display: none;
+        }
+        .mailbox-reveal.active { display: block; }
+        .mailbox-body {
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 160px; height: 180px;
+            background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+            border-radius: 80px 80px 10px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 -5px 20px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+        .mailbox-body::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; left: 50%;
+            transform: translateX(-50%);
+            width: 180px; height: 20px;
+            background: #2c5a87;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        .mailbox-door {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, #5ba3e8 0%, #4a90d9 100%);
+            border-radius: 50px 50px 8px 8px;
+            border: 3px solid rgba(255,255,255,0.2);
+            transform-origin: top center;
+            z-index: 3;
+        }
+        .mailbox-door::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px; height: 20px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .mailbox-flag {
+            position: absolute;
+            top: 60px; right: 20px;
+            width: 6px; height: 60px;
+            background: #ff6b6b;
+            border-radius: 3px;
+            transform-origin: bottom center;
+            transform: rotate(-90deg);
+            z-index: 1;
+        }
+        .mailbox-flag::after {
+            content: '';
+            position: absolute;
+            top: -15px; left: -7px;
+            width: 20px; height: 16px;
+            background: #ff6b6b;
+            border-radius: 2px 2px 2px 0;
+        }
+        .mailbox-card {
+            position: absolute;
+            bottom: 30px; left: 50%;
+            transform: translateX(-50%) scale(0.6);
+            width: 140px; height: 90px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            opacity: 0;
+        }
+        .mailbox-card::after { content: '🎉'; }
+        .mailbox-reveal.animate .mailbox-flag {
+            animation: mbxFlagUp 0.5s ease forwards;
+        }
+        .mailbox-reveal.animate .mailbox-door {
+            animation: mbxDoorOpen 0.6s ease 0.4s forwards;
+        }
+        .mailbox-reveal.animate .mailbox-card {
+            animation: mbxCardPop 1s ease 0.8s forwards;
+        }
+        .mailbox-reveal.animate .mailbox-body {
+            animation: mbxBodyFade 0.6s ease 1.8s forwards;
+        }
+        @keyframes mbxFlagUp {
+            0% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes mbxDoorOpen {
+            0% { transform: translateX(-50%) rotateX(0deg); }
+            100% { transform: translateX(-50%) rotateX(-110deg); }
+        }
+        @keyframes mbxCardPop {
+            0% { bottom: 30px; transform: translateX(-50%) scale(0.6); opacity: 0; }
+            40% { bottom: 200px; transform: translateX(-50%) scale(1) rotate(-5deg); opacity: 1; }
+            60% { bottom: 180px; transform: translateX(-50%) scale(1) rotate(5deg); opacity: 1; }
+            100% { bottom: 300px; transform: translateX(-50%) scale(1.5); opacity: 0; }
+        }
+        @keyframes mbxBodyFade {
+            0% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+        }
+
+        /* --- GIFT BOX REVEAL --- */
+        .giftbox-reveal {
+            position: relative;
+            width: 220px; height: 260px;
+            display: none;
+        }
+        .giftbox-reveal.active { display: block; }
+        .giftbox-body {
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 180px; height: 140px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .giftbox-body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 24px; height: 100%;
+            background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+        }
+        .giftbox-body::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0;
+            transform: translateY(-50%);
+            width: 100%; height: 24px;
+            background: linear-gradient(90deg, #f1c40f 0%, #f39c12 100%);
+        }
+        .giftbox-lid {
+            position: absolute;
+            bottom: 130px; left: 50%;
+            transform: translateX(-50%);
+            width: 200px; height: 50px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 4;
+        }
+        .giftbox-lid::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 24px; height: 100%;
+            background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+        }
+        .giftbox-bow {
+            position: absolute;
+            bottom: 170px; left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 40px;
+            z-index: 5;
+        }
+        .giftbox-bow::before, .giftbox-bow::after {
+            content: '';
+            position: absolute;
+            width: 30px; height: 40px;
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            border-radius: 50% 50% 50% 50%;
+            top: 0;
+        }
+        .giftbox-bow::before { left: 0; transform: rotate(-30deg); }
+        .giftbox-bow::after { right: 0; transform: rotate(30deg); }
+        .giftbox-bow-knot {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 14px; height: 14px;
+            background: #f39c12;
+            border-radius: 50%;
+            z-index: 6;
+        }
+        .giftbox-card {
+            position: absolute;
+            bottom: 40px; left: 50%;
+            transform: translateX(-50%) scale(0.5);
+            width: 160px; height: 100px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            opacity: 0;
+        }
+        .giftbox-card::after { content: '🎁'; }
+        .giftbox-reveal.animate .giftbox-bow {
+            animation: giftBowFloat 0.8s ease forwards;
+        }
+        .giftbox-reveal.animate .giftbox-lid {
+            animation: giftLidLift 0.7s ease 0.5s forwards;
+        }
+        .giftbox-reveal.animate .giftbox-card {
+            animation: giftCardRise 1s ease 0.9s forwards;
+        }
+        .giftbox-reveal.animate .giftbox-body {
+            animation: giftBodyFade 0.6s ease 1.8s forwards;
+        }
+        @keyframes giftBowFloat {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-120px) rotate(20deg); opacity: 0; }
+        }
+        @keyframes giftLidLift {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-80px) rotate(-15deg); opacity: 0; }
+        }
+        @keyframes giftCardRise {
+            0% { bottom: 40px; transform: translateX(-50%) scale(0.5); opacity: 0; }
+            50% { bottom: 160px; transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { bottom: 280px; transform: translateX(-50%) scale(1.6); opacity: 0; }
+        }
+        @keyframes giftBodyFade {
+            0% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+        }
+
+        .reveal-label {
+            margin-top: 40px;
+            font-size: 1.2rem;
+            color: #BCAE83;
+            opacity: 0;
+        }
+        .reveal-stage.active .reveal-label {
+            animation: revealLabelFade 0.5s ease 0.3s forwards;
+        }
+        @keyframes revealLabelFade {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .envelope-reveal { transform: scale(0.85); }
+            .mailbox-reveal { transform: scale(0.85); }
+            .giftbox-reveal { transform: scale(0.85); }
+        }
+        @media (max-width: 480px) {
+            .envelope-reveal { transform: scale(0.7); }
+            .mailbox-reveal { transform: scale(0.7); }
+            .giftbox-reveal { transform: scale(0.7); }
+        }
     </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -350,18 +705,90 @@
             }
         }
 
+        function determineRevealType(card) {
+            if (!card) return 'envelope';
+            // Check template config for explicit reveal type
+            if (card.template_config) {
+                try {
+                    const tc = JSON.parse(card.template_config);
+                    if (tc.config && tc.config.revealType) return tc.config.revealType;
+                    if (tc.name) {
+                        const name = tc.name.toLowerCase();
+                        if (name.includes('birthday') || name.includes('celebration') || name.includes('party') || name.includes('congrats')) return 'mailbox';
+                        if (name.includes('christmas') || name.includes('holiday') || name.includes('gift') || name.includes('present') || name.includes('xmas') || name.includes('new year')) return 'giftbox';
+                    }
+                    if (tc.category) {
+                        const cat = tc.category.toLowerCase();
+                        if (cat.includes('birthday') || cat.includes('celebration')) return 'mailbox';
+                        if (cat.includes('holiday') || cat.includes('gift')) return 'giftbox';
+                    }
+                } catch (e) {}
+            }
+            // Fallback to message_type
+            const type = (card.message_type || '').toLowerCase();
+            if (type === 'video' || type === 'audio') return 'mailbox';
+            return 'envelope';
+        }
+
+        function playRevealAnimation(revealType, onComplete) {
+            const stage = document.getElementById('revealStage');
+            const envelope = document.getElementById('envelopeReveal');
+            const mailbox = document.getElementById('mailboxReveal');
+            const giftbox = document.getElementById('giftboxReveal');
+            const label = document.getElementById('revealLabel');
+
+            // Reset all
+            envelope.classList.remove('active', 'animate');
+            mailbox.classList.remove('active', 'animate');
+            giftbox.classList.remove('active', 'animate');
+
+            // Activate chosen reveal
+            stage.classList.add('active');
+            if (revealType === 'mailbox') {
+                mailbox.classList.add('active');
+                label.textContent = "You've got mail!";
+            } else if (revealType === 'giftbox') {
+                giftbox.classList.add('active');
+                label.textContent = 'A special gift for you!';
+            } else {
+                envelope.classList.add('active');
+                label.textContent = 'Opening your card...';
+            }
+
+            // Force reflow
+            void stage.offsetWidth;
+
+            // Start animation
+            if (revealType === 'mailbox') mailbox.classList.add('animate');
+            else if (revealType === 'giftbox') giftbox.classList.add('animate');
+            else envelope.classList.add('animate');
+
+            // After animation completes (~2.5s), hide reveal and call callback
+            setTimeout(() => {
+                stage.classList.remove('active');
+                envelope.classList.remove('active', 'animate');
+                mailbox.classList.remove('active', 'animate');
+                giftbox.classList.remove('active', 'animate');
+                if (onComplete) onComplete();
+            }, 2600);
+        }
+
         document.getElementById('confirmViewingBtn').addEventListener('click', async () => {
             document.getElementById('confirmationModal').classList.remove('active');
             if (pendingCardData) {
+                const revealType = determineRevealType(pendingCardData);
+                // Load card in background while reveal plays
                 await loadCard(currentCardId);
-                document.getElementById('cardDisplay').classList.add('active');
-                document.getElementById('scannerContainer').style.opacity = '0';
-                document.getElementById('manualInput').style.opacity = '0';
-                document.getElementById('emptyState').style.display = 'none';
-                setTimeout(() => {
-                    document.getElementById('scannerContainer').style.display = 'none';
-                    document.getElementById('manualInput').style.display = 'none';
-                }, 300);
+                playRevealAnimation(revealType, () => {
+                    document.getElementById('cardDisplay').classList.add('active');
+                    document.getElementById('scannerContainer').style.opacity = '0';
+                    document.getElementById('manualInput').style.opacity = '0';
+                    document.getElementById('emptyState').style.display = 'none';
+                    setTimeout(() => {
+                        document.getElementById('scannerContainer').style.display = 'none';
+                        document.getElementById('manualInput').style.display = 'none';
+                    }, 300);
+                });
             }
         });
 
@@ -441,5 +868,27 @@
             fetchCardAndConfirm(urlCardId);
         }
     </script>
+
+    <!-- Card Reveal Stage -->
+    <div class="reveal-stage" id="revealStage">
+        <div class="envelope-reveal" id="envelopeReveal">
+            <div class="envelope-card"></div>
+            <div class="envelope-flap"></div>
+            <div class="envelope-body"></div>
+        </div>
+        <div class="mailbox-reveal" id="mailboxReveal">
+            <div class="mailbox-flag"></div>
+            <div class="mailbox-card"></div>
+            <div class="mailbox-door"></div>
+            <div class="mailbox-body"></div>
+        </div>
+        <div class="giftbox-reveal" id="giftboxReveal">
+            <div class="giftbox-bow"><div class="giftbox-bow-knot"></div></div>
+            <div class="giftbox-lid"></div>
+            <div class="giftbox-card"></div>
+            <div class="giftbox-body"></div>
+        </div>
+        <div class="reveal-label" id="revealLabel">Opening your card...</div>
+    </div>
 </body>
 </html>
