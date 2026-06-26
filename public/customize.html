@@ -486,6 +486,18 @@
                         </div>
                     </div>
 
+                    <div class="property-section" id="revealSection">
+                        <h4><i class="fas fa-magic"></i> Card Reveal</h4>
+                        <div class="section-content">
+                            <div class="btn-group" id="revealTypeGroup">
+                                <button class="btn-icon reveal-btn active" data-reveal="envelope" title="Classic envelope opening"><i class="fas fa-envelope"></i> Envelope</button>
+                                <button class="btn-icon reveal-btn" data-reveal="mailbox" title="Mailbox with bouncing card"><i class="fas fa-mailbox"></i> Mailbox</button>
+                                <button class="btn-icon reveal-btn" data-reveal="giftbox" title="Gift box unwrap"><i class="fas fa-gift"></i> Gift Box</button>
+                            </div>
+                            <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px; line-height: 1.4;"><i class="fas fa-info-circle"></i> How the card appears when someone opens it.</p>
+                        </div>
+                    </div>
+
                     <div id="textControls" style="display: none;">
                         <div class="property-section">
                             <h4><i class="fas fa-edit"></i> Text Content</h4>
@@ -734,6 +746,7 @@
             canvas.clear();
             lastMediaObject = null;
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
+            setRevealTypeUI(config.revealType || 'envelope');
 
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
@@ -783,6 +796,7 @@
             canvas.clear();
             lastMediaObject = null;
             canvas.backgroundColor = '#F5F5DC';
+            setRevealTypeUI('envelope');
             await addTextElement('Happy Birthday!', 300, 120, {
                 fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
             });
@@ -1561,6 +1575,31 @@
             document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
         }
 
+        function setupRevealControls() {
+            document.querySelectorAll('#revealTypeGroup .reveal-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#revealTypeGroup .reveal-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    if (!templateConfig) templateConfig = {};
+                    if (!templateConfig.config) templateConfig.config = {};
+                    templateConfig.config.revealType = this.dataset.reveal;
+                });
+            });
+        }
+
+        function getRevealType() {
+            if (templateConfig && templateConfig.config && templateConfig.config.revealType) {
+                return templateConfig.config.revealType;
+            }
+            return 'envelope';
+        }
+
+        function setRevealTypeUI(type) {
+            document.querySelectorAll('#revealTypeGroup .reveal-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.reveal === type);
+            });
+        }
+
         function bringToFront() {
             const obj = canvas.getActiveObject() || selectedObject;
             if (!obj) return;
@@ -1918,6 +1957,7 @@
                     templateConfig = data.templateConfig;
                     document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                     document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
+                    setRevealTypeUI((templateConfig.config && templateConfig.config.revealType) || 'envelope');
                 }
                 if (data.hasMedia) {
                     showNotification('Design loaded! Video/audio objects were saved but may need to be re-uploaded.', 'warning');
@@ -2888,6 +2928,7 @@
             setupTextControls();
             setupTransformControls();
             setupArrangeControls();
+            setupRevealControls();
             document.getElementById('layerEditSave').addEventListener('click', saveLayerEdit);
             document.getElementById('layerEditCancel').addEventListener('click', closeLayerEditModal);
             document.getElementById('layerEditInput').addEventListener('keydown', (e) => {
