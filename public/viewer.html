@@ -124,10 +124,10 @@
         }
         .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #06D6A0; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
+        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: transparent; box-shadow: 0 15px 50px rgba(0,0,0,0.6); min-height: 200px; }
         #bgVideo { width: 100%; display: none; }
         #cardOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 2; }
-        #cardImage { width: 100%; display: block; position: relative; z-index: 1; }
+        #cardImage { width: 100%; display: block; position: relative; z-index: 1; object-fit: contain; min-height: 200px; background: transparent; }
         #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: #06D6A0; font-size: 0.9rem; margin-bottom: 10px; }
         #cardAudio { width: 100%; }
@@ -500,6 +500,7 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -542,7 +543,7 @@
                 <div id="cardMediaContainer">
                     <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
                     <img id="cardOverlay" src="" alt="">
-                    <img id="cardImage" src="" alt="Card">
+                    <img id="cardImage" class="card-image" src="" alt="Card">
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
                 
@@ -599,14 +600,21 @@
                 const staticImg = document.getElementById('cardImage');
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
-                
+                const cardMediaContainer = document.getElementById('cardMediaContainer');
+
                 // Stop any previously playing media before loading new card
                 video.pause();
                 audio.pause();
-                
+
+                // Reset image to prevent flash of old content
+                staticImg.src = '';
+                staticImg.style.display = 'none';
+                overlay.src = '';
+                overlay.style.display = 'none';
+
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
-                
+
                 if (videoSrc) {
                     video.style.display = 'block';
                     video.src = videoSrc;
@@ -619,14 +627,18 @@
                         overlay.style.display = 'none';
                     }
                     staticImg.style.display = 'none';
+                    if (cardMediaContainer) cardMediaContainer.style.background = '#000';
                 } else {
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
-                    if (card.media_url) staticImg.src = card.media_url;
+                    if (card.media_url) {
+                        staticImg.src = card.media_url;
+                        if (cardMediaContainer) cardMediaContainer.style.background = 'transparent';
+                    }
                     video.src = '';
                 }
-                
+
                 if (card.audio_url) {
                     audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -636,18 +648,18 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
-                
+
                 // NEW: Show collapsible message for ALL card types
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
                 const toggleIcon = document.getElementById('toggleMessageIcon');
                 const toggleSpan = toggleBtn.querySelector('span');
-                
+
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
-                    
+
                     // Default: collapsed for video/audio, expanded for text/image
                     if (card.video_url || card.audio_url) {
                         msgEl.style.display = 'none';
@@ -659,7 +671,7 @@
                         toggleIcon.className = 'fas fa-chevron-up';
                     }
                 }
-                
+
                 // Apply template texture if available
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
@@ -685,13 +697,12 @@
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
-                
+
             } catch (error) {
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
             }
         }
-
         async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -780,7 +791,14 @@
                 // Load card in background while reveal plays
                 await loadCard(currentCardId);
                 playRevealAnimation(revealType, () => {
-                    document.getElementById('cardDisplay').classList.add('active');
+                    const cardDisplay = document.getElementById('cardDisplay');
+                    cardDisplay.classList.add('active');
+                    // Force reflow so image renders properly after being hidden
+                    void cardDisplay.offsetWidth;
+                    const staticImg = document.getElementById('cardImage');
+                    if (staticImg && staticImg.src && staticImg.src !== window.location.href) {
+                        void staticImg.offsetWidth;
+                    }
                     document.getElementById('scannerContainer').style.opacity = '0';
                     document.getElementById('manualInput').style.opacity = '0';
                     document.getElementById('emptyState').style.display = 'none';
@@ -811,12 +829,17 @@
             const audio = document.getElementById('cardAudio');
             audio.pause();
             audio.src = '';
+            const staticImg = document.getElementById('cardImage');
+            if (staticImg) { staticImg.src = ''; staticImg.style.display = 'none'; }
+            const overlay = document.getElementById('cardOverlay');
+            if (overlay) { overlay.src = ''; overlay.style.display = 'none'; }
             const cardMediaContainer = document.getElementById('cardMediaContainer');
             if (cardMediaContainer) {
                 cardMediaContainer.style.backgroundImage = '';
                 cardMediaContainer.style.backgroundRepeat = '';
                 cardMediaContainer.style.backgroundSize = '';
                 cardMediaContainer.style.backgroundColor = '';
+                cardMediaContainer.style.background = 'transparent';
             }
         });
 
