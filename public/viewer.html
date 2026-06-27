@@ -124,10 +124,10 @@
         }
         .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #06D6A0; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: transparent; box-shadow: 0 15px 50px rgba(0,0,0,0.6); min-height: 200px; }
+        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
         #bgVideo { width: 100%; display: none; }
         #cardOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 2; }
-        #cardImage { width: 100%; display: block; position: relative; z-index: 1; object-fit: contain; min-height: 200px; background: transparent; }
+        #cardImage { width: 100%; display: block; position: relative; z-index: 1; }
         #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: #06D6A0; font-size: 0.9rem; margin-bottom: 10px; }
         #cardAudio { width: 100%; }
@@ -158,7 +158,6 @@
         }
         .reveal-stage.active { display: flex; }
 
-        /* --- ENVELOPE REVEAL --- */
         .envelope-reveal {
             position: relative;
             width: 260px; height: 180px;
@@ -209,34 +208,18 @@
             justify-content: center;
             font-size: 48px;
         }
-        .envelope-card::after {
-            content: '✉';
-            color: #BCAE83;
-        }
-        .envelope-reveal.animate .envelope-flap {
-            animation: envFlapOpen 0.6s ease forwards;
-        }
-        .envelope-reveal.animate .envelope-card {
-            animation: envCardSlide 1.2s ease 0.5s forwards;
-        }
-        .envelope-reveal.animate .envelope-body {
-            animation: envBodyFade 0.8s ease 1.8s forwards;
-        }
-        @keyframes envFlapOpen {
-            0% { transform: rotateX(0deg); }
-            100% { transform: rotateX(180deg); }
-        }
+        .envelope-card::after { content: '✉'; color: #BCAE83; }
+        .envelope-reveal.animate .envelope-flap { animation: envFlapOpen 0.6s ease forwards; }
+        .envelope-reveal.animate .envelope-card { animation: envCardSlide 1.2s ease 0.5s forwards; }
+        .envelope-reveal.animate .envelope-body { animation: envBodyFade 0.8s ease 1.8s forwards; }
+        @keyframes envFlapOpen { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(180deg); } }
         @keyframes envCardSlide {
             0% { top: 40px; transform: translateX(-50%) scale(0.9); opacity: 0.8; }
             50% { top: -60px; transform: translateX(-50%) scale(1); opacity: 1; }
             100% { top: -200px; transform: translateX(-50%) scale(1.8); opacity: 0; }
         }
-        @keyframes envBodyFade {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.8); }
-        }
+        @keyframes envBodyFade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.8); } }
 
-        /* --- MAILBOX REVEAL --- */
         .mailbox-reveal {
             position: relative;
             width: 200px; height: 280px;
@@ -318,38 +301,20 @@
             opacity: 0;
         }
         .mailbox-card::after { content: '🎉'; }
-        .mailbox-reveal.animate .mailbox-flag {
-            animation: mbxFlagUp 0.5s ease forwards;
-        }
-        .mailbox-reveal.animate .mailbox-door {
-            animation: mbxDoorOpen 0.6s ease 0.4s forwards;
-        }
-        .mailbox-reveal.animate .mailbox-card {
-            animation: mbxCardPop 1s ease 0.8s forwards;
-        }
-        .mailbox-reveal.animate .mailbox-body {
-            animation: mbxBodyFade 0.6s ease 1.8s forwards;
-        }
-        @keyframes mbxFlagUp {
-            0% { transform: rotate(-90deg); }
-            100% { transform: rotate(0deg); }
-        }
-        @keyframes mbxDoorOpen {
-            0% { transform: translateX(-50%) rotateX(0deg); }
-            100% { transform: translateX(-50%) rotateX(-110deg); }
-        }
+        .mailbox-reveal.animate .mailbox-flag { animation: mbxFlagUp 0.5s ease forwards; }
+        .mailbox-reveal.animate .mailbox-door { animation: mbxDoorOpen 0.6s ease 0.4s forwards; }
+        .mailbox-reveal.animate .mailbox-card { animation: mbxCardPop 1s ease 0.8s forwards; }
+        .mailbox-reveal.animate .mailbox-body { animation: mbxBodyFade 0.6s ease 1.8s forwards; }
+        @keyframes mbxFlagUp { 0% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+        @keyframes mbxDoorOpen { 0% { transform: translateX(-50%) rotateX(0deg); } 100% { transform: translateX(-50%) rotateX(-110deg); } }
         @keyframes mbxCardPop {
             0% { bottom: 30px; transform: translateX(-50%) scale(0.6); opacity: 0; }
             40% { bottom: 200px; transform: translateX(-50%) scale(1) rotate(-5deg); opacity: 1; }
             60% { bottom: 180px; transform: translateX(-50%) scale(1) rotate(5deg); opacity: 1; }
             100% { bottom: 300px; transform: translateX(-50%) scale(1.5); opacity: 0; }
         }
-        @keyframes mbxBodyFade {
-            0% { opacity: 1; transform: translateX(-50%) scale(1); }
-            100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
-        }
+        @keyframes mbxBodyFade { 0% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(0.8); } }
 
-        /* --- GIFT BOX REVEAL --- */
         .giftbox-reveal {
             position: relative;
             width: 220px; height: 260px;
@@ -442,35 +407,18 @@
             opacity: 0;
         }
         .giftbox-card::after { content: '🎁'; }
-        .giftbox-reveal.animate .giftbox-bow {
-            animation: giftBowFloat 0.8s ease forwards;
-        }
-        .giftbox-reveal.animate .giftbox-lid {
-            animation: giftLidLift 0.7s ease 0.5s forwards;
-        }
-        .giftbox-reveal.animate .giftbox-card {
-            animation: giftCardRise 1s ease 0.9s forwards;
-        }
-        .giftbox-reveal.animate .giftbox-body {
-            animation: giftBodyFade 0.6s ease 1.8s forwards;
-        }
-        @keyframes giftBowFloat {
-            0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateX(-50%) translateY(-120px) rotate(20deg); opacity: 0; }
-        }
-        @keyframes giftLidLift {
-            0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-            100% { transform: translateX(-50%) translateY(-80px) rotate(-15deg); opacity: 0; }
-        }
+        .giftbox-reveal.animate .giftbox-bow { animation: giftBowFloat 0.8s ease forwards; }
+        .giftbox-reveal.animate .giftbox-lid { animation: giftLidLift 0.7s ease 0.5s forwards; }
+        .giftbox-reveal.animate .giftbox-card { animation: giftCardRise 1s ease 0.9s forwards; }
+        .giftbox-reveal.animate .giftbox-body { animation: giftBodyFade 0.6s ease 1.8s forwards; }
+        @keyframes giftBowFloat { 0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateX(-50%) translateY(-120px) rotate(20deg); opacity: 0; } }
+        @keyframes giftLidLift { 0% { transform: translateX(-50%) translateY(0) rotate(0deg); } 100% { transform: translateX(-50%) translateY(-80px) rotate(-15deg); opacity: 0; } }
         @keyframes giftCardRise {
             0% { bottom: 40px; transform: translateX(-50%) scale(0.5); opacity: 0; }
             50% { bottom: 160px; transform: translateX(-50%) scale(1); opacity: 1; }
             100% { bottom: 280px; transform: translateX(-50%) scale(1.6); opacity: 0; }
         }
-        @keyframes giftBodyFade {
-            0% { opacity: 1; transform: translateX(-50%) scale(1); }
-            100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
-        }
+        @keyframes giftBodyFade { 0% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(0.8); } }
 
         .reveal-label {
             margin-top: 40px;
@@ -478,13 +426,8 @@
             color: #BCAE83;
             opacity: 0;
         }
-        .reveal-stage.active .reveal-label {
-            animation: revealLabelFade 0.5s ease 0.3s forwards;
-        }
-        @keyframes revealLabelFade {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        .reveal-stage.active .reveal-label { animation: revealLabelFade 0.5s ease 0.3s forwards; }
+        @keyframes revealLabelFade { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 768px) {
             .envelope-reveal { transform: scale(0.85); }
@@ -497,7 +440,6 @@
             .giftbox-reveal { transform: scale(0.7); }
         }
     </style>
-<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -543,7 +485,7 @@
                 <div id="cardMediaContainer">
                     <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
                     <img id="cardOverlay" src="" alt="">
-                    <img id="cardImage" class="card-image" src="" alt="Card">
+                    <img id="cardImage" src="" alt="Card">
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
                 
@@ -601,20 +543,14 @@
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 const cardMediaContainer = document.getElementById('cardMediaContainer');
-
+                
                 // Stop any previously playing media before loading new card
                 video.pause();
                 audio.pause();
-
-                // Reset image to prevent flash of old content
-                staticImg.src = '';
-                staticImg.style.display = 'none';
-                overlay.src = '';
-                overlay.style.display = 'none';
-
+                
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
-
+                
                 if (videoSrc) {
                     video.style.display = 'block';
                     video.src = videoSrc;
@@ -627,18 +563,14 @@
                         overlay.style.display = 'none';
                     }
                     staticImg.style.display = 'none';
-                    if (cardMediaContainer) cardMediaContainer.style.background = '#000';
                 } else {
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
-                    if (card.media_url) {
-                        staticImg.src = card.media_url;
-                        if (cardMediaContainer) cardMediaContainer.style.background = 'transparent';
-                    }
+                    if (card.media_url) staticImg.src = card.media_url;
                     video.src = '';
                 }
-
+                
                 if (card.audio_url) {
                     audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -648,18 +580,18 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
-
+                
                 // NEW: Show collapsible message for ALL card types
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
                 const toggleIcon = document.getElementById('toggleMessageIcon');
                 const toggleSpan = toggleBtn.querySelector('span');
-
+                
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
-
+                    
                     // Default: collapsed for video/audio, expanded for text/image
                     if (card.video_url || card.audio_url) {
                         msgEl.style.display = 'none';
@@ -671,7 +603,7 @@
                         toggleIcon.className = 'fas fa-chevron-up';
                     }
                 }
-
+                
                 // Apply template texture if available
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
@@ -697,12 +629,13 @@
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
-
+                
             } catch (error) {
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
             }
         }
+
         async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -718,7 +651,6 @@
 
         function determineRevealType(card) {
             if (!card) return 'envelope';
-            // Check template config for explicit reveal type
             if (card.template_config) {
                 try {
                     const tc = JSON.parse(card.template_config);
@@ -735,7 +667,6 @@
                     }
                 } catch (e) {}
             }
-            // Fallback to message_type
             const type = (card.message_type || '').toLowerCase();
             if (type === 'video' || type === 'audio') return 'mailbox';
             return 'envelope';
@@ -748,12 +679,10 @@
             const giftbox = document.getElementById('giftboxReveal');
             const label = document.getElementById('revealLabel');
 
-            // Reset all
             envelope.classList.remove('active', 'animate');
             mailbox.classList.remove('active', 'animate');
             giftbox.classList.remove('active', 'animate');
 
-            // Activate chosen reveal
             stage.classList.add('active');
             if (revealType === 'mailbox') {
                 mailbox.classList.add('active');
@@ -766,15 +695,12 @@
                 label.textContent = 'Opening your card...';
             }
 
-            // Force reflow
             void stage.offsetWidth;
 
-            // Start animation
             if (revealType === 'mailbox') mailbox.classList.add('animate');
             else if (revealType === 'giftbox') giftbox.classList.add('animate');
             else envelope.classList.add('animate');
 
-            // After animation completes (~2.5s), hide reveal and call callback
             setTimeout(() => {
                 stage.classList.remove('active');
                 envelope.classList.remove('active', 'animate');
@@ -788,17 +714,9 @@
             document.getElementById('confirmationModal').classList.remove('active');
             if (pendingCardData) {
                 const revealType = determineRevealType(pendingCardData);
-                // Load card in background while reveal plays
                 await loadCard(currentCardId);
                 playRevealAnimation(revealType, () => {
-                    const cardDisplay = document.getElementById('cardDisplay');
-                    cardDisplay.classList.add('active');
-                    // Force reflow so image renders properly after being hidden
-                    void cardDisplay.offsetWidth;
-                    const staticImg = document.getElementById('cardImage');
-                    if (staticImg && staticImg.src && staticImg.src !== window.location.href) {
-                        void staticImg.offsetWidth;
-                    }
+                    document.getElementById('cardDisplay').classList.add('active');
                     document.getElementById('scannerContainer').style.opacity = '0';
                     document.getElementById('manualInput').style.opacity = '0';
                     document.getElementById('emptyState').style.display = 'none';
@@ -829,18 +747,21 @@
             const audio = document.getElementById('cardAudio');
             audio.pause();
             audio.src = '';
-            const staticImg = document.getElementById('cardImage');
-            if (staticImg) { staticImg.src = ''; staticImg.style.display = 'none'; }
-            const overlay = document.getElementById('cardOverlay');
-            if (overlay) { overlay.src = ''; overlay.style.display = 'none'; }
             const cardMediaContainer = document.getElementById('cardMediaContainer');
             if (cardMediaContainer) {
                 cardMediaContainer.style.backgroundImage = '';
                 cardMediaContainer.style.backgroundRepeat = '';
                 cardMediaContainer.style.backgroundSize = '';
                 cardMediaContainer.style.backgroundColor = '';
-                cardMediaContainer.style.background = 'transparent';
             }
+            const revealStage = document.getElementById('revealStage');
+            if (revealStage) revealStage.classList.remove('active');
+            const envelope = document.getElementById('envelopeReveal');
+            const mailbox = document.getElementById('mailboxReveal');
+            const giftbox = document.getElementById('giftboxReveal');
+            if (envelope) envelope.classList.remove('active', 'animate');
+            if (mailbox) mailbox.classList.remove('active', 'animate');
+            if (giftbox) giftbox.classList.remove('active', 'animate');
         });
 
         document.getElementById('loadCardBtn').addEventListener('click', () => {
