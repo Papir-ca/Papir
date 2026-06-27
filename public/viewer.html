@@ -567,7 +567,21 @@
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
-                    if (card.media_url) staticImg.src = card.media_url;
+                    console.log('Card media_url:', card.media_url);
+                    if (card.media_url) {
+                        staticImg.src = card.media_url;
+                        staticImg.onerror = function() {
+                            console.error('Image failed to load:', card.media_url);
+                            this.style.display = 'none';
+                        };
+                        staticImg.onload = function() {
+                            console.log('Image loaded successfully');
+                            this.style.display = 'block';
+                        };
+                    } else {
+                        console.warn('No media_url found for card');
+                        staticImg.style.display = 'none';
+                    }
                     video.src = '';
                 }
                 
@@ -715,15 +729,18 @@
             if (pendingCardData) {
                 const revealType = determineRevealType(pendingCardData);
                 await loadCard(currentCardId);
+                // Show card display immediately so image starts loading, but hide behind reveal
+                document.getElementById('cardDisplay').classList.add('active');
+                document.getElementById('scannerContainer').style.opacity = '0';
+                document.getElementById('manualInput').style.opacity = '0';
+                document.getElementById('emptyState').style.display = 'none';
+                setTimeout(() => {
+                    document.getElementById('scannerContainer').style.display = 'none';
+                    document.getElementById('manualInput').style.display = 'none';
+                }, 300);
                 playRevealAnimation(revealType, () => {
-                    document.getElementById('cardDisplay').classList.add('active');
-                    document.getElementById('scannerContainer').style.opacity = '0';
-                    document.getElementById('manualInput').style.opacity = '0';
-                    document.getElementById('emptyState').style.display = 'none';
-                    setTimeout(() => {
-                        document.getElementById('scannerContainer').style.display = 'none';
-                        document.getElementById('manualInput').style.display = 'none';
-                    }, 300);
+                    // Animation complete - reveal is already hidden, card is visible
+                    console.log('Reveal animation complete');
                 });
             }
         });
