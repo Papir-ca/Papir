@@ -1959,7 +1959,7 @@
         }
 
         // ============================================
-        // UPDATED proceedToCheckout with FormData upload
+        // UPDATED proceedToCheckout with FormData upload & improved error handling
         // ============================================
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
@@ -1971,6 +1971,34 @@
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
                 const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
 
+                // Helper to upload a file (Blob or File) and return the URL
+                async function uploadFile(file, fileName, cardId) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('fileName', fileName);
+                    formData.append('cardId', cardId || 'TEMP-' + Date.now());
+                    const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) {
+                        let errorMsg = `Upload failed (${response.status})`;
+                        try {
+                            const errData = await response.json();
+                            if (errData.error) errorMsg = errData.error;
+                            else if (errData.message) errorMsg = errData.message;
+                        } catch (e) {
+                            // if response is not JSON, use status text
+                            errorMsg = response.statusText || errorMsg;
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    const data = await response.json();
+                    if (!data.success) throw new Error(data.error || 'Upload unsuccessful');
+                    if (!data.url) throw new Error('No URL returned from upload');
+                    return data.url;
+                }
+
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
@@ -1979,19 +2007,8 @@
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
                     const file = video.videoFile;
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('fileName', file.name);
-                    formData.append('cardId', 'TEMP-' + Date.now());
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!uploadRes.ok) throw new Error(`Video upload failed (${uploadRes.status})`);
-                    const uploadData = await uploadRes.json();
-                    if (!uploadData.success) throw new Error(uploadData.error || 'Video upload failed');
-                    videoUrl = uploadData.url;
-                    if (!videoUrl) throw new Error('Video upload returned empty URL');
+                    const cardId = 'TEMP-' + Date.now();
+                    videoUrl = await uploadFile(file, file.name, cardId);
                 }
 
                 let audioUrl = '';
@@ -2000,19 +2017,8 @@
                     showNotification('Uploading audio...', 'info');
                     const audio = audioObjects[0];
                     const file = audio.audioFile;
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('fileName', file.name);
-                    formData.append('cardId', 'TEMP-' + Date.now());
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!uploadRes.ok) throw new Error(`Audio upload failed (${uploadRes.status})`);
-                    const uploadData = await uploadRes.json();
-                    if (!uploadData.success) throw new Error(uploadData.error || 'Audio upload failed');
-                    audioUrl = uploadData.url;
-                    if (!audioUrl) throw new Error('Audio upload returned empty URL');
+                    const cardId = 'TEMP-' + Date.now();
+                    audioUrl = await uploadFile(file, file.name, cardId);
                 }
 
                 let overlayUrl = '';
@@ -2033,55 +2039,21 @@
                     videoObjects.forEach(v => canvas.sendToBack(v));
                     canvas.renderAll();
 
-                    const overlayForm = new FormData();
-                    overlayForm.append('file', overlayBlob, 'overlay.png');
-                    overlayForm.append('fileName', 'overlay.png');
-                    overlayForm.append('cardId', 'TEMP-' + Date.now());
-                    const overlayRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: overlayForm
-                    });
-                    if (!overlayRes.ok) throw new Error(`Overlay upload failed (${overlayRes.status})`);
-                    const overlayData = await overlayRes.json();
-                    if (!overlayData.success) throw new Error(overlayData.error || 'Overlay upload failed');
-                    overlayUrl = overlayData.url;
-                    if (!overlayUrl) throw new Error('Overlay upload returned empty URL');
+                    const cardId = 'TEMP-' + Date.now();
+                    overlayUrl = await uploadFile(overlayBlob, 'overlay.png', cardId);
 
                     // Upload thumbnail
                     await new Promise(r => setTimeout(r, 100));
                     const thumbDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbBlob = dataURLToBlob(thumbDataURL);
-                    const thumbForm = new FormData();
-                    thumbForm.append('file', thumbBlob, 'thumbnail.png');
-                    thumbForm.append('fileName', 'thumbnail.png');
-                    thumbForm.append('cardId', 'TEMP-' + Date.now());
-                    const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: thumbForm
-                    });
-                    if (!thumbRes.ok) throw new Error(`Thumbnail upload failed (${thumbRes.status})`);
-                    const thumbData = await thumbRes.json();
-                    if (!thumbData.success) throw new Error(thumbData.error || 'Thumbnail upload failed');
-                    thumbnailUrl = thumbData.url;
-                    if (!thumbnailUrl) throw new Error('Thumbnail upload returned empty URL');
+                    thumbnailUrl = await uploadFile(thumbBlob, 'thumbnail.png', cardId);
                 } else {
                     // No video – upload the design image
                     await new Promise(r => setTimeout(r, 100));
                     const canvasDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const canvasBlob = dataURLToBlob(canvasDataURL);
-                    const imageForm = new FormData();
-                    imageForm.append('file', canvasBlob, 'card-design.png');
-                    imageForm.append('fileName', 'card-design.png');
-                    imageForm.append('cardId', 'TEMP-' + Date.now());
-                    const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: imageForm
-                    });
-                    if (!uploadRes.ok) throw new Error(`Design image upload failed (${uploadRes.status})`);
-                    const uploadData = await uploadRes.json();
-                    if (!uploadData.success) throw new Error(uploadData.error || 'Design image upload failed');
-                    thumbnailUrl = uploadData.url;
-                    if (!thumbnailUrl) throw new Error('Design image upload returned empty URL');
+                    const cardId = 'TEMP-' + Date.now();
+                    thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
                 }
 
                 // Build card record
@@ -2146,7 +2118,8 @@
                 }
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert('Failed to save: ' + error.message);
+                // Show the exact error message from the server
+                alert('Upload failed: ' + error.message);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
