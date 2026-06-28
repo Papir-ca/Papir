@@ -439,6 +439,28 @@
             .mailbox-reveal { transform: scale(0.7); }
             .giftbox-reveal { transform: scale(0.7); }
         }
+
+        /* Media fallback */
+        .media-fallback {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #BCAE83;
+            text-align: center;
+            gap: 15px;
+        }
+        .media-fallback i { font-size: 3rem; opacity: 0.4; }
+        .media-fallback span { font-size: 1rem; opacity: 0.7; }
+        .media-fallback code {
+            background: rgba(0,0,0,0.3);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+        }
     </style>
 <base target="_blank">
 <base target="_blank">
@@ -486,6 +508,11 @@
                     <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
                     <img id="cardOverlay" src="" alt="">
                     <img id="cardImage" src="" alt="Card">
+                    <div id="mediaFallback" class="media-fallback" style="display: none;">
+                        <i class="fas fa-image"></i>
+                        <span>Card image not available</span>
+                        <code id="fallbackDebug">no media_url</code>
+                    </div>
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
                 
@@ -536,21 +563,36 @@
                 const result = await res.json();
                 if (!result.success || !result.card) throw new Error(result.error || 'Card not found');
                 const card = result.card;
-                
+
+                // DEBUG: log full card data
+                console.log('=== CARD DATA ===');
+                console.log('card_id:', card.card_id);
+                console.log('message_type:', card.message_type);
+                console.log('media_url:', card.media_url);
+                console.log('video_url:', card.video_url);
+                console.log('overlay_url:', card.overlay_url);
+                console.log('audio_url:', card.audio_url);
+                console.log('=================');
+
                 const video = document.getElementById('bgVideo');
                 const overlay = document.getElementById('cardOverlay');
                 const staticImg = document.getElementById('cardImage');
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 const cardMediaContainer = document.getElementById('cardMediaContainer');
-                
+                const mediaFallback = document.getElementById('mediaFallback');
+                const fallbackDebug = document.getElementById('fallbackDebug');
+
+                // Reset fallback
+                if (mediaFallback) mediaFallback.style.display = 'none';
+
                 // Stop any previously playing media before loading new card
                 video.pause();
                 audio.pause();
-                
+
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
-                
+
                 if (videoSrc) {
                     video.style.display = 'block';
                     video.src = videoSrc;
@@ -567,24 +609,19 @@
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
-                    console.log('Card media_url:', card.media_url);
                     if (card.media_url) {
                         staticImg.src = card.media_url;
-                        staticImg.onerror = function() {
-                            console.error('Image failed to load:', card.media_url);
-                            this.style.display = 'none';
-                        };
-                        staticImg.onload = function() {
-                            console.log('Image loaded successfully');
-                            this.style.display = 'block';
-                        };
                     } else {
-                        console.warn('No media_url found for card');
                         staticImg.style.display = 'none';
+                        console.warn('No media_url for card');
+                        if (mediaFallback) {
+                            mediaFallback.style.display = 'flex';
+                            if (fallbackDebug) fallbackDebug.textContent = 'media_url is empty';
+                        }
                     }
                     video.src = '';
                 }
-                
+
                 if (card.audio_url) {
                     audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -594,18 +631,18 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
-                
+
                 // NEW: Show collapsible message for ALL card types
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
                 const toggleIcon = document.getElementById('toggleMessageIcon');
                 const toggleSpan = toggleBtn.querySelector('span');
-                
+
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
-                    
+
                     // Default: collapsed for video/audio, expanded for text/image
                     if (card.video_url || card.audio_url) {
                         msgEl.style.display = 'none';
@@ -617,7 +654,7 @@
                         toggleIcon.className = 'fas fa-chevron-up';
                     }
                 }
-                
+
                 // Apply template texture if available
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
@@ -643,14 +680,12 @@
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
-                
+
             } catch (error) {
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
             }
-        }
-
-        async function fetchCardAndConfirm(cardId) {
+        }async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
                 const result = await res.json();
@@ -729,7 +764,6 @@
             if (pendingCardData) {
                 const revealType = determineRevealType(pendingCardData);
                 await loadCard(currentCardId);
-                // Show card display immediately so image starts loading, but hide behind reveal
                 document.getElementById('cardDisplay').classList.add('active');
                 document.getElementById('scannerContainer').style.opacity = '0';
                 document.getElementById('manualInput').style.opacity = '0';
@@ -739,7 +773,6 @@
                     document.getElementById('manualInput').style.display = 'none';
                 }, 300);
                 playRevealAnimation(revealType, () => {
-                    // Animation complete - reveal is already hidden, card is visible
                     console.log('Reveal animation complete');
                 });
             }
@@ -771,14 +804,6 @@
                 cardMediaContainer.style.backgroundSize = '';
                 cardMediaContainer.style.backgroundColor = '';
             }
-            const revealStage = document.getElementById('revealStage');
-            if (revealStage) revealStage.classList.remove('active');
-            const envelope = document.getElementById('envelopeReveal');
-            const mailbox = document.getElementById('mailboxReveal');
-            const giftbox = document.getElementById('giftboxReveal');
-            if (envelope) envelope.classList.remove('active', 'animate');
-            if (mailbox) mailbox.classList.remove('active', 'animate');
-            if (giftbox) giftbox.classList.remove('active', 'animate');
         });
 
         document.getElementById('loadCardBtn').addEventListener('click', () => {
