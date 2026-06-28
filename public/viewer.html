@@ -685,7 +685,9 @@
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
             }
-        }async function fetchCardAndConfirm(cardId) {
+        }
+
+        async function fetchCardAndConfirm(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
                 const result = await res.json();

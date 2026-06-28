@@ -2006,8 +2006,11 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
                     });
+                    if (!uploadRes.ok) throw new Error(`Video upload failed (${uploadRes.status})`);
                     const uploadData = await uploadRes.json();
-                    if (uploadData.success) videoUrl = uploadData.url;
+                    if (!uploadData.success) throw new Error(uploadData.error || 'Video upload failed');
+                    videoUrl = uploadData.url;
+                    if (!videoUrl) throw new Error('Video upload returned empty URL');
                 }
 
                 let audioUrl = '';
@@ -2025,14 +2028,18 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: base64, fileName: file.name, fileType: file.type, cardId: 'TEMP-' + Date.now() })
                     });
+                    if (!uploadRes.ok) throw new Error(`Audio upload failed (${uploadRes.status})`);
                     const uploadData = await uploadRes.json();
-                    if (uploadData.success) audioUrl = uploadData.url;
+                    if (!uploadData.success) throw new Error(uploadData.error || 'Audio upload failed');
+                    audioUrl = uploadData.url;
+                    if (!audioUrl) throw new Error('Audio upload returned empty URL');
                 }
 
                 let overlayUrl = '';
                 let thumbnailUrl = '';
 
                 if (hasVideo) {
+                    // Upload overlay
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
                     canvas.backgroundColor = 'transparent';
@@ -2048,24 +2055,35 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: overlayData, fileName: 'overlay.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
+                    if (!overlayRes.ok) throw new Error(`Overlay upload failed (${overlayRes.status})`);
                     const overlayData2 = await overlayRes.json();
-                    if (overlayData2.success) overlayUrl = overlayData2.url;
+                    if (!overlayData2.success) throw new Error(overlayData2.error || 'Overlay upload failed');
+                    overlayUrl = overlayData2.url;
+                    if (!overlayUrl) throw new Error('Overlay upload returned empty URL');
 
+                    // Upload thumbnail
                     const thumbData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: thumbData, fileName: 'thumbnail.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
+                    if (!thumbRes.ok) throw new Error(`Thumbnail upload failed (${thumbRes.status})`);
                     const thumbData2 = await thumbRes.json();
-                    if (thumbData2.success) thumbnailUrl = thumbData2.url;
+                    if (!thumbData2.success) throw new Error(thumbData2.error || 'Thumbnail upload failed');
+                    thumbnailUrl = thumbData2.url;
+                    if (!thumbnailUrl) throw new Error('Thumbnail upload returned empty URL');
                 } else {
+                    // No video – upload the design image
                     const canvasData = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const uploadRes = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fileData: canvasData, fileName: 'card-design.png', fileType: 'image/png', cardId: 'TEMP-' + Date.now() })
                     });
+                    if (!uploadRes.ok) throw new Error(`Design image upload failed (${uploadRes.status})`);
                     const uploadData = await uploadRes.json();
-                    if (uploadData.success) thumbnailUrl = uploadData.url;
+                    if (!uploadData.success) throw new Error(uploadData.error || 'Design image upload failed');
+                    thumbnailUrl = uploadData.url;
+                    if (!thumbnailUrl) throw new Error('Design image upload returned empty URL');
                 }
 
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
