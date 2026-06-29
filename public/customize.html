@@ -2583,8 +2583,9 @@
                 // Start collapsed on mobile
                 if (isMobileLayout()) section.classList.add('collapsed');
 
-                // ----- NEW: Touch‑based toggle (only arrow, ignores drag) -----
+                // ----- Touch‑based toggle (only arrow, ignores drag) -----
                 let touchStartX = 0, touchStartY = 0, touchMoved = false;
+                let justTouched = false;
 
                 h4.addEventListener('touchstart', function(e) {
                     const touch = e.touches[0];
@@ -2600,13 +2601,10 @@
                     if (dx > 10 || dy > 10) touchMoved = true;
                 }, { passive: true });
 
-                h4.addEventListener('touchend', function(e) {
-                    if (touchMoved) return; // ignore drag
-
+                function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
-                    const touch = e.changedTouches[0];
-                    const clickX = touch.clientX - rect.left;
-                    // Only toggle if tap is on the rightmost 40px (arrow area)
+                    const clickX = clientX - rect.left;
+                    // Only toggle if tap/click is on the rightmost 40px (arrow area)
                     if (clickX < rect.width - 40) return;
 
                     const section = h4.closest('.property-section');
@@ -2619,24 +2617,19 @@
                         siblings.forEach(other => other.classList.add('collapsed'));
                     }
                     section.classList.toggle('collapsed', !isCollapsed);
+                }
+
+                h4.addEventListener('touchend', function(e) {
+                    if (touchMoved) return; // ignore drag
+                    toggleSectionArrow(e, e.changedTouches[0].clientX);
+                    justTouched = true;
+                    setTimeout(() => { justTouched = false; }, 100);
                 }, { passive: true });
 
                 // Fallback for desktop (mouse) – also only arrow
                 h4.addEventListener('click', function(e) {
-                    const rect = h4.getBoundingClientRect();
-                    const clickX = e.clientX - rect.left;
-                    if (clickX < rect.width - 40) return;
-
-                    const section = h4.closest('.property-section');
-                    if (!section) return;
-
-                    const isCollapsed = section.classList.contains('collapsed');
-                    const parent = section.parentElement;
-                    if (parent) {
-                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
-                        siblings.forEach(other => other.classList.add('collapsed'));
-                    }
-                    section.classList.toggle('collapsed', !isCollapsed);
+                    if (justTouched) return; // skip if touch already handled this tap
+                    toggleSectionArrow(e, e.clientX);
                 });
             });
 
