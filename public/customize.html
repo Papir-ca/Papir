@@ -430,6 +430,8 @@
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                         <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
+                        <button class="btn-icon small hidden" id="mediaPlayBtn" title="Play/Pause Media"><i class="fas fa-play"></i></button>
+                        <button class="btn-icon small hidden" id="mediaMuteBtn" title="Mute/Unmute Media"><i class="fas fa-volume-up"></i></button>
                     </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
@@ -768,6 +770,7 @@
             applyTemplateTexture(canvas);
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
+            updateMediaControls();
         }
 
         async function loadDemoTemplate() {
@@ -785,6 +788,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            updateMediaControls();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -846,6 +850,7 @@
                 if (obj.isVideo && obj.videoBlobUrl) restoreVideoObject(obj);
                 else if (obj.isAudio && obj.audioBlobUrl) restoreAudioObject(obj);
             });
+            updateMediaControls();
         }
 
         function restoreVideoObject(obj) {
@@ -880,13 +885,14 @@
                     }
                 };
                 obj._videoFrame = requestAnimationFrame(renderLoop);
+                updateMediaControls();
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
                 canvas.requestRenderAll();
+                updateMediaControls();
             };
             videoEl.onerror = () => { console.error('Error restoring video from blob URL'); };
         }
@@ -902,9 +908,9 @@
             audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
+                updateMediaControls();
                 obj.on('selected', () => { if (obj.audioElement) obj.audioElement.play().catch(() => {}); });
                 obj.on('removed', function() {
-                    if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
                 });
             };
@@ -921,7 +927,8 @@
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
-                    updateLayerList(); 
+                    updateLayerList();
+                    updateMediaControls();
                 });
             }
         }
@@ -937,7 +944,8 @@
                     canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
-                    updateLayerList(); 
+                    updateLayerList();
+                    updateMediaControls();
                 });
             }
         }
@@ -946,6 +954,76 @@
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const total = (qty * 2.99).toFixed(2);
             document.getElementById('checkoutTotal').textContent = '$' + total;
+        }
+
+        function updateMediaControls() {
+            const hasVideo = canvas.getObjects().some(obj => obj.isVideo && obj.videoElement);
+            const hasAudio = canvas.getObjects().some(obj => obj.isAudio && obj.audioElement);
+            const hasMedia = hasVideo || hasAudio;
+            const playBtn = document.getElementById('mediaPlayBtn');
+            const muteBtn = document.getElementById('mediaMuteBtn');
+            if (!playBtn || !muteBtn) return;
+            if (hasMedia) {
+                playBtn.classList.remove('hidden');
+                muteBtn.classList.remove('hidden');
+                const anyPlaying = canvas.getObjects().some(obj => {
+                    if (obj.isVideo && obj.videoElement) return !obj.videoElement.paused;
+                    if (obj.isAudio && obj.audioElement) return !obj.audioElement.paused;
+                    return false;
+                });
+                const anyMuted = canvas.getObjects().some(obj => {
+                    if (obj.isVideo && obj.videoElement) return obj.videoElement.muted;
+                    if (obj.isAudio && obj.audioElement) return obj.audioElement.muted;
+                    return false;
+                });
+                playBtn.innerHTML = anyPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                playBtn.title = anyPlaying ? 'Pause Media' : 'Play Media';
+                muteBtn.innerHTML = anyMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                muteBtn.title = anyMuted ? 'Unmute Media' : 'Mute Media';
+            } else {
+                playBtn.classList.add('hidden');
+                muteBtn.classList.add('hidden');
+            }
+        }
+
+        function toggleMediaPlayback() {
+            const mediaObjects = canvas.getObjects().filter(obj =>
+                (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement)
+            );
+            if (mediaObjects.length === 0) return;
+            const anyPlaying = mediaObjects.some(obj => {
+                if (obj.isVideo && obj.videoElement) return !obj.videoElement.paused;
+                if (obj.isAudio && obj.audioElement) return !obj.audioElement.paused;
+                return false;
+            });
+            mediaObjects.forEach(obj => {
+                if (obj.isVideo && obj.videoElement) {
+                    if (anyPlaying) obj.videoElement.pause();
+                    else obj.videoElement.play().catch(() => {});
+                }
+                if (obj.isAudio && obj.audioElement) {
+                    if (anyPlaying) obj.audioElement.pause();
+                    else obj.audioElement.play().catch(() => {});
+                }
+            });
+            updateMediaControls();
+        }
+
+        function toggleMediaMute() {
+            const mediaObjects = canvas.getObjects().filter(obj =>
+                (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement)
+            );
+            if (mediaObjects.length === 0) return;
+            const anyUnmuted = mediaObjects.some(obj => {
+                if (obj.isVideo && obj.videoElement) return !obj.videoElement.muted;
+                if (obj.isAudio && obj.audioElement) return !obj.audioElement.muted;
+                return false;
+            });
+            mediaObjects.forEach(obj => {
+                if (obj.isVideo && obj.videoElement) obj.videoElement.muted = anyUnmuted;
+                if (obj.isAudio && obj.audioElement) obj.audioElement.muted = anyUnmuted;
+            });
+            updateMediaControls();
         }
 
         function updateQty(change) {
@@ -1165,11 +1243,11 @@
                 fabricVideo.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
                 });
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
                 updateLayerList();
+                updateMediaControls();
             };
             videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
         }
@@ -1200,11 +1278,11 @@
                     saveState();
                     img.on('selected', () => { audioEl.play().catch(() => {}); });
                     img.on('removed', function() {
-                        if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                         if (this.audioElement) this.audioElement.pause();
                     });
                     showNotification('Audio added! Will play when card is viewed.');
                     updateLayerList();
+                    updateMediaControls();
                 });
             };
         }
@@ -1254,46 +1332,48 @@
         let scrollTimer = null;
         let touchStartX = 0, touchStartY = 0;
         let touchStartTarget = null;
+        let lastTouchHadMovement = false;
 
-        if (isMobileLayout()) {
-            document.addEventListener('touchstart', function(e) {
-                touchStartTarget = e.target;
-                const touch = e.touches[0];
-                if (touch) {
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                }
+        document.addEventListener('touchstart', function(e) {
+            touchStartTarget = e.target;
+            const touch = e.touches[0];
+            if (touch) {
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+            }
+            isScrolling = false;
+            lastTouchHadMovement = false;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            // Ignore if touching mobile handles or context menu (legitimate manipulation)
+            if (e.target.closest('.mobile-object-handle') || 
+                e.target.closest('.mobile-rotate-handle') ||
+                e.target.closest('.mobile-context-menu') ||
+                e.target.closest('.ctx-backdrop')) {
+                return;
+            }
+            const touch = e.touches[0];
+            if (!touch) return;
+            const dx = Math.abs(touch.clientX - touchStartX);
+            const dy = Math.abs(touch.clientY - touchStartY);
+            if (dx > 10 || dy > 10) {
+                isScrolling = true;
+                lastTouchHadMovement = true;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function() {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(() => {
                 isScrolling = false;
-            }, { passive: true });
-
-            document.addEventListener('touchmove', function(e) {
-                // If touch started inside canvas, ignore (canvas scroll is blocked)
-                if (touchStartTarget && (touchStartTarget.closest('#canvasContainer') || 
-                    touchStartTarget.closest('.upper-canvas') || 
-                    touchStartTarget.closest('#designCanvas'))) {
-                    return;
-                }
-                const touch = e.touches[0];
-                if (!touch) return;
-                const dx = Math.abs(touch.clientX - touchStartX);
-                const dy = Math.abs(touch.clientY - touchStartY);
-                if (dx > 10 || dy > 10) {
-                    isScrolling = true;
-                }
-            }, { passive: true });
-
-            document.addEventListener('touchend', function() {
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(() => {
-                    isScrolling = false;
-                }, 300);
-            }, { passive: true });
-        }
+            }, 300);
+        }, { passive: true });
 
         // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
-            // If user is scrolling and we have a selected object, restore it
-            if (isScrolling && selectedObject) {
+            // If user is scrolling or touch had movement and we have a selected object, restore it
+            if ((isScrolling || lastTouchHadMovement) && selectedObject && selectedObject.canvas === canvas) {
                 canvas.setActiveObject(selectedObject);
                 canvas.renderAll();
                 return;
@@ -1348,6 +1428,7 @@
                 canvas.renderAll();
                 saveState();
                 updateLayerList();
+                updateMediaControls();
                 createMobileHandles();
             }
         }
@@ -1740,6 +1821,7 @@
                     applyTemplateTexture(canvas);
                     saveState();
                     updateLayerList();
+                    updateMediaControls();
                     createMobileHandles();
                     showNotification('Design reset to template defaults', 'success');
                 });
@@ -1848,6 +1930,7 @@
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
+                    updateMediaControls();
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
@@ -2345,7 +2428,6 @@
             });
             if (lock) {
                 canvas.selection = false;
-                if (!isEditing) canvas.discardActiveObject();
             } else {
                 canvas.selection = true;
             }
@@ -2726,6 +2808,8 @@
             document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
             document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
             document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
+            document.getElementById('mediaPlayBtn').addEventListener('click', toggleMediaPlayback);
+            document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
             document.getElementById('toggleHandlesBtn').addEventListener('click', function() {
                 showHandles = !showHandles;
                 if (showHandles) {
@@ -2897,6 +2981,7 @@
             setTimeout(showFirstRunHint, 1000);
             console.log('init() completed successfully');
             adjustCanvasForMobile();
+            updateMediaControls();
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                     h.classList.remove('active');
