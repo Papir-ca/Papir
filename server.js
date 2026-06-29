@@ -1246,7 +1246,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
           audio_url: design_data?.audio?.url || null,
           has_video_overlay: !!design_data?.video?.url,
           has_audio_overlay: !!design_data?.audio?.url,
-          template_config: templateConfigForCards
+          template_config: null
         };
         if (isBatch) {
           cardRecord.batch_id = finalBatchId;
