@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* ===== YOUR EXISTING STYLES (unchanged) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { 
             --primary-gold: #BCAE83; 
@@ -19,6 +18,7 @@
             --danger: #FF6B6B;
             --warning: #FFD166;
         }
+        html, body { overscroll-behavior: none; }
         html, body { overscroll-behavior-y: none; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
         .app-container { height: 100vh; display: flex; flex-direction: column; padding: 15px; overscroll-behavior-y: contain; }
@@ -113,8 +113,6 @@
         .done-btn { background: var(--primary-teal); color: #1a1a2e; font-weight: 700; border-color: var(--primary-teal); }
         .done-btn:hover { background: #05b386; }
 
-        .media-controls { display: none; justify-content: center; gap: 8px; padding: 6px 0; background: rgba(0,0,0,0.3); border-radius: 0 0 8px 8px; margin: 0 12px; }
-        .media-controls .btn-icon { padding: 6px 12px; font-size: 0.8rem; min-height: 32px; }
         .hint-bubble { position: fixed; background: var(--primary-gold); color: #1a1a2e; padding: 10px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: hintPulse 2s infinite; pointer-events: none; display: none; }
         @keyframes hintPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
@@ -404,8 +402,6 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -435,10 +431,6 @@
                         <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
                         <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
                     </div>
-                </div>
-                <div class="media-controls" id="mediaControls" style="display: none;">
-                    <button class="btn-icon small" id="mediaPlayBtn" title="Play/Pause"><i class="fas fa-play"></i></button>
-                    <button class="btn-icon small" id="mediaMuteBtn" title="Mute/Unmute"><i class="fas fa-volume-up"></i></button>
                 </div>
                 <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
                     <canvas id="designCanvas" width="600" height="450"></canvas>
@@ -719,7 +711,6 @@
         }
         let isPreviewMode = false;
         let layerEditTarget = null;
-        let lastMediaObject = null;
         let mobileHandles = [];
         let handleDragState = null;
 
@@ -734,9 +725,8 @@
             }
             const config = templateConfig.config;
             canvas.clear();
-            lastMediaObject = null;
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
-            // the reveal type setting is elsewhere – we keep it
+
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
             }
@@ -778,12 +768,10 @@
             applyTemplateTexture(canvas);
             canvas.renderAll();
             canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
-            updateMediaControls();
         }
 
         async function loadDemoTemplate() {
             canvas.clear();
-            lastMediaObject = null;
             canvas.backgroundColor = '#F5F5DC';
             await addTextElement('Happy Birthday!', 300, 120, {
                 fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
@@ -797,7 +785,6 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
-            updateMediaControls();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -871,7 +858,7 @@
             videoEl.autoplay = true;
             videoEl.style.display = 'none';
             document.body.appendChild(videoEl);
-            const onLoaded = () => {
+            videoEl.onloadedmetadata = () => {
                 videoEl.play().catch(() => {});
                 const videoCanvas = document.createElement('canvas');
                 videoCanvas.width = obj.width || videoEl.videoWidth || 640;
@@ -896,15 +883,11 @@
                 obj.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
+                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                    if (this === lastMediaObject) lastMediaObject = null;
-                    setTimeout(updateMediaControls, 0);
                 });
                 canvas.requestRenderAll();
-                setTimeout(updateMediaControls, 0);
             };
-            videoEl.onloadedmetadata = onLoaded;
-            if (videoEl.readyState >= 1) onLoaded();
             videoEl.onerror = () => { console.error('Error restoring video from blob URL'); };
         }
 
@@ -916,19 +899,15 @@
             audioEl.loop = true;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
-            const onLoaded = () => {
+            audioEl.onloadedmetadata = () => {
                 audioEl.play().catch(() => {});
                 obj.audioElement = audioEl;
                 obj.on('selected', () => { if (obj.audioElement) obj.audioElement.play().catch(() => {}); });
                 obj.on('removed', function() {
+                    if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                     if (this.audioElement) this.audioElement.pause();
-                    if (this === lastMediaObject) lastMediaObject = null;
-                    setTimeout(updateMediaControls, 0);
                 });
-                setTimeout(updateMediaControls, 0);
             };
-            audioEl.onloadedmetadata = onLoaded;
-            if (audioEl.readyState >= 1) onLoaded();
         }
 
         function undo() {
@@ -943,8 +922,6 @@
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
-                    updateMediaControls();
-                    setTimeout(updateMediaControls, 500);
                 });
             }
         }
@@ -961,8 +938,6 @@
                     applyTemplateTexture(canvas);
                     canvas.renderAll(); 
                     updateLayerList(); 
-                    updateMediaControls();
-                    setTimeout(updateMediaControls, 500);
                 });
             }
         }
@@ -1173,9 +1148,7 @@
                 fabricVideo.videoCanvas = videoCanvas;
                 fabricVideo.videoContext = ctx;
                 canvas.add(fabricVideo);
-                canvas.sendToBack(fabricVideo);
                 canvas.setActiveObject(fabricVideo);
-                lastMediaObject = fabricVideo;
                 canvas.renderAll();
                 saveState();
                 const renderLoop = () => {
@@ -1192,13 +1165,11 @@
                 fabricVideo.on('removed', function() {
                     this.isDeleted = true;
                     if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
+                    if (this.videoBlobUrl) URL.revokeObjectURL(this.videoBlobUrl);
                     if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                    if (this === lastMediaObject) lastMediaObject = null;
-                    setTimeout(updateMediaControls, 0);
                 });
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
                 updateLayerList();
-                updateMediaControls();
             };
             videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
         }
@@ -1224,20 +1195,16 @@
                     img.audioElement = audioEl;
                     img.audioType = file.type;
                     canvas.add(img);
-                    canvas.sendToBack(img);
                     canvas.setActiveObject(img);
-                    lastMediaObject = img;
                     canvas.renderAll();
                     saveState();
                     img.on('selected', () => { audioEl.play().catch(() => {}); });
                     img.on('removed', function() {
+                        if (this.audioBlobUrl) URL.revokeObjectURL(this.audioBlobUrl);
                         if (this.audioElement) this.audioElement.pause();
-                        if (this === lastMediaObject) lastMediaObject = null;
-                        setTimeout(updateMediaControls, 0);
                     });
                     showNotification('Audio added! Will play when card is viewed.');
                     updateLayerList();
-                    updateMediaControls();
                 });
             };
         }
@@ -1258,9 +1225,7 @@
                     const scale = Math.min(200 / img.width, 200 / img.height);
                     img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
                     canvas.add(img);
-                    canvas.sendToBack(img);
                     canvas.setActiveObject(img);
-                    lastMediaObject = img;
                     canvas.renderAll();
                     saveState();
                     updateLayerList();
@@ -1270,85 +1235,71 @@
             reader.readAsDataURL(file);
         }
 
-        function showMediaControls(obj) {
-            const controls = document.getElementById('mediaControls');
-            const playBtn = document.getElementById('mediaPlayBtn');
-            const muteBtn = document.getElementById('mediaMuteBtn');
-            if (!controls || !playBtn || !muteBtn) return;
-            const targetObj = obj || lastMediaObject;
-            if (!targetObj) { controls.style.display = 'none'; return; }
-            const isVideo = targetObj.isVideo && targetObj.videoElement;
-            const isAudio = targetObj.isAudio && targetObj.audioElement;
-            const isImage = targetObj.type === 'image' && !targetObj.isVideo && !targetObj.isAudio;
-            if (!isVideo && !isAudio && !isImage) { controls.style.display = 'none'; return; }
-            lastMediaObject = targetObj;
-            if (isImage) {
-                controls.style.display = 'flex';
-                playBtn.innerHTML = '<i class="fas fa-play"></i>';
-                muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-                playBtn.onclick = null;
-                muteBtn.onclick = null;
-                return;
-            }
-            const mediaEl = isVideo ? targetObj.videoElement : targetObj.audioElement;
-            const updateIcons = () => {
-                playBtn.innerHTML = mediaEl.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
-                muteBtn.innerHTML = mediaEl.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
-            };
-            updateIcons();
-            playBtn.onclick = () => { mediaEl.paused ? mediaEl.play().catch(()=>{}) : mediaEl.pause(); updateIcons(); };
-            muteBtn.onclick = () => { mediaEl.muted = !mediaEl.muted; updateIcons(); };
-            controls.style.display = 'flex';
-        }
-        function hideMediaControls() {
-            const controls = document.getElementById('mediaControls');
-            if (controls) controls.style.display = 'none';
-        }
-
-        function updateMediaControls() {
-            if (isPreviewMode) {
-                hideMediaControls();
-                return;
-            }
-            const mediaObjects = canvas.getObjects().filter(obj => 
-                (obj.isVideo && obj.videoElement) || 
-                (obj.isAudio && obj.audioElement) ||
-                (obj.type === 'image' && !obj.isVideo && !obj.isAudio)
-            );
-            if (mediaObjects.length > 0) {
-                if (!lastMediaObject || !canvas.getObjects().includes(lastMediaObject)) {
-                    lastMediaObject = mediaObjects[mediaObjects.length - 1];
-                }
-                showMediaControls(lastMediaObject);
-            } else {
-                lastMediaObject = null;
-                hideMediaControls();
-            }
-        }
-
         function handleSelection(e) {
             const sel = e.selected;
             if (sel.length === 1) {
                 selectedObject = sel[0];
                 updateControls();
                 showSelectionControls();
-                if (sel[0].isVideo || sel[0].isAudio) {
-                    lastMediaObject = sel[0];
-                }
-                updateMediaControls();
             } else {
                 selectedObject = null;
                 showNoSelection();
-                updateMediaControls();
             }
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
 
+        // ----- SCROLL DETECTION FLAG (mobile only) -----
+        let isScrolling = false;
+        let scrollTimer = null;
+        let touchStartX = 0, touchStartY = 0;
+        let touchStartTarget = null;
+
+        if (isMobileLayout()) {
+            document.addEventListener('touchstart', function(e) {
+                touchStartTarget = e.target;
+                const touch = e.touches[0];
+                if (touch) {
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                }
+                isScrolling = false;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                // If touch started inside canvas, ignore (canvas scroll is blocked)
+                if (touchStartTarget && (touchStartTarget.closest('#canvasContainer') || 
+                    touchStartTarget.closest('.upper-canvas') || 
+                    touchStartTarget.closest('#designCanvas'))) {
+                    return;
+                }
+                const touch = e.touches[0];
+                if (!touch) return;
+                const dx = Math.abs(touch.clientX - touchStartX);
+                const dy = Math.abs(touch.clientY - touchStartY);
+                if (dx > 10 || dy > 10) {
+                    isScrolling = true;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(() => {
+                    isScrolling = false;
+                }, 300);
+            }, { passive: true });
+        }
+
+        // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
+            // If user is scrolling and we have a selected object, restore it
+            if (isScrolling && selectedObject) {
+                canvas.setActiveObject(selectedObject);
+                canvas.renderAll();
+                return;
+            }
             selectedObject = null;
             showNoSelection();
-            updateMediaControls();
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
         }
@@ -1379,10 +1330,8 @@
         function deleteSelected() {
             const active = canvas.getActiveObject();
             if (active) {
-                if (active === lastMediaObject) lastMediaObject = null;
                 if (active.type === 'activeSelection') {
                     active.getObjects().forEach(obj => {
-                        if (obj === lastMediaObject) lastMediaObject = null;
                         if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
                         if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
                         if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
@@ -1400,7 +1349,6 @@
                 saveState();
                 updateLayerList();
                 createMobileHandles();
-                updateMediaControls();
             }
         }
 
@@ -1730,17 +1678,7 @@
 
         function deleteObjectByIndex(index) {
             const obj = canvas.getObjects()[index];
-            if (obj) { 
-                if (obj === lastMediaObject) lastMediaObject = null;
-                if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
-                if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
-                if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
-                canvas.remove(obj); 
-                canvas.renderAll(); 
-                saveState(); 
-                createMobileHandles(); 
-                updateMediaControls();
-            }
+            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
         }
 
         function applyTemplateTexture(canvas) {
@@ -1793,7 +1731,6 @@
                     if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
                     if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
                 });
-                lastMediaObject = null;
                 canvas.clear();
                 canvas.backgroundColor = '#ffffff';
                 canvas.discardActiveObject();
@@ -1804,7 +1741,6 @@
                     saveState();
                     updateLayerList();
                     createMobileHandles();
-                    updateMediaControls();
                     showNotification('Design reset to template defaults', 'success');
                 });
             }
@@ -1912,16 +1848,12 @@
                     canvas.renderAll(); 
                     saveState(); 
                     updateLayerList();
-                    updateMediaControls();
-                    setTimeout(updateMediaControls, 500);
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
                     templateConfig = data.templateConfig;
                     document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                     document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
-                    // set reveal type if present – but we don't have a dedicated UI for it here
-                    // it's stored in templateConfig, but we don't need to set it in the UI
                 }
                 if (data.hasMedia) {
                     showNotification('Design loaded! Video/audio objects were saved but may need to be re-uploaded.', 'warning');
@@ -1943,25 +1875,6 @@
             }, 300000);
         }
 
-        // ============================================
-        // NEW HELPER: Convert data URL to Blob
-        // ============================================
-        function dataURLToBlob(dataURL) {
-            const parts = dataURL.split(',');
-            const mime = parts[0].match(/:(.*?);/)[1];
-            const b64 = parts[1];
-            const byteString = atob(b64);
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            return new Blob([ab], { type: mime });
-        }
-
-        // ============================================
-        // UPDATED proceedToCheckout with FormData upload & improved error handling
-        // ============================================
         async function proceedToCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const originalHTML = btn.innerHTML;
@@ -1972,7 +1885,7 @@
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
                 const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
 
-                // Helper to upload a file (Blob or File) and return the URL
+                // Helper to upload a file (Blob or File) via FormData and return the URL
                 async function uploadFile(file, fileName, cardId) {
                     const formData = new FormData();
                     formData.append('file', file);
@@ -1990,7 +1903,6 @@
                             if (errData.error) errorMsg = errData.error;
                             else if (errData.message) errorMsg = errData.message;
                         } catch (e) {
-                            // if response is not JSON, use status text
                             errorMsg = response.statusText || errorMsg;
                         }
                         throw new Error(errorMsg);
@@ -1999,6 +1911,20 @@
                     if (!data.success) throw new Error(data.error || 'Upload unsuccessful');
                     if (!data.url) throw new Error('No URL returned from upload');
                     return data.url;
+                }
+
+                // Helper to convert data URL to Blob
+                function dataURLToBlob(dataURL) {
+                    const parts = dataURL.split(',');
+                    const mime = parts[0].match(/:(.*?);/)[1];
+                    const b64 = parts[1];
+                    const byteString = atob(b64);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                    }
+                    return new Blob([ab], { type: mime });
                 }
 
                 const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
@@ -2027,7 +1953,7 @@
                 let thumbnailUrl = '';
 
                 if (hasVideo) {
-                    // Upload overlay
+                    // Upload overlay (canvas without video)
                     const originalBg = canvas.backgroundColor;
                     videoObjects.forEach(v => canvas.remove(v));
                     canvas.backgroundColor = 'transparent';
@@ -2044,7 +1970,7 @@
                     const cardId = 'TEMP-' + Date.now();
                     overlayUrl = await uploadFile(overlayBlob, 'overlay.png', cardId);
 
-                    // Upload thumbnail
+                    // Upload thumbnail (full canvas with video)
                     await new Promise(r => setTimeout(r, 100));
                     const thumbDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const thumbBlob = dataURLToBlob(thumbDataURL);
@@ -2058,7 +1984,6 @@
                     thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
                 }
 
-                // Build card record
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
                 const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
                 let mediaType = 'image';
@@ -2120,16 +2045,11 @@
                 }
             } catch (error) {
                 console.error('Checkout error:', error);
-                // Show the exact error message from the server
                 alert('Upload failed: ' + error.message);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         }
-
-        // ============================================
-        // Everything below is unchanged from your original code
-        // ============================================
 
         function togglePreview() {
             isPreviewMode = !isPreviewMode;
@@ -2144,7 +2064,6 @@
                 showNoSelection();
                 clearMobileHandles();
                 canvas.renderAll();
-                updateMediaControls();
                 showNotification('Preview mode - tap canvas to exit', 'info');
             } else {
                 app.classList.remove('preview-mode');
@@ -2153,7 +2072,6 @@
                 if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
                     setTimeout(createMobileHandles, 100);
                 }
-                updateMediaControls();
             }
         }
 
@@ -2559,7 +2477,6 @@
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
-            updateMediaControls();
         }
 
         function setupMobileUI() {
@@ -2568,7 +2485,6 @@
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
 
-                // Skip if already processed
                 if (section.dataset.mobileSetup === 'done') return;
                 section.dataset.mobileSetup = 'done';
 
@@ -2585,14 +2501,54 @@
                 // Start collapsed on mobile
                 if (isMobileLayout()) section.classList.add('collapsed');
 
-                // Only arrow (right side) toggles
+                // ----- NEW: Touch‑based toggle (only arrow, ignores drag) -----
+                let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+                h4.addEventListener('touchstart', function(e) {
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    touchMoved = false;
+                }, { passive: true });
+
+                h4.addEventListener('touchmove', function(e) {
+                    const touch = e.touches[0];
+                    const dx = Math.abs(touch.clientX - touchStartX);
+                    const dy = Math.abs(touch.clientY - touchStartY);
+                    if (dx > 10 || dy > 10) touchMoved = true;
+                }, { passive: true });
+
+                h4.addEventListener('touchend', function(e) {
+                    if (touchMoved) return; // ignore drag
+
+                    const rect = h4.getBoundingClientRect();
+                    const touch = e.changedTouches[0];
+                    const clickX = touch.clientX - rect.left;
+                    // Only toggle if tap is on the rightmost 40px (arrow area)
+                    if (clickX < rect.width - 40) return;
+
+                    const section = h4.closest('.property-section');
+                    if (!section) return;
+
+                    const isCollapsed = section.classList.contains('collapsed');
+                    const parent = section.parentElement;
+                    if (parent) {
+                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
+                        siblings.forEach(other => other.classList.add('collapsed'));
+                    }
+                    section.classList.toggle('collapsed', !isCollapsed);
+                }, { passive: true });
+
+                // Fallback for desktop (mouse) – also only arrow
                 h4.addEventListener('click', function(e) {
-                    if (!isMobileLayout()) return;
                     const rect = h4.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
                     if (clickX < rect.width - 40) return;
+
+                    const section = h4.closest('.property-section');
+                    if (!section) return;
+
                     const isCollapsed = section.classList.contains('collapsed');
-                    // Close siblings at same level only
                     const parent = section.parentElement;
                     if (parent) {
                         const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
@@ -2716,7 +2672,7 @@
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); updateMediaControls(); });
+            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
             canvas.on('after:render', function() { 
                 updateMobileHandlePositions(); 
                 if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
@@ -2950,7 +2906,6 @@
                     if (content) content.style.display = 'none';
                 });
             }
-            updateMediaControls();
         }
 
         document.body.addEventListener('touchmove', function(e) {
@@ -2960,6 +2915,80 @@
         }, { passive: true });
 
         init();
+    </script>
+
+    <!-- ===== FIX 1: Prevent pull-to-refresh and unwanted scroll resets ===== -->
+    <script>
+        (function() {
+            document.addEventListener('touchmove', function(e) {
+                const target = e.target;
+                if (target.closest('.layers-scroll-container') ||
+                    target.closest('.tab-content') ||
+                    target.closest('.mobile-accordion-container')) {
+                    return;
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            document.body.addEventListener('touchmove', function(e) {
+                if (!e.target.closest('.layers-scroll-container') &&
+                    !e.target.closest('.tab-content') &&
+                    !e.target.closest('.canvas-container') &&
+                    !e.target.closest('.mobile-accordion-container')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // ===== FIX 2: Prevent canvas from scrolling the page (keeps selection active) =====
+            const canvasEl = document.getElementById('designCanvas');
+            if (canvasEl && canvasEl.parentElement) {
+                const upperCanvas = canvasEl.parentElement.querySelector('.upper-canvas');
+                if (upperCanvas) {
+                    upperCanvas.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                    }, { passive: false });
+                }
+                const container = document.getElementById('canvasContainer');
+                if (container) {
+                    container.addEventListener('touchmove', function(e) {
+                        if (e.target.closest('.upper-canvas') || e.target.closest('#designCanvas')) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+                }
+            }
+        })();
+    </script>
+
+    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
+    <script>
+        (function() {
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            function setMobileHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            window.addEventListener('resize', setMobileHeight);
+            window.addEventListener('orientationchange', setMobileHeight);
+            setMobileHeight();
+
+            const originalHeight = window.innerHeight;
+            window.addEventListener('resize', () => {
+                if (window.innerHeight < originalHeight * 0.75) {
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        })();
     </script>
 </body>
 </html>

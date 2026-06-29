@@ -131,10 +131,13 @@
         #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: #06D6A0; font-size: 0.9rem; margin-bottom: 10px; }
         #cardAudio { width: 100%; }
+        
+        /* NEW: Collapsible message styles */
         #cardMessageWrapper { margin-top: 15px; }
         #toggleMessageBtn { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; }
         #toggleMessageBtn:hover { background: rgba(255,255,255,0.12); }
         #toggleMessageBtn i { transition: transform 0.2s; }
+        
         * { -webkit-tap-highlight-color: transparent; }
         body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
@@ -435,28 +438,9 @@
             .mailbox-reveal { transform: scale(0.7); }
             .giftbox-reveal { transform: scale(0.7); }
         }
-
-        .media-fallback {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
-            color: #BCAE83;
-            text-align: center;
-            gap: 15px;
-        }
-        .media-fallback i { font-size: 3rem; opacity: 0.4; }
-        .media-fallback span { font-size: 1rem; opacity: 0.7; }
-        .media-fallback code {
-            background: rgba(0,0,0,0.3);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #ff6b6b;
-        }
     </style>
+<base target="_blank">
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -501,13 +485,10 @@
                     <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
                     <img id="cardOverlay" src="" alt="">
                     <img id="cardImage" src="" alt="Card">
-                    <div id="mediaFallback" class="media-fallback" style="display: none;">
-                        <i class="fas fa-image"></i>
-                        <span>Card image not available</span>
-                        <code id="fallbackDebug">no media_url</code>
-                    </div>
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
+                
+                <!-- NEW: Collapsible message panel -->
                 <div id="cardMessageWrapper" style="display: none;">
                     <button id="toggleMessageBtn">
                         <i class="fas fa-comment-alt"></i> <span>Show Message</span> <i class="fas fa-chevron-down" id="toggleMessageIcon"></i>
@@ -519,29 +500,6 @@
         <div class="empty-state" id="emptyState"><i class="fas fa-qrcode"></i><h3>Ready to Scan</h3><p>Scan a QR code or enter a Card ID above to view content.</p><p style="margin-top: 20px; font-size: 14px; opacity: 0.7;"><i class="fas fa-info-circle"></i> Each card can contain text, images, videos, or audio</p></div>
     </div>
     <div class="notification" id="notification"></div>
-
-    <!-- Card Reveal Stage -->
-    <div class="reveal-stage" id="revealStage">
-        <div class="envelope-reveal" id="envelopeReveal">
-            <div class="envelope-card"></div>
-            <div class="envelope-flap"></div>
-            <div class="envelope-body"></div>
-        </div>
-        <div class="mailbox-reveal" id="mailboxReveal">
-            <div class="mailbox-flag"></div>
-            <div class="mailbox-card"></div>
-            <div class="mailbox-door"></div>
-            <div class="mailbox-body"></div>
-        </div>
-        <div class="giftbox-reveal" id="giftboxReveal">
-            <div class="giftbox-bow"><div class="giftbox-bow-knot"></div></div>
-            <div class="giftbox-lid"></div>
-            <div class="giftbox-card"></div>
-            <div class="giftbox-body"></div>
-        </div>
-        <div class="reveal-label" id="revealLabel">Opening your card...</div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         const BACKEND_URL = '';
@@ -577,24 +535,21 @@
                 const result = await res.json();
                 if (!result.success || !result.card) throw new Error(result.error || 'Card not found');
                 const card = result.card;
-
+                
                 const video = document.getElementById('bgVideo');
                 const overlay = document.getElementById('cardOverlay');
                 const staticImg = document.getElementById('cardImage');
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 const cardMediaContainer = document.getElementById('cardMediaContainer');
-                const mediaFallback = document.getElementById('mediaFallback');
-                const fallbackDebug = document.getElementById('fallbackDebug');
-
-                if (mediaFallback) mediaFallback.style.display = 'none';
-
+                
+                // Stop any previously playing media before loading new card
                 video.pause();
                 audio.pause();
-
+                
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
-
+                
                 if (videoSrc) {
                     video.style.display = 'block';
                     video.src = videoSrc;
@@ -611,19 +566,10 @@
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     staticImg.style.display = 'block';
-                    if (card.media_url) {
-                        staticImg.src = card.media_url;
-                    } else {
-                        staticImg.style.display = 'none';
-                        console.warn('No media_url for card');
-                        if (mediaFallback) {
-                            mediaFallback.style.display = 'flex';
-                            if (fallbackDebug) fallbackDebug.textContent = 'media_url is empty';
-                        }
-                    }
+                    if (card.media_url) staticImg.src = card.media_url;
                     video.src = '';
                 }
-
+                
                 if (card.audio_url) {
                     audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -633,16 +579,19 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
-
+                
+                // NEW: Show collapsible message for ALL card types
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
                 const toggleIcon = document.getElementById('toggleMessageIcon');
                 const toggleSpan = toggleBtn.querySelector('span');
-
+                
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
+                    
+                    // Default: collapsed for video/audio, expanded for text/image
                     if (card.video_url || card.audio_url) {
                         msgEl.style.display = 'none';
                         toggleSpan.textContent = 'Show Message';
@@ -653,25 +602,33 @@
                         toggleIcon.className = 'fas fa-chevron-up';
                     }
                 }
-
+                
+                // Apply template texture if available
+                console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
                     try {
                         const tc = JSON.parse(card.template_config);
+                        console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
                             cardMediaContainer.style.backgroundImage = `url("${tc.config.textureSvg}")`;
                             cardMediaContainer.style.backgroundRepeat = 'repeat';
                             cardMediaContainer.style.backgroundSize = 'auto';
                             cardMediaContainer.style.backgroundColor = 'transparent';
+                            console.log('Texture applied successfully');
+                        } else {
+                            console.log('No textureSvg found in template config');
                         }
                     } catch (e) {
                         console.error('Error applying template texture:', e);
                     }
+                } else {
+                    console.log('No template_config on this card');
                 }
 
                 document.getElementById('displayCardId').textContent = card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
-
+                
             } catch (error) {
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
@@ -690,6 +647,7 @@
                 showError(error.message);
             }
         }
+
 
         function determineRevealType(card) {
             if (!card) return 'envelope';
@@ -805,6 +763,7 @@
             else showError('Please enter a Card ID');
         });
 
+        // NEW: Toggle message panel
         document.getElementById('toggleMessageBtn').addEventListener('click', function() {
             const msgEl = document.getElementById('cardMessage');
             const icon = document.getElementById('toggleMessageIcon');
@@ -839,11 +798,34 @@
         document.getElementById('startScanner').addEventListener('click', startScanner);
         document.getElementById('stopScanner').addEventListener('click', stopScanner);
 
+        // NEW: Auto-load card from URL
         const viewerUrlParams = new URLSearchParams(window.location.search);
         const urlCardId = viewerUrlParams.get('card');
         if (urlCardId) {
             fetchCardAndConfirm(urlCardId);
         }
     </script>
+
+    <!-- Card Reveal Stage -->
+    <div class="reveal-stage" id="revealStage">
+        <div class="envelope-reveal" id="envelopeReveal">
+            <div class="envelope-card"></div>
+            <div class="envelope-flap"></div>
+            <div class="envelope-body"></div>
+        </div>
+        <div class="mailbox-reveal" id="mailboxReveal">
+            <div class="mailbox-flag"></div>
+            <div class="mailbox-card"></div>
+            <div class="mailbox-door"></div>
+            <div class="mailbox-body"></div>
+        </div>
+        <div class="giftbox-reveal" id="giftboxReveal">
+            <div class="giftbox-bow"><div class="giftbox-bow-knot"></div></div>
+            <div class="giftbox-lid"></div>
+            <div class="giftbox-card"></div>
+            <div class="giftbox-body"></div>
+        </div>
+        <div class="reveal-label" id="revealLabel">Opening your card...</div>
+    </div>
 </body>
 </html>
