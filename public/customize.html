@@ -405,6 +405,7 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -1976,6 +1977,7 @@
                     const formData = new FormData();
                     formData.append('file', file);
                     formData.append('fileName', fileName);
+                    formData.append('fileType', file.type || '');
                     formData.append('cardId', cardId || 'TEMP-' + Date.now());
                     const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
                         method: 'POST',

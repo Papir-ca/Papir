@@ -595,7 +595,7 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
   try {
     const { fileName, fileType, cardId } = req.body;
     const file = req.file;
-    console.log(`📤 Uploading media: ${fileName} for ${cardId}`);
+    console.log(`📤 Uploading media: ${fileName} for ${cardId} (type: ${fileType || 'not provided'})`);
     if (!file || !fileName || !cardId) {
       return res.status(400).json({ 
         success: false, 
@@ -646,24 +646,41 @@ app.post('/api/upload-media', upload.single('file'), async (req, res) => {
         error: 'File data too small' 
       });
     }
+    // Derive MIME type from extension if frontend didn't send fileType
+    let finalFileType = fileType;
+    if (!finalFileType) {
+      const ext = fileName.split('.').pop().toLowerCase();
+      const mimeMap = {
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+        'gif': 'image/gif', 'webp': 'image/webp',
+        'mp4': 'video/mp4', 'webm': 'video/webm', 'mov': 'video/quicktime',
+        'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'ogg': 'audio/ogg', 'm4a': 'audio/mp4'
+      };
+      finalFileType = mimeMap[ext] || 'application/octet-stream';
+      console.log(`📤 Derived fileType from extension: ${finalFileType}`);
+    }
     const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filePath = `${cardId}/${Date.now()}_${safeFileName}`;
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'cards-media';
+    console.log(`📤 Uploading to bucket: ${bucketName}, path: ${filePath}, type: ${finalFileType}`);
     const { data, error } = await supabaseAdmin.storage
-      .from('cards-media')
+      .from(bucketName)
       .upload(filePath, buffer, {
-        contentType: fileType,
+        contentType: finalFileType,
         upsert: true
       });
     if (error) {
       console.error('❌ Supabase upload error:', error);
       return res.status(500).json({ 
         success: false, 
-        error: 'Storage upload failed',
-        details: error.message
+        error: 'Storage upload failed: ' + error.message,
+        details: error.message,
+        hint: 'Check that the bucket exists in Supabase and RLS policies allow uploads'
       });
     }
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'cards-media';
     const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('cards-media')
+      .from(bucketName)
       .getPublicUrl(filePath);
     console.log(`✅ Media uploaded: ${publicUrl}`);
     res.json({ 
