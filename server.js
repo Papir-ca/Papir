@@ -234,7 +234,6 @@ app.get('/api/health', (req, res) => {
     endpoints: {
       home: `${baseUrl}/`,
       dashboard: `${baseUrl}/app`,
-      maker: `${baseUrl}/maker.html`,
       viewer: `${baseUrl}/viewer.html`,
       batchManager: `${baseUrl}/batch-manager`,
       saveCard: `POST ${baseUrl}/api/cards`,
@@ -1073,7 +1072,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     let successUrl = `${req.protocol}://${req.get('host')}/success.html`;
     let cancelUrl = `${req.protocol}://${req.get('host')}/customize.html`;
     
-    // NEW FLOW: From customize.html / maker.html (flat object format)
+    // NEW FLOW: From customize.html (flat object format)
     if (body.quantity && !body.items) {
       const qty = parseInt(body.quantity) || 1;
       const isBatch = body.is_batch === true || qty > 1;
@@ -1322,154 +1321,8 @@ app.post('/api/activate-after-payment', async (req, res) => {
       }
     }
     
-    // OLD FLOW: From maker.html
-    else if (card_id || batch_id) {
-      console.log('🟡 Old flow activation:', { card_id, batch_id });
-      if (!supabaseAdmin) return res.status(503).json({ error: 'Database not configured' });
-      
-      if (card_id) {
-        const { data: existingCard, error: checkError } = await supabaseAdmin
-          .from('cards')
-          .select('status, batch_id')
-          .eq('card_id', card_id)
-          .single();
-        if (checkError) return res.status(404).json({ error: 'Card not found' });
-        if (existingCard.status === 'active') return res.json({ success: true, already_active: true, card_id });
-        
-        const { error } = await supabaseAdmin
-          .from('cards')
-          .update({ status: 'active', terms_accepted: true, physical_card_status: null, updated_by_ip: clientIp, updated_at: new Date().toISOString() })
-          .eq('card_id', card_id)
-          .eq('status', 'draft');
-        if (error) throw error;
-        
-        await supabaseAdmin.from('card_activations').insert({
-          card_id: card_id,
-          activated_at: new Date().toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: new Date().toISOString(),
-          activation_source: 'maker_old_flow',
-          metadata: { direct_activation: true, source: 'maker.html' }
-        });
-        return res.json({ success: true, message: `Activated card ${card_id}`, card_id: card_id, is_batch: false });
-      }
-      
-      else if (batch_id) {
-        const { data: template, error: templateError } = await supabaseAdmin
-          .from('cards')
-          .select('*')
-          .eq('batch_id', batch_id)
-          .eq('is_batch_template', true)
-          .eq('status', 'draft')
-          .single();
-        if (templateError || !template) {
-          const { data: existingCards } = await supabaseAdmin
-            .from('cards')
-            .select('card_id')
-            .eq('batch_id', batch_id)
-            .eq('status', 'active')
-            .limit(1);
-          if (existingCards && existingCards.length > 0) return res.json({ success: true, already_active: true, batch_id: batch_id, cards_created: existingCards.length });
-          return res.status(404).json({ error: 'Template not found or batch already processed' });
-        }
-        
-        const quantity = template.quantity || 2;
-        const cardsToCreate = [];
-        const now = new Date();
-        for (let i = 2; i <= quantity; i++) {
-          cardsToCreate.push({
-            card_id: 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-            batch_id: batch_id,
-            batch_order: i,
-            message_type: template.message_type,
-            message_text: template.message_text,
-            media_url: template.media_url,
-            overlay_url: template.overlay_url || null,
-            video_url: template.video_url || null,
-            audio_url: template.audio_url || null,
-            has_video_overlay: template.has_video_overlay || false,
-            has_audio_overlay: template.has_audio_overlay || false,
-            file_name: template.file_name,
-            file_size: template.file_size,
-            file_type: template.file_type,
-            status: 'active',
-            card_type: 'ecard',
-            created_by_ip: clientIp,
-            created_at: now.toISOString(),
-            updated_at: now.toISOString(),
-            template_config: template.template_config || null
-          });
-        }
-        if (cardsToCreate.length > 0) await supabaseAdmin.from('cards').insert(cardsToCreate);
-        
-        // Update template card to active and preserve media fields
-        await supabaseAdmin
-          .from('cards')
-          .update({
-            status: 'active',
-            is_batch_template: false,
-            terms_accepted: true,
-            batch_order: 1,
-            physical_card_status: null,
-            updated_by_ip: clientIp,
-            updated_at: now.toISOString(),
-            overlay_url: template.overlay_url,
-            video_url: template.video_url,
-            audio_url: template.audio_url,
-            has_video_overlay: template.has_video_overlay,
-            has_audio_overlay: template.has_audio_overlay,
-            template_config: template.template_config || null
-          })
-          .eq('card_id', template.card_id);
-        
-        // ============================================================
-        // UPDATED BLOCK: Now updates existing batch or creates new one
-        // ============================================================
-        const { data: existingBatch } = await supabaseAdmin
-          .from('batches')
-          .select('batch_id')
-          .eq('batch_id', batch_id)
-          .maybeSingle();
-        if (!existingBatch) {
-          await supabaseAdmin.from('batches').insert({
-            batch_id: batch_id,
-            batch_type: 'ecard',
-            cards_created: parseInt(quantity),
-            total_cards_purchased: parseInt(quantity),
-            max_cards_allowed: parseInt(quantity),
-            created_by_ip: clientIp,
-            created_at: now.toISOString(),
-            updated_at: now.toISOString()
-          });
-        } else {
-          await supabaseAdmin
-            .from('batches')
-            .update({
-              cards_created: parseInt(quantity),
-              total_cards_purchased: parseInt(quantity),
-              max_cards_allowed: parseInt(quantity),
-              status: 'active',
-              updated_by_ip: clientIp,
-              updated_at: now.toISOString()
-            })
-            .eq('batch_id', batch_id);
-        }
-        // ============================================================
-        
-        await supabaseAdmin.from('card_activations').insert({
-          card_id: template.card_id,
-          activated_at: now.toISOString(),
-          activated_by_ip: clientIp,
-          terms_accepted_at: now.toISOString(),
-          activation_source: 'maker_batch_activation',
-          metadata: { batch_id: batch_id, quantity: quantity, was_template: true }
-        });
-        
-        return res.json({ success: true, batch_id: batch_id, cards_created: quantity, is_batch: true });
-      }
-    }
     
-    return res.status(400).json({ error: 'No session_id, card_id, or batch_id provided' });
+    return res.status(400).json({ error: 'No session_id provided' });
     
   } catch (error) {
     console.error('Activation error:', error);
@@ -2298,7 +2151,6 @@ app.use((req, res) => {
     availableEndpoints: [
       `${baseUrl}/`,
       `${baseUrl}/app`,
-      `${baseUrl}/maker.html`,
       `${baseUrl}/viewer.html`,
       `${baseUrl}/batch-manager`,
       `${baseUrl}/api/health`,
@@ -2355,7 +2207,6 @@ app.listen(PORT, () => {
   console.log('\n🔗 MAIN PAGES:');
   console.log(`   Marketing: https://papir.ca`);
   console.log(`   Dashboard: https://papir.ca/app`);
-  console.log(`   Maker: https://papir.ca/maker.html`);
   console.log(`   Viewer: https://papir.ca/viewer.html`);
   console.log(`   Batch Manager: https://papir.ca/batch-manager`);
   console.log('\n🔗 API ENDPOINTS:');

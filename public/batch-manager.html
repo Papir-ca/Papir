@@ -678,22 +678,32 @@
 
         // ========== Init ==========
         async function init() {
-            migrateLegacyData();
-            const savedEmail = getSavedEmail();
-            if (savedEmail) {
-                currentEmail = savedEmail;
-                els.lookupEmail.value = savedEmail;
-                els.emailSection.style.display = 'none';
-                renderOrders();
-            } else {
-                els.emailSection.style.display = 'block';
-                els.ordersSection.style.display = 'none';
-                els.emptyState.style.display = 'none';
-            }
-            await initStripe();
-        }
+    migrateLegacyData();
 
-        init();
+    // Handle direct batch link from index.html modal (?batch=XXX)
+    const urlParams = new URLSearchParams(window.location.search);
+    const batchId = urlParams.get('batch');
+    if (batchId) {
+        els.emailSection.style.display = 'none';
+        await openBatchDetail(batchId);
+        return;
+    }
+
+    const savedEmail = getSavedEmail();
+    if (savedEmail) {
+        currentEmail = savedEmail;
+        els.lookupEmail.value = savedEmail;
+        els.emailSection.style.display = 'none';
+        renderOrders();
+    } else {
+        els.emailSection.style.display = 'block';
+        els.ordersSection.style.display = 'none';
+        els.emptyState.style.display = 'none';
+    }
+    await initStripe();
+}
+
+init();
     </script>
 
     <script>
