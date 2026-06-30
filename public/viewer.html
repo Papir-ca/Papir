@@ -502,7 +502,7 @@
     <div class="notification" id="notification"></div>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        const BACKEND_URL = '';
+        const BACKEND_URL = 'https://papir.ca';
 
         let html5QrCode = null;
         let currentCardId = null;
@@ -565,9 +565,14 @@
                 } else {
                     video.style.display = 'none';
                     overlay.style.display = 'none';
-                    staticImg.style.display = 'block';
-                    if (card.media_url) staticImg.src = card.media_url;
                     video.src = '';
+                    if (card.media_url) {
+                        staticImg.src = card.media_url;
+                        staticImg.style.display = 'block';
+                    } else {
+                        staticImg.src = '';
+                        staticImg.style.display = 'none';
+                    }
                 }
                 
                 if (card.audio_url) {
@@ -748,6 +753,8 @@
             const audio = document.getElementById('cardAudio');
             audio.pause();
             audio.src = '';
+            const staticImg = document.getElementById('cardImage');
+            if (staticImg) { staticImg.src = ''; staticImg.style.display = 'none'; }
             const cardMediaContainer = document.getElementById('cardMediaContainer');
             if (cardMediaContainer) {
                 cardMediaContainer.style.backgroundImage = '';
