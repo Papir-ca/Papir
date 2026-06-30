@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Papir Card Viewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); overscroll-behavior: contain; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         header { text-align: center; padding: 20px 0 40px 0; position: relative; transition: opacity 0.3s ease; }
         .logo { font-size: 42px; font-weight: bold; margin-bottom: 10px; background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -55,7 +55,7 @@
         .input-group { display: flex; gap: 10px; margin-top: 15px; }
         .card-input { flex: 1; padding: 15px 20px; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: white; font-size: 16px; }
         .card-input:focus { outline: none; border-color: #06D6A0; }
-        .btn { padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+        .btn { touch-action: manipulation; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
         .btn-primary { background: linear-gradient(to right, #06D6A0, #118AB2); color: white; }
         .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3); }
         .btn-secondary { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
@@ -444,7 +444,7 @@
 <base target="_blank">
 </head>
 <body>
-    <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    <a href="index.html" class="back-button" target="_self"><i class="fas fa-arrow-left"></i> Back to Home</a>
     <div class="sync-status" id="syncStatus"><i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span></div>
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
@@ -482,9 +482,9 @@
             <div class="card-header"><div class="card-id" id="displayCardId"></div><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div>
             <div class="card-content" id="cardContent">
                 <div id="cardMediaContainer">
-                    <video id="bgVideo" autoplay loop playsinline controls><source src="" type="video/mp4"></video>
-                    <img id="cardOverlay" src="" alt="">
-                    <img id="cardImage" src="" alt="Card">
+                    <video id="bgVideo" autoplay loop playsinline muted controls><source src="" type="video/mp4"></video>
+                    <img id="cardOverlay" src="" alt="" onerror="this.style.display='none'">
+                    <img id="cardImage" src="" alt="Card content">
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
                 
@@ -497,6 +497,7 @@
                 </div>
             </div>
         </div>
+        <div class="loading" id="cardLoading" style="display: none; text-align: center; padding: 40px;"><div class="spinner"></div><div>Loading card...</div></div>
         <div class="empty-state" id="emptyState"><i class="fas fa-qrcode"></i><h3>Ready to Scan</h3><p>Scan a QR code or enter a Card ID above to view content.</p><p style="margin-top: 20px; font-size: 14px; opacity: 0.7;"><i class="fas fa-info-circle"></i> Each card can contain text, images, videos, or audio</p></div>
     </div>
     <div class="notification" id="notification"></div>
@@ -641,6 +642,8 @@
         }
 
         async function fetchCardAndConfirm(cardId) {
+            document.getElementById('cardLoading').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
                 const result = await res.json();
@@ -650,6 +653,8 @@
                 document.getElementById('confirmationModal').classList.add('active');
             } catch (error) {
                 showError(error.message);
+            } finally {
+                document.getElementById('cardLoading').style.display = 'none';
             }
         }
 

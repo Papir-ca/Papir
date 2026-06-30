@@ -116,6 +116,14 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     console.log('⚠️ Webhook: STRIPE_WEBHOOK_SECRET not set - skipping');
     return res.status(503).json({ error: 'Webhook secret not configured - safe to ignore for testing' });
+// HTTPS redirect (uncomment when SSL is configured)
+// app.use((req, res, next) => {
+//   if (req.headers['x-forwarded-proto'] !== 'https') {
+//     return res.redirect('https://' + req.get('host') + req.url);
+//   }
+//   next();
+// });
+
   }
   const sig = req.headers['stripe-signature'];
   let event;
@@ -1397,7 +1405,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
             created_by_ip: clientIp,
             created_at: now.toISOString(),
             updated_at: now.toISOString(),
-            activation_deadline: new Date(now.setFullYear(now.getFullYear() + 1)).toISOString(),
+            activation_deadline: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
             template_config: template.template_config || null
           });
         }
@@ -1866,7 +1874,7 @@ app.post('/api/send-verification-code', async (req, res) => {
             return res.status(429).json({ error: 'Too many requests. Please try again in an hour.' });
         }
 
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const code = crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
         const { error: upsertError } = await supabaseAdmin
@@ -1880,7 +1888,7 @@ app.post('/api/send-verification-code', async (req, res) => {
 
         if (upsertError) {
             console.error('Upsert error:', upsertError);
-            return res.status(500).json({ error: 'Failed to store code' });
+            return res.status(500).json({ error: 'Server error' });
         }
 
         const { error: emailError } = await resend.emails.send({
@@ -1902,7 +1910,7 @@ app.post('/api/send-verification-code', async (req, res) => {
 
         if (emailError) {
             console.error('Email error:', emailError);
-            return res.status(500).json({ error: 'Failed to send email' });
+            return res.status(500).json({ error: 'Server error' });
         }
 
         res.json({ success: true, message: 'Code sent' });
@@ -1933,7 +1941,7 @@ app.post('/api/verify-code-and-find-batches', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Invalid or expired code' });
         }
 
-        // Fetch batches via payments table (same logic as find-my-batches)
+        // Fetch batches via payments table (primary)
         const { data: payments, error: payError } = await supabaseAdmin
             .from('payments')
             .select('batch_id')
@@ -1947,12 +1955,28 @@ app.post('/api/verify-code-and-find-batches', async (req, res) => {
         }
 
         let batches = [];
+        let batchIds = new Set();
+
         if (payments && payments.length > 0) {
-            const batchIds = [...new Set(payments.map(p => p.batch_id))];
+            payments.forEach(p => { if (p.batch_id) batchIds.add(p.batch_id); });
+        }
+
+        // Fallback: also query batches table directly by customer_email
+        const { data: directBatches, error: directError } = await supabaseAdmin
+            .from('batches')
+            .select('batch_id')
+            .eq('customer_email', normalizedEmail)
+            .order('created_at', { ascending: false });
+
+        if (!directError && directBatches) {
+            directBatches.forEach(b => { if (b.batch_id) batchIds.add(b.batch_id); });
+        }
+
+        if (batchIds.size > 0) {
             const { data: batchData, error: batchError } = await supabaseAdmin
                 .from('batches')
                 .select('*')
-                .in('batch_id', batchIds)
+                .in('batch_id', Array.from(batchIds))
                 .order('created_at', { ascending: false });
             if (batchError) {
                 console.error('Batch fetch error:', batchError);
