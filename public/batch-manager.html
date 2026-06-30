@@ -315,6 +315,19 @@
             setTimeout(() => els.notification.classList.remove('show'), 3000);
         }
 
+        function normalizeStatus(status) {
+            const map = {
+                'pending_payment': 'Pending Payment',
+                'pending': 'Pending',
+                'active': 'Active',
+                'draft': 'Draft',
+                'deleted': 'Deleted',
+                'completed': 'Completed',
+                'processing': 'Processing'
+            };
+            return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
+        }
+
         // ========== LocalStorage Order Tracking ==========
         function getOrders() {
             try { return JSON.parse(localStorage.getItem('papir_orders') || '[]'); }
@@ -418,14 +431,15 @@
 
                 const isBatch = order.type === 'batch';
                 const qty = order.qty || (isBatch ? 1 : 1);
-                const status = order.status || 'pending';
+                const rawStatus = order.status || 'pending';
+                const displayStatus = normalizeStatus(rawStatus);
 
                 const badgeClass = isBatch ? 'badge-multi' : 'badge-single';
                 const badgeText = isBatch ? `${qty} Cards` : 'Single Card';
 
                 let statusClass = 'badge-pending';
-                if (status === 'active') statusClass = 'badge-active';
-                else if (status === 'draft') statusClass = 'badge-draft';
+                if (rawStatus === 'active') statusClass = 'badge-active';
+                else if (rawStatus === 'draft') statusClass = 'badge-draft';
 
                 const thumb = order.thumbnailUrl 
                     ? `<img src="${order.thumbnailUrl}" alt="Card preview">` 
@@ -449,7 +463,7 @@
 
                 card.innerHTML = `
                     <span class="order-badge ${badgeClass}">${badgeText}</span>
-                    <span class="order-badge ${statusClass}" style="right: auto; left: 12px;">${status}</span>
+                    <span class="order-badge ${statusClass}" style="right: auto; left: 12px;">${displayStatus}</span>
                     <div class="order-thumb">${thumb}</div>
                     <div class="order-title">${order.name || (isBatch ? 'Card Batch' : 'Single Card')}</div>
                     <div class="order-meta"><i class="fas fa-calendar"></i> ${dateStr} &nbsp;|&nbsp; <i class="fas fa-hashtag"></i> ${order.id}</div>
@@ -493,7 +507,7 @@
                 if (idx >= 0) {
                     orders[idx].cardsCreated = cards.length;
                     orders[idx].maxAllowed = batch.max_cards_allowed || cards.length;
-                    orders[idx].status = batch.status;
+                    orders[idx].status = batch.status || 'pending';
                     orders[idx].name = batch.batch_name || orders[idx].name || 'Card Batch';
                     orders[idx].thumbnailUrl = batch.thumbnail_url || orders[idx].thumbnailUrl || '';
                     saveOrders(orders);
@@ -577,6 +591,7 @@
             renderOrders();
             activeBatchId = null;
             activeBatchData = null;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function copyUrl(url) {
@@ -608,11 +623,12 @@
             if (!email || !email.includes('@')) {
                 notify('Please enter a valid email first', 'error');
                 els.emailSection.style.display = 'block';
-                els.lookupEmail.focus();
+                els.emailSection.scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => els.lookupEmail.focus(), 300);
                 return;
             }
 
-            if (!stripe) { notify('Payment system not ready', 'error'); return; }
+            if (!stripe || !cardStripeElement) { notify('Payment system not ready', 'error'); return; }
             if (!activeBatchId) { notify('No batch selected', 'error'); return; }
 
             const btn = els.addBtn;
@@ -678,32 +694,22 @@
 
         // ========== Init ==========
         async function init() {
-    migrateLegacyData();
+            migrateLegacyData();
+            const savedEmail = getSavedEmail();
+            if (savedEmail) {
+                currentEmail = savedEmail;
+                els.lookupEmail.value = savedEmail;
+                els.emailSection.style.display = 'none';
+                renderOrders();
+            } else {
+                els.emailSection.style.display = 'block';
+                els.ordersSection.style.display = 'none';
+                els.emptyState.style.display = 'none';
+            }
+            await initStripe();
+        }
 
-    // Handle direct batch link from index.html modal (?batch=XXX)
-    const urlParams = new URLSearchParams(window.location.search);
-    const batchId = urlParams.get('batch');
-    if (batchId) {
-        els.emailSection.style.display = 'none';
-        await openBatchDetail(batchId);
-        return;
-    }
-
-    const savedEmail = getSavedEmail();
-    if (savedEmail) {
-        currentEmail = savedEmail;
-        els.lookupEmail.value = savedEmail;
-        els.emailSection.style.display = 'none';
-        renderOrders();
-    } else {
-        els.emailSection.style.display = 'block';
-        els.ordersSection.style.display = 'none';
-        els.emptyState.style.display = 'none';
-    }
-    await initStripe();
-}
-
-init();
+        init();
     </script>
 
     <script>
