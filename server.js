@@ -7,6 +7,10 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 require('dotenv').config();
 
+// 📧 Email verification (Resend)
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 // ============================================
 // FETCH POLYFILL (for Node < 18 compatibility)
 // ============================================
@@ -1839,6 +1843,120 @@ app.post('/api/find-my-batches', async (req, res) => {
     console.error('Find batches error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// ============================================
+// EMAIL VERIFICATION CODE SYSTEM (My Cards security)
+// ============================================
+
+app.post('/api/send-verification-code', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ error: 'Valid email required' });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { data: recentRequests, error: countError } = await supabaseAdmin
+            .from('verification_codes')
+            .select('created_at')
+            .eq('email', normalizedEmail)
+            .gte('created_at', oneHourAgo);
+
+        if (recentRequests && recentRequests.length >= 3) {
+            return res.status(429).json({ error: 'Too many requests. Please try again in an hour.' });
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        const { error: upsertError } = await supabaseAdmin
+            .from('verification_codes')
+            .upsert({
+                email: normalizedEmail,
+                code: code,
+                expires_at: expiresAt.toISOString(),
+                created_at: new Date().toISOString()
+            }, { onConflict: 'email' });
+
+        if (upsertError) {
+            console.error('Upsert error:', upsertError);
+            return res.status(500).json({ error: 'Failed to store code' });
+        }
+
+        const { error: emailError } = await resend.emails.send({
+            from: 'Papir <noreply@papir.ca>',
+            to: normalizedEmail,
+            subject: 'Your Papir Verification Code',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+                    <h2 style="color: #BCAE83;">Papir Verification</h2>
+                    <p>Your verification code is:</p>
+                    <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; border-radius: 8px; margin: 20px 0;">
+                        ${code}
+                    </div>
+                    <p>This code expires in 10 minutes.</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't request this, please ignore this email.</p>
+                </div>
+            `
+        });
+
+        if (emailError) {
+            console.error('Email error:', emailError);
+            return res.status(500).json({ error: 'Failed to send email' });
+        }
+
+        res.json({ success: true, message: 'Code sent' });
+    } catch (err) {
+        console.error('Send code error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/verify-code-and-find-batches', async (req, res) => {
+    try {
+        const { email, code } = req.body;
+        if (!email || !code) {
+            return res.status(400).json({ error: 'Email and code required' });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        const { data: record, error: verifyError } = await supabaseAdmin
+            .from('verification_codes')
+            .select('*')
+            .eq('email', normalizedEmail)
+            .eq('code', code)
+            .gt('expires_at', new Date().toISOString())
+            .single();
+
+        if (verifyError || !record) {
+            return res.status(401).json({ success: false, error: 'Invalid or expired code' });
+        }
+
+        await supabaseAdmin
+            .from('verification_codes')
+            .delete()
+            .eq('email', normalizedEmail);
+
+        const { data: batches, error: batchError } = await supabaseAdmin
+            .from('batches')
+            .select('*')
+            .eq('email', normalizedEmail)
+            .order('created_at', { ascending: false });
+
+        if (batchError) {
+            console.error('Batch fetch error:', batchError);
+            return res.status(500).json({ error: 'Failed to fetch batches' });
+        }
+
+        res.json({ success: true, batches: batches || [] });
+    } catch (err) {
+        console.error('Verify error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ============================================

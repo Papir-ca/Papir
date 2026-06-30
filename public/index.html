@@ -6,693 +6,256 @@
     <title>Papir - Digital Cards, Personal Magic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== YOUR EXISTING CSS – UNCHANGED ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --darker: #16213e; --light-text: #a0aec0; --white: #ffffff; --shadow: 0 20px 40px rgba(0, 0, 0, 0.1); --transition: all 0.3s ease; }
+        body { color: var(--dark); line-height: 1.6; }
+        .header { background: var(--white); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05); position: fixed; width: 100%; top: 0; z-index: 1000; padding: 15px 0; }
+        .nav-container { max-width: 1000px; margin: 0 auto; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; text-decoration: none; }
+        .logo-text { font-size: 28px; font-weight: 700; color: var(--dark); letter-spacing: -0.5px; }
+        .logo-text span:first-child { color: var(--gold); }
+        .logo-text span:last-child { color: var(--teal); }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--gold); }
+        .hero { background: linear-gradient(135deg, #faf9f7 0%, #ffffff 100%); padding: 200px 20px 80px; text-align: center; }
+        .hero h1 { font-size: 2.8rem; margin-bottom: 15px; color: var(--dark); font-weight: 700; line-height: 1.2; }
+        .hero h1 span { color: var(--gold); }
+        .hero p { font-size: 1.1rem; color: #4a5568; max-width: 600px; margin: 0 auto 30px; }
+        .hero-buttons { display: flex; gap: 15px; justify-content: center; margin-bottom: 40px; }
+        .btn-primary { background: var(--gold); color: var(--white); padding: 16px 40px; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(188, 174, 131, 0.2); }
+        .btn-primary:hover { background: #a8996f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(188, 174, 131, 0.3); }
+        .btn-secondary { background: transparent; color: var(--dark); padding: 14px 32px; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: var(--transition); border: 2px solid #e2e8f0; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-secondary:hover { border-color: var(--gold); background: rgba(188, 174, 131, 0.05); transform: translateY(-3px); }
+        .features { padding: 40px 20px; background: #faf9f7; }
+        .section-title { text-align: center; font-size: 1.8rem; margin-bottom: 10px; color: var(--dark); font-weight: 600; }
+        .section-subtitle { text-align: center; color: #4a5568; max-width: 500px; margin: 0 auto 30px; font-size: 1rem; }
+        .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 900px; margin: 0 auto; }
+        .feature-item { text-align: center; padding: 25px 15px; background: var(--white); border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); transition: var(--transition); }
+        .feature-item:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        .feature-icon { font-size: 1.8rem; color: var(--gold); margin-bottom: 12px; }
+        .feature-item h4 { font-size: 1rem; margin-bottom: 8px; color: var(--dark); }
+        .feature-item p { color: #4a5568; font-size: 0.85rem; }
+        .process { padding: 40px 20px; background: var(--white); }
+        .process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 800px; margin: 0 auto; }
+        .process-step { text-align: center; }
+        .step-number { width: 45px; height: 45px; background: var(--gold); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; margin: 0 auto 15px; }
+        .process-step h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--dark); }
+        .process-step p { color: #4a5568; font-size: 0.85rem; }
+        .use-cases { padding: 40px 20px; background: #faf9f7; }
+        .use-cases-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 800px; margin: 0 auto; }
+        .use-case { text-align: center; padding: 20px; background: var(--white); border-radius: 10px; }
+        .use-case-icon { font-size: 1.8rem; margin-bottom: 8px; color: var(--gold); }
+        .use-case h4 { font-size: 0.95rem; margin-bottom: 3px; color: var(--dark); }
+        .use-case p { font-size: 0.8rem; color: #4a5568; }
+        .footer { background: var(--dark); color: var(--white); padding: 40px 20px 20px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 800px; margin: 0 auto 30px; }
+        .footer-column h4 { color: var(--gold); margin-bottom: 15px; font-size: 1rem; }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 8px; }
+        .footer-links a { color: rgba(255, 255, 255, 0.7); text-decoration: none; transition: var(--transition); font-size: 0.85rem; }
+        .footer-links a:hover { color: var(--gold); padding-left: 5px; }
+        .footer-bottom { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; text-align: center; color: rgba(255, 255, 255, 0.5); font-size: 0.8rem; max-width: 800px; margin: 0 auto; }
+        .footer-bottom a { color: var(--gold); text-decoration: none; }
+        @media (max-width: 768px) {
+            .header { position: relative; }
+            .nav-container { flex-direction: column; gap: 10px; }
+            .nav-links { gap: 4px; flex-wrap: wrap; justify-content: center; padding: 0; margin: 0; width: 100%; }
+            .nav-links a { white-space: nowrap; font-size: 0.8rem; padding: 4px 6px; }
+            .hero { padding: 40px 15px 50px; }
+            .hero h1 { font-size: 2rem; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .features-grid, .process-grid, .use-cases-grid, .footer-grid { grid-template-columns: 1fr; }
         }
-
-        :root {
-            --gold: #BCAE83;
-            --teal: #06D6A0;
-            --dark: #1a1a2e;
-            --darker: #16213e;
-            --light-text: #a0aec0;
-            --white: #ffffff;
-            --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-        }
-
-        body {
-            color: var(--dark);
-            line-height: 1.6;
-        }
-
-        /* Header */
-        .header {
-            background: var(--white);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 15px 0;
-        }
-
-        .nav-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-        }
-
-        .logo-text {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--dark);
-            letter-spacing: -0.5px;
-        }
-
-        .logo-text span:first-child {
-            color: var(--gold);
-        }
-
-        .logo-text span:last-child {
-            color: var(--teal);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--dark);
-            font-weight: 500;
-            transition: var(--transition);
-            font-size: 0.95rem;
-        }
-
-        .nav-links a:hover {
-            color: var(--gold);
-        }
-
-        /* Hero Section - Centered, Minimal */
-        .hero {
-            background: linear-gradient(135deg, #faf9f7 0%, #ffffff 100%);
-            padding: 200px 20px 80px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            color: var(--dark);
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .hero h1 span {
-            color: var(--gold);
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            color: #4a5568;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 40px;
-        }
-
-        .btn-primary {
-            background: var(--gold);
-            color: var(--white);
-            padding: 16px 40px;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 20px rgba(188, 174, 131, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: #a8996f;
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(188, 174, 131, 0.3);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--dark);
-            padding: 14px 32px;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: var(--transition);
-            border: 2px solid #e2e8f0;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--gold);
-            background: rgba(188, 174, 131, 0.05);
-            transform: translateY(-3px);
-        }
-
-        /* 
-        DORMANT: Physical Card QR Demo Styles
-        Preserved for future physical card activation
-        --
-        .demo-float { text-align: center; margin: 20px 0 40px; }
-        .floating-qr { width: 120px; height: 120px; background: var(--white); border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--dark); cursor: pointer; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); animation: float 3s ease-in-out infinite; border: 2px solid var(--gold); }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .floating-qr:hover { animation: none; transform: scale(1.05); }
-        .demo-text { margin-top: 15px; color: #4a5568; font-size: 0.9rem; }
-        .demo-text a { color: var(--gold); text-decoration: none; font-weight: 600; }
-        --
-        End Dormant Styles
-        */
-
-        /* Features - Compact Grid */
-        .features {
-            padding: 40px 20px;
-            background: #faf9f7;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            color: var(--dark);
-            font-weight: 600;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            color: #4a5568;
-            max-width: 500px;
-            margin: 0 auto 30px;
-            font-size: 1rem;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .feature-item {
-            text-align: center;
-            padding: 25px 15px;
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: var(--transition);
-        }
-
-        .feature-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            font-size: 1.8rem;
-            color: var(--gold);
-            margin-bottom: 12px;
-        }
-
-        .feature-item h4 {
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-
-        .feature-item p {
-            color: #4a5568;
-            font-size: 0.85rem;
-        }
-
-        /* Process - 3 Steps Compact */
-        .process {
-            padding: 40px 20px;
-            background: var(--white);
-        }
-
-        .process-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .process-step {
-            text-align: center;
-        }
-
-        .step-number {
-            width: 45px;
-            height: 45px;
-            background: var(--gold);
-            color: var(--white);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin: 0 auto 15px;
-        }
-
-        .process-step h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-
-        .process-step p {
-            color: #4a5568;
-            font-size: 0.85rem;
-        }
-
-        /* Use Cases - 4 Items */
-        .use-cases {
-            padding: 40px 20px;
-            background: #faf9f7;
-        }
-
-        .use-cases-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .use-case {
-            text-align: center;
-            padding: 20px;
-            background: var(--white);
-            border-radius: 10px;
-        }
-
-        .use-case-icon {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: var(--gold);
-        }
-
-        .use-case h4 {
-            font-size: 0.95rem;
-            margin-bottom: 3px;
-            color: var(--dark);
-        }
-
-        .use-case p {
-            font-size: 0.8rem;
-            color: #4a5568;
-        }
-
-        /* Footer - Clean */
-        .footer {
-            background: var(--dark);
-            color: var(--white);
-            padding: 40px 20px 20px;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            max-width: 800px;
-            margin: 0 auto 30px;
-        }
-
-        .footer-column h4 {
-            color: var(--gold);
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 8px;
-        }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            transition: var(--transition);
-            font-size: 0.85rem;
-        }
-
-        .footer-links a:hover {
-            color: var(--gold);
-            padding-left: 5px;
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.8rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .footer-bottom a {
-            color: var(--gold);
-            text-decoration: none;
-        }
-
-                @media (max-width: 768px) {
-            .header {
-                position: relative;
-            }
-            .nav-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .nav-links {
-                gap: 4px;
-                flex-wrap: wrap;
-                justify-content: center;
-                padding: 0;
-                margin: 0;
-                width: 100%;
-            }
-            .nav-links a {
-                white-space: nowrap;
-                font-size: 0.8rem;
-                padding: 4px 6px;
-            }
-            .hero {
-                padding: 40px 15px 50px;
-            }
-            .hero h1 {
-                font-size: 2rem;
-            }
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            .features-grid,
-            .process-grid,
-            .use-cases-grid,
-            .footer-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        @media (max-width: 480px) {
-            .hero {
-                padding: 30px 15px 40px;
-            }
-        }  }
-        }
+        @media (max-width: 480px) { .hero { padding: 30px 15px 40px; } }
     </style>
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <div class="nav-container">
-            <a href="index.html" class="logo">
-                <div class="logo-text">
-                    <span>PAP</span><span>IR</span>
-                </div>
-            </a>
+            <a href="index.html" class="logo"><div class="logo-text"><span>PAP</span><span>IR</span></div></a>
             <nav class="nav-links">
                 <a href="templates.html">Templates</a>
                 <a href="#process">How It Works</a>
                 <a href="#features">What You Add</a>
                 <a href="#use-cases">Uses</a>
-                <!-- CSP‑compliant My Cards link (no inline onclick) -->
-                <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;">
-                    <i class="fas fa-folder-open"></i> My Cards
-                </a>
+                <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;"><i class="fas fa-folder-open"></i> My Cards</a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero -->
     <section class="hero">
         <h1>Digital Cards with <span>Personal Magic</span></h1>
         <p>Create personalized e-cards that come alive with video, audio, images, or text. Share instantly via link for $2.99. No app required.</p>
-        
         <div class="hero-buttons">
-            <a href="templates.html" class="btn-primary">
-                <i class="fas fa-palette"></i> Browse Templates
-            </a>
+            <a href="templates.html" class="btn-primary"><i class="fas fa-palette"></i> Browse Templates</a>
         </div>
-
-        <!-- 
-        DORMANT: Physical Card QR Demo Section
-        Preserved for future physical card activation
-        --
-        <div class="demo-float" id="demo">
-            <div class="floating-qr" onclick="window.location.href='viewer.html?card=demo'">
-                <i class="fas fa-qrcode"></i>
-            </div>
-            <div class="demo-text">
-                <p>Scan to see a live demo | <a href="viewer.html?card=demo">View in Browser</a></p>
-            </div>
-        </div>
-        --
-        End Dormant Section
-        -->
     </section>
 
-    <!-- What You Can Add -->
     <section id="features" class="features">
         <h2 class="section-title">What You Can Add</h2>
         <p class="section-subtitle">Choose the type of magic for your card</p>
-        
         <div class="features-grid">
-            <div class="feature-item">
-                <div class="feature-icon"><i class="fas fa-video"></i></div>
-                <h4>Video</h4>
-                <p>Upload a personal video message</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon"><i class="fas fa-music"></i></div>
-                <h4>Audio</h4>
-                <p>Upload a voice message or song</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon"><i class="fas fa-image"></i></div>
-                <h4>Photo</h4>
-                <p>Upload a beautiful picture</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon"><i class="fas fa-comment"></i></div>
-                <h4>Text</h4>
-                <p>Add a personalized message</p>
-            </div>
+            <div class="feature-item"><div class="feature-icon"><i class="fas fa-video"></i></div><h4>Video</h4><p>Upload a personal video message</p></div>
+            <div class="feature-item"><div class="feature-icon"><i class="fas fa-music"></i></div><h4>Audio</h4><p>Upload a voice message or song</p></div>
+            <div class="feature-item"><div class="feature-icon"><i class="fas fa-image"></i></div><h4>Photo</h4><p>Upload a beautiful picture</p></div>
+            <div class="feature-item"><div class="feature-icon"><i class="fas fa-comment"></i></div><h4>Text</h4><p>Add a personalized message</p></div>
         </div>
     </section>
 
-    <!-- Process -->
     <section id="process" class="process">
         <h2 class="section-title">How It Works</h2>
-        
         <div class="process-grid">
-            <div class="process-step">
-                <div class="step-number">1</div>
-                <h3>Choose Design</h3>
-                <p>Browse 44+ templates or start with a blank canvas</p>
-            </div>
-            <div class="process-step">
-                <div class="step-number">2</div>
-                <h3>Personalize</h3>
-                <p>Add your video, audio, photos, and message</p>
-            </div>
-            <div class="process-step">
-                <div class="step-number">3</div>
-                <h3>Send Link</h3>
-                <p>Share the unique link instantly. Recipients view in any browser—no app needed</p>
-            </div>
+            <div class="process-step"><div class="step-number">1</div><h3>Choose Design</h3><p>Browse 44+ templates or start with a blank canvas</p></div>
+            <div class="process-step"><div class="step-number">2</div><h3>Personalize</h3><p>Add your video, audio, photos, and message</p></div>
+            <div class="process-step"><div class="step-number">3</div><h3>Send Link</h3><p>Share the unique link instantly. Recipients view in any browser—no app needed</p></div>
         </div>
-
-        <!-- 
-        DORMANT: Physical Card Process Steps (Original)
-        Preserved for future physical card activation
-        --
-        <div class="process-grid">
-            <div class="process-step">
-                <div class="step-number">1</div>
-                <h3>Activate</h3>
-                <p>Scan the QR code on your card and accept terms</p>
-            </div>
-            <div class="process-step">
-                <div class="step-number">2</div>
-                <h3>Add Content</h3>
-                <p>Upload video, audio, photo, or write your personalized texts</p>
-            </div>
-            <div class="process-step">
-                <div class="step-number">3</div>
-                <h3>Share</h3>
-                <p>Give the card - the receiver scans the QR code and see your magic</p>
-            </div>
-        </div>
-        --
-        End Dormant Process
-        -->
     </section>
 
-    <!-- Perfect For -->
     <section id="use-cases" class="use-cases">
         <h2 class="section-title">Perfect For</h2>
-        
         <div class="use-cases-grid">
-            <div class="use-case">
-                <div class="use-case-icon">🎂</div>
-                <h4>Birthday</h4>
-                <p>Video messages from afar</p>
-            </div>
-            <div class="use-case">
-                <div class="use-case-icon">💍</div>
-                <h4>Wedding</h4>
-                <p>Invitations with love stories</p>
-            </div>
-            <div class="use-case">
-                <div class="use-case-icon">🤒</div>
-                <h4>Get Well</h4>
-                <p>Warm wishes from home</p>
-            </div>
-            <div class="use-case">
-                <div class="use-case-icon">🎁</div>
-                <h4>Gift</h4>
-                <p>Personalized messages</p>
-            </div>
+            <div class="use-case"><div class="use-case-icon">🎂</div><h4>Birthday</h4><p>Video messages from afar</p></div>
+            <div class="use-case"><div class="use-case-icon">💍</div><h4>Wedding</h4><p>Invitations with love stories</p></div>
+            <div class="use-case"><div class="use-case-icon">🤒</div><h4>Get Well</h4><p>Warm wishes from home</p></div>
+            <div class="use-case"><div class="use-case-icon">🎁</div><h4>Gift</h4><p>Personalized messages</p></div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-grid">
-            <div class="footer-column">
-                <h4>Papir</h4>
-                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Digital cards that come alive with personal magic.</p>
-            </div>
-            <div class="footer-column">
-                <h4>Product</h4>
-                <ul class="footer-links">
-                    <li><a href="templates.html">Browse Templates</a></li>
-                    
-                    <li><a href="#process">How It Works</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h4>Legal</h4>
-                <ul class="footer-links">
-                    <li><a href="terms.html">Terms</a></li>
-                    <li><a href="privacy.html">Privacy</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                </ul>
-            </div>
+            <div class="footer-column"><h4>Papir</h4><p style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Digital cards that come alive with personal magic.</p></div>
+            <div class="footer-column"><h4>Product</h4><ul class="footer-links"><li><a href="templates.html">Browse Templates</a></li><li><a href="#process">How It Works</a></li></ul></div>
+            <div class="footer-column"><h4>Legal</h4><ul class="footer-links"><li><a href="terms.html">Terms</a></li><li><a href="privacy.html">Privacy</a></li><li><a href="contact.html">Contact</a></li></ul></div>
         </div>
-        <div class="footer-bottom">
-            <p>© 2024 Papir. All rights reserved. | <a href="index.html">Home</a></p>
-        </div>
+        <div class="footer-bottom"><p>© 2024 Papir. All rights reserved. | <a href="index.html">Home</a></p></div>
     </footer>
 
-    <!-- ========== MODAL (already CSP‑safe) ========== -->
     <div id="findBatchesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: #1a1a2e; border: 2px solid #BCAE83; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; color: white; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
             <button id="closeModalBtn" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
             <h2 style="color: #BCAE83; margin-bottom: 10px; font-size: 1.5rem;">Find Your Cards</h2>
-            <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">Enter the email used during purchase:</p>
-            <div id="searchForm">
-                <input type="email" id="findEmailInput" placeholder="you@example.com" 
-                       style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #16213e; color: white; margin-bottom: 15px; font-size: 1rem;">
-                <button id="searchBatchesBtn" style="width: 100%; padding: 12px; background: #BCAE83; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem;">
-                    <i class="fas fa-search"></i> Find My Cards
-                </button>
+
+            <div id="step1">
+                <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">Enter the email used during purchase:</p>
+                <input type="email" id="findEmailInput" placeholder="you@example.com" style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #16213e; color: white; font-size: 1rem;">
+                <button id="sendCodeBtn" style="width: 100%; padding: 12px; background: #BCAE83; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 15px;"><i class="fas fa-paper-plane"></i> Send Verification Code</button>
             </div>
-            <div id="searchLoading" style="display: none; text-align: center; padding: 20px;">
+
+            <div id="step1Loading" style="display: none; text-align: center; padding: 20px;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #BCAE83;"></i>
-                <p style="color: #a0aec0; margin-top: 10px;">Searching...</p>
+                <p style="color: #a0aec0; margin-top: 10px;">Sending code...</p>
             </div>
+
+            <div id="step2" style="display: none;">
+                <p style="color: #a0aec0; margin-bottom: 10px; font-size: 0.9rem;">Enter the 6-digit code sent to <strong id="verifyEmailDisplay" style="color: #fff;"></strong></p>
+                <input type="text" id="codeInput" placeholder="123456" maxlength="6" style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #16213e; color: white; font-size: 1.5rem; text-align: center; letter-spacing: 8px;">
+                <div id="codeError" style="color: #ff6b6b; font-size: 0.85rem; margin-top: 10px; display: none;">Invalid or expired code. Please try again.</div>
+                <button id="verifyCodeBtn" style="width: 100%; padding: 12px; background: #06D6A0; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 15px;"><i class="fas fa-check"></i> Verify & Find My Cards</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="resendCodeBtn" style="flex: 1; padding: 10px; background: transparent; border: 1px solid #444; color: #a0aec0; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Resend Code</button>
+                    <button id="backToEmailBtn" style="flex: 1; padding: 10px; background: transparent; border: 1px solid #444; color: #a0aec0; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Different Email</button>
+                </div>
+            </div>
+
+            <div id="step2Loading" style="display: none; text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #BCAE83;"></i>
+                <p style="color: #a0aec0; margin-top: 10px;">Verifying...</p>
+            </div>
+
             <div id="searchResults" style="display: none; max-height: 300px; overflow-y: auto; margin-top: 15px;"></div>
-            <button id="backToSearchBtn" style="display: none; width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px solid #444; color: #a0aec0; border-radius: 5px; cursor: pointer;">
-                Search Different Email
-            </button>
+
+            <button id="backToSearchBtn" style="display: none; width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px solid #444; color: #a0aec0; border-radius: 5px; cursor: pointer;">Search Different Email</button>
         </div>
     </div>
 
     <script>
         const BACKEND_URL = 'https://papir.ca';
+        let currentVerifyEmail = '';
 
-        // ========== MODAL FUNCTIONS (CSP‑compliant) ==========
-        function searchBatchesSimple() {
-            const email = document.getElementById('findEmailInput').value.trim().toLowerCase();
-            if (!email || !email.includes('@')) {
-                alert('Please enter a valid email address');
-                return;
+        function showStep(step) {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step1Loading').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step2Loading').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('backToSearchBtn').style.display = 'none';
+            document.getElementById('codeError').style.display = 'none';
+            if (step === 1) document.getElementById('step1').style.display = 'block';
+            if (step === '1loading') document.getElementById('step1Loading').style.display = 'block';
+            if (step === 2) document.getElementById('step2').style.display = 'block';
+            if (step === '2loading') document.getElementById('step2Loading').style.display = 'block';
+            if (step === 'results') {
+                document.getElementById('searchResults').style.display = 'block';
+                document.getElementById('backToSearchBtn').style.display = 'block';
             }
-            document.getElementById('searchForm').style.display = 'none';
-            document.getElementById('searchLoading').style.display = 'block';
-            fetch(BACKEND_URL + '/api/find-my-batches', {
+        }
+
+        function sendVerificationCode() {
+            const email = document.getElementById('findEmailInput').value.trim().toLowerCase();
+            if (!email || !email.includes('@')) { alert('Please enter a valid email address'); return; }
+            currentVerifyEmail = email;
+            showStep('1loading');
+            fetch(BACKEND_URL + '/api/send-verification-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
             })
             .then(r => r.json())
             .then(data => {
-                document.getElementById('searchLoading').style.display = 'none';
-                const resultsDiv = document.getElementById('searchResults');
-                resultsDiv.style.display = 'block';
-                const backBtn = document.getElementById('backToSearchBtn');
-                backBtn.style.display = 'block';
-                if (data.success && data.batches && data.batches.length > 0) {
-                    let html = '<p style="color: #06D6A0; margin-bottom: 15px;">Found ' + data.batches.length + ' batch(es):</p>';
-                    data.batches.forEach(batch => {
-                        const date = new Date(batch.created_at).toLocaleDateString();
-                        html += '<div style="background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 8px; padding: 15px; margin-bottom: 10px;">' +
-                                '<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><strong style="color: #BCAE83;">' + batch.batch_id + '</strong>' +
-                                '<span style="background: #06D6A0; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">' + batch.cards_created + ' cards</span></div>' +
-                                '<p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">' + date + '</p>' +
-                                '<a href="/batch-manager?batch=' + encodeURIComponent(batch.batch_id) + '" ' +
-                                'style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">View Cards →</a>' +
-                                '</div>';
-                    });
-                    resultsDiv.innerHTML = html;
+                if (data.success) {
+                    document.getElementById('verifyEmailDisplay').textContent = email;
+                    document.getElementById('codeInput').value = '';
+                    showStep(2);
                 } else {
-                    resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #a0aec0;"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No batches found for this email.</p></div>';
+                    alert(data.error || 'Failed to send code. Please try again.');
+                    showStep(1);
                 }
             })
-            .catch(err => {
-                document.getElementById('searchLoading').style.display = 'none';
-                document.getElementById('searchForm').style.display = 'block';
-                alert('Error searching: ' + err.message);
-            });
+            .catch(err => { alert('Error: ' + err.message); showStep(1); });
         }
 
-        // Close modal when clicking outside
-        document.getElementById('findBatchesModal').addEventListener('click', function(e) {
-            if (e.target === this) this.style.display = 'none';
-        });
+        function verifyCodeAndFindBatches() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { alert('Please enter the 6-digit code'); return; }
+            showStep('2loading');
+            fetch(BACKEND_URL + '/api/verify-code-and-find-batches', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentVerifyEmail, code: code })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showStep('results');
+                    const resultsDiv = document.getElementById('searchResults');
+                    if (data.batches && data.batches.length > 0) {
+                        let html = '<p style="color: #06D6A0; margin-bottom: 15px;">Found ' + data.batches.length + ' batch(es):</p>';
+                        data.batches.forEach(batch => {
+                            const date = new Date(batch.created_at).toLocaleDateString();
+                            html += '<div style="background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 8px; padding: 15px; margin-bottom: 10px;">' +
+                                    '<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><strong style="color: #BCAE83;">' + batch.batch_id + '</strong>' +
+                                    '<span style="background: #06D6A0; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">' + batch.cards_created + ' cards</span></div>' +
+                                    '<p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">' + date + '</p>' +
+                                    '<a href="/batch-manager?batch=' + encodeURIComponent(batch.batch_id) + '" style="display: block; text-align: center; background: #BCAE83; color: #1a1a2e; text-decoration: none; padding: 8px; border-radius: 5px; font-weight: 600;">View Cards →</a>' +
+                                    '</div>';
+                        });
+                        resultsDiv.innerHTML = html;
+                    } else {
+                        resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #a0aec0;"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No batches found for this email.</p></div>';
+                    }
+                } else {
+                    document.getElementById('codeError').textContent = data.error || 'Invalid or expired code. Please try again.';
+                    document.getElementById('codeError').style.display = 'block';
+                    showStep(2);
+                }
+            })
+            .catch(err => { alert('Error: ' + err.message); showStep(2); });
+        }
 
-        // Allow Enter key in email input
-        document.getElementById('findEmailInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchBatchesSimple();
-        });
+        document.getElementById('findBatchesModal').addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
 
-        // ========== CSP‑COMPLIANT EVENT LISTENERS ==========
         document.addEventListener('DOMContentLoaded', function() {
-            // My Cards nav link
             const myBatchesNav = document.getElementById('myBatchesNav');
             if (myBatchesNav) {
                 myBatchesNav.addEventListener('click', function(e) {
@@ -700,47 +263,56 @@
                     const modal = document.getElementById('findBatchesModal');
                     if (modal) {
                         modal.style.display = 'flex';
-                        const emailInput = document.getElementById('findEmailInput');
-                        if (emailInput) emailInput.focus();
+                        document.getElementById('findEmailInput').value = '';
+                        document.getElementById('codeInput').value = '';
+                        currentVerifyEmail = '';
+                        showStep(1);
+                        setTimeout(() => document.getElementById('findEmailInput').focus(), 100);
                     }
                 });
             }
-            // Close modal X button
+
             const closeModalBtn = document.getElementById('closeModalBtn');
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', function() {
-                    document.getElementById('findBatchesModal').style.display = 'none';
-                });
-            }
-            // Search batches button
-            const searchBatchesBtn = document.getElementById('searchBatchesBtn');
-            if (searchBatchesBtn) {
-                searchBatchesBtn.addEventListener('click', searchBatchesSimple);
-            }
-            // Back to search button
+            if (closeModalBtn) { closeModalBtn.addEventListener('click', function() { document.getElementById('findBatchesModal').style.display = 'none'; }); }
+
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            if (sendCodeBtn) sendCodeBtn.addEventListener('click', sendVerificationCode);
+
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+            if (verifyCodeBtn) verifyCodeBtn.addEventListener('click', verifyCodeAndFindBatches);
+
+            const resendCodeBtn = document.getElementById('resendCodeBtn');
+            if (resendCodeBtn) resendCodeBtn.addEventListener('click', sendVerificationCode);
+
+            const backToEmailBtn = document.getElementById('backToEmailBtn');
+            if (backToEmailBtn) { backToEmailBtn.addEventListener('click', function() { document.getElementById('codeInput').value = ''; showStep(1); }); }
+
             const backToSearchBtn = document.getElementById('backToSearchBtn');
             if (backToSearchBtn) {
                 backToSearchBtn.addEventListener('click', function() {
-                    document.getElementById('searchForm').style.display = 'block';
-                    document.getElementById('searchResults').style.display = 'none';
-                    backToSearchBtn.style.display = 'none';
+                    document.getElementById('findEmailInput').value = '';
+                    document.getElementById('codeInput').value = '';
+                    currentVerifyEmail = '';
+                    showStep(1);
                 });
             }
+
+            const findEmailInput = document.getElementById('findEmailInput');
+            if (findEmailInput) { findEmailInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendVerificationCode(); }); }
+
+            const codeInput = document.getElementById('codeInput');
+            if (codeInput) { codeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyCodeAndFindBatches(); }); }
         });
 
-        // ========== SMOOTH SCROLLING & HEADER EFFECT (unchanged) ==========
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+            anchor.addEventListener('click', function(e) {
                 const targetId = this.getAttribute('href');
-                if(targetId === '#' || targetId === '#demo') return;
-                if(targetId && targetId !== '#') {
+                if (targetId === '#' || targetId === '#demo') return;
+                if (targetId && targetId !== '#') {
                     const targetElement = document.querySelector(targetId);
-                    if(targetElement) {
+                    if (targetElement) {
                         e.preventDefault();
-                        window.scrollTo({
-                            top: targetElement.offsetTop - 70,
-                            behavior: 'smooth'
-                        });
+                        window.scrollTo({ top: targetElement.offsetTop - 70, behavior: 'smooth' });
                     }
                 }
             });
@@ -748,23 +320,9 @@
 
         window.addEventListener('scroll', function() {
             const header = document.querySelector('.header');
-            if(window.scrollY > 50) {
-                header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
-            } else {
-                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
-            }
+            if (window.scrollY > 50) { header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)'; }
+            else { header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)'; }
         });
-
-        /*
-        DORMANT: Physical Card QR Demo Handler
-        Preserved for future physical card activation
-        --
-        function openDemo() {
-            window.location.href = 'viewer.html?card=demo';
-        }
-        --
-        End Dormant Handler
-        */
     </script>
 </body>
 </html>
