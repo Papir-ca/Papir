@@ -1936,23 +1936,41 @@ app.post('/api/verify-code-and-find-batches', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Invalid or expired code' });
         }
 
+        // Fetch batches via payments table (same logic as find-my-batches)
+        const { data: payments, error: payError } = await supabaseAdmin
+            .from('payments')
+            .select('batch_id')
+            .eq('customer_email', normalizedEmail)
+            .not('batch_id', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (payError) {
+            console.error('Payments fetch error:', payError);
+            return res.status(500).json({ success: false, error: 'Failed to fetch purchase history' });
+        }
+
+        let batches = [];
+        if (payments && payments.length > 0) {
+            const batchIds = [...new Set(payments.map(p => p.batch_id))];
+            const { data: batchData, error: batchError } = await supabaseAdmin
+                .from('batches')
+                .select('*')
+                .in('batch_id', batchIds)
+                .order('created_at', { ascending: false });
+            if (batchError) {
+                console.error('Batch fetch error:', batchError);
+            } else {
+                batches = batchData || [];
+            }
+        }
+
+        // Delete code only after successful fetch
         await supabaseAdmin
             .from('verification_codes')
             .delete()
             .eq('email', normalizedEmail);
 
-        const { data: batches, error: batchError } = await supabaseAdmin
-            .from('batches')
-            .select('*')
-            .eq('email', normalizedEmail)
-            .order('created_at', { ascending: false });
-
-        if (batchError) {
-            console.error('Batch fetch error:', batchError);
-            return res.status(500).json({ error: 'Failed to fetch batches' });
-        }
-
-        res.json({ success: true, batches: batches || [] });
+        res.json({ success: true, batches: batches });
     } catch (err) {
         console.error('Verify error:', err);
         res.status(500).json({ error: 'Server error' });
