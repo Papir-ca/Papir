@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 require('dotenv').config();
+const crypto = require('crypto');
 
 // 📧 Email verification (Resend)
 const { Resend } = require('resend');
