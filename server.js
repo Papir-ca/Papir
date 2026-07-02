@@ -1075,9 +1075,50 @@ app.get('/api/admin/performance', async (req, res) => {
 
 app.get('/api/admin/mismatch-alerts', async (req, res) => {
   try {
-    const { data, error } = await supabaseAdmin.from('cards').select('card_id, created_by_ip, updated_by_ip, created_at').eq('status', 'active').neq('created_by_ip', null).neq('updated_by_ip', null).neq('created_by_ip', 'updated_by_ip').order('created_at', { ascending: false }).limit(50);
-    if (error) throw error;
-    res.json({ success: true, alerts: data || [] });
+    const { data: activations, error: actError } = await supabaseAdmin
+      .from('card_activations')
+      .select('card_id, country, city, activated_at, activation_source')
+      .not('country', 'is', null)
+      .order('activated_at', { ascending: false })
+      .limit(200);
+    if (actError) throw actError;
+    const cardIds = [...new Set((activations || []).map(a => a.card_id))];
+    const { data: cards, error: cardError } = await supabaseAdmin
+      .from('cards')
+      .select('card_id, batch_id, created_by_ip, updated_by_ip')
+      .in('card_id', cardIds);
+    if (cardError) throw cardError;
+    const batchIds = [...new Set((cards || []).map(c => c.batch_id).filter(Boolean))];
+    const { data: batches, error: batchError } = await supabaseAdmin
+      .from('batches')
+      .select('batch_id, shipping_country')
+      .in('batch_id', batchIds);
+    if (batchError) throw batchError;
+    const batchMap = {};
+    (batches || []).forEach(b => { batchMap[b.batch_id] = b.shipping_country; });
+    const cardMap = {};
+    (cards || []).forEach(c => { cardMap[c.card_id] = c; });
+    const alerts = [];
+    const seenCards = new Set();
+    (activations || []).forEach(act => {
+      const card = cardMap[act.card_id];
+      if (!card || !card.batch_id) return;
+      if (seenCards.has(act.card_id)) return;
+      const shippingCountry = batchMap[card.batch_id];
+      if (!shippingCountry || !act.country) return;
+      if (shippingCountry !== act.country) {
+        seenCards.add(act.card_id);
+        alerts.push({
+          card_id: act.card_id,
+          batch_id: card.batch_id,
+          shipping_country: shippingCountry,
+          activation_country: act.country,
+          city: act.city,
+          activated_at: act.activated_at
+        });
+      }
+    });
+    res.json({ success: true, alerts: alerts.slice(0, 50) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -1359,6 +1400,7 @@ app.post('/api/activate-after-payment', async (req, res) => {
         }).catch(e => console.error('Batch event error:', e));
       }
       
+      const locationData = await getGeolocationFromIp(clientIp);
       const activationRecords = createdCards.map(card => ({
         card_id: card.card_id,
         activated_at: now.toISOString(),
@@ -1367,6 +1409,12 @@ app.post('/api/activate-after-payment', async (req, res) => {
         terms_accepted_ip: clientIp,
         user_agent: userAgent,
         activation_source: source === 'customize' ? 'customize_checkout' : 'stripe_checkout',
+        location_data: locationData,
+        city: locationData?.city || null,
+        country: locationData?.country || null,
+        region: locationData?.region || null,
+        latitude: locationData?.latitude || null,
+        longitude: locationData?.longitude || null,
         metadata: { batch_id: card.batch_id, batch_order: card.batch_order, stripe_session_id: session_id, payment_intent_id: session.payment_intent, template_id: templateId }
       }));
       
@@ -1402,12 +1450,19 @@ app.post('/api/activate-after-payment', async (req, res) => {
           .eq('status', 'draft');
         if (error) throw error;
 
+        const locationData = await getGeolocationFromIp(clientIp);
         await supabaseAdmin.from('card_activations').insert({
           card_id: card_id,
           activated_at: new Date().toISOString(),
           activated_by_ip: clientIp,
           terms_accepted_at: new Date().toISOString(),
           activation_source: 'customize_direct_activation',
+          location_data: locationData,
+          city: locationData?.city || null,
+          country: locationData?.country || null,
+          region: locationData?.region || null,
+          latitude: locationData?.latitude || null,
+          longitude: locationData?.longitude || null,
           metadata: { direct_activation: true, source: 'customize.html' }
         });
         return res.json({ success: true, message: `Activated card ${card_id}`, card_id: card_id, is_batch: false });
@@ -1511,12 +1566,19 @@ app.post('/api/activate-after-payment', async (req, res) => {
             .eq('batch_id', batch_id);
         }
 
+        const locationData = await getGeolocationFromIp(clientIp);
         await supabaseAdmin.from('card_activations').insert({
           card_id: template.card_id,
           activated_at: now.toISOString(),
           activated_by_ip: clientIp,
-          terms_accepted_at: now.toISOString(),
+          terms_accepted_at: new Date().toISOString(),
           activation_source: 'customize_batch_activation',
+          location_data: locationData,
+          city: locationData?.city || null,
+          country: locationData?.country || null,
+          region: locationData?.region || null,
+          latitude: locationData?.latitude || null,
+          longitude: locationData?.longitude || null,
           metadata: { batch_id: batch_id, quantity: quantity, was_template: true }
         });
 
