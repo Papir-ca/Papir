@@ -44,6 +44,7 @@
         .filter-count { color: #a0aec0; font-size: 0.85rem; }
         .date-filter-group { display: flex; align-items: center; gap: 6px; }
         .date-filter-group label { color: #a0aec0; font-size: 0.8rem; white-space: nowrap; }
+        .date-filter-group label[for="dateTo"] { margin-left: 8px; }
         .date-input { padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 0.85rem; cursor: pointer; }
         .date-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         .date-clear { padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #a0aec0; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; display: none; }
@@ -223,9 +224,11 @@
                 </div>
                 <div class="filter-right">
                     <div class="date-filter-group">
-                        <label for="dateFilter"><i class="fas fa-calendar-alt"></i> From:</label>
-                        <input type="date" id="dateFilter" class="date-input">
-                        <button class="date-clear" id="dateClear" title="Clear date filter"><i class="fas fa-times"></i></button>
+                        <label for="dateFrom"><i class="fas fa-calendar-alt"></i> From:</label>
+                        <input type="date" id="dateFrom" class="date-input">
+                        <label for="dateTo" style="margin-left:8px;">To:</label>
+                        <input type="date" id="dateTo" class="date-input">
+                        <button class="date-clear" id="dateClear" title="Clear date filters"><i class="fas fa-times"></i></button>
                     </div>
                     <select class="sort-select" id="sortSelect">
                         <option value="newest">Newest First</option>
@@ -341,7 +344,8 @@
             cardElement: document.getElementById('card-element'),
             cardErrors: document.getElementById('card-errors'),
             sortSelect: document.getElementById('sortSelect'),
-            dateFilter: document.getElementById('dateFilter'),
+            dateFrom: document.getElementById('dateFrom'),
+            dateTo: document.getElementById('dateTo'),
             dateClear: document.getElementById('dateClear'),
             loading: document.getElementById('loading'),
             notification: document.getElementById('notification'),
@@ -469,14 +473,23 @@
             }
 
             // Apply date filter
-            const dateValue = els.dateFilter ? els.dateFilter.value : '';
-            if (dateValue) {
-                const filterDate = new Date(dateValue);
-                filterDate.setHours(0, 0, 0, 0);
+            const dateFrom = els.dateFrom ? els.dateFrom.value : '';
+            const dateTo = els.dateTo ? els.dateTo.value : '';
+            if (dateFrom || dateTo) {
                 orders = orders.filter(o => {
                     const orderDate = new Date(o.createdAt || 0);
                     orderDate.setHours(0, 0, 0, 0);
-                    return orderDate >= filterDate;
+                    if (dateFrom) {
+                        const from = new Date(dateFrom);
+                        from.setHours(0, 0, 0, 0);
+                        if (orderDate < from) return false;
+                    }
+                    if (dateTo) {
+                        const to = new Date(dateTo);
+                        to.setHours(23, 59, 59, 999);
+                        if (orderDate > to) return false;
+                    }
+                    return true;
                 });
                 if (els.dateClear) els.dateClear.classList.add('visible');
             } else {
@@ -776,12 +789,16 @@
             // Sort dropdown
             els.sortSelect.addEventListener('change', renderOrders);
 
-            if (els.dateFilter) {
-                els.dateFilter.addEventListener('change', renderOrders);
+            if (els.dateFrom) {
+                els.dateFrom.addEventListener('change', renderOrders);
+            }
+            if (els.dateTo) {
+                els.dateTo.addEventListener('change', renderOrders);
             }
             if (els.dateClear) {
                 els.dateClear.addEventListener('click', () => {
-                    els.dateFilter.value = '';
+                    if (els.dateFrom) els.dateFrom.value = '';
+                    if (els.dateTo) els.dateTo.value = '';
                     els.dateClear.classList.remove('visible');
                     renderOrders();
                 });
