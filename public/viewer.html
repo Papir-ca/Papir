@@ -439,12 +439,11 @@
             .giftbox-reveal { transform: scale(0.7); }
         }
     </style>
-<base target="_blank">
-<base target="_blank">
+
 <base target="_blank">
 </head>
 <body>
-    <a href="index.html" class="back-button" target="_self"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
     <div class="sync-status" id="syncStatus"><i class="fas fa-check-circle"></i><span>Connected to Papir Backend</span></div>
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-box">
@@ -464,7 +463,7 @@
     <div class="container">
         <header id="pageHeader">
             <h1 class="logo">📱 Papir Viewer</h1>
-            <p class="tagline">Scan QR codes or enter Card IDs to view AR content</p>
+            <p class="tagline">Scan a QR code or enter a Card ID to view</p>
         </header>
         <div class="scanner-container" id="scannerContainer">
             <div class="scanner-title"><i class="fas fa-camera"></i> Scan Card QR Code</div>
@@ -728,10 +727,15 @@
                 document.getElementById('cardDisplay').classList.add('active');
                 document.getElementById('scannerContainer').style.opacity = '0';
                 document.getElementById('manualInput').style.opacity = '0';
+                document.getElementById('pageHeader').style.opacity = '0';
+                const backBtn = document.getElementById('backBtn');
+                if (backBtn) backBtn.style.opacity = '0';
                 document.getElementById('emptyState').style.display = 'none';
                 setTimeout(() => {
                     document.getElementById('scannerContainer').style.display = 'none';
                     document.getElementById('manualInput').style.display = 'none';
+                    document.getElementById('pageHeader').style.display = 'none';
+                    if (backBtn) backBtn.style.display = 'none';
                 }, 300);
                 playRevealAnimation(revealType, () => {
                     console.log('Reveal animation complete');
@@ -749,9 +753,14 @@
             document.getElementById('cardDisplay').classList.remove('active');
             document.getElementById('scannerContainer').style.display = 'block';
             document.getElementById('manualInput').style.display = 'block';
+            document.getElementById('pageHeader').style.display = 'block';
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'block';
             document.getElementById('emptyState').style.display = 'block';
             document.getElementById('scannerContainer').style.opacity = '1';
             document.getElementById('manualInput').style.opacity = '1';
+            document.getElementById('pageHeader').style.opacity = '1';
+            if (backBtn) backBtn.style.opacity = '1';
             const video = document.getElementById('bgVideo');
             video.pause();
             video.src = '';
@@ -809,6 +818,14 @@
 
         document.getElementById('startScanner').addEventListener('click', startScanner);
         document.getElementById('stopScanner').addEventListener('click', stopScanner);
+
+        const backBtnEl = document.getElementById('backBtn');
+        if (backBtnEl) {
+            backBtnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'index.html';
+            });
+        }
 
         // NEW: Auto-load card from URL
         const viewerUrlParams = new URLSearchParams(window.location.search);
