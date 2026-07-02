@@ -1004,7 +1004,7 @@ app.get('/api/admin/abandoned', async (req, res) => {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
     const { data, error } = await supabaseAdmin.from('cards').select('*').eq('status', 'draft').lt('created_at', cutoff.toISOString()).order('created_at', { ascending: false });
     if (error) throw error;
-    res.json({ success: true, cards: data || [] });
+    res.json({ success: true, abandoned: data || [] });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -1028,7 +1028,27 @@ app.get('/api/admin/all-locations', async (req, res) => {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
     const { data, error } = await supabaseAdmin.from('card_activations').select('city, country, region, latitude, longitude, activated_at').gte('activated_at', cutoff.toISOString()).not('city', 'is', null);
     if (error) throw error;
-    res.json({ success: true, locations: data || [] });
+
+    const locations = data || [];
+    const cities = {};
+    const countries = {};
+    locations.forEach(loc => {
+      if (loc.city) cities[loc.city] = (cities[loc.city] || 0) + 1;
+      if (loc.country) countries[loc.country] = (countries[loc.country] || 0) + 1;
+    });
+
+    const topLocations = Object.entries(cities)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    const stats = {
+      totalCities: Object.keys(cities).length,
+      totalCountries: Object.keys(countries).length,
+      totalLocated: locations.length
+    };
+
+    res.json({ success: true, stats, topLocations });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -1036,11 +1056,18 @@ app.get('/api/admin/all-locations', async (req, res) => {
 
 app.get('/api/admin/performance', async (req, res) => {
   try {
-    const { count: total } = await supabaseAdmin.from('cards').select('*', { count: 'exact', head: true });
+    const startTime = Date.now();
     const { count: active } = await supabaseAdmin.from('cards').select('*', { count: 'exact', head: true }).eq('status', 'active');
-    const { count: draft } = await supabaseAdmin.from('cards').select('*', { count: 'exact', head: true }).eq('status', 'draft');
+    const responseTime = Date.now() - startTime;
+    const { count: total } = await supabaseAdmin.from('cards').select('*', { count: 'exact', head: true });
     const { count: scans } = await supabaseAdmin.from('scan_logs').select('*', { count: 'exact', head: true });
-    res.json({ success: true, metrics: { totalCards: total || 0, activeCards: active || 0, draftCards: draft || 0, totalScans: scans || 0 } });
+    res.json({ 
+      success: true, 
+      api_response_time: responseTime + 'ms',
+      active_cards: active || 0,
+      db_size: (total || 0) + ' cards',
+      rate_limit_usage: (scans || 0) + '/200'
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -1060,7 +1087,30 @@ app.get('/api/admin/activity', async (req, res) => {
   try {
     const { data: recentCards } = await supabaseAdmin.from('cards').select('card_id, created_at, status, created_by_ip').order('created_at', { ascending: false }).limit(20);
     const { data: recentActivations } = await supabaseAdmin.from('card_activations').select('card_id, activated_at, activated_by_ip, activation_source').order('activated_at', { ascending: false }).limit(20);
-    res.json({ success: true, activity: { recentCards: recentCards || [], recentActivations: recentActivations || [] } });
+
+    const activities = [];
+    (recentActivations || []).forEach(act => {
+      activities.push({
+        type: 'activation',
+        time: act.activated_at,
+        card_id: act.card_id,
+        description: `activated via ${act.activation_source || 'viewer'}`,
+        ip: act.activated_by_ip
+      });
+    });
+    (recentCards || []).forEach(card => {
+      activities.push({
+        type: 'scan',
+        time: card.created_at,
+        card_id: card.card_id,
+        description: `created (${card.status})`,
+        ip: card.created_by_ip
+      });
+    });
+
+    activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+    res.json({ success: true, activities: activities.slice(0, 20) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
