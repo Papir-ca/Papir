@@ -441,6 +441,7 @@
     </style>
 
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -716,6 +717,18 @@
         document.getElementById('confirmViewingBtn').addEventListener('click', async () => {
             document.getElementById('confirmationModal').classList.remove('active');
             if (pendingCardData) {
+                // Track scan and activation
+                fetch(`${BACKEND_URL}/api/increment-scan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_id: currentCardId })
+                }).catch(() => {});
+                fetch(`${BACKEND_URL}/api/activate-card`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_id: currentCardId, source: 'viewer' })
+                }).catch(() => {});
+
                 const revealType = determineRevealType(pendingCardData);
                 await loadCard(currentCardId);
                 document.getElementById('cardDisplay').classList.add('active');
