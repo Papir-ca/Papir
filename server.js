@@ -314,10 +314,27 @@ function getClientIp(req) {
   const remoteAddress = req.socket.remoteAddress;
   const ip = req.ip;
   console.log('IP Debug:', { forwarded, remoteAddress, ip });
+
   if (forwarded) {
-    const firstIp = forwarded.split(',')[0].trim();
-    console.log('Using first forwarded IP:', firstIp);
-    return firstIp;
+    const ips = forwarded.split(',').map(s => s.trim().replace('::ffff:', ''));
+    // Find first non-internal IP in the chain
+    for (const candidate of ips) {
+      if (candidate &&
+          candidate !== 'unknown' &&
+          !candidate.startsWith('10.') &&
+          !candidate.startsWith('192.168.') &&
+          !candidate.match(/^172\.(1[6-9]|2[0-9]|3[01])\./) &&
+          !candidate.startsWith('127.') &&
+          candidate !== '::1' &&
+          candidate !== 'localhost') {
+        console.log('Using forwarded IP:', candidate);
+        return candidate;
+      }
+    }
+    // Fallback to last IP in chain (closest to client)
+    const lastIp = ips[ips.length - 1];
+    console.log('Using last forwarded IP (fallback):', lastIp);
+    return lastIp;
   }
   if (remoteAddress && remoteAddress !== '::1' && remoteAddress !== '::ffff:127.0.0.1') {
     const cleanIp = remoteAddress.replace('::ffff:', '');
@@ -1036,7 +1053,7 @@ app.get('/api/admin/all-locations', async (req, res) => {
       .not('city', 'is', null);
     if (directError) throw directError;
 
-    // Query 2: Records with location_data JSON but no direct city column
+    // Query 2: Records with location_data JSON but no direct city
     const { data: jsonLocs, error: jsonError } = await supabaseAdmin
       .from('card_activations')
       .select('city, country, region, latitude, longitude, activated_at, location_data')
@@ -1045,20 +1062,25 @@ app.get('/api/admin/all-locations', async (req, res) => {
       .not('location_data', 'is', null);
     if (jsonError) throw jsonError;
 
-    // Merge and normalize
     const allLocations = [];
     const seen = new Set();
 
     (directLocs || []).forEach(loc => {
-      const key = `${loc.city}-${loc.country}-${loc.activated_at}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        allLocations.push({ city: loc.city, country: loc.country, region: loc.region });
+      if (loc.city || loc.country) {
+        const key = `${loc.city}-${loc.country}-${loc.activated_at}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          allLocations.push({ city: loc.city, country: loc.country, region: loc.region });
+        }
       }
     });
 
     (jsonLocs || []).forEach(loc => {
-      const ld = loc.location_data || {};
+      let ld = loc.location_data;
+      if (typeof ld === 'string') {
+        try { ld = JSON.parse(ld); } catch (e) { ld = {}; }
+      }
+      ld = ld || {};
       const city = ld.city || ld.city_name || null;
       const country = ld.country || ld.country_name || null;
       const region = ld.region || ld.region_name || null;
@@ -1198,6 +1220,115 @@ app.get('/api/admin/activity', async (req, res) => {
   }
 });
 
+
+// ============================================
+// ADMIN BULK ACTIONS
+// ============================================
+
+app.post('/api/admin/bulk-delete', async (req, res) => {
+  try {
+    const { card_ids } = req.body;
+    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'No card_ids provided' });
+    }
+    const clientIp = getClientIp(req);
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({ status: 'deleted', updated_by_ip: clientIp, updated_at: new Date().toISOString() })
+      .in('card_id', card_ids)
+      .select();
+    if (error) throw error;
+    res.json({ success: true, count: data ? data.length : 0 });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/admin/bulk-activate', async (req, res) => {
+  try {
+    const { card_ids } = req.body;
+    if (!card_ids || !Array.isArray(card_ids) || card_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'No card_ids provided' });
+    }
+    const clientIp = getClientIp(req);
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({ status: 'active', updated_by_ip: clientIp, updated_at: new Date().toISOString() })
+      .in('card_id', card_ids)
+      .eq('status', 'pending')
+      .select();
+    if (error) throw error;
+
+    const locationData = await getGeolocationFromIp(clientIp);
+    const activationRecords = (data || []).map(card => ({
+      card_id: card.card_id,
+      activated_at: new Date().toISOString(),
+      activated_by_ip: clientIp,
+      terms_accepted_at: new Date().toISOString(),
+      activation_source: 'admin_bulk_activate',
+      location_data: locationData,
+      city: locationData?.city || null,
+      country: locationData?.country || null,
+      region: locationData?.region || null,
+      latitude: locationData?.latitude || null,
+      longitude: locationData?.longitude || null
+    }));
+    if (activationRecords.length > 0) {
+      await supabaseAdmin.from('card_activations').insert(activationRecords);
+    }
+
+    res.json({ success: true, count: data ? data.length : 0 });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/admin/expire-cards', async (req, res) => {
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const clientIp = getClientIp(req);
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .update({ status: 'deleted', updated_by_ip: clientIp, updated_at: new Date().toISOString() })
+      .eq('status', 'pending')
+      .lt('created_at', cutoff.toISOString())
+      .select();
+    if (error) throw error;
+    res.json({ success: true, count: data ? data.length : 0 });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/api/admin/export-all', async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const cards = data || [];
+    const headers = ['card_id', 'status', 'message_type', 'message_text', 'media_url', 'scan_count', 'created_at', 'created_by_ip'];
+    let csv = headers.join(',') + '\n';
+    cards.forEach(card => {
+      const row = headers.map(h => {
+        const val = card[h] || '';
+        return '"' + String(val).replace(/"/g, '""') + '"';
+      });
+      csv += row.join(',') + '\n';
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=papir-export.csv');
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
 // ============================================
 // Stripe Checkout Session 
 // ============================================
