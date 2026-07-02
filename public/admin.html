@@ -895,7 +895,6 @@
     </style>
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -1269,7 +1268,7 @@
         let allCards = [];
         let allCardDetails = [];
         let allScanLogs = [];
-        let allActivations = [];
+
         let currentTypeFilter = 'all';
         let currentStatusFilters = [];
         let currentQRData = null;
@@ -1277,7 +1276,6 @@
         let customStartDate = null;
         let customEndDate = null;
         let scansChart = null;
-        let currentExportType = 'cardData';
         let selectedCards = new Set();
         
         const cardDetailsCache = {};
@@ -1350,26 +1348,74 @@
         const expireCardsBtn = document.getElementById('expireCardsBtn');
         const bulkActions = document.getElementById('bulkActions');
         const selectAllCards = document.getElementById('selectAllCards');
-        const tableSelectAll = document.getElementById('tableSelectAll');
-        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-        const bulkActivateBtn = document.getElementById('bulkActivateBtn');
-        const bulkExportBtn = document.getElementById('bulkExportBtn');
-        const selectedCount = document.getElementById('selectedCount');
-        const previewModal = document.getElementById('previewModal');
-        const previewContent = document.getElementById('previewContent');
-        
-        let draggedColumn = null;
-        
-        function showStatus(message, type = 'info', timeout = 5000) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message ${type}`;
-            statusMessage.style.display = 'block';
-            
-            if (timeout > 0) {
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, timeout);
+        const tableSelectAll = const newTableSelectAll = document.getElementById('tableSelectAll');
+            if (newTableSelectAll) {
+                newTableSelectAll.addEventListener('change', function(e) {
+                    document.querySelectorAll('.card-selector').forEach(cb => {
+                        cb.checked = e.target.checked;
+                    });
+                    updateSelection();
+                });
             }
+
+      setTimeout(setupDragAndDrop, 0);
+        }
+        
+        async function loadAbandonedCards() {
+            try {
+                const response = await adminFetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
+                const result = await response.json();
+                const container = document.getElementById('abandonedCardsList');
+
+                if (!result.success) {
+                    container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading abandoned cards</div>';
+                    return;
+                }
+
+                const abandoned = result.abandoned || [];
+                if (abandoned.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
+                    return;
+                }
+
+                let html = '';
+                abandoned.slice(0, 10).forEach(card => {
+                    const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
+                    html += `
+                        <div class="abandoned-item">
+                            <span><strong>${card.card_id}</strong></span>
+                            <span style="color: #f39c12;">${daysOld} days old</span>
+                            <span style="color: #aaa;">${card.message_type}</span>
+                        </div>
+                    `;
+                });
+                if (abandoned.length > 10) {
+                    html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${abandoned.length - 10} more</div>`;
+                }
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading abandoned cards:', error);
+                const container = document.getElementById('abandonedCardsList');
+                if (container) container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Failed to load abandoned cards</div>';
+            }
+        }
+
+if (expireCardsBtn) {
+            expireCardsBtn.addEventListener('click', async function() {
+                if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
+                
+                try {
+                    const response = await adminFetch(`${BACKEND_URL}/api/admin/expire-cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    alert(`Expired ${result.count} cards`);
+                    loadAdminData();
+                } catch (error) {
+                    alert('Error expiring cards');
+                }
+            });
         }
         
         async function loadAllLocations() {
@@ -1449,6 +1495,8 @@
             topLocationsList.innerHTML = html;
         }
         
+        
+        
         async function loadPerformanceStats() {
             try {
                 const response = await adminFetch(`${BACKEND_URL}/api/admin/performance`);
@@ -1502,6 +1550,8 @@
             }
         }
         
+        
+        
         function getTimeAgo(date) {
             const seconds = Math.floor((new Date() - date) / 1000);
             if (seconds < 60) return 'just now';
@@ -1512,6 +1562,8 @@
             const days = Math.floor(hours / 24);
             return `${days}d ago`;
         }
+        
+        
         
         async function quickExport() {
             try {
@@ -1530,196 +1582,7 @@
             }
         }
         
-        function updateSelection() {
-            const checkboxes = document.querySelectorAll('.card-selector');
-            selectedCards.clear();
-            checkboxes.forEach(cb => {
-                if (cb.checked) selectedCards.add(cb.value);
-            });
-            selectedCount.textContent = `${selectedCards.size} selected`;
-            bulkActions.classList.toggle('active', selectedCards.size > 0);
-        }
         
-        function populateColumnCheckboxes() {
-            const exportType = document.querySelector('input[name="exportType"]:checked').value;
-            let columns = exportType === 'cardData' ? allColumns : scanLogColumns;
-            
-            let html = '';
-            columns.forEach(col => {
-                html += `
-                    <label class="column-checkbox-item">
-                        <input type="checkbox" class="export-column" value="${col.id}" checked>
-                        ${col.name}
-                    </label>
-                `;
-            });
-            columnCheckboxGrid.innerHTML = html;
-        }
-        
-        exportTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'cardData') {
-                    cardDataTypeOption.classList.add('active');
-                    scanLogsTypeOption.classList.remove('active');
-                } else {
-                    scanLogsTypeOption.classList.add('active');
-                    cardDataTypeOption.classList.remove('active');
-                }
-                populateColumnCheckboxes();
-            });
-        });
-        
-        selectAllBtn.addEventListener('click', () => {
-            document.querySelectorAll('.export-column').forEach(cb => cb.checked = true);
-        });
-        
-        clearAllBtn.addEventListener('click', () => {
-            document.querySelectorAll('.export-column').forEach(cb => cb.checked = false);
-        });
-        
-        function setupDragAndDrop() {
-            const headers = document.querySelectorAll('#headerRow th[draggable="true"]');
-            headers.forEach(th => {
-                th.addEventListener('dragstart', handleDragStart);
-                th.addEventListener('dragover', handleDragOver);
-                th.addEventListener('dragleave', handleDragLeave);
-                th.addEventListener('drop', handleDrop);
-                th.addEventListener('dragend', handleDragEnd);
-            });
-        }
-        
-        function handleDragStart(e) {
-            draggedColumn = e.target;
-            e.dataTransfer.setData('text/plain', e.target.dataset.column);
-            e.target.style.opacity = '0.5';
-        }
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.target.classList.add('drag-over');
-        }
-        
-        function handleDragLeave(e) {
-            e.target.classList.remove('drag-over');
-        }
-        
-        function handleDrop(e) {
-            e.preventDefault();
-            e.target.classList.remove('drag-over');
-            
-            const fromColumnId = e.dataTransfer.getData('text/plain');
-            const toColumnId = e.target.dataset.column;
-            
-            if (!fromColumnId || !toColumnId || fromColumnId === toColumnId) return;
-            
-            const fromIndex = columnOrder.indexOf(fromColumnId);
-            const toIndex = columnOrder.indexOf(toColumnId);
-            
-            if (fromIndex !== -1 && toIndex !== -1) {
-                const newOrder = [...columnOrder];
-                newOrder.splice(fromIndex, 1);
-                newOrder.splice(toIndex, 0, fromColumnId);
-                columnOrder = newOrder;
-                renderTable();
-            }
-        }
-        
-        function handleDragEnd(e) {
-            e.target.style.opacity = '1';
-            document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
-        }
-        
-        function renderTableHeaders() {
-            const headerRow = document.getElementById('headerRow');
-            let headerHtml = '<th style="cursor: default; background: #364B4A; width: 30px;">' +
-                '<input type="checkbox" id="tableSelectAll" class="bulk-checkbox"></th>';
-            
-            columnOrder.forEach(colId => {
-                if (colId === 'activation_history') {
-                    headerHtml += `<th draggable="true" data-column="activation_history">Activation History</th>`;
-                } else if (colId === 'recent_scans') {
-                    headerHtml += `<th draggable="true" data-column="recent_scans">Recent Scans</th>`;
-                } else if (colId === 'location') {
-                    headerHtml += `<th draggable="true" data-column="location">Location</th>`;
-                } else if (colId === 'mismatch') {
-                    headerHtml += `<th draggable="true" data-column="mismatch">Mismatch</th>`;
-                } else {
-                    const column = allColumns.find(c => c.id === colId);
-                    if (column) {
-                        headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
-                    }
-                }
-            });
-            
-            headerHtml += `<th style="cursor: default; background: #364B4A;">Actions</th>`;
-            headerRow.innerHTML = headerHtml;
-            
-            document.getElementById('tableSelectAll').addEventListener('change', function(e) {
-                document.querySelectorAll('.card-selector').forEach(cb => {
-                    cb.checked = e.target.checked;
-                });
-                updateSelection();
-            });
-            
-            setTimeout(setupDragAndDrop, 0);
-        }
-        
-        async function loadAbandonedCards() {
-            try {
-                const response = await adminFetch(`${BACKEND_URL}/api/admin/abandoned?days=30`);
-                const result = await response.json();
-                const container = document.getElementById('abandonedCardsList');
-
-                if (!result.success) {
-                    container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading abandoned cards</div>';
-                    return;
-                }
-
-                const abandoned = result.abandoned || [];
-                if (abandoned.length === 0) {
-                    container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No abandoned cards</div>';
-                    return;
-                }
-
-                let html = '';
-                abandoned.slice(0, 10).forEach(card => {
-                    const daysOld = Math.ceil((new Date() - new Date(card.created_at)) / (1000 * 60 * 60 * 24));
-                    html += `
-                        <div class="abandoned-item">
-                            <span><strong>${card.card_id}</strong></span>
-                            <span style="color: #f39c12;">${daysOld} days old</span>
-                            <span style="color: #aaa;">${card.message_type}</span>
-                        </div>
-                    `;
-                });
-                if (abandoned.length > 10) {
-                    html += `<div style="text-align: center; color: #aaa; padding: 5px;">+${abandoned.length - 10} more</div>`;
-                }
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Error loading abandoned cards:', error);
-                const container = document.getElementById('abandonedCardsList');
-                if (container) container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Failed to load abandoned cards</div>';
-            }
-        }
-
-if (expireCardsBtn) {
-            expireCardsBtn.addEventListener('click', async function() {
-                if (!confirm('Mark all expired pending cards as expired? This cannot be undone.')) return;
-                
-                try {
-                    const response = await adminFetch(`${BACKEND_URL}/api/admin/expire-cards`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const result = await response.json();
-                    alert(`Expired ${result.count} cards`);
-                    loadAdminData();
-                } catch (error) {
-                    alert('Error expiring cards');
-                }
-            });
-        }
         
         async function loadAdminData(forceRefresh = false) {
             if (isLoading) return;
@@ -1867,58 +1730,66 @@ function updateStats(cards) {
             const totalScans = allScanLogs.length > 0 
                 ? allScanLogs.length 
                 : allCards.reduce((sum, c) => sum + (c.scan_count || 0), 0);
-            
+
             document.getElementById('totalScansAnalytics').textContent = totalScans;
-            
-            const cardsWithScans = new Set(allScanLogs.map(log => log.card_id)).size;
+
+            const cardsWithScans = allScanLogs.length > 0 
+                ? new Set(allScanLogs.map(log => log.card_id)).size 
+                : allCards.filter(c => (c.scan_count || 0) > 0).length;
             const avgScans = cardsWithScans > 0 ? (totalScans / cardsWithScans).toFixed(1) : 0;
             document.getElementById('avgScansPerCard').textContent = avgScans;
-            
+
             const today = new Date().toDateString();
-            const todayScans = allScanLogs.filter(log => 
-                new Date(log.scanned_at).toDateString() === today
-            ).length;
+            const todayScans = allScanLogs.length > 0 
+                ? allScanLogs.filter(log => new Date(log.scanned_at).toDateString() === today).length
+                : 0;
             document.getElementById('activeToday').textContent = todayScans;
-            
+
             const hourCounts = Array(24).fill(0);
-            allScanLogs.forEach(log => {
-                const hour = new Date(log.scanned_at).getHours();
-                hourCounts[hour]++;
-            });
-            
+            if (allScanLogs.length > 0) {
+                allScanLogs.forEach(log => {
+                    const hour = new Date(log.scanned_at).getHours();
+                    hourCounts[hour]++;
+                });
+            }
+
             const peakHourIndex = hourCounts.indexOf(Math.max(...hourCounts));
-            const peakHourStr = peakHourIndex >= 0 
+            const peakHourStr = peakHourIndex >= 0 && hourCounts[peakHourIndex] > 0
                 ? `${peakHourIndex}:00 - ${peakHourIndex + 1}:00 (${hourCounts[peakHourIndex]} scans)` 
                 : '--';
             document.getElementById('peakHour').textContent = peakHourStr;
-            
+
             const now = new Date();
-            const currentPeriod = allScanLogs.filter(log => {
-                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
-                return daysDiff <= currentTimeRange;
-            }).length;
-            
-            const previousPeriod = allScanLogs.filter(log => {
-                const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
-                return daysDiff > currentTimeRange && daysDiff <= currentTimeRange * 2;
-            }).length;
-            
+            const currentPeriod = allScanLogs.length > 0 
+                ? allScanLogs.filter(log => {
+                    const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
+                    return daysDiff <= currentTimeRange;
+                }).length
+                : totalScans;
+
+            const previousPeriod = allScanLogs.length > 0 
+                ? allScanLogs.filter(log => {
+                    const daysDiff = (now - new Date(log.scanned_at)) / (1000 * 60 * 60 * 24);
+                    return daysDiff > currentTimeRange && daysDiff <= currentTimeRange * 2;
+                }).length
+                : 0;
+
             const trendPercent = previousPeriod > 0 
                 ? Math.round(((currentPeriod - previousPeriod) / previousPeriod) * 100) 
                 : 0;
-            
+
             const trendIcon = trendPercent >= 0 ? '↑' : '↓';
             const trendClass = trendPercent >= 0 ? 'trend-up' : 'trend-down';
             document.getElementById('scanTrend').innerHTML = `<span class="${trendClass}">${trendIcon} ${Math.abs(trendPercent)}%</span> vs previous`;
-            
+
             const periodText = customStartDate && customEndDate 
                 ? `${customStartDate} to ${customEndDate}`
                 : `Last ${currentTimeRange} days`;
             document.getElementById('scanPeriod').textContent = periodText;
-            
+
             updateScansChart();
         }
-        
+
         function updateScansChart() {
             const ctx = document.getElementById('scansChart').getContext('2d');
             if (scansChart) scansChart.destroy();
@@ -1970,7 +1841,16 @@ function updateStats(cards) {
             allScanLogs.forEach(log => {
                 scanCounts[log.card_id] = (scanCounts[log.card_id] || 0) + 1;
             });
-            
+
+            // Fallback: use card.scan_count when scan_logs empty
+            if (allScanLogs.length === 0) {
+                allCards.forEach(card => {
+                    if (card.scan_count > 0) {
+                        scanCounts[card.card_id] = card.scan_count;
+                    }
+                });
+            }
+
             const cardDetails = [];
             Object.keys(scanCounts).forEach(cardId => {
                 const card = allCards.find(c => c.card_id === cardId);
@@ -1982,23 +1862,23 @@ function updateStats(cards) {
                     });
                 }
             });
-            
+
             const topCards = cardDetails
                 .sort((a, b) => b.scan_count - a.scan_count)
                 .slice(0, 5);
-            
+
             const container = document.getElementById('topCardsList');
-            
+
             if (topCards.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No scans yet</div>';
                 return;
             }
-            
+
             let html = '';
             topCards.forEach((card, index) => {
                 const typeClass = `type-${card.message_type}`;
-                const typeDisplay = card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1);
-                
+                const typeDisplay = card.message_type ? card.message_type.charAt(0).toUpperCase() + card.message_type.slice(1) : 'N/A';
+
                 html += `
                     <div class="top-card-item">
                         <div class="top-card-info">
@@ -2012,7 +1892,7 @@ function updateStats(cards) {
             });
             container.innerHTML = html;
         }
-        
+
         function exportToCSV() {
             alert('Advanced export feature will be implemented');
             exportModal.style.display = 'none';
@@ -2128,26 +2008,30 @@ function updateStats(cards) {
         function showPreviewModal(cardId) {
             const card = allCardDetails.find(c => c.card_id === cardId) || allCards.find(c => c.card_id === cardId);
             if (!card) return;
-            
+
             let content = '';
             if (card.message_type === 'text') {
                 content = `<div style="font-size: 1.5rem;">${card.message_text || 'No text'}</div>`;
-            } else if (card.media_url) {
-                if (card.message_type === 'image') {
+            } else if (card.video_url || card.media_url) {
+                if (card.message_type === 'video' || card.video_url) {
+                    const videoSrc = card.video_url || card.media_url;
+                    content = `<video controls style="max-width: 100%;"><source src="${videoSrc}"></video>`;
+                } else if (card.message_type === 'audio' || card.audio_url) {
+                    const audioSrc = card.audio_url || card.media_url;
+                    content = `<audio controls style="width: 100%;"><source src="${audioSrc}"></audio>`;
+                } else if (card.message_type === 'image') {
                     content = `<img src="${card.media_url}" style="max-width: 100%; max-height: 300px;">`;
-                } else if (card.message_type === 'video') {
-                    content = `<video controls style="max-width: 100%;"><source src="${card.media_url}"></video>`;
-                } else if (card.message_type === 'audio') {
-                    content = `<audio controls style="width: 100%;"><source src="${card.media_url}"></audio>`;
                 }
+            } else if (card.audio_url) {
+                content = `<audio controls style="width: 100%;"><source src="${card.audio_url}"></audio>`;
             } else {
                 content = '<div style="color: #aaa;">No content available</div>';
             }
-            
+
             previewContent.innerHTML = content;
             previewModal.style.display = 'block';
         }
-        
+
         function closePreviewModal() {
             previewModal.style.display = 'none';
         }
@@ -2197,7 +2081,8 @@ function updateStats(cards) {
                 };
                 
                 let rowHtml = '<tr>';
-                rowHtml += `<td><input type="checkbox" class="card-selector bulk-checkbox" value="${card.card_id}" onchange="updateSelection()"></td>`;
+                const isSelected = selectedCards.has(card.card_id);
+                rowHtml += `<td><input type="checkbox" class="card-selector bulk-checkbox" value="${card.card_id}" ${isSelected ? 'checked' : ''} onchange="updateSelection()"></td>`;
                 
                 columnOrder.forEach(colId => {
                     if (colId === 'activation_history') rowHtml += columnData.activation_history;
