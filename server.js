@@ -64,7 +64,8 @@ app.use(helmet({
         "https://ipapi.co",
         "http://ip-api.com",
         "https://api.ipify.org",
-        "https://api.stripe.com"
+        "https://api.stripe.com",
+        "https://cdn.jsdelivr.net"
       ],
       fontSrc: [
         "'self'",
@@ -1026,13 +1027,53 @@ app.get('/api/admin/all-locations', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 90;
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-    const { data, error } = await supabaseAdmin.from('card_activations').select('city, country, region, latitude, longitude, activated_at').gte('activated_at', cutoff.toISOString()).not('city', 'is', null);
-    if (error) throw error;
 
-    const locations = data || [];
+    // Query 1: Records with direct city/country columns
+    const { data: directLocs, error: directError } = await supabaseAdmin
+      .from('card_activations')
+      .select('city, country, region, latitude, longitude, activated_at, location_data')
+      .gte('activated_at', cutoff.toISOString())
+      .not('city', 'is', null);
+    if (directError) throw directError;
+
+    // Query 2: Records with location_data JSON but no direct city column
+    const { data: jsonLocs, error: jsonError } = await supabaseAdmin
+      .from('card_activations')
+      .select('city, country, region, latitude, longitude, activated_at, location_data')
+      .gte('activated_at', cutoff.toISOString())
+      .is('city', null)
+      .not('location_data', 'is', null);
+    if (jsonError) throw jsonError;
+
+    // Merge and normalize
+    const allLocations = [];
+    const seen = new Set();
+
+    (directLocs || []).forEach(loc => {
+      const key = `${loc.city}-${loc.country}-${loc.activated_at}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        allLocations.push({ city: loc.city, country: loc.country, region: loc.region });
+      }
+    });
+
+    (jsonLocs || []).forEach(loc => {
+      const ld = loc.location_data || {};
+      const city = ld.city || ld.city_name || null;
+      const country = ld.country || ld.country_name || null;
+      const region = ld.region || ld.region_name || null;
+      if (city || country) {
+        const key = `${city}-${country}-${loc.activated_at}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          allLocations.push({ city, country, region });
+        }
+      }
+    });
+
     const cities = {};
     const countries = {};
-    locations.forEach(loc => {
+    allLocations.forEach(loc => {
       if (loc.city) cities[loc.city] = (cities[loc.city] || 0) + 1;
       if (loc.country) countries[loc.country] = (countries[loc.country] || 0) + 1;
     });
@@ -1045,7 +1086,7 @@ app.get('/api/admin/all-locations', async (req, res) => {
     const stats = {
       totalCities: Object.keys(cities).length,
       totalCountries: Object.keys(countries).length,
-      totalLocated: locations.length
+      totalLocated: allLocations.length
     };
 
     res.json({ success: true, stats, topLocations });
