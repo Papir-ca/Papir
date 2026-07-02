@@ -595,17 +595,11 @@
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
-                    
-                    // Default: collapsed for video/audio, expanded for text/image
-                    if (card.video_url || card.audio_url) {
-                        msgEl.style.display = 'none';
-                        toggleSpan.textContent = 'Show Message';
-                        toggleIcon.className = 'fas fa-chevron-down';
-                    } else {
-                        msgEl.style.display = 'block';
-                        toggleSpan.textContent = 'Hide Message';
-                        toggleIcon.className = 'fas fa-chevron-up';
-                    }
+
+                    // Always start collapsed
+                    msgEl.style.display = 'none';
+                    toggleSpan.textContent = 'Show Message';
+                    toggleIcon.className = 'fas fa-chevron-down';
                 }
                 
                 // Apply template texture if available
