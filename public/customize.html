@@ -121,6 +121,7 @@
         .mobile-context-menu { position: fixed; background: rgba(26, 26, 46, 0.98); border: 1px solid var(--primary-gold); border-radius: 12px; padding: 6px 0; z-index: 9999; display: none; min-width: 200px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
         .mobile-context-menu .ctx-item { padding: 14px 18px; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .mobile-context-menu .ctx-item:last-child { border-bottom: none; }
+        .mobile-context-menu .ctx-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
         .mobile-context-menu .ctx-item:active { background: rgba(188, 174, 131, 0.2); }
         .mobile-context-menu .ctx-item i { width: 20px; text-align: center; color: var(--primary-gold); }
         .mobile-context-menu .ctx-item.danger i { color: var(--danger); }
@@ -400,8 +401,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -425,6 +424,7 @@
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
+                        <button class="btn-icon small" id="addTextBtn" title="Add Text"><i class="fas fa-font"></i> Text</button>
                         <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
                         <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
@@ -434,7 +434,7 @@
                         <button class="btn-icon small hidden" id="mediaMuteBtn" title="Mute/Unmute Media"><i class="fas fa-volume-up"></i></button>
                     </div>
                 </div>
-                <div class="canvas-container" id="canvasContainer" style="touch-action: none;">
+                <div class="canvas-container" id="canvasContainer">
                     <canvas id="designCanvas" width="600" height="450"></canvas>
                 </div>
             </div>
@@ -603,7 +603,7 @@
 
                 <div class="tab-content" id="layersTab">
                     <div class="layers-scroll-container">
-                        <div class="mobile-lock-toggle locked" id="mobileLockToggle">
+                        <div class="mobile-lock-toggle unlocked" id="mobileLockToggle">
                             <span><i class="fas fa-lock"></i> Objects Locked</span>
                             <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
                         </div>
@@ -695,13 +695,13 @@
                 obj.on('editing:exited', function() { setTimeout(createMobileHandles, 150); document.getElementById('doneBtn').classList.add('hidden'); });
             }
         }
+
         canvas.on('object:added', (e) => {
             if (e.target && !e.target.isBackground && !e.target.isTexture) {
                 ensureObjectControls(e.target);
                 if (!e.target.__handleId) e.target.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
             }
         });
-
         let selectedObject = null;
         let templateConfig = null;
         let showHandles = true;
@@ -1911,8 +1911,12 @@
                 btn.innerHTML = '<i class="fas fa-check"></i> Saved';
                 setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 2000);
             } catch (error) {
-                console.error('Save error:', error);
-                showNotification('Could not save design (too large?). Try exporting instead.', 'error');
+                if (error && error.name === 'QuotaExceededError') {
+                    showNotification('Design too large to save locally. Try removing media or export instead.', 'error');
+                } else {
+                    console.error('Save error:', error);
+                    showNotification('Could not save design. Try exporting instead.', 'error');
+                }
             }
         }
 
@@ -2549,7 +2553,7 @@
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                 }
             } else if (!isTouch) {
                 lockMobileObjects(false);
@@ -2727,7 +2731,7 @@
                         lockMobileObjects(true);
                         this.classList.remove('unlocked');
                         this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         clearMobileHandles();
                     }
                 });
@@ -2756,7 +2760,6 @@
                     if (!editing) createMobileHandles();
                 }
             });
-            canvas.on('object:added', createMobileHandles);
             canvas.on('object:removed', createMobileHandles);
 
             if ('ontouchstart' in window) {
@@ -2856,6 +2859,21 @@
                 setTimeout(createMobileHandles, 50);
             });
 
+
+            // Reset UI state when page is restored from bfcache (browser back button)
+            window.addEventListener('pageshow', function(e) {
+                if (e.persisted) {
+                    const checkoutBtn = document.getElementById('checkoutBtn');
+                    if (checkoutBtn) {
+                        checkoutBtn.innerHTML = '<i class="fas fa-lock"></i> Secure Checkout';
+                        checkoutBtn.disabled = false;
+                    }
+                    const saveBtn = document.getElementById('saveProgressBtn');
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+                    }
+                }
+            });
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('.mobile-context-menu')) return;
@@ -3016,6 +3034,21 @@
     <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
     <script>
         (function() {
+
+            // Reset UI state when page is restored from bfcache (browser back button)
+            window.addEventListener('pageshow', function(e) {
+                if (e.persisted) {
+                    const checkoutBtn = document.getElementById('checkoutBtn');
+                    if (checkoutBtn) {
+                        checkoutBtn.innerHTML = '<i class="fas fa-lock"></i> Secure Checkout';
+                        checkoutBtn.disabled = false;
+                    }
+                    const saveBtn = document.getElementById('saveProgressBtn');
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+                    }
+                }
+            });
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
                 const now = Date.now();
