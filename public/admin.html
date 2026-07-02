@@ -1348,15 +1348,13 @@
         const expireCardsBtn = document.getElementById('expireCardsBtn');
         const bulkActions = document.getElementById('bulkActions');
         const selectAllCards = document.getElementById('selectAllCards');
-        const tableSelectAll = const newTableSelectAll = document.getElementById('tableSelectAll');
-            if (newTableSelectAll) {
-                newTableSelectAll.addEventListener('change', function(e) {
-                    document.querySelectorAll('.card-selector').forEach(cb => {
-                        cb.checked = e.target.checked;
-                    });
-                    updateSelection();
+        const tableSelectAll = document.getElementById('tableSelectAll');
+            tableSelectAll.addEventListener('change', function(e) {
+                document.querySelectorAll('.card-selector').forEach(cb => {
+                    cb.checked = e.target.checked;
                 });
-            }
+                updateSelection();
+            });
 
       setTimeout(setupDragAndDrop, 0);
         }
@@ -1742,7 +1740,7 @@ function updateStats(cards) {
             const today = new Date().toDateString();
             const todayScans = allScanLogs.length > 0 
                 ? allScanLogs.filter(log => new Date(log.scanned_at).toDateString() === today).length
-                : 0;
+                : allCards.filter(c => c.updated_at && new Date(c.updated_at).toDateString() === today).length;
             document.getElementById('activeToday').textContent = todayScans;
 
             const hourCounts = Array(24).fill(0);
@@ -2034,6 +2032,44 @@ function updateStats(cards) {
 
         function closePreviewModal() {
             previewModal.style.display = 'none';
+        }
+        
+        function renderTableHeaders() {
+            const headerRow = document.getElementById('headerRow');
+            let headerHtml = '<th style="cursor: default; background: #364B4A; width: 30px;">' +
+                '<input type="checkbox" id="tableSelectAll" class="bulk-checkbox"></th>';
+            
+            columnOrder.forEach(colId => {
+                if (colId === 'activation_history') {
+                    headerHtml += `<th draggable="true" data-column="activation_history">Activation History</th>`;
+                } else if (colId === 'recent_scans') {
+                    headerHtml += `<th draggable="true" data-column="recent_scans">Recent Scans</th>`;
+                } else if (colId === 'location') {
+                    headerHtml += `<th draggable="true" data-column="location">Location</th>`;
+                } else if (colId === 'mismatch') {
+                    headerHtml += `<th draggable="true" data-column="mismatch">Mismatch</th>`;
+                } else {
+                    const column = allColumns.find(c => c.id === colId);
+                    if (column) {
+                        headerHtml += `<th draggable="true" data-column="${colId}">${column.name}</th>`;
+                    }
+                }
+            });
+            
+            headerHtml += `<th style="cursor: default; background: #364B4A;">Actions</th>`;
+            headerRow.innerHTML = headerHtml;
+            
+            const newTableSelectAll = document.getElementById('tableSelectAll');
+            if (newTableSelectAll) {
+                newTableSelectAll.addEventListener('change', function(e) {
+                    document.querySelectorAll('.card-selector').forEach(cb => {
+                        cb.checked = e.target.checked;
+                    });
+                    updateSelection();
+                });
+            }
+
+            setTimeout(setupDragAndDrop, 0);
         }
         
         function renderTable() {
