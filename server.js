@@ -1062,47 +1062,46 @@ app.get('/api/admin/all-locations', async (req, res) => {
     const days = parseInt(req.query.days) || 90;
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
 
-    // Query 1: Records with direct city/country columns
-    const { data: directLocs, error: directError } = await supabaseAdmin
+    // Query 1: card_activations with city/country
+    const { data: actLocs, error: actError } = await supabaseAdmin
       .from('card_activations')
-      .select('city, country, region, latitude, longitude, activated_at, location_data')
+      .select('city, country, region, activated_at')
       .gte('activated_at', cutoff.toISOString())
-      .not('city', 'is', null);
-    if (directError) throw directError;
+      .or('city.not.is.null,country.not.is.null');
+    if (actError) throw actError;
 
-    // Query 2: Records with location_data JSON but no direct city
-    const { data: jsonLocs, error: jsonError } = await supabaseAdmin
-      .from('card_activations')
-      .select('city, country, region, latitude, longitude, activated_at, location_data')
-      .gte('activated_at', cutoff.toISOString())
-      .is('city', null)
-      .not('location_data', 'is', null);
-    if (jsonError) throw jsonError;
+    // Query 2: scan_logs with city/country (fallback)
+    const { data: scanLocs, error: scanError } = await supabaseAdmin
+      .from('scan_logs')
+      .select('city, country, region, scanned_at')
+      .gte('scanned_at', cutoff.toISOString())
+      .or('city.not.is.null,country.not.is.null');
+    if (scanError) throw scanError;
 
     const allLocations = [];
     const seen = new Set();
 
-    (directLocs || []).forEach(loc => {
-      if (loc.city || loc.country) {
-        const key = `${loc.city}-${loc.country}-${loc.activated_at}`;
+    // Merge card_activations
+    (actLocs || []).forEach(loc => {
+      const city = loc.city || null;
+      const country = loc.country || null;
+      const region = loc.region || null;
+      if (city || country) {
+        const key = `${city}-${country}`;
         if (!seen.has(key)) {
           seen.add(key);
-          allLocations.push({ city: loc.city, country: loc.country, region: loc.region });
+          allLocations.push({ city, country, region });
         }
       }
     });
 
-    (jsonLocs || []).forEach(loc => {
-      let ld = loc.location_data;
-      if (typeof ld === 'string') {
-        try { ld = JSON.parse(ld); } catch (e) { ld = {}; }
-      }
-      ld = ld || {};
-      const city = ld.city || ld.city_name || null;
-      const country = ld.country || ld.country_name || null;
-      const region = ld.region || ld.region_name || null;
+    // Merge scan_logs (fallback for views that didn't trigger activation)
+    (scanLocs || []).forEach(loc => {
+      const city = loc.city || null;
+      const country = loc.country || null;
+      const region = loc.region || null;
       if (city || country) {
-        const key = `${city}-${country}-${loc.activated_at}`;
+        const key = `${city}-${country}`;
         if (!seen.has(key)) {
           seen.add(key);
           allLocations.push({ city, country, region });
