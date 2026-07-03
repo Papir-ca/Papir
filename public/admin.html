@@ -897,6 +897,7 @@
     </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -2124,16 +2125,31 @@ if (expireCardsBtn) {
         function renderLocation(card) {
             if (!card.activation_history?.length) return '<td>—</td>';
             const latest = card.activation_history[0];
-            if (!latest.city && !latest.country) return '<td>—</td>';
-            return `<td>${latest.city || '?'}, ${latest.country || '?'}<br><small>${latest.activated_by_ip}</small></td>`;
+            // Fallback to location_data JSONB if flat columns are null
+            const locData = latest.location_data || {};
+            const city = latest.city || locData.city || null;
+            const country = latest.country || locData.country || null;
+            if (!city && !country) return '<td>—</td>';
+            return `<td>${city || '?'}, ${country || '?'}<br><small>${latest.activated_by_ip}</small></td>`;
         }
         
         function renderMismatch(card) {
             if (!card.batch_info?.shipping_country || !card.activation_history?.length) return '<td>—</td>';
             const latest = card.activation_history[0];
-            if (!latest.country) return '<td>—</td>';
-            if (latest.country !== card.batch_info.shipping_country) {
-                return `<td><span class="status-badge status-pending">⚠️ MISMATCH</span><br><small>📦 ${card.batch_info.shipping_country} → 🌍 ${latest.country}</small></td>`;
+            // Fallback to location_data JSONB if flat columns are null
+            const locData = latest.location_data || {};
+            const country = latest.country || locData.country || null;
+            if (!country) return '<td>—</td>';
+            // Normalize comparison: 2-letter code vs full name - check if either contains the other
+            const ship = (card.batch_info.shipping_country || '').toLowerCase().trim();
+            const act = (country || '').toLowerCase().trim();
+            const isMatch = ship === act ||
+                            ship.includes(act) ||
+                            act.includes(ship) ||
+                            (ship.length === 2 && act.includes(ship)) ||
+                            (act.length === 2 && ship.includes(act));
+            if (!isMatch) {
+                return `<td><span class="status-badge status-pending">⚠️ MISMATCH</span><br><small>📦 ${card.batch_info.shipping_country} → 🌍 ${country}</small></td>`;
             }
             return `<td><span class="status-badge status-active">✅ OK</span><br><small>${card.batch_info.shipping_country}</small></td>`;
         }
