@@ -308,10 +308,12 @@
         
         .export-modal-content {
             background: #2a2a2a;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             max-width: 600px;
-            margin: 100px auto;
+            max-height: 85vh;
+            overflow-y: auto;
+            margin: 50px auto;
             border: 1px solid #BCAE83;
         }
         
@@ -1975,8 +1977,80 @@ if (expireCardsBtn) {
         }
         
         function exportToCSV() {
-            alert('Advanced export feature will be implemented');
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            const selectedColumns = Array.from(document.querySelectorAll('.export-column:checked')).map(cb => cb.value);
+            const startDate = document.getElementById('exportStartDate').value;
+            const endDate = document.getElementById('exportEndDate').value;
+
+            if (selectedColumns.length === 0) {
+                alert('Please select at least one column');
+                return;
+            }
+
+            let data = [];
+            let headers = [];
+
+            if (exportType === 'cardData') {
+                // Filter cards by date range if provided
+                let filtered = allCardDetails;
+                if (startDate && endDate) {
+                    const s = new Date(startDate).getTime();
+                    const e = new Date(endDate).getTime();
+                    filtered = filtered.filter(c => {
+                        const t = new Date(c.created_at).getTime();
+                        return t >= s && t <= e;
+                    });
+                }
+                data = filtered;
+                headers = selectedColumns;
+            } else {
+                // Filter scan logs by date range if provided
+                let filtered = allScanLogs;
+                if (startDate && endDate) {
+                    const s = new Date(startDate).getTime();
+                    const e = new Date(endDate).getTime();
+                    filtered = filtered.filter(log => {
+                        const t = new Date(log.scanned_at).getTime();
+                        return t >= s && t <= e;
+                    });
+                }
+                data = filtered;
+                headers = selectedColumns;
+            }
+
+            if (data.length === 0) {
+                alert('No data found for the selected range');
+                return;
+            }
+
+            // Build CSV
+            let csv = headers.join(',') + '\n';
+            data.forEach(row => {
+                const line = headers.map(col => {
+                    let val = row[col];
+                    if (val === null || val === undefined) val = '';
+                    val = String(val).replace(/"/g, '""');
+                    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                        val = '"' + val + '"';
+                    }
+                    return val;
+                });
+                csv += line.join(',') + '\n';
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `papir-${exportType}-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
             exportModal.style.display = 'none';
+            showStatus(`Exported ${data.length} rows`, 'success');
         }
         
         function filterCards() {
