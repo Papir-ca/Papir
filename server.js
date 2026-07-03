@@ -306,7 +306,7 @@ function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
   const remoteAddress = req.socket.remoteAddress;
   const ip = req.ip;
-  console.log('IP Debug:', { forwarded, remoteAddress, ip });
+  console.log('IP Debug:', { forwarded, remoteAddress, ip, trustProxy: app.get('trust proxy') });
 
   if (forwarded) {
     const ips = forwarded.split(',').map(s => s.trim().replace('::ffff:', ''));
@@ -365,6 +365,7 @@ async function getGeolocationFromIp(ip) {
       clearTimeout(timeoutId);
       if (response.ok) {
         const data = await response.json();
+        console.log('📍 ipinfo.io response for', ip, ':', JSON.stringify(data));
         if (data.city && data.country) {
           const locParts = data.loc ? data.loc.split(',') : [null, null];
           return {
@@ -980,7 +981,10 @@ app.post('/api/activate-card', async (req, res) => {
           latitude: locationData?.latitude,
           longitude: locationData?.longitude
         });
-      if (logError) console.error('❌ Failed to log activation:', logError);
+      if (logError) {
+        console.error('❌ Failed to log activation:', logError);
+        console.error('❌ Activation insert details:', { card_id, clientIp, locationData });
+      }
       console.log(`✅ Card ${card_id} created and activated successfully`);
       return res.json({ success: true });
     }
@@ -1034,7 +1038,10 @@ app.post('/api/activate-card', async (req, res) => {
         latitude: locationData?.latitude,
         longitude: locationData?.longitude
       });
-    if (logError) console.error('❌ Failed to log activation:', logError);
+    if (logError) {
+        console.error('❌ Failed to log activation:', logError);
+        console.error('❌ Activation insert details:', { card_id, clientIp, locationData });
+      }
     console.log(`✅ Card ${card_id} activated successfully (logged to activations table with source: ${source || 'viewer'})`);
     res.json({ success: true });
   } catch (error) {
@@ -1071,9 +1078,16 @@ app.get('/api/admin/cards-all-details', async (req, res) => {
       .order('scanned_at', { ascending: false });
     if (scanError) throw scanError;
 
-    // Group by card_id for O(n) merge
+    // Group by card_id for O(n) merge, with location_data fallback
     const actMap = {};
     (activations || []).forEach(a => {
+      // Fallback: if flat columns are null, extract from location_data JSONB
+      const loc = a.location_data || {};
+      if (!a.city && loc.city) a.city = loc.city;
+      if (!a.country && loc.country) a.country = loc.country;
+      if (!a.region && loc.region) a.region = loc.region;
+      if (!a.latitude && loc.latitude) a.latitude = loc.latitude;
+      if (!a.longitude && loc.longitude) a.longitude = loc.longitude;
       if (!actMap[a.card_id]) actMap[a.card_id] = [];
       actMap[a.card_id].push(a);
     });
@@ -1126,43 +1140,41 @@ app.get('/api/admin/all-locations', async (req, res) => {
     const days = parseInt(req.query.days) || 90;
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
 
-    // Query 1: card_activations with city/country
+    // Query 1: all card_activations in range (fetch all, filter in JS with location_data fallback)
     const { data: actLocs, error: actError } = await supabaseAdmin
       .from('card_activations')
-      .select('city, country, region, activated_at')
-      .gte('activated_at', cutoff.toISOString())
-      .or('city.not.is.null,country.not.is.null');
+      .select('city, country, region, activated_at, location_data')
+      .gte('activated_at', cutoff.toISOString());
     if (actError) throw actError;
 
-    // Query 2: scan_logs with city/country (fallback)
+    // Query 2: all scan_logs in range (fetch all, filter in JS with location_data fallback)
     const { data: scanLocs, error: scanError } = await supabaseAdmin
       .from('scan_logs')
-      .select('city, country, region, scanned_at')
-      .gte('scanned_at', cutoff.toISOString())
-      .or('city.not.is.null,country.not.is.null');
+      .select('city, country, region, scanned_at, location_data')
+      .gte('scanned_at', cutoff.toISOString());
     if (scanError) throw scanError;
 
     const allLocations = [];
 
-    // Merge card_activations (count every record, no deduplication)
+    // Merge card_activations with location_data fallback
     (actLocs || []).forEach(loc => {
-      if (loc.city || loc.country) {
-        allLocations.push({
-          city: loc.city || null,
-          country: loc.country || null,
-          region: loc.region || null
-        });
+      const locData = loc.location_data || {};
+      const city = loc.city || locData.city || null;
+      const country = loc.country || locData.country || null;
+      const region = loc.region || locData.region || null;
+      if (city || country) {
+        allLocations.push({ city, country, region });
       }
     });
 
-    // Merge scan_logs (fallback for views that didn't trigger activation)
+    // Merge scan_logs with location_data fallback
     (scanLocs || []).forEach(loc => {
-      if (loc.city || loc.country) {
-        allLocations.push({
-          city: loc.city || null,
-          country: loc.country || null,
-          region: loc.region || null
-        });
+      const locData = loc.location_data || {};
+      const city = loc.city || locData.city || null;
+      const country = loc.country || locData.country || null;
+      const region = loc.region || locData.region || null;
+      if (city || country) {
+        allLocations.push({ city, country, region });
       }
     });
 
@@ -1585,15 +1597,17 @@ app.post('/api/activate-after-payment', async (req, res) => {
         
         if (batchError) console.error('Batch insert error:', batchError);
         
-        await supabaseAdmin.from('batch_events').insert({
-          batch_id: finalBatchId,
-          event_type: 'batch_paid_and_created',
-          quantity: parseInt(quantity),
-          timestamp: now.toISOString(),
-          ip_address: clientIp,
-          user_agent: userAgent,
-          metadata: { stripe_session_id: session_id, template_id: templateId, source: source, cards: createdCards.map(c => c.card_id) }
-        }).catch(e => console.error('Batch event error:', e));
+        try {
+          await supabaseAdmin.from('batch_events').insert({
+            batch_id: finalBatchId,
+            event_type: 'batch_paid_and_created',
+            quantity: parseInt(quantity),
+            timestamp: now.toISOString(),
+            ip_address: clientIp,
+            user_agent: userAgent,
+            metadata: { stripe_session_id: session_id, template_id: templateId, source: source, cards: createdCards.map(c => c.card_id) }
+          });
+        } catch (e) { console.error('Batch event error:', e); }
       }
       
       const locationData = await getGeolocationFromIp(clientIp);
