@@ -61,6 +61,7 @@ app.use(helmet({
         "https://*.supabase.co",
         "wss://*.supabase.co",
         "https://api.qrserver.com",
+        "https://ipinfo.io",
         "https://ipapi.co",
         "http://ip-api.com",
         "https://api.ipify.org",
@@ -351,6 +352,37 @@ async function getGeolocationFromIp(ip) {
       return null;
     }
     console.log('📍 Fetching geolocation for IP:', ip);
+
+    // Try ipinfo.io first (most accurate, token optional)
+    try {
+      const token = process.env.IPINFO_TOKEN || '';
+      const url = token
+        ? `https://ipinfo.io/${ip}/json?token=${token}`
+        : `https://ipinfo.io/${ip}/json`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.city && data.country) {
+          const locParts = data.loc ? data.loc.split(',') : [null, null];
+          return {
+            ip: ip,
+            city: data.city,
+            region: data.region,
+            country: data.country_name || data.country,
+            country_code: data.country,
+            latitude: locParts[0] ? parseFloat(locParts[0]) : null,
+            longitude: locParts[1] ? parseFloat(locParts[1]) : null,
+            org: data.org
+          };
+        }
+      }
+    } catch (ipinfoError) {
+      console.log('📍 ipinfo.io failed:', ipinfoError.message);
+    }
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -1017,9 +1049,49 @@ app.post('/api/activate-card', async (req, res) => {
 app.get('/api/admin/cards-all-details', async (req, res) => {
   try {
     if (!supabaseAdmin) return res.status(503).json({ error: 'Database unavailable' });
-    const { data, error } = await supabaseAdmin.from('cards').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    res.json({ success: true, cards: data || [] });
+
+    // Fetch all cards
+    const { data: cards, error: cardsError } = await supabaseAdmin
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (cardsError) throw cardsError;
+
+    // Fetch all activations with location data
+    const { data: activations, error: actError } = await supabaseAdmin
+      .from('card_activations')
+      .select('*')
+      .order('activated_at', { ascending: false });
+    if (actError) throw actError;
+
+    // Fetch all scan logs with location data
+    const { data: scans, error: scanError } = await supabaseAdmin
+      .from('scan_logs')
+      .select('*')
+      .order('scanned_at', { ascending: false });
+    if (scanError) throw scanError;
+
+    // Group by card_id for O(n) merge
+    const actMap = {};
+    (activations || []).forEach(a => {
+      if (!actMap[a.card_id]) actMap[a.card_id] = [];
+      actMap[a.card_id].push(a);
+    });
+
+    const scanMap = {};
+    (scans || []).forEach(s => {
+      if (!scanMap[s.card_id]) scanMap[s.card_id] = [];
+      scanMap[s.card_id].push(s);
+    });
+
+    // Merge histories into each card
+    const enrichedCards = (cards || []).map(card => ({
+      ...card,
+      activation_history: actMap[card.card_id] || [],
+      scan_history: scanMap[card.card_id] || []
+    }));
+
+    res.json({ success: true, cards: enrichedCards });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -1071,33 +1143,26 @@ app.get('/api/admin/all-locations', async (req, res) => {
     if (scanError) throw scanError;
 
     const allLocations = [];
-    const seen = new Set();
 
-    // Merge card_activations
+    // Merge card_activations (count every record, no deduplication)
     (actLocs || []).forEach(loc => {
-      const city = loc.city || null;
-      const country = loc.country || null;
-      const region = loc.region || null;
-      if (city || country) {
-        const key = `${city}-${country}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          allLocations.push({ city, country, region });
-        }
+      if (loc.city || loc.country) {
+        allLocations.push({
+          city: loc.city || null,
+          country: loc.country || null,
+          region: loc.region || null
+        });
       }
     });
 
     // Merge scan_logs (fallback for views that didn't trigger activation)
     (scanLocs || []).forEach(loc => {
-      const city = loc.city || null;
-      const country = loc.country || null;
-      const region = loc.region || null;
-      if (city || country) {
-        const key = `${city}-${country}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          allLocations.push({ city, country, region });
-        }
+      if (loc.city || loc.country) {
+        allLocations.push({
+          city: loc.city || null,
+          country: loc.country || null,
+          region: loc.region || null
+        });
       }
     });
 
