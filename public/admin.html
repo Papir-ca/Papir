@@ -1053,14 +1053,7 @@
             </button>
         </div>
         
-        <div class="analytics-section">
-            <div class="analytics-title">
-                <i class="fas fa-globe-americas"></i> Geographic Mismatch Alerts
-            </div>
-            <div id="mismatchAlertsList" style="max-height: 200px; overflow-y: auto;">
-                <div style="text-align: center; color: #aaa; padding: 20px;">Loading...</div>
-            </div>
-        </div>
+
         
         <div class="export-modal" id="exportModal">
             <div class="export-modal-content">
@@ -1755,7 +1748,7 @@ if (expireCardsBtn) {
                     
                     loadScanLogs().catch(() => {});
                     loadAbandonedCards().catch(() => {});
-                    loadMismatchAlerts().catch(() => {});
+                    
                     loadAllLocations().catch(e => console.log('Location load failed:', e));
                     loadPerformanceStats().catch(() => {});
                     loadActivityTimeline().catch(() => {});
@@ -1821,38 +1814,7 @@ if (expireCardsBtn) {
             }
         }
         
-        async function loadMismatchAlerts() {
-            try {
-                const response = await adminFetch(`${BACKEND_URL}/api/admin/mismatch-alerts`);
-                if (response.status === 429) return;
-                const result = await response.json();
-                const container = document.getElementById('mismatchAlertsList');
-
-                if (!result.success) {
-                    container.innerHTML = '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading mismatch alerts</div>';
-                    return;
-                }
-
-                const alerts = result.alerts || [];
-                if (alerts.length === 0) {
-                    container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No mismatches detected</div>';
-                    return;
-                }
-
-                let html = '';
-                alerts.slice(0, 10).forEach(alert => {
-                    const shipping = alert.shipping_country || 'Unknown';
-                    const activation = alert.activation_country || 'Unknown';
-                    const batchId = alert.batch_id || 'N/A';
-                    html += `<div class="mismatch-item"><div><strong>${alert.card_id}</strong><div style="font-size: 0.8rem; color: #aaa;">Batch: ${batchId}</div></div><div style="text-align: right;"><div>📦 ${shipping} → 🌍 ${activation}</div><div style="font-size: 0.7rem; color: #f39c12;">⚠️ MISMATCH</div></div></div>`;
-                });
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Error loading mismatch alerts:', error);
-            }
-        }
-
-function updateStats(cards) {
+        function updateStats(cards) {
             document.getElementById('totalCards').textContent = cards.length;
             document.getElementById('pendingCards').textContent = cards.filter(c => c.status === 'pending').length;
             document.getElementById('activeCards').textContent = cards.filter(c => c.status === 'active').length;
