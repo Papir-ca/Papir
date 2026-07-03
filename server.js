@@ -992,21 +992,23 @@ app.post('/api/activate-card', async (req, res) => {
     if (card.status === 'active') {
       // Log the view even if already active (for tracking)
       const locationData = await getGeolocationFromIp(clientIp);
-      await supabaseAdmin.from('card_activations').insert({
-        card_id: card_id,
-        activated_at: new Date().toISOString(),
-        activated_by_ip: clientIp,
-        terms_accepted_at: new Date().toISOString(),
-        terms_accepted_ip: clientIp,
-        user_agent: req.headers['user-agent'] || 'unknown',
-        activation_source: source || 'viewer',
-        location_data: locationData,
-        city: locationData?.city || null,
-        country: locationData?.country || null,
-        region: locationData?.region || null,
-        latitude: locationData?.latitude || null,
-        longitude: locationData?.longitude || null
-      }).catch(() => {});
+      try {
+        await supabaseAdmin.from('card_activations').insert({
+          card_id: card_id,
+          activated_at: new Date().toISOString(),
+          activated_by_ip: clientIp,
+          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_ip: clientIp,
+          user_agent: req.headers['user-agent'] || 'unknown',
+          activation_source: source || 'viewer',
+          location_data: locationData,
+          city: locationData?.city || null,
+          country: locationData?.country || null,
+          region: locationData?.region || null,
+          latitude: locationData?.latitude || null,
+          longitude: locationData?.longitude || null
+        });
+      } catch (e) {}
       return res.json({ success: true, already_active: true, message: 'Card already active, view logged' });
     }
     if (card.status !== 'pending' && card.status !== 'draft') {
