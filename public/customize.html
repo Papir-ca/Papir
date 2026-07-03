@@ -149,7 +149,7 @@
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
 
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
@@ -300,7 +300,7 @@
         }
 
         /* ===== TABLET / iPad LANDSCAPE - Desktop layout only ===== */
-        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (min-height: 600px) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
             .canvas-area { 
@@ -320,9 +320,7 @@
                 border-bottom: none !important;
                 overflow: auto !important;
             }
-            .canvas-container { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; }
-            #canvasContainer { max-height: none; overflow: auto; width: auto !important; padding: 0 !important; margin: 0 !important; }
-            #canvasContainer .canvas-container { width: auto !important; max-width: none !important; height: auto !important; aspect-ratio: auto !important; max-height: none !important; margin: 0 !important; position: relative !important; }
+            #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
             .properties-panel { 
@@ -343,9 +341,7 @@
             .properties-panel .tab-content.active { display: block; }
             .properties-panel .checkout-section { margin-top: auto !important; }
             .properties-panel .panel-header { display: flex !important; justify-content: center !important; border-bottom-color: transparent !important; margin-bottom: 15px !important; padding-bottom: 10px !important; }
-            .mobile-accordion-container { display: none !important; }
-            .mobile-accordion-header { display: none !important; }
-            .mobile-lock-toggle { display: none !important; }
+            /* Accordion visibility controlled by JS */
             #mobileResetBtn { display: none !important; }
             .design-header { flex-direction: row !important; gap: 0 !important; padding: 12px 20px !important; margin-bottom: 10px !important; }
             .design-header > div:nth-child(2) { width: auto !important; justify-content: flex-end !important; flex-wrap: nowrap !important; gap: 10px !important; }
@@ -385,7 +381,7 @@
             #toggleHandlesBtn { display: none !important; }
         }
 
-        @media (min-width: 769px) {
+        @media (min-width: 1025px) {
             #mobileResetBtn { display: none !important; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
@@ -395,10 +391,11 @@
             .preview-mode .properties-panel { display: none !important; }
             .preview-mode .design-layout { gap: 0 !important; }
             .preview-mode .canvas-area { flex: 1 !important; }
-            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
+            /* Accordion visibility controlled by JS */
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -710,7 +707,7 @@
         let redoStack = [];
 
         function isMobileLayout() {
-            return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.matchMedia('(orientation: portrait)').matches);
+            return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.innerHeight < 600);
         }
         let isPreviewMode = false;
         let layerEditTarget = null;
@@ -1377,8 +1374,8 @@
 
         // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
-            // If user is scrolling or touch had movement and we have a selected object, restore it
-            if ((isScrolling || lastTouchHadMovement) && selectedObject && selectedObject.canvas === canvas) {
+            // Only restore selection during an active scroll gesture, not after
+            if (isScrolling && selectedObject && selectedObject.canvas === canvas) {
                 canvas.setActiveObject(selectedObject);
                 canvas.renderAll();
                 return;
@@ -1643,6 +1640,18 @@
             } else {
                 obj.clone(function(cloned) {
                     cloned.set({ left: obj.left + 20, top: obj.top + 20 });
+                    if (obj.isVideo && obj.videoBlobUrl) {
+                        cloned.isVideo = true;
+                        cloned.videoBlobUrl = obj.videoBlobUrl;
+                        cloned.videoType = obj.videoType;
+                        restoreVideoObject(cloned);
+                    }
+                    if (obj.isAudio && obj.audioBlobUrl) {
+                        cloned.isAudio = true;
+                        cloned.audioBlobUrl = obj.audioBlobUrl;
+                        cloned.audioType = obj.audioType;
+                        restoreAudioObject(cloned);
+                    }
                     canvas.add(cloned);
                     canvas.setActiveObject(cloned);
                 });
@@ -1895,6 +1904,7 @@
                     case 'ArrowLeft': selectedObject.left -= step; break;
                     case 'ArrowRight': selectedObject.left += step; break;
                 }
+                selectedObject.setCoords();
                 canvas.renderAll();
                 updateControls();
             }
@@ -2039,26 +2049,38 @@
                     return new Blob([ab], { type: mime });
                 }
 
-                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && obj.videoFile);
+                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && (obj.videoFile || obj.videoBlobUrl));
                 const hasVideo = videoObjects.length > 0;
                 let videoUrl = '';
 
                 if (hasVideo) {
                     showNotification('Uploading video...', 'info');
                     const video = videoObjects[0];
-                    const file = video.videoFile;
+                    let file = video.videoFile;
+                    let fileName = file ? file.name : 'video.mp4';
+                    if (!file && video.videoBlobUrl) {
+                        const response = await fetch(video.videoBlobUrl);
+                        const blob = await response.blob();
+                        file = new File([blob], fileName, { type: video.videoType || 'video/mp4' });
+                    }
                     const cardId = 'TEMP-' + Date.now();
-                    videoUrl = await uploadFile(file, file.name, cardId);
+                    videoUrl = await uploadFile(file, fileName, cardId);
                 }
 
                 let audioUrl = '';
-                const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && obj.audioFile);
+                const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && (obj.audioFile || obj.audioBlobUrl));
                 if (audioObjects.length > 0) {
                     showNotification('Uploading audio...', 'info');
                     const audio = audioObjects[0];
-                    const file = audio.audioFile;
+                    let file = audio.audioFile;
+                    let fileName = file ? file.name : 'audio.mp3';
+                    if (!file && audio.audioBlobUrl) {
+                        const response = await fetch(audio.audioBlobUrl);
+                        const blob = await response.blob();
+                        file = new File([blob], fileName, { type: audio.audioType || 'audio/mpeg' });
+                    }
                     const cardId = 'TEMP-' + Date.now();
-                    audioUrl = await uploadFile(file, file.name, cardId);
+                    audioUrl = await uploadFile(file, fileName, cardId);
                 }
 
                 let overlayUrl = '';
@@ -2245,6 +2267,7 @@
             let handleNum = 1;
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture) return;
+                if (obj.selectable === false && obj.evented === false) return;
                 if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
                 const hid = obj.__handleId;
                 const handle = document.createElement('div');
@@ -2457,6 +2480,7 @@
             });
             if (lock) {
                 canvas.selection = false;
+                clearMobileHandles();
             } else {
                 canvas.selection = true;
             }
@@ -2571,19 +2595,23 @@
 
             if (htmlFocused) return;
 
-            if (isTouch && !isEditing) {
+            if (isMobile && isTouch && !isEditing) {
                 lockMobileObjects(true);
                 clearMobileHandles();
                 const lockToggleEl = document.getElementById('mobileLockToggle');
-                if (lockToggleEl && isMobile) {
+                if (lockToggleEl) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
                     lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
-            } else if (!isTouch) {
+            } else {
                 lockMobileObjects(false);
                 clearMobileHandles();
             }
+            const lockToggleEl = document.getElementById('mobileLockToggle');
+            if (lockToggleEl) lockToggleEl.style.display = isMobile ? '' : 'none';
+            const mobileResetBtn = document.getElementById('mobileResetBtn');
+            if (mobileResetBtn) mobileResetBtn.style.display = isMobile ? '' : 'none';
 
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
@@ -2631,6 +2659,7 @@
                 }, { passive: true });
 
                 function toggleSectionArrow(e, clientX) {
+                    if (!isMobileLayout()) return;
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
                     // Only toggle if tap/click is on the rightmost 40px (arrow area)
