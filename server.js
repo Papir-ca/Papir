@@ -118,14 +118,6 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     console.log('⚠️ Webhook: STRIPE_WEBHOOK_SECRET not set - skipping');
     return res.status(503).json({ error: 'Webhook secret not configured - safe to ignore for testing' });
-// HTTPS redirect (uncomment when SSL is configured)
-// app.use((req, res, next) => {
-//   if (req.headers['x-forwarded-proto'] !== 'https') {
-//     return res.redirect('https://' + req.get('host') + req.url);
-//   }
-//   next();
-// });
-
   }
   const sig = req.headers['stripe-signature'];
   let event;
