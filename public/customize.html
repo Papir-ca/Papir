@@ -401,6 +401,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -1169,15 +1170,19 @@
                 }
                 hideMenu();
             }
+            let justTouchedMenu = false;
             menu.querySelectorAll('.ctx-item').forEach(item => {
+                item.addEventListener('touchend', function(e) {
+                    e.stopPropagation(); e.preventDefault();
+                    justTouchedMenu = true;
+                    setTimeout(() => { justTouchedMenu = false; }, 100);
+                    handleMenuAction(this.dataset.action);
+                }, { passive: false });
                 item.addEventListener('click', function(e) {
+                    if (justTouchedMenu) return;
                     e.stopPropagation(); e.preventDefault();
                     handleMenuAction(this.dataset.action);
                 });
-                item.addEventListener('touchend', function(e) {
-                    e.stopPropagation(); e.preventDefault();
-                    handleMenuAction(this.dataset.action);
-                }, { passive: false });
             });
         }
 
@@ -1480,6 +1485,11 @@
                     canvas.renderAll();
                 }
             });
+        document.getElementById('textContent').addEventListener('change', function() {
+            if (selectedObject && selectedObject.type === 'i-text') {
+                saveState();
+            }
+        });
             document.getElementById('fontFamily').addEventListener('change', async function() {
                 if (selectedObject && selectedObject.type === 'i-text') {
                     if (document.fonts) {
@@ -1743,6 +1753,11 @@
         }
         function saveLayerEdit() {
             if (!layerEditTarget) return;
+        const isOnCanvas = canvas.getObjects().includes(layerEditTarget);
+        if (!isOnCanvas) {
+            closeLayerEditModal();
+            return;
+        }
             const input = document.getElementById('layerEditInput');
             const newName = input.value.trim();
             if (newName) {
@@ -1758,9 +1773,19 @@
         }
 
         function deleteObjectByIndex(index) {
-            const obj = canvas.getObjects()[index];
-            if (obj) { canvas.remove(obj); canvas.renderAll(); saveState(); createMobileHandles(); }
+        const obj = canvas.getObjects()[index];
+        if (obj) {
+            if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
+            if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
+            if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
+            canvas.remove(obj);
+            canvas.renderAll();
+            saveState();
+            updateLayerList();
+            updateMediaControls();
+            createMobileHandles();
         }
+    }
 
         function applyTemplateTexture(canvas) {
             try {
@@ -1968,7 +1993,7 @@
             btn.innerHTML = '<span class="spinner"></span> Saving...';
             btn.disabled = true;
             try {
-                const BACKEND_URL = '';
+                const BACKEND_URL = window.location.origin;
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
                 const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
 
@@ -2553,7 +2578,7 @@
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
             } else if (!isTouch) {
                 lockMobileObjects(false);
@@ -3031,50 +3056,6 @@
         })();
     </script>
 
-    <!-- ===== UNIVERSAL MOBILE HELPERS ===== -->
-    <script>
-        (function() {
-
-            // Reset UI state when page is restored from bfcache (browser back button)
-            window.addEventListener('pageshow', function(e) {
-                if (e.persisted) {
-                    const checkoutBtn = document.getElementById('checkoutBtn');
-                    if (checkoutBtn) {
-                        checkoutBtn.innerHTML = '<i class="fas fa-lock"></i> Secure Checkout';
-                        checkoutBtn.disabled = false;
-                    }
-                    const saveBtn = document.getElementById('saveProgressBtn');
-                    if (saveBtn) {
-                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
-                    }
-                }
-            });
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, { passive: false });
-
-            function setMobileHeight() {
-                const vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
-            }
-            window.addEventListener('resize', setMobileHeight);
-            window.addEventListener('orientationchange', setMobileHeight);
-            setMobileHeight();
-
-            const originalHeight = window.innerHeight;
-            window.addEventListener('resize', () => {
-                if (window.innerHeight < originalHeight * 0.75) {
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                }
-            });
-        })();
-    </script>
+    
 </body>
 </html>
