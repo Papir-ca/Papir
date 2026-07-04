@@ -250,7 +250,7 @@
                 width: 100% !important;
                 max-width: 100% !important;
             }
-            #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            #canvasContainer { max-height: 50vh !important; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 100% !important; max-width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; max-height: 55vh !important; margin: 0 !important; position: relative !important; left: 0 !important; right: 0 !important; }
             #designCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; aspect-ratio: 600 / 450 !important; min-width: 100% !important; }
             .canvas-toolbar { margin: 0 !important; padding: 4px 8px !important; font-size: 0.75rem; min-height: 32px; border-bottom: none !important; width: 100% !important; box-sizing: border-box; }
@@ -3041,12 +3041,13 @@
             const canvasEl = document.getElementById('designCanvas');
             const container = document.getElementById('canvasContainer');
             if (!canvasEl || !container) return;
-            const containerWidth = container.clientWidth;
+            let containerWidth = container.clientWidth;
             const scale = containerWidth / 600;
             let newHeight = Math.round(450 * scale);
             const isLandscape = window.innerWidth > window.innerHeight;
             if (isLandscape && newHeight > window.innerHeight * 0.38) {
                 newHeight = Math.round(window.innerHeight * 0.38);
+                containerWidth = Math.round(newHeight * 600 / 450);
             }
             canvasEl.style.width = containerWidth + 'px';
             canvasEl.style.height = newHeight + 'px';
