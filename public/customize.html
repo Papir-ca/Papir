@@ -156,7 +156,7 @@
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
             .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
             .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
-            #designCanvas { width: 100%; height: auto; max-height: 38vh; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
             .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
@@ -250,7 +250,7 @@
                 width: 100% !important;
                 max-width: 100% !important;
             }
-            #canvasContainer { max-height: 50vh !important; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 100% !important; max-width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; max-height: 55vh !important; margin: 0 !important; position: relative !important; left: 0 !important; right: 0 !important; }
             #designCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; aspect-ratio: 600 / 450 !important; min-width: 100% !important; }
             .canvas-toolbar { margin: 0 !important; padding: 4px 8px !important; font-size: 0.75rem; min-height: 32px; border-bottom: none !important; width: 100% !important; box-sizing: border-box; }
@@ -368,8 +368,8 @@
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; max-height: 45vh; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; max-height: 40vh; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
             .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
             #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
@@ -3038,17 +3038,14 @@
 
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && window.innerHeight < 600) return;
             const canvasEl = document.getElementById('designCanvas');
             const container = document.getElementById('canvasContainer');
             if (!canvasEl || !container) return;
-            let containerWidth = container.clientWidth;
+            const containerWidth = container.clientWidth;
             const scale = containerWidth / 600;
-            let newHeight = Math.round(450 * scale);
-            const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape && newHeight > window.innerHeight * 0.38) {
-                newHeight = Math.round(window.innerHeight * 0.38);
-                containerWidth = Math.round(newHeight * 600 / 450);
-            }
+            const newHeight = Math.round(450 * scale);
             canvasEl.style.width = containerWidth + 'px';
             canvasEl.style.height = newHeight + 'px';
             const wrapper = canvasEl.parentElement;
