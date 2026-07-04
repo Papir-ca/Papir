@@ -343,7 +343,9 @@
             .properties-panel .tab-content.active { display: block; }
             .properties-panel .checkout-section { margin-top: auto !important; }
             .properties-panel .panel-header { display: flex !important; justify-content: center !important; border-bottom-color: transparent !important; margin-bottom: 15px !important; padding-bottom: 10px !important; }
-            /* Accordion visibility controlled by JS */
+            .mobile-accordion-container { display: none !important; }
+            .mobile-accordion-header { display: none !important; }
+            .mobile-lock-toggle { display: none !important; }
             #mobileResetBtn { display: none !important; }
             .design-header { flex-direction: row !important; gap: 0 !important; padding: 12px 20px !important; margin-bottom: 10px !important; }
             .design-header > div:nth-child(2) { width: auto !important; justify-content: flex-end !important; flex-wrap: nowrap !important; gap: 10px !important; }
@@ -393,7 +395,7 @@
             .preview-mode .properties-panel { display: none !important; }
             .preview-mode .design-layout { gap: 0 !important; }
             .preview-mode .canvas-area { flex: 1 !important; }
-            /* Accordion visibility controlled by JS */
+            .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
@@ -1376,7 +1378,7 @@
 
         // ----- MODIFIED: handleDeselection checks scrolling flag -----
         function handleDeselection() {
-            // Only restore selection during an active scroll gesture, not after
+            // Only restore selection during an active scroll gesture
             if (isScrolling && selectedObject && selectedObject.canvas === canvas) {
                 canvas.setActiveObject(selectedObject);
                 canvas.renderAll();
@@ -1663,21 +1665,25 @@
 
         function toggleObjectLock(obj) {
             if (!obj || obj.isBackground || obj.isTexture) return;
-            if (obj._layerLocked) {
-                obj.set({ selectable: obj._layerWasSelectable !== undefined ? obj._layerWasSelectable : true, evented: obj._layerWasEvented !== undefined ? obj._layerWasEvented : true });
-                delete obj._layerLocked;
-                delete obj._layerWasSelectable;
-                delete obj._layerWasEvented;
+            if (obj._userLocked) {
+                obj.set({ selectable: true, evented: true });
+                delete obj._userLocked;
+                obj._userUnlocked = true;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            } else if (obj._userUnlocked) {
+                delete obj._userUnlocked;
                 if (canvas.getActiveObject() === obj) {
                     canvas.discardActiveObject();
                     selectedObject = null;
                     showNoSelection();
                 }
             } else {
-                obj._layerWasSelectable = obj.selectable;
-                obj._layerWasEvented = obj.evented;
                 obj.set({ selectable: false, evented: false });
-                obj._layerLocked = true;
+                obj._userLocked = true;
                 if (canvas.getActiveObject() === obj) {
                     canvas.discardActiveObject();
                     selectedObject = null;
@@ -1726,8 +1732,9 @@
 
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
-                const isLocked = obj.selectable === false && obj.evented === false;
-                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                const isLocked = !!obj._userLocked;
+                const isUnlocked = !!obj._userUnlocked;
+                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : isUnlocked ? 'Re-lock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : isUnlocked ? 'fa-unlock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
@@ -1753,7 +1760,9 @@
                 if (lockBtn) {
                     lockBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        toggleObjectLock(obj);
+                        const idx = parseInt(e.currentTarget.dataset.index);
+                        const targetObj = canvas.getObjects()[idx];
+                        if (targetObj) toggleObjectLock(targetObj);
                     });
                 }
                 const editBtn = item.querySelector('[data-action="edit"]');
@@ -2305,7 +2314,7 @@
             let handleNum = 1;
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture) return;
-                if (obj.selectable === false && obj.evented === false) return;
+                if (obj._userLocked) return;
                 if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
                 const hid = obj.__handleId;
                 const handle = document.createElement('div');
@@ -2501,6 +2510,8 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
 
             canvas.getObjects().forEach(obj => {
+                if (obj._userLocked) return;
+                if (obj._userUnlocked) return;
                 if (lock) {
                     if (obj.type === 'i-text' && obj.isEditing) return;
                     obj._wasSelectable = obj.selectable;
@@ -2518,7 +2529,6 @@
             });
             if (lock) {
                 canvas.selection = false;
-                clearMobileHandles();
             } else {
                 canvas.selection = true;
             }
@@ -2653,23 +2663,19 @@
 
             if (htmlFocused) return;
 
-            if (isMobile && isTouch && !isEditing) {
+            if (isTouch && !isEditing) {
                 lockMobileObjects(true);
                 clearMobileHandles();
                 const lockToggleEl = document.getElementById('mobileLockToggle');
-                if (lockToggleEl) {
+                if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
                     lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
-            } else {
+            } else if (!isTouch) {
                 lockMobileObjects(false);
                 clearMobileHandles();
             }
-            const lockToggleEl = document.getElementById('mobileLockToggle');
-            if (lockToggleEl) lockToggleEl.style.display = isMobile ? '' : 'none';
-            const mobileResetBtn = document.getElementById('mobileResetBtn');
-            if (mobileResetBtn) mobileResetBtn.style.display = isMobile ? '' : 'none';
 
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
@@ -2718,7 +2724,6 @@
                 }, { passive: true });
 
                 function toggleSectionArrow(e, clientX) {
-                    if (!isMobileLayout()) return;
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
                     // Only toggle if tap/click is on the rightmost 40px (arrow area)
@@ -3102,8 +3107,11 @@
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                     h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(h.dataset.target);
+                    if (content) content.style.display = 'none';
                 });
-                document.querySelectorAll('.property-section').forEach(s => s.classList.add('collapsed'));
             }
             syncUIState();
         }
