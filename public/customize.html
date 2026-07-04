@@ -497,7 +497,8 @@
             </div>
 
             <div class="properties-panel">
-                <div class="panel-header" style="justify-content: center; border-bottom-color: transparent;">
+                <div class="panel-header" style="justify-content: center; border-bottom-color: transparent; gap: 8px;">
+                    <button class="btn-icon small" id="desktopLockBtn" style="padding: 6px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: white;"><i class="fas fa-lock-open"></i> Lock all objects</button>
                     <button class="btn-icon small" id="resetDesignBtn" style="padding: 6px 16px; background: rgba(255, 107, 107, 0.2); border: 1px solid var(--danger); color: #ff6b6b;"><i class="fas fa-undo"></i> Reset</button>
                 </div>
                 <div class="tabs">
@@ -661,7 +662,7 @@
                 <div class="tab-content" id="layersTab">
                     <div class="layers-scroll-container">
                         <div class="mobile-lock-toggle unlocked" id="mobileLockToggle">
-                            <span><i class="fas fa-lock"></i> All objects locked</span>
+                            <span><i class="fas fa-lock"></i> Unlock all objects</span>
                             <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
                         </div>
                         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -2685,6 +2686,18 @@
 
             if (htmlFocused) return;
 
+            const desktopLockBtn = document.getElementById('desktopLockBtn');
+            if (desktopLockBtn) {
+                const anyLocked = canvas.getObjects().some(obj => obj._wasSelectable !== undefined);
+                if (anyLocked) {
+                    desktopLockBtn.dataset.locked = 'true';
+                    desktopLockBtn.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
+                } else {
+                    desktopLockBtn.dataset.locked = 'false';
+                    desktopLockBtn.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
+                }
+            }
+
             if (isTouch && !isEditing) {
                 lockMobileObjects(true);
                 clearMobileHandles();
@@ -2692,7 +2705,7 @@
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> All objects locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
             } else if (!isTouch) {
                 lockMobileObjects(false);
@@ -2864,13 +2877,13 @@
                         lockMobileObjects(false);
                         this.classList.remove('locked');
                         this.classList.add('unlocked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         if (showHandles) setTimeout(createMobileHandles, 100);
                     } else {
                         lockMobileObjects(true);
                         this.classList.remove('unlocked');
                         this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         clearMobileHandles();
                     }
                 });
@@ -2934,6 +2947,21 @@
             document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
 
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
+            const desktopLockBtn = document.getElementById('desktopLockBtn');
+            if (desktopLockBtn) {
+                desktopLockBtn.addEventListener('click', function() {
+                    const isLocked = this.dataset.locked === 'true';
+                    if (isLocked) {
+                        lockMobileObjects(false);
+                        this.dataset.locked = 'false';
+                        this.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
+                    } else {
+                        lockMobileObjects(true);
+                        this.dataset.locked = 'true';
+                        this.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
+                    }
+                });
+            }
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
             document.getElementById('previewBtn').addEventListener('click', togglePreview);
@@ -3103,7 +3131,7 @@
             if (lockToggleEl && isMobileLayout()) {
                 lockToggleEl.classList.remove('locked');
                 lockToggleEl.classList.add('unlocked');
-                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
             }
             setupEventListeners();
             setupMobileContextMenu();
