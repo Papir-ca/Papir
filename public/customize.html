@@ -149,7 +149,7 @@
 
         @media (max-width: 1024px) { .app-container { padding: 10px; } .properties-panel { width: 320px; } }
 
-        @media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
+        @media (max-width: 768px) {
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
@@ -202,7 +202,59 @@
 
         
 
-        @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
+        
+        /* Phone landscape - same mobile layout */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; overscroll-behavior-y: none; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
+            .property-section h4::after { content: '078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
+            .checkout-section { margin-top: 8px; }
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .back-link { padding: 5px 8px; font-size: 0.75rem; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
+            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
+            .palette-grid { grid-template-columns: repeat(2, 1fr); }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .canvas-area { width: 100%; }
+            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+        }
+@media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
                 /* ===== TABLET / iPad PORTRAIT - Same sticky canvas as mobile ===== */
@@ -300,7 +352,7 @@
         }
 
         /* ===== TABLET / iPad LANDSCAPE - Desktop layout only ===== */
-        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (min-height: 600px) {
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
             .canvas-area { 
@@ -385,7 +437,7 @@
             #toggleHandlesBtn { display: none !important; }
         }
 
-        @media (min-width: 1025px) {
+        @media (min-width: 769px) {
             #mobileResetBtn { display: none !important; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
