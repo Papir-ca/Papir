@@ -321,6 +321,8 @@
                 overflow: auto !important;
             }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
+            #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
+            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
             .properties-panel { 
@@ -422,7 +424,7 @@
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
-                        <button class="btn-icon small" id="addTextBtn" title="Add Text"><i class="fas fa-font"></i> Text</button>
+                        
                         <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
                         <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
@@ -1659,6 +1661,34 @@
             canvas.renderAll(); saveState(); updateLayerList();
         }
 
+        function toggleObjectLock(obj) {
+            if (!obj || obj.isBackground || obj.isTexture) return;
+            if (obj._layerLocked) {
+                obj.set({ selectable: obj._layerWasSelectable !== undefined ? obj._layerWasSelectable : true, evented: obj._layerWasEvented !== undefined ? obj._layerWasEvented : true });
+                delete obj._layerLocked;
+                delete obj._layerWasSelectable;
+                delete obj._layerWasEvented;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            } else {
+                obj._layerWasSelectable = obj.selectable;
+                obj._layerWasEvented = obj.evented;
+                obj.set({ selectable: false, evented: false });
+                obj._layerLocked = true;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            }
+            canvas.renderAll();
+            updateLayerList();
+            createMobileHandles();
+        }
+
         function updateLayerList() {
             const list = document.getElementById('layerList');
             if (!list) return;
@@ -1696,7 +1726,8 @@
 
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
-                actions.innerHTML = `<button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                const isLocked = obj.selectable === false && obj.evented === false;
+                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
@@ -1718,6 +1749,13 @@
                     openLayerEditModal(obj);
                 });
 
+                const lockBtn = item.querySelector('[data-action="lock"]');
+                if (lockBtn) {
+                    lockBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleObjectLock(obj);
+                    });
+                }
                 const editBtn = item.querySelector('[data-action="edit"]');
                 if (editBtn) {
                     editBtn.addEventListener('click', (e) => {
@@ -2537,6 +2575,26 @@
             }
         }
 
+        function syncUIState() {
+            document.querySelectorAll('.property-section').forEach(section => {
+                const content = section.querySelector('.section-content');
+                if (!content) return;
+                if (isMobileLayout()) {
+                    content.style.display = section.classList.contains('collapsed') ? 'none' : 'block';
+                } else {
+                    content.style.display = '';
+                    section.classList.remove('collapsed');
+                }
+            });
+            document.querySelectorAll('.mobile-accordion-header').forEach(header => {
+                const isActive = header.classList.contains('active');
+                const chevron = header.querySelector('.accordion-chevron');
+                if (chevron) chevron.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+                const targetContent = document.getElementById(header.dataset.target);
+                if (targetContent) targetContent.style.display = isActive ? 'block' : 'none';
+            });
+        }
+
         function handleResize() {
             applyMobileSpacingFix();
             const isMobile = isMobileLayout();
@@ -2616,6 +2674,7 @@
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
+            syncUIState();
         }
 
         function setupMobileUI() {
@@ -2839,8 +2898,7 @@
                 });
             }
 
-            const addTextBtn = document.getElementById('addTextBtn');
-            if (addTextBtn) addTextBtn.addEventListener('click', addNewText);
+            
             document.getElementById('addPhotoBtn').addEventListener('click', () => document.getElementById('fileInput').click());
             document.getElementById('addVideoBtn').addEventListener('click', () => document.getElementById('videoInput').click());
             document.getElementById('addAudioBtn').addEventListener('click', () => document.getElementById('audioInput').click());
@@ -2942,13 +3000,7 @@
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
             if (!hint) return;
-            const btn = document.getElementById('addTextBtn');
-            if (!btn) return;
-            const rect = btn.getBoundingClientRect();
-            hint.style.left = (rect.left + rect.width/2 - 80) + 'px';
-            hint.style.top = (rect.bottom + 10) + 'px';
-            hint.style.display = 'block';
-            setTimeout(() => { hint.style.display = 'none'; }, 4000);
+            hint.style.display = 'none';
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
@@ -3050,12 +3102,10 @@
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                     h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                    const content = document.getElementById(h.dataset.target);
-                    if (content) content.style.display = 'none';
                 });
+                document.querySelectorAll('.property-section').forEach(s => s.classList.add('collapsed'));
             }
+            syncUIState();
         }
 
         document.body.addEventListener('touchmove', function(e) {
