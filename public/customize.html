@@ -28,7 +28,23 @@
         .properties-panel { width: 420px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; padding-bottom: 160px; overflow-y: auto; color: white; display: flex; flex-direction: column; min-height: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
+        .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; cursor: default; }
+        /* Collapse arrow for all screens – will be hidden on desktop via media query if needed, but we keep it for tablet landscape */
+        .property-section h4::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+            margin-left: auto;
+            color: var(--primary-gold);
+            cursor: pointer;
+            padding-left: 10px;
+        }
+        .property-section.collapsed h4::after { transform: rotate(-90deg); }
+        .property-section.collapsed .section-content { display: none; }
+        .property-section .section-content { padding-top: 6px; }
+
         .control-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .control-group { flex: 1; }
         .control-group label { display: block; font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; }
@@ -132,7 +148,7 @@
             .mobile-lock-toggle { display: none !important; }
             .desktop-lock-btn { display: flex !important; }
             #mobileResetBtn { display: none !important; }
-            .property-section.collapsed .section-content { display: block !important; }
+            /* We no longer hide the arrow or force section-content to display:block; we allow collapsing on desktop too */
             .canvas-area { position: relative; z-index: auto; }
             .properties-panel .panel-header { justify-content: center !important; border-bottom-color: transparent !important; }
             .properties-panel .panel-title { display: none !important; }
@@ -179,11 +195,7 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0 !important; }
-            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
+            /* Already have arrow styles */
             .mobile-accordion-header, .mobile-lock-toggle, .property-section h4, .btn-btn, .tool-btn, .layer-item, .checkout-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
             #resetDesignBtn { position: fixed; top: 8px; right: 8px; z-index: 100; padding: 6px 10px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border-color: var(--danger) !important; opacity: 0.9; }
             .desktop-lock-btn { display: none !important; }
@@ -191,11 +203,10 @@
             .desktop-lock-btn { display: none !important; }
         }
 
-        /* ===== TABLET / iPAD LANDSCAPE – FIXED SCROLL ===== */
+        /* ===== TABLET / iPAD LANDSCAPE – SCROLLABLE PANEL + COLLAPSIBLE SECTIONS ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            /* Canvas area: takes remaining space */
             .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
@@ -203,13 +214,12 @@
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
 
-            /* Properties panel: fixed width, full height, scrollable */
             .properties-panel {
                 width: 320px !important;
-                flex: none !important;          /* don't grow/shrink */
-                height: 100% !important;         /* fill parent height */
+                flex: none !important;
+                height: 100% !important;
                 max-height: 100% !important;
-                overflow-y: auto !important;     /* enable scroll */
+                overflow-y: auto !important;
                 padding: 15px !important;
                 padding-bottom: 20px !important;
                 margin: 0 !important;
@@ -220,7 +230,6 @@
                 background: rgba(255,255,255,0.05);
                 border-radius: 12px;
             }
-            /* Ensure checkout stays at bottom */
             .properties-panel .checkout-section {
                 margin-top: auto !important;
                 position: sticky;
@@ -247,10 +256,11 @@
             .back-link { padding: 8px 15px; font-size: 0.9rem; }
             .btn-icon, .tab, .qty-btn { min-height: auto; padding: 8px 16px; }
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
-            .property-section h4 { cursor: default; display: flex; align-items: center; justify-content: flex-start; padding: 0; margin-bottom: 10px !important; }
-            .property-section h4::after { content: none; }
-            .property-section.collapsed .section-content { display: block !important; }
-            .property-section .section-content { padding-top: 0; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0; margin-bottom: 10px !important; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); cursor: pointer; }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
             #resetDesignBtn { position: static; padding: 6px 16px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; opacity: 1; }
             .desktop-lock-btn { display: flex !important; }
         }
@@ -390,7 +400,7 @@
     </style>
 </head>
 <body>
-    <!-- ===== HTML structure – unchanged ===== -->
+    <!-- ===== HTML – unchanged ===== -->
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
@@ -435,6 +445,7 @@
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
                 <div class="tab-content active" id="designTab">
+                    <!-- All property sections with h4 and .section-content – unchanged HTML -->
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background &amp; Media</h4>
                         <div class="section-content">
@@ -1698,7 +1709,7 @@
         }
 
         // ================================================================
-        //  MOBILE HANDLES – PERSISTENT
+        //  MOBILE HANDLES – PERSISTENT (with extra safety)
         // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -1746,7 +1757,7 @@
                 clearMobileHandles();
                 return;
             }
-            // ALWAYS rebuild – this is the key to persistence
+            // Always rebuild
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -1780,7 +1791,7 @@
                 rotHandle.style.left = rotPos.left + 'px';
                 rotHandle.style.top = rotPos.top + 'px';
 
-                // Rotate touch logic
+                // Touch listeners (same as before)
                 let rotStartAngle = 0, rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -1832,7 +1843,6 @@
                 handleContainer.appendChild(rotHandle);
                 mobileHandles.push(rotHandle);
 
-                // Drag handle logic
                 let lastTapTime = 0;
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -2066,7 +2076,7 @@
         }
 
         // ================================================================
-        //  MOBILE UI / ACCORDION
+        //  MOBILE UI / ACCORDION – with localStorage persistence for sections
         // ================================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
@@ -2118,8 +2128,42 @@
             }
         }
 
+        // Save section state to localStorage
+        function saveSectionState() {
+            const state = {};
+            document.querySelectorAll('.property-section').forEach(section => {
+                const id = section.dataset.sectionId;
+                if (id) {
+                    state[id] = section.classList.contains('collapsed');
+                }
+            });
+            try {
+                localStorage.setItem('papirSectionState', JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function loadSectionState() {
+            try {
+                const saved = localStorage.getItem('papirSectionState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    document.querySelectorAll('.property-section').forEach(section => {
+                        const id = section.dataset.sectionId;
+                        if (id && state.hasOwnProperty(id)) {
+                            if (state[id]) {
+                                section.classList.add('collapsed');
+                            } else {
+                                section.classList.remove('collapsed');
+                            }
+                            sectionState[id] = state[id];
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+
         function setupMobileUI() {
-            // Property sections: wrap content, add arrow toggle with max-2-expanded logic
+            // Property sections: wrap content, add arrow toggle with max-2-expanded logic and localStorage
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2137,7 +2181,22 @@
 
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
-                if (isMobileLayout()) {
+
+                // Set initial state from localStorage or default collapsed on mobile
+                const savedState = localStorage.getItem('papirSectionState');
+                let initialState = true; // default collapsed on mobile
+                if (savedState) {
+                    try {
+                        const state = JSON.parse(savedState);
+                        if (state.hasOwnProperty(sectionId)) {
+                            initialState = state[sectionId];
+                        }
+                    } catch (e) {}
+                } else {
+                    // if no saved state, default collapsed on mobile
+                    initialState = isMobileLayout();
+                }
+                if (initialState) {
                     section.classList.add('collapsed');
                     sectionState[sectionId] = true;
                 } else {
@@ -2165,6 +2224,7 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
+                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
@@ -2190,6 +2250,7 @@
                         const idx = expandedSections.indexOf(id);
                         if (idx !== -1) expandedSections.splice(idx, 1);
                     }
+                    saveSectionState();
                 }
 
                 h4.addEventListener('touchend', function(e) {
@@ -2307,7 +2368,7 @@
                     applyMobileSpacingFix();
                     handleResize();
                     if (!isPreviewMode && showHandles && isTouchDevice) {
-                        setTimeout(createMobileHandles, 300); // longer delay to ensure layout settles
+                        setTimeout(createMobileHandles, 300);
                     }
                 }, 300);
             });
@@ -2348,8 +2409,8 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
-                document.querySelectorAll('.property-section').forEach(s => s.classList.remove('collapsed'));
-                expandedSections = [];
+                // On desktop, we don't enforce collapsed state – user can toggle via arrow if they want, but we keep sections as they are.
+                // We already have section states from localStorage.
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2367,7 +2428,7 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
-                // Do NOT reset section collapsed state – preserve user choice
+                // We do not modify section collapsed state – preserve user choice
             }
 
             if (htmlFocused) return;
@@ -2405,13 +2466,11 @@
 
             // ===== THE FIX: ALWAYS RECREATE HANDLES ON ANY TOUCH DEVICE =====
             if (isTouchDevice && !isEditing && showHandles) {
-                // Use a small delay to let the DOM settle after resize/orientation
                 clearTimeout(window._handleTimeout);
                 window._handleTimeout = setTimeout(() => {
                     createMobileHandles();
                 }, 250);
             } else {
-                // Only clear if explicitly hidden or preview
                 if (!showHandles || isPreviewMode) {
                     clearMobileHandles();
                 }
@@ -3071,6 +3130,8 @@
             } else {
                 await loadDemoTemplate();
             }
+            // Load section state from localStorage
+            loadSectionState();
             updateCheckoutDisplay();
             lockMobileObjects(false);
             const lockToggleEl = document.getElementById('mobileLockToggle');
@@ -3107,21 +3168,6 @@
             console.log('init() completed successfully');
             adjustCanvasForMobile();
             updateMediaControls();
-            if (isMobileLayout()) {
-                document.querySelectorAll('.property-section').forEach(s => {
-                    s.classList.add('collapsed');
-                    const id = s.dataset.sectionId;
-                    if (id) sectionState[id] = true;
-                });
-                expandedSections = [];
-                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                    const content = document.getElementById(h.dataset.target);
-                    if (content) content.style.display = 'none';
-                });
-            }
         }
 
         document.body.addEventListener('touchmove', function(e) {
