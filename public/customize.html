@@ -670,7 +670,13 @@
             if (e.target && !e.target.isBackground && !e.target.isTexture) {
                 ensureObjectControls(e.target);
                 if (!e.target.__handleId) e.target.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
+                // Rebuild handles to include new object
+                if (showHandles && !isPreviewMode) createMobileHandles();
             }
+        });
+
+        canvas.on('object:removed', () => {
+            if (showHandles && !isPreviewMode) createMobileHandles();
         });
 
         // ============================================================
@@ -738,6 +744,7 @@
                     canvas.renderAll();
                     updateLayerList();
                     updateMediaControls();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                 });
             }
         }
@@ -757,6 +764,7 @@
                     canvas.renderAll();
                     updateLayerList();
                     updateMediaControls();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                 });
             }
         }
@@ -898,6 +906,7 @@
                 if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
             });
             updateMediaControls();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         async function loadDemoTemplate() {
@@ -926,6 +935,7 @@
             saveState();
             updateLayerList();
             updateMediaControls();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         async function addTextElement(text, left, top, options) {
@@ -1106,7 +1116,7 @@
                 saveState();
                 updateLayerList();
                 updateMediaControls();
-                createMobileHandles();
+                if (showHandles && !isPreviewMode) createMobileHandles();
             }
         }
 
@@ -1180,7 +1190,7 @@
             }
             canvas.renderAll();
             updateLayerList();
-            createMobileHandles();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         function lockMobileObjects(lock) {
@@ -1206,6 +1216,7 @@
             canvas.selection = !lock;
             canvas.renderAll();
             updateLayerList();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         // ============================================================
@@ -1578,6 +1589,7 @@
                     saveState();
                     updateLayerList();
                     updateMediaControls();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                 });
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor;
                     canvas.renderAll(); }
@@ -1629,7 +1641,7 @@
                     saveState();
                     updateLayerList();
                     updateMediaControls();
-                    createMobileHandles();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                     showNotification('Design reset to template defaults', 'success');
                 });
             }
@@ -1704,6 +1716,7 @@
                     }, 200);
                 }, 100);
             }
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         function deleteSelected() {
@@ -1732,7 +1745,7 @@
                 saveState();
                 updateLayerList();
                 updateMediaControls();
-                createMobileHandles();
+                if (showHandles && !isPreviewMode) createMobileHandles();
             }
         }
 
@@ -1747,6 +1760,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         function sendToBack() {
@@ -1760,6 +1774,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         function duplicateObject() {
@@ -1800,6 +1815,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
+            if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
         function togglePreview() {
@@ -1821,7 +1837,9 @@
                 btn.classList.remove('active');
                 btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
                 if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                    setTimeout(createMobileHandles, 100);
+                    setTimeout(() => {
+                        if (showHandles && !isPreviewMode) createMobileHandles();
+                    }, 100);
                 }
             }
         }
@@ -1832,7 +1850,9 @@
                 active.exitEditing();
                 document.getElementById('doneBtn').classList.add('hidden');
                 canvas.renderAll();
-                setTimeout(createMobileHandles, 100);
+                setTimeout(() => {
+                    if (showHandles && !isPreviewMode) createMobileHandles();
+                }, 100);
             }
         }
 
@@ -1877,10 +1897,17 @@
         }
 
         function createMobileHandles() {
+            // Only for touch devices or mobile layout
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isMobileLayout() && !isTouch) return;
-            if (!showHandles || isPreviewMode) { clearMobileHandles(); return; }
-            // Always clear and recreate to keep them fresh
+            if (!isMobileLayout() && !isTouch) {
+                clearMobileHandles();
+                return;
+            }
+            if (!showHandles || isPreviewMode) {
+                clearMobileHandles();
+                return;
+            }
+            // Clear and rebuild
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2032,7 +2059,7 @@
                     if (handleDragState && handleDragState.obj === obj && handleDragState.moved)
                         saveState();
                     handleDragState = null;
-                    setTimeout(createMobileHandles, 100);
+                    // Don't recreate here; positions will update on next render
                 });
                 handleContainer.appendChild(handle);
                 mobileHandles.push(handle);
@@ -2043,6 +2070,8 @@
         function updateMobileHandlePositions() {
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
             if (!isMobileLayout() && !isTouch) return;
+            if (!showHandles || isPreviewMode) return;
+            // Update positions of existing handles
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
                 const hid = obj.__handleId;
@@ -2601,9 +2630,14 @@
                 }
             }
 
-            // Recreate handles if on mobile/touch and not preview
+            // Update handle positions on resize, but do NOT clear or recreate (unless needed)
             if (isTouch && !isEditing && showHandles && isMobile) {
-                setTimeout(() => { createMobileHandles(); }, 150);
+                // Only update positions; if handles missing, recreate
+                if (mobileHandles.length === 0) {
+                    createMobileHandles();
+                } else {
+                    updateMobileHandlePositions();
+                }
             }
         }
 
@@ -2621,7 +2655,10 @@
                 showNoSelection();
             }
             updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
+            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                // Update handle selection highlight
+                updateHandleSelection();
+            }
         }
 
         function handleDeselection() {
@@ -2634,7 +2671,9 @@
             selectedObject = null;
             showNoSelection();
             updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
+            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                updateHandleSelection();
+            }
         }
 
         // ============================================================
@@ -2712,7 +2751,8 @@
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) { saveState(); });
+            canvas.on('object:modified', function(e) { saveState();
+                updateMobileHandlePositions(); });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
                 // Only create handles if they should be visible and not already present
@@ -2722,9 +2762,6 @@
                     const editing = active && active.type === 'i-text' && active.isEditing;
                     if (!editing && !isPreviewMode) createMobileHandles();
                 }
-            });
-            canvas.on('object:removed', function() {
-                if (showHandles && !isPreviewMode) setTimeout(createMobileHandles, 100);
             });
 
             if ('ontouchstart' in window) {
@@ -2838,7 +2875,7 @@
                 if (menu && menu.style.display === 'block') menu.style.display = 'none';
                 const backdrop = document.getElementById('ctxBackdrop');
                 if (backdrop) backdrop.style.display = 'none';
-                setTimeout(createMobileHandles, 50);
+                // Don't recreate handles here; they persist.
             });
 
             window.addEventListener('pageshow', function(e) {
@@ -2852,6 +2889,8 @@
                     if (saveBtn) {
                         saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
                     }
+                    // Recreate handles if needed
+                    if (showHandles && !isPreviewMode) setTimeout(createMobileHandles, 200);
                 }
             });
             let lastTouchEnd = 0;
@@ -2955,6 +2994,7 @@
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
                 updateLayerList();
                 updateMediaControls();
+                if (showHandles && !isPreviewMode) createMobileHandles();
             };
             videoEl.onerror = () => { alert('Error loading video');
                 URL.revokeObjectURL(blobUrl); };
@@ -2994,6 +3034,7 @@
                     showNotification('Audio added! Will play when card is viewed.');
                     updateLayerList();
                     updateMediaControls();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                 });
             };
         }
@@ -3019,6 +3060,7 @@
                     canvas.renderAll();
                     saveState();
                     updateLayerList();
+                    if (showHandles && !isPreviewMode) createMobileHandles();
                 });
             };
             reader.onerror = () => { alert('Error reading file'); };
@@ -3290,7 +3332,10 @@
                 upperCanvas.style.width = containerWidth + 'px';
                 upperCanvas.style.height = newHeight + 'px';
             }
-            // Do NOT clear handles; they will be recreated if needed via handleResize.
+            // Update handle positions after resize
+            if (showHandles && !isPreviewMode) {
+                setTimeout(updateMobileHandlePositions, 50);
+            }
         }
 
         function handleMobileResize() {
