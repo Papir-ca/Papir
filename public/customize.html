@@ -9,7 +9,6 @@
     <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Raleway:wght@300;400;600&family=Oswald:wght@400;700&family=Parisienne&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Abril+Fatface&family=Bebas+Neue&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & VARIABLES ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --primary-gold: #BCAE83; --primary-teal: #06D6A0; --dark-bg: #1a1a2e; --light-bg: #f5f5f5; --accent-purple: #764ba2; --danger: #FF6B6B; --warning: #FFD166; }
         html, body { overscroll-behavior: none; }
@@ -29,18 +28,7 @@
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .property-section { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .property-section h4 { margin-bottom: 10px; color: var(--primary-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; cursor: default; }
-        /* Collapse arrow for all screens – will be hidden on desktop via media query if needed, but we keep it for tablet landscape */
-        .property-section h4::after {
-            content: '\f078';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.75rem;
-            transition: transform 0.2s;
-            margin-left: auto;
-            color: var(--primary-gold);
-            cursor: pointer;
-            padding-left: 10px;
-        }
+        .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: auto; color: var(--primary-gold); cursor: pointer; padding-left: 10px; }
         .property-section.collapsed h4::after { transform: rotate(-90deg); }
         .property-section.collapsed .section-content { display: none; }
         .property-section .section-content { padding-top: 6px; }
@@ -148,7 +136,6 @@
             .mobile-lock-toggle { display: none !important; }
             .desktop-lock-btn { display: flex !important; }
             #mobileResetBtn { display: none !important; }
-            /* We no longer hide the arrow or force section-content to display:block; we allow collapsing on desktop too */
             .canvas-area { position: relative; z-index: auto; }
             .properties-panel .panel-header { justify-content: center !important; border-bottom-color: transparent !important; }
             .properties-panel .panel-title { display: none !important; }
@@ -195,7 +182,6 @@
             .upload-area { padding: 25px 15px; }
             .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
             .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            /* Already have arrow styles */
             .mobile-accordion-header, .mobile-lock-toggle, .property-section h4, .btn-btn, .tool-btn, .layer-item, .checkout-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
             #resetDesignBtn { position: fixed; top: 8px; right: 8px; z-index: 100; padding: 6px 10px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border-color: var(--danger) !important; opacity: 0.9; }
             .desktop-lock-btn { display: none !important; }
@@ -203,7 +189,7 @@
             .desktop-lock-btn { display: none !important; }
         }
 
-        /* ===== TABLET / iPAD LANDSCAPE – SCROLLABLE PANEL + COLLAPSIBLE SECTIONS ===== */
+        /* ===== TABLET / iPAD LANDSCAPE ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
@@ -445,7 +431,7 @@
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
                 <div class="tab-content active" id="designTab">
-                    <!-- All property sections with h4 and .section-content – unchanged HTML -->
+                    <!-- All property sections with h4 and .section-content – unchanged -->
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background &amp; Media</h4>
                         <div class="section-content">
@@ -1709,7 +1695,7 @@
         }
 
         // ================================================================
-        //  MOBILE HANDLES – PERSISTENT (with extra safety)
+        //  MOBILE HANDLES – PERSISTENT
         // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -2409,8 +2395,7 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
-                // On desktop, we don't enforce collapsed state – user can toggle via arrow if they want, but we keep sections as they are.
-                // We already have section states from localStorage.
+                // On desktop, we don't enforce collapsed state – user can toggle via arrow
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2428,7 +2413,6 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
-                // We do not modify section collapsed state – preserve user choice
             }
 
             if (htmlFocused) return;
@@ -2561,10 +2545,9 @@
             canvas.on('object:modified', function(e) { saveState(); updateMobileHandlePositions(); });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
-                if (showHandles && isTouchDevice && mobileHandles.length === 0) {
-                    const active = canvas.getActiveObject();
-                    const editing = active && active.type === 'i-text' && active.isEditing;
-                    if (!editing && !isPreviewMode) createMobileHandles();
+                // If handles are missing, recreate them immediately
+                if (showHandles && isTouchDevice && mobileHandles.length === 0 && !isPreviewMode) {
+                    createMobileHandles();
                 }
             });
 
@@ -3142,6 +3125,7 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
+            // First handle creation
             setTimeout(() => { if (!isPreviewMode && showHandles && isTouchDevice) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
