@@ -203,111 +203,7 @@
         
 
         
-        /* Phone landscape - same mobile layout */
-        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
-            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
-            .app-container { height: auto; min-height: 100vh; padding: 4px; overscroll-behavior-y: none; }
-            .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
-            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
-            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
-            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
-            .properties-panel .tabs { display: none; }
-            .properties-panel .checkout-section { margin: 8px; }
-            .properties-panel .panel-header { display: none; }
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
-            .property-section h4::after { content: '078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
-            .checkout-section { margin-top: 8px; }
-            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .design-header h1 { font-size: 0.9rem; }
-            .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
-            .control-row { flex-wrap: wrap; }
-            .control-group { min-width: 120px; }
-            .layer-item { padding: 14px 10px; }
-            .layer-btn { padding: 8px; }
-            .upload-area { padding: 25px 15px; }
-            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-            .media-grid { grid-template-columns: repeat(3, 1fr); }
-            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
-            .palette-grid { grid-template-columns: repeat(2, 1fr); }
-            .preview-mode .properties-panel { display: none !important; }
-            .preview-mode .canvas-area { width: 100%; }
-            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
-            .mobile-accordion-container { display: block; margin: 0; }
-            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
-            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
-            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
-            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-        }
-
-        /* ===== PHONE LANDSCAPE - Force mobile layout ===== */
-        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
-            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
-            .app-container { height: auto; min-height: 100vh; padding: 4px; }
-            .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
-            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
-            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
-            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
-            .properties-panel .tabs { display: none; }
-            .properties-panel .checkout-section { margin: 8px; }
-            .properties-panel .panel-header { display: none; }
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
-            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
-            .checkout-section { margin-top: 8px; }
-            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .design-header h1 { font-size: 0.9rem; }
-            .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
-            .control-row { flex-wrap: wrap; }
-            .control-group { min-width: 120px; }
-            .layer-item { padding: 14px 10px; }
-            .layer-btn { padding: 8px; }
-            .upload-area { padding: 25px 15px; }
-            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-            .media-grid { grid-template-columns: repeat(3, 1fr); }
-            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
-            .palette-grid { grid-template-columns: repeat(2, 1fr); }
-            .preview-mode .properties-panel { display: none !important; }
-            .preview-mode .canvas-area { width: 100%; }
-            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
-            .mobile-accordion-container { display: block; margin: 0; }
-            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
-            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
-            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
-            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-            .desktop-lock-btn { display: none !important; }
-        }
-
+        
 @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
@@ -381,7 +277,6 @@
             .mobile-accordion-header { display: flex !important; }
             .mobile-lock-toggle { display: flex !important; }
             #mobileResetBtn { display: inline-flex !important; }
-            .desktop-lock-btn { display: none !important; }
             .checkout-section { margin-top: 8px !important; }
             .design-header { flex-direction: column !important; gap: 6px !important; padding: 6px 8px !important; margin-bottom: 2px !important; }
             .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
@@ -403,7 +298,6 @@
             .property-section .section-content { padding-top: 6px; }
             .mobile-accordion-header, .mobile-lock-toggle, .property-section h4, .btn-btn, .tool-btn, .layer-item, .checkout-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
             #resetDesignBtn { position: fixed; top: 8px; right: 8px; z-index: 100; padding: 6px 10px !important; font-size: 0.75rem !important; background: rgba(255,107,107,0.2) !important; border-color: var(--danger) !important; opacity: 0.9; }
-            .desktop-lock-btn { display: none !important; }
             #mobileResetBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
         }
 
@@ -469,6 +363,59 @@
             #resetDesignBtn { position: static; padding: 6px 16px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; opacity: 1; }
         }
 
+        /* ===== PHONE LANDSCAPE - Force mobile layout ===== */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
+            .checkout-section { margin-top: 8px; }
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .back-link { padding: 5px 8px; font-size: 0.75rem; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
+            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
+            .palette-grid { grid-template-columns: repeat(2, 1fr); }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .canvas-area { width: 100%; }
+            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+        }
+
+
 @media (min-width: 769px) and (pointer: coarse) {
             #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; }
             .btn-icon, .btn-icon.small { padding: 14px 18px; min-height: 48px; font-size: 0.95rem; }
@@ -495,8 +442,6 @@
 
         @media (min-width: 769px) {
             #mobileResetBtn { display: none !important; }
-            .mobile-lock-toggle { display: none !important; }
-            .desktop-lock-btn { display: flex !important; }
             .property-section.collapsed .section-content { display: block !important; }
             .canvas-area { position: relative; z-index: auto; }
             .properties-panel .panel-header { justify-content: center !important; border-bottom-color: transparent !important; }
@@ -537,7 +482,6 @@
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
-                        
                         <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
                         <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
@@ -717,10 +661,9 @@
                 <div class="tab-content" id="layersTab">
                     <div class="layers-scroll-container">
                         <div class="mobile-lock-toggle unlocked" id="mobileLockToggle">
-                            <span><i class="fas fa-lock"></i> Unlock all objects</span>
+                            <span><i class="fas fa-lock"></i> All objects locked</span>
                             <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
                         </div>
-                        <button class="btn-icon small desktop-lock-btn" id="desktopLockBtn" style="width: 100%; margin-bottom: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: white; display: none;"><i class="fas fa-lock-open"></i> Lock all objects</button>
                         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                             <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
                         </div>
@@ -1775,38 +1718,6 @@
             canvas.renderAll(); saveState(); updateLayerList();
         }
 
-        function toggleObjectLock(obj) {
-            if (!obj || obj.isBackground || obj.isTexture) return;
-            if (obj._userLocked) {
-                obj.set({ selectable: true, evented: true });
-                delete obj._userLocked;
-                obj._userUnlocked = true;
-                if (canvas.getActiveObject() === obj) {
-                    canvas.discardActiveObject();
-                    selectedObject = null;
-                    showNoSelection();
-                }
-            } else if (obj._userUnlocked) {
-                delete obj._userUnlocked;
-                if (canvas.getActiveObject() === obj) {
-                    canvas.discardActiveObject();
-                    selectedObject = null;
-                    showNoSelection();
-                }
-            } else {
-                obj.set({ selectable: false, evented: false });
-                obj._userLocked = true;
-                if (canvas.getActiveObject() === obj) {
-                    canvas.discardActiveObject();
-                    selectedObject = null;
-                    showNoSelection();
-                }
-            }
-            canvas.renderAll();
-            updateLayerList();
-            createMobileHandles();
-        }
-
         function updateLayerList() {
             const list = document.getElementById('layerList');
             if (!list) return;
@@ -1845,8 +1756,7 @@
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
                 const isLocked = !!obj._userLocked;
-                const isUnlocked = !!obj._userUnlocked;
-                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : isUnlocked ? 'Re-lock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : isUnlocked ? 'fa-unlock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
@@ -1868,15 +1778,6 @@
                     openLayerEditModal(obj);
                 });
 
-                const lockBtn = item.querySelector('[data-action="lock"]');
-                if (lockBtn) {
-                    lockBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const idx = parseInt(e.currentTarget.dataset.index);
-                        const targetObj = canvas.getObjects()[idx];
-                        if (targetObj) toggleObjectLock(targetObj);
-                    });
-                }
                 const lockBtn = item.querySelector('[data-action="lock"]');
                 if (lockBtn) {
                     lockBtn.addEventListener('click', (e) => {
@@ -1963,6 +1864,25 @@
             createMobileHandles();
         }
     }
+
+        function toggleObjectLock(obj) {
+            if (!obj || obj.isBackground || obj.isTexture) return;
+            if (obj._userLocked) {
+                delete obj._userLocked;
+                obj.set({ selectable: true, evented: true });
+            } else {
+                obj._userLocked = true;
+                obj.set({ selectable: false, evented: false });
+            }
+            if (canvas.getActiveObject() === obj) {
+                canvas.discardActiveObject();
+                selectedObject = null;
+                showNoSelection();
+            }
+            canvas.renderAll();
+            updateLayerList();
+            createMobileHandles();
+        }
 
         function applyTemplateTexture(canvas) {
             try {
@@ -2064,7 +1984,6 @@
                 }
             }
             if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                if (selectedObject._userLocked || selectedObject._wasSelectable !== undefined) return;
                 e.preventDefault();
                 const step = e.shiftKey ? 10 : 1;
                 switch(e.key) {
@@ -2507,8 +2426,8 @@
                 let lastTapTime = 0;
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
+                    if (obj._userLocked) return;
                     const touch = e.touches[0];
-                    if (!obj.selectable) obj.set({ selectable: true, evented: true });
                     canvas.setActiveObject(obj);
                     selectedObject = obj;
                     updateControls();
@@ -2635,7 +2554,6 @@
 
             canvas.getObjects().forEach(obj => {
                 if (obj._userLocked) return;
-                if (obj._userUnlocked) return;
                 if (lock) {
                     if (obj.type === 'i-text' && obj.isEditing) return;
                     obj._wasSelectable = obj.selectable;
@@ -2709,26 +2627,6 @@
             }
         }
 
-        function syncUIState() {
-            document.querySelectorAll('.property-section').forEach(section => {
-                const content = section.querySelector('.section-content');
-                if (!content) return;
-                if (isMobileLayout()) {
-                    content.style.display = section.classList.contains('collapsed') ? 'none' : 'block';
-                } else {
-                    content.style.display = '';
-                    section.classList.remove('collapsed');
-                }
-            });
-            document.querySelectorAll('.mobile-accordion-header').forEach(header => {
-                const isActive = header.classList.contains('active');
-                const chevron = header.querySelector('.accordion-chevron');
-                if (chevron) chevron.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
-                const targetContent = document.getElementById(header.dataset.target);
-                if (targetContent) targetContent.style.display = isActive ? 'block' : 'none';
-            });
-        }
-
         function handleResize() {
             applyMobileSpacingFix();
             const isMobile = isMobileLayout();
@@ -2787,18 +2685,6 @@
 
             if (htmlFocused) return;
 
-            const desktopLockBtn = document.getElementById('desktopLockBtn');
-            if (desktopLockBtn) {
-                const anyLocked = canvas.getObjects().some(obj => obj._wasSelectable !== undefined);
-                if (anyLocked) {
-                    desktopLockBtn.dataset.locked = 'true';
-                    desktopLockBtn.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
-                } else {
-                    desktopLockBtn.dataset.locked = 'false';
-                    desktopLockBtn.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
-                }
-            }
-
             if (isTouch && !isEditing) {
                 lockMobileObjects(true);
                 clearMobileHandles();
@@ -2806,7 +2692,7 @@
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> All objects locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
             } else if (!isTouch) {
                 lockMobileObjects(false);
@@ -2816,7 +2702,6 @@
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
-            syncUIState();
         }
 
         function setupMobileUI() {
@@ -2979,13 +2864,13 @@
                         lockMobileObjects(false);
                         this.classList.remove('locked');
                         this.classList.add('unlocked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         if (showHandles) setTimeout(createMobileHandles, 100);
                     } else {
                         lockMobileObjects(true);
                         this.classList.remove('unlocked');
                         this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         clearMobileHandles();
                     }
                 });
@@ -3049,21 +2934,6 @@
             document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
 
             document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
-            const desktopLockBtn = document.getElementById('desktopLockBtn');
-            if (desktopLockBtn) {
-                desktopLockBtn.addEventListener('click', function() {
-                    const isLocked = this.dataset.locked === 'true';
-                    if (isLocked) {
-                        lockMobileObjects(false);
-                        this.dataset.locked = 'false';
-                        this.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
-                    } else {
-                        lockMobileObjects(true);
-                        this.dataset.locked = 'true';
-                        this.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
-                    }
-                });
-            }
             document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
             document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
             document.getElementById('previewBtn').addEventListener('click', togglePreview);
@@ -3156,12 +3026,20 @@
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
             if (!hint) return;
-            hint.style.display = 'none';
+            const btn = document.getElementById('addLayerBtn');
+            if (!btn) return;
+            const rect = btn.getBoundingClientRect();
+            hint.style.left = (rect.left + rect.width/2 - 80) + 'px';
+            hint.style.top = (rect.bottom + 10) + 'px';
+            hint.style.display = 'block';
+            setTimeout(() => { hint.style.display = 'none'; }, 4000);
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && window.innerHeight < 600) return;
             const canvasEl = document.getElementById('designCanvas');
             const container = document.getElementById('canvasContainer');
             if (!canvasEl || !container) return;
@@ -3225,7 +3103,7 @@
             if (lockToggleEl && isMobileLayout()) {
                 lockToggleEl.classList.remove('locked');
                 lockToggleEl.classList.add('unlocked');
-                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> All objects unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
             }
             setupEventListeners();
             setupMobileContextMenu();
@@ -3264,7 +3142,6 @@
                     if (content) content.style.display = 'none';
                 });
             }
-            syncUIState();
         }
 
         document.body.addEventListener('touchmove', function(e) {
