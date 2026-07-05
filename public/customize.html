@@ -693,6 +693,9 @@
         let touchStartTarget = null;
         let lastTouchHadMovement = false;
 
+        // Store collapsed state for property sections
+        const sectionState = {};
+
         // ============================================================
         //  HELPERS
         // ============================================================
@@ -914,7 +917,6 @@
                 fontFamily: 'Montserrat',
                 fill: '#333'
             });
-            // Ensure controls are on all objects
             canvas.getObjects().forEach(obj => {
                 if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
             });
@@ -1876,6 +1878,7 @@
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
             if (!isMobileLayout() && !isTouch) return;
             if (!showHandles || isPreviewMode) { clearMobileHandles(); return; }
+            // Always clear and recreate to keep them fresh
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2229,7 +2232,7 @@
         }
 
         // ============================================================
-        //  MOBILE UI / ACCORDION
+        //  MOBILE UI / ACCORDION (with state persistence)
         // ============================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
@@ -2282,7 +2285,7 @@
         }
 
         function setupMobileUI() {
-            // Property sections: wrap content, add arrow toggle
+            // Property sections: wrap content, add arrow toggle with state
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2299,7 +2302,17 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                 }
 
-                if (isMobileLayout()) section.classList.add('collapsed');
+                // Restore state from storage, default to collapsed on mobile if not set
+                const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
+                section.dataset.sectionId = sectionId;
+                if (sectionState[sectionId] === undefined) {
+                    sectionState[sectionId] = isMobileLayout(); // true = collapsed on mobile by default
+                }
+                if (sectionState[sectionId]) {
+                    section.classList.add('collapsed');
+                } else {
+                    section.classList.remove('collapsed');
+                }
 
                 let touchStartX = 0,
                     touchStartY = 0,
@@ -2332,7 +2345,11 @@
                             'property-section') && c !== section);
                         siblings.forEach(other => other.classList.add('collapsed'));
                     }
+                    const isCollapsed = section.classList.contains('collapsed');
                     section.classList.toggle('collapsed');
+                    // Update state
+                    const id = section.dataset.sectionId;
+                    sectionState[id] = section.classList.contains('collapsed');
                 }
 
                 h4.addEventListener('touchend', function(e) {
@@ -2348,7 +2365,7 @@
                 });
             });
 
-            // Mobile accordion
+            // Mobile accordion for tabs (Design / Layers) — keep state? Not needed, but we'll avoid auto‑collapse on resize.
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2479,6 +2496,8 @@
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document
                 .activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
+            // Do NOT reset accordion or section collapsed states on resize — preserve user choice.
+            // Only adjust layout visibility.
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2498,7 +2517,7 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
-                document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
+                // Do not remove collapsed class — user state preserved.
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2516,11 +2535,7 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
-                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                });
+                // Do not collapse headers on resize — only when user clicks.
             }
 
             if (htmlFocused) return;
@@ -2537,10 +2552,9 @@
                 }
             }
 
-            // Only lock on mobile touch devices, never on desktop
+            // Lock/unlock only based on touch and mobile, but do NOT clear handles unnecessarily.
             if (isTouch && isMobile && !isEditing) {
                 lockMobileObjects(true);
-                clearMobileHandles();
                 const lockToggleEl = document.getElementById('mobileLockToggle');
                 if (lockToggleEl) {
                     lockToggleEl.classList.remove('unlocked');
@@ -2549,9 +2563,7 @@
                         '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size:0.75rem;opacity:0.8;">Tap to unlock</span>';
                 }
             } else {
-                // On desktop or when not in mobile layout, ensure objects are unlocked
                 lockMobileObjects(false);
-                clearMobileHandles();
                 const lockToggleEl = document.getElementById('mobileLockToggle');
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('locked');
@@ -2561,6 +2573,7 @@
                 }
             }
 
+            // Always recreate handles on mobile/touch if not preview and showHandles true.
             if (isTouch && !isEditing && showHandles && isMobile) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
@@ -2584,6 +2597,7 @@
         }
 
         function handleDeselection() {
+            // Only deselect if user tapped on empty canvas, not if scrolling
             if ((isScrolling || lastTouchHadMovement) && selectedObject && selectedObject.canvas === canvas) {
                 canvas.setActiveObject(selectedObject);
                 canvas.renderAll();
@@ -2670,18 +2684,20 @@
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) { saveState();
-                createMobileHandles(); });
+            canvas.on('object:modified', function(e) { saveState(); });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
+                // Only create handles if they should be visible and not already present
                 if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) &&
                     mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
-                    if (!editing) createMobileHandles();
+                    if (!editing && !isPreviewMode) createMobileHandles();
                 }
             });
-            canvas.on('object:removed', createMobileHandles);
+            canvas.on('object:removed', function() {
+                if (showHandles && !isPreviewMode) setTimeout(createMobileHandles, 100);
+            });
 
             if ('ontouchstart' in window) {
                 canvas.on('mouse:down', function(e) {
@@ -2762,7 +2778,7 @@
                             showSelectionControls();
                             updateLayerList();
                         }
-                        createMobileHandles();
+                        if (!isPreviewMode) createMobileHandles();
                     }, 50);
                 } else {
                     this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
@@ -3246,14 +3262,12 @@
                 upperCanvas.style.width = containerWidth + 'px';
                 upperCanvas.style.height = newHeight + 'px';
             }
-            clearMobileHandles();
-            setTimeout(createMobileHandles, 50);
+            // Do NOT clear handles here; they will be recreated by handleResize if needed.
         }
 
         function handleMobileResize() {
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                clearMobileHandles();
-                setTimeout(createMobileHandles, 100);
+                // Handles will be recreated in handleResize called from resize event.
             }
         }
 
@@ -3289,7 +3303,6 @@
                 await loadDemoTemplate();
             }
             updateCheckoutDisplay();
-            // Ensure objects are unlocked on init
             lockMobileObjects(false);
             const lockToggleEl = document.getElementById('mobileLockToggle');
             if (lockToggleEl && isMobileLayout()) {
@@ -3300,7 +3313,8 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
-            createMobileHandles();
+            // Create handles after everything is set up
+            setTimeout(() => { if (!isPreviewMode && showHandles) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
             setupColorPalettes();
@@ -3328,11 +3342,7 @@
             updateMediaControls();
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                    const content = document.getElementById(h.dataset.target);
-                    if (content) content.style.display = 'none';
+                    // Do not auto-collapse on init; let user state from earlier persist.
                 });
             }
         }
