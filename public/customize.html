@@ -203,7 +203,111 @@
         
 
         
-        
+        /* Phone landscape - same mobile layout */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; overscroll-behavior-y: none; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
+            .property-section h4::after { content: '078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
+            .checkout-section { margin-top: 8px; }
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .back-link { padding: 5px 8px; font-size: 0.75rem; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
+            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
+            .palette-grid { grid-template-columns: repeat(2, 1fr); }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .canvas-area { width: 100%; }
+            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+        }
+
+        /* ===== PHONE LANDSCAPE - Force mobile layout ===== */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
+            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
+            .app-container { height: auto; min-height: 100vh; padding: 4px; }
+            .design-layout { flex-direction: column; height: auto; gap: 0; }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
+            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
+            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
+            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
+            .properties-panel .tabs { display: none; }
+            .properties-panel .checkout-section { margin: 8px; }
+            .properties-panel .panel-header { display: none; }
+            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
+            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
+            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
+            .property-section.collapsed h4::after { transform: rotate(-90deg); }
+            .property-section.collapsed .section-content { display: none; }
+            .property-section .section-content { padding-top: 6px; }
+            .checkout-section { margin-top: 8px; }
+            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
+            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
+            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
+            .design-header h1 { font-size: 0.9rem; }
+            .back-link { padding: 5px 8px; font-size: 0.75rem; }
+            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
+            .control-row { flex-wrap: wrap; }
+            .control-group { min-width: 120px; }
+            .layer-item { padding: 14px 10px; }
+            .layer-btn { padding: 8px; }
+            .upload-area { padding: 25px 15px; }
+            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
+            .media-grid { grid-template-columns: repeat(3, 1fr); }
+            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
+            .palette-grid { grid-template-columns: repeat(2, 1fr); }
+            .preview-mode .properties-panel { display: none !important; }
+            .preview-mode .canvas-area { width: 100%; }
+            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
+            .mobile-accordion-container { display: block; margin: 0; }
+            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
+            .mobile-accordion-header:active { opacity: 0.9; }
+            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
+            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
+            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
+            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
+            .desktop-lock-btn { display: none !important; }
+        }
+
 @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
@@ -277,6 +381,7 @@
             .mobile-accordion-header { display: flex !important; }
             .mobile-lock-toggle { display: flex !important; }
             #mobileResetBtn { display: inline-flex !important; }
+            .desktop-lock-btn { display: none !important; }
             .checkout-section { margin-top: 8px !important; }
             .design-header { flex-direction: column !important; gap: 6px !important; padding: 6px 8px !important; margin-bottom: 2px !important; }
             .design-header > div:nth-child(2) { width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; gap: 6px !important; }
@@ -300,7 +405,6 @@
             #resetDesignBtn { position: fixed; top: 8px; right: 8px; z-index: 100; padding: 6px 10px !important; font-size: 0.75rem !important; background: rgba(255,107,107,0.2) !important; border-color: var(--danger) !important; opacity: 0.9; }
             .desktop-lock-btn { display: none !important; }
             #mobileResetBtn { background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; }
-            .desktop-lock-btn { display: none !important; }
         }
 
         /* ===== TABLET / iPad LANDSCAPE - Desktop layout only ===== */
@@ -364,59 +468,6 @@
             .property-section .section-content { padding-top: 0; }
             #resetDesignBtn { position: static; padding: 6px 16px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; opacity: 1; }
         }
-
-        /* ===== PHONE LANDSCAPE - Force mobile layout ===== */
-        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) and (max-height: 599px) {
-            .layers-scroll-container { max-height: 300px; overflow-y: auto; }
-            .app-container { height: auto; min-height: 100vh; padding: 4px; }
-            .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
-            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
-            .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
-            .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
-            .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
-            .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
-            .properties-panel .tabs { display: none; }
-            .properties-panel .checkout-section { margin: 8px; }
-            .properties-panel .panel-header { display: none; }
-            .property-section { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 2px; }
-            .property-section h4 { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 0; }
-            .property-section h4::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem; transition: transform 0.2s; margin-left: 10px; color: var(--primary-gold); }
-            .property-section.collapsed h4::after { transform: rotate(-90deg); }
-            .property-section.collapsed .section-content { display: none; }
-            .property-section .section-content { padding-top: 6px; }
-            .checkout-section { margin-top: 8px; }
-            .design-header { flex-direction: column; gap: 6px; padding: 6px 8px; margin-bottom: 2px; }
-            .design-header > div:nth-child(2) { width: 100%; justify-content: center; flex-wrap: wrap; gap: 6px; }
-            .header-left { width: 100%; justify-content: space-between; gap: 6px; }
-            .design-header h1 { font-size: 0.9rem; }
-            .back-link { padding: 5px 8px; font-size: 0.75rem; }
-            .btn-icon, .tab, .qty-btn { min-height: 44px; padding: 12px; }
-            .control-row { flex-wrap: wrap; }
-            .control-group { min-width: 120px; }
-            .layer-item { padding: 14px 10px; }
-            .layer-btn { padding: 8px; }
-            .upload-area { padding: 25px 15px; }
-            .text-input, select, input[type="number"] { padding: 12px; font-size: 16px; }
-            .media-grid { grid-template-columns: repeat(3, 1fr); }
-            .media-btn { padding: 16px 8px; font-size: 0.9rem; }
-            .palette-grid { grid-template-columns: repeat(2, 1fr); }
-            .preview-mode .properties-panel { display: none !important; }
-            .preview-mode .canvas-area { width: 100%; }
-            .hint-bubble { font-size: 0.8rem; padding: 8px 12px; }
-            .mobile-accordion-container { display: block; margin: 0; }
-            .mobile-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin: 0 0 2px 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; -webkit-tap-highlight-color: transparent; width: 100%; }
-            .mobile-accordion-header:active { opacity: 0.9; }
-            .mobile-accordion-header.active { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-            .accordion-chevron { transition: transform 0.2s; cursor: pointer; }
-            .mobile-lock-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px; cursor: pointer; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); touch-action: manipulation; }
-            .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color: var(--danger); }
-            .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.15); border-color: var(--primary-teal); color: var(--primary-teal); }
-        }
-
 
 @media (min-width: 769px) and (pointer: coarse) {
             #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; }
@@ -486,6 +537,7 @@
                         <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
                     </div>
                     <div class="canvas-controls">
+                        
                         <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
                         <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
                         <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
@@ -687,8 +739,7 @@
                             <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
                         </div>
                     </div>
-                        
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
                         <span style="font-size: 0.85rem;">Quantity:</span>
                         <button class="qty-btn" id="qtyMinus"><i class="fas fa-minus"></i></button>
                         <input type="number" id="qtyInput" value="1" min="1" max="2000" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
@@ -1724,6 +1775,38 @@
             canvas.renderAll(); saveState(); updateLayerList();
         }
 
+        function toggleObjectLock(obj) {
+            if (!obj || obj.isBackground || obj.isTexture) return;
+            if (obj._userLocked) {
+                obj.set({ selectable: true, evented: true });
+                delete obj._userLocked;
+                obj._userUnlocked = true;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            } else if (obj._userUnlocked) {
+                delete obj._userUnlocked;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            } else {
+                obj.set({ selectable: false, evented: false });
+                obj._userLocked = true;
+                if (canvas.getActiveObject() === obj) {
+                    canvas.discardActiveObject();
+                    selectedObject = null;
+                    showNoSelection();
+                }
+            }
+            canvas.renderAll();
+            updateLayerList();
+            createMobileHandles();
+        }
+
         function updateLayerList() {
             const list = document.getElementById('layerList');
             if (!list) return;
@@ -1762,7 +1845,8 @@
                 const actions = document.createElement('div');
                 actions.className = 'layer-actions';
                 const isLocked = !!obj._userLocked;
-                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
+                const isUnlocked = !!obj._userUnlocked;
+                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : isUnlocked ? 'Re-lock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : isUnlocked ? 'fa-unlock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
 
                 item.appendChild(span);
                 item.appendChild(actions);
@@ -1784,6 +1868,15 @@
                     openLayerEditModal(obj);
                 });
 
+                const lockBtn = item.querySelector('[data-action="lock"]');
+                if (lockBtn) {
+                    lockBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(e.currentTarget.dataset.index);
+                        const targetObj = canvas.getObjects()[idx];
+                        if (targetObj) toggleObjectLock(targetObj);
+                    });
+                }
                 const lockBtn = item.querySelector('[data-action="lock"]');
                 if (lockBtn) {
                     lockBtn.addEventListener('click', (e) => {
@@ -1870,25 +1963,6 @@
             createMobileHandles();
         }
     }
-
-        function toggleObjectLock(obj) {
-            if (!obj || obj.isBackground || obj.isTexture) return;
-            if (obj._userLocked) {
-                delete obj._userLocked;
-                obj.set({ selectable: true, evented: true });
-            } else {
-                obj._userLocked = true;
-                obj.set({ selectable: false, evented: false });
-            }
-            if (canvas.getActiveObject() === obj) {
-                canvas.discardActiveObject();
-                selectedObject = null;
-                showNoSelection();
-            }
-            canvas.renderAll();
-            updateLayerList();
-            createMobileHandles();
-        }
 
         function applyTemplateTexture(canvas) {
             try {
@@ -2433,2742 +2507,8 @@
                 let lastTapTime = 0;
                 handle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
-                    if (obj._userLocked || obj._wasSelectable !== undefined) return;
                     const touch = e.touches[0];
-                    canvas.setActiveObject(obj);
-                    selectedObject = obj;
-                    updateControls();
-                    showSelectionControls();
-                    updateLayerList();
-                    canvas.renderAll();
-                    updateHandleSelection();
-                    const now = Date.now();
-                    if (now - lastTapTime < 300) {
-                        showMobileContextMenu(touch.clientX, touch.clientY);
-                        lastTapTime = 0; return;
-                    }
-                    lastTapTime = now;
-                    handleDragState = {
-                        obj: obj, startX: touch.clientX, startY: touch.clientY,
-                        startDist: null, startScaleX: obj.scaleX, startScaleY: obj.scaleY,
-                        objStartLeft: obj.left, objStartTop: obj.top, moved: false
-                    };
-                }, { passive: false });
-                handle.addEventListener('touchmove', function(e) {
-                    if (!handleDragState || handleDragState.obj !== obj) return;
-                    e.preventDefault(); e.stopPropagation();
-                    if (e.touches.length === 2) {
-                        const dx = e.touches[0].clientX - e.touches[1].clientX;
-                        const dy = e.touches[0].clientY - e.touches[1].clientY;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (handleDragState.startDist === null) handleDragState.startDist = dist;
-                        const scale = dist / handleDragState.startDist;
-                        obj.set({ scaleX: handleDragState.startScaleX * scale, scaleY: handleDragState.startScaleY * scale });
-                        handleDragState.moved = true;
-                        canvas.renderAll();
-                        updateMobileHandlePositions();
-                        updateControls();
-                        return;
-                    }
-                    const touch = e.touches[0];
-                    const dx = touch.clientX - handleDragState.startX;
-                    const dy = touch.clientY - handleDragState.startY;
-                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) handleDragState.moved = true;
-                    obj.set({
-                        left: handleDragState.objStartLeft + dx / canvas.getZoom(),
-                        top: handleDragState.objStartTop + dy / canvas.getZoom()
-                    });
-                    canvas.renderAll();
-                    updateMobileHandlePositions();
-                    updateControls();
-                }, { passive: false });
-                handle.addEventListener('touchend', function(e) {
-                    if (handleDragState && handleDragState.obj === obj && handleDragState.moved) saveState();
-                    handleDragState = null;
-                    setTimeout(createMobileHandles, 100);
-                });
-                handleContainer.appendChild(handle);
-                mobileHandles.push(handle);
-            });
-            updateHandleSelection();
-        }
-
-        function clearMobileHandles() {
-            mobileHandles.forEach(h => h.remove());
-            mobileHandles = [];
-        }
-
-        function updateMobileHandlePositions() {
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isMobileLayout() && !isTouch) return;
-            canvas.getObjects().forEach((obj) => {
-                if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
-                const hid = obj.__handleId;
-                const handle = mobileHandles.find(h => h.classList.contains('mobile-object-handle') && h.dataset.handleId === hid);
-                if (handle && obj) {
-                    const pos = getHandlePosition(obj);
-                    handle.style.left = pos.left + 'px';
-                    handle.style.top = pos.top + 'px';
-                }
-                const rotHandle = mobileHandles.find(h => h.classList.contains('mobile-rotate-handle') && h.dataset.handleId === hid);
-                if (rotHandle && obj) {
-                    const pos = getRotateHandlePosition(obj);
-                    rotHandle.style.left = pos.left + 'px';
-                    rotHandle.style.top = pos.top + 'px';
-                }
-            });
-        }
-
-        function updateHandleSelection() {
-            const active = canvas.getActiveObject();
-            mobileHandles.forEach(h => {
-                if (!h.classList.contains('mobile-object-handle')) return;
-                const hid = h.dataset.handleId;
-                const obj = canvas.getObjects().find(o => o.__handleId === hid);
-                if (obj && active === obj) h.classList.add('selected');
-                else h.classList.remove('selected');
-            });
-        }
-
-        function showMobileContextMenu(x, y) {
-            const menu = document.getElementById('mobileContextMenu');
-            const backdrop = document.getElementById('ctxBackdrop');
-            if (!menu || !backdrop || !selectedObject) return;
-            const editItem = document.getElementById('ctxEditText');
-            const editDiv = document.getElementById('ctxEditDivider');
-            if (editItem) {
-                const isText = selectedObject && selectedObject.type === 'i-text';
-                editItem.style.display = isText ? 'flex' : 'none';
-                if (editDiv) editDiv.style.display = isText ? 'block' : 'none';
-            }
-            menu.style.display = 'block';
-            backdrop.style.display = 'block';
-            const menuRect = menu.getBoundingClientRect();
-            let left = x - menuRect.width / 2;
-            let top = y - menuRect.height - 10;
-            if (left < 8) left = 8;
-            if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
-            if (top < 8) top = y + 20;
-            if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
-            menu.style.left = left + 'px';
-            menu.style.top = top + 'px';
-        }
-
-        function lockMobileObjects(lock) {
-            if (!canvas) return;
-            const activeObj = canvas.getActiveObject();
-            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
-
-            canvas.getObjects().forEach(obj => {
-                if (lock) {
-                    if (obj.type === 'i-text' && obj.isEditing) return;
-                    obj._wasSelectable = obj.selectable;
-                    obj._wasEvented = obj.evented;
-                    obj.set({ selectable: false, evented: false });
-                } else {
-                    delete obj._userLocked;
-                    if (obj._wasSelectable !== undefined) {
-                        obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
-                        delete obj._wasSelectable;
-                        delete obj._wasEvented;
-                    } else {
-                        obj.set({ selectable: true, evented: true });
-                    }
-                }
-            });
-            if (lock) {
-                canvas.selection = false;
-            } else {
-                canvas.selection = true;
-            }
-            canvas.renderAll();
-        }
-
-        function applyMobileSpacingFix() {
-            if (!isMobileLayout()) return;
-            const canvasArea = document.querySelector('.canvas-area');
-            const canvasContainer = document.querySelector('.canvas-container');
-            const canvasToolbar = document.querySelector('.canvas-toolbar');
-            const designLayout = document.querySelector('.design-layout');
-            const appContainer = document.querySelector('.app-container');
-            const designCanvas = document.getElementById('designCanvas');
-
-            if (canvasArea) {
-                canvasArea.style.display = 'block';
-                canvasArea.style.flex = 'none';
-                canvasArea.style.height = 'auto';
-                canvasArea.style.minHeight = 'auto';
-                canvasArea.style.padding = '0';
-                canvasArea.style.margin = '0';
-                canvasArea.style.background = '#1a1a2e';
-            }
-            if (canvasContainer) {
-                canvasContainer.style.display = 'block';
-                canvasContainer.style.flex = 'none';
-                canvasContainer.style.height = 'auto';
-                canvasContainer.style.minHeight = 'auto';
-                canvasContainer.style.padding = '0';
-                canvasContainer.style.margin = '0';
-                canvasContainer.style.background = 'transparent';
-                canvasContainer.style.backgroundImage = 'none';
-            }
-            if (canvasToolbar) {
-                canvasToolbar.style.margin = '0';
-                canvasToolbar.style.padding = '2px 4px';
-                canvasToolbar.style.borderBottom = 'none';
-            }
-            if (designLayout) {
-                designLayout.style.height = 'auto';
-                designLayout.style.minHeight = 'auto';
-                designLayout.style.flex = 'none';
-                designLayout.style.gap = '0';
-            }
-            if (appContainer) {
-                appContainer.style.height = 'auto';
-                appContainer.style.minHeight = 'auto';
-            }
-            if (designCanvas) {
-                designCanvas.style.display = 'block';
-                designCanvas.style.margin = '0 auto';
-                designCanvas.style.boxShadow = 'none';
-            }
-        }
-
-        function handleResize() {
-            applyMobileSpacingFix();
-            const isMobile = isMobileLayout();
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            const tabs = document.querySelector('.tabs');
-            const accordionContainer = document.getElementById('mobileAccordionContainer');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const propertiesPanel = document.querySelector('.properties-panel');
-            const checkoutSection = propertiesPanel ? propertiesPanel.querySelector('.checkout-section') : null;
-            const activeObj = canvas.getActiveObject();
-            const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
-            const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
-
-            if (!isMobile) {
-                if (propertiesPanel && checkoutSection) {
-                    const order = ['designTab', 'layersTab'];
-                    order.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el && el.parentElement !== propertiesPanel) {
-                            propertiesPanel.insertBefore(el, checkoutSection);
-                        }
-                    });
-                }
-                if (tabs) tabs.style.display = '';
-                if (accordionContainer) accordionContainer.style.display = 'none';
-                tabContents.forEach(c => { c.style.display = ''; c.classList.remove('active'); });
-                const activeTab = document.querySelector('.tab.active');
-                if (activeTab) {
-                    const target = document.getElementById(activeTab.dataset.tab + 'Tab');
-                    if (target) target.classList.add('active');
-                }
-                document.querySelectorAll('.property-section.collapsed').forEach(s => s.classList.remove('collapsed'));
-            } else {
-                if (accordionContainer) {
-                    accordionContainer.style.display = 'block';
-                    const headers = accordionContainer.querySelectorAll('.mobile-accordion-header');
-                    headers.forEach(header => {
-                        const contentId = header.dataset.target;
-                        const contentDiv = document.getElementById(contentId);
-                        if (contentDiv && contentDiv.parentElement !== accordionContainer) {
-                            if (header.nextSibling) {
-                                accordionContainer.insertBefore(contentDiv, header.nextSibling);
-                            } else {
-                                accordionContainer.appendChild(contentDiv);
-                            }
-                        }
-                    });
-                }
-                if (tabs) tabs.style.display = 'none';
-                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                });
-            }
-
-            if (htmlFocused) return;
-
-            const desktopLockBtn = document.getElementById('desktopLockBtn');
-            if (desktopLockBtn) {
-                const anyLocked = canvas.getObjects().some(obj => obj._wasSelectable !== undefined);
-                if (anyLocked) {
-                    desktopLockBtn.dataset.locked = 'true';
-                    desktopLockBtn.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
-                } else {
-                    desktopLockBtn.dataset.locked = 'false';
-                    desktopLockBtn.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
-                }
-            }
-
-            if (isTouch && !isEditing) {
-                lockMobileObjects(true);
-                clearMobileHandles();
-                const lockToggleEl = document.getElementById('mobileLockToggle');
-                if (lockToggleEl && isMobile) {
-                    lockToggleEl.classList.remove('unlocked');
-                    lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
-                }
-            } else if (!isTouch) {
-                lockMobileObjects(false);
-                clearMobileHandles();
-            }
-
-            if (isTouch && !isEditing && showHandles) {
-                setTimeout(() => { createMobileHandles(); }, 150);
-            }
-        }
-
-        function setupMobileUI() {
-            // Process ALL property sections individually - wrap content and add arrow-only toggle
-            document.querySelectorAll('.property-section').forEach(section => {
-                const h4 = section.querySelector('h4');
-                if (!h4) return;
-
-                if (section.dataset.mobileSetup === 'done') return;
-                section.dataset.mobileSetup = 'done';
-
-                // Wrap non-h4 children in section-content if not already wrapped
-                let wrapper = section.querySelector('.section-content');
-                if (!wrapper) {
-                    wrapper = document.createElement('div');
-                    wrapper.className = 'section-content';
-                    const toWrap = Array.from(section.children).filter(c => c !== h4 && !c.classList.contains('section-content'));
-                    toWrap.forEach(c => wrapper.appendChild(c));
-                    if (wrapper.children.length > 0) section.appendChild(wrapper);
-                }
-
-                // Start collapsed on mobile
-                if (isMobileLayout()) section.classList.add('collapsed');
-
-                // ----- Touch‑based toggle (only arrow, ignores drag) -----
-                let touchStartX = 0, touchStartY = 0, touchMoved = false;
-                let justTouched = false;
-
-                h4.addEventListener('touchstart', function(e) {
-                    const touch = e.touches[0];
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                    touchMoved = false;
-                }, { passive: true });
-
-                h4.addEventListener('touchmove', function(e) {
-                    const touch = e.touches[0];
-                    const dx = Math.abs(touch.clientX - touchStartX);
-                    const dy = Math.abs(touch.clientY - touchStartY);
-                    if (dx > 10 || dy > 10) touchMoved = true;
-                }, { passive: true });
-
-                function toggleSectionArrow(e, clientX) {
-                    const rect = h4.getBoundingClientRect();
-                    const clickX = clientX - rect.left;
-                    // Only toggle if tap/click is on the rightmost 40px (arrow area)
-                    if (clickX < rect.width - 40) return;
-
-                    const section = h4.closest('.property-section');
-                    if (!section) return;
-
-                    const isCollapsed = section.classList.contains('collapsed');
-                    const parent = section.parentElement;
-                    if (parent) {
-                        const siblings = Array.from(parent.children).filter(c => c.classList.contains('property-section') && c !== section);
-                        siblings.forEach(other => other.classList.add('collapsed'));
-                    }
-                    section.classList.toggle('collapsed', !isCollapsed);
-                }
-
-                h4.addEventListener('touchend', function(e) {
-                    if (touchMoved) return; // ignore drag
-                    toggleSectionArrow(e, e.changedTouches[0].clientX);
-                    justTouched = true;
-                    setTimeout(() => { justTouched = false; }, 100);
-                }, { passive: true });
-
-                // Fallback for desktop (mouse) – also only arrow
-                h4.addEventListener('click', function(e) {
-                    if (justTouched) return; // skip if touch already handled this tap
-                    toggleSectionArrow(e, e.clientX);
-                });
-            });
-
-            // Mobile accordion for Design/Layers tabs
-            let accordion = document.getElementById('mobileAccordionContainer');
-            if (!accordion) {
-                accordion = document.createElement('div');
-                accordion.id = 'mobileAccordionContainer';
-                accordion.className = 'mobile-accordion-container';
-                const tabData = [
-                    { tabId: 'design', label: 'Design', icon: 'fa-palette', contentId: 'designTab' },
-                    { tabId: 'layers', label: 'Layers', icon: 'fa-layer-group', contentId: 'layersTab' },
-                ];
-                let accordionHeaders = [];
-                tabData.forEach(tab => {
-                    const header = document.createElement('div');
-                    header.className = 'mobile-accordion-header';
-                    header.dataset.target = tab.contentId;
-                    header.dataset.tabId = tab.tabId;
-                    header.innerHTML = `<span><i class="fas ${tab.icon}"></i> ${tab.label}</span><i class="fas fa-chevron-down accordion-chevron"></i>`;
-                    let touchStartY = 0;
-                    let touchMoved = false;
-                    header.addEventListener('touchstart', function(e) {
-                        touchStartY = e.touches[0].clientY;
-                        touchMoved = false;
-                    }, { passive: true });
-                    header.addEventListener('touchmove', function(e) {
-                        if (Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
-                    }, { passive: true });
-                    const chevronIcon = header.querySelector('.accordion-chevron');
-                    if (chevronIcon) {
-                        chevronIcon.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            if (!isMobileLayout()) return;
-                            const targetId = header.dataset.target;
-                            const targetContent = document.getElementById(targetId);
-                            const isActive = header.classList.contains('active');
-                            if (isActive) {
-                                header.classList.remove('active');
-                                chevronIcon.style.transform = 'rotate(0deg)';
-                                if (targetContent) targetContent.style.display = 'none';
-                            } else {
-                                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                                    if (h !== header) {
-                                        h.classList.remove('active');
-                                        const c = h.querySelector('.accordion-chevron');
-                                        if (c) c.style.transform = 'rotate(0deg)';
-                                        const other = document.getElementById(h.dataset.target);
-                                        if (other) other.style.display = 'none';
-                                    }
-                                });
-                                header.classList.add('active');
-                                chevronIcon.style.transform = 'rotate(180deg)';
-                                if (targetContent) targetContent.style.display = 'block';
-                                // Move expanded tab to bottom (directly under canvas)
-                                const accordionContainer = document.getElementById('mobileAccordionContainer');
-                                if (accordionContainer) {
-                                    accordionContainer.appendChild(header);
-                                    if (targetContent) {
-                                        accordionContainer.appendChild(targetContent);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    accordion.appendChild(header);
-                    accordionHeaders.push(header);
-                });
-                accordionHeaders.forEach(header => {
-                    const contentId = header.dataset.target;
-                    const contentDiv = document.getElementById(contentId);
-                    if (contentDiv && header.nextSibling) {
-                        accordion.insertBefore(contentDiv, header.nextSibling);
-                    } else if (contentDiv) {
-                        accordion.appendChild(contentDiv);
-                    }
-                });
-                const propertiesPanel = document.querySelector('.properties-panel');
-                const tabs = propertiesPanel.querySelector('.tabs');
-                if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
-            }
-
-            // Mobile lock/unlock toggle
-            const lockToggle = document.getElementById('mobileLockToggle');
-            if (lockToggle) {
-                lockToggle.addEventListener('click', function() {
-                    const isLocked = this.classList.contains('locked');
-                    if (isLocked) {
-                        lockMobileObjects(false);
-                        this.classList.remove('locked');
-                        this.classList.add('unlocked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-                        if (showHandles) setTimeout(createMobileHandles, 100);
-                    } else {
-                        lockMobileObjects(true);
-                        this.classList.remove('unlocked');
-                        this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-                        clearMobileHandles();
-                    }
-                });
-            }
-
-            window.addEventListener('resize', handleResize);
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => {
-                    applyMobileSpacingFix();
-                    handleResize();
-                }, 300);
-            });
-            handleResize();
-        }
-
-        function setupEventListeners() {
-            canvas.on('selection:created', handleSelection);
-            canvas.on('selection:updated', handleSelection);
-            canvas.on('selection:cleared', handleDeselection);
-            canvas.on('object:modified', function(e) { saveState(); createMobileHandles(); });
-            canvas.on('after:render', function() { 
-                updateMobileHandlePositions(); 
-                if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
-                    const active = canvas.getActiveObject();
-                    const editing = active && active.type === 'i-text' && active.isEditing;
-                    if (!editing) createMobileHandles();
-                }
-            });
-            canvas.on('object:removed', createMobileHandles);
-
-            if ('ontouchstart' in window) {
-                canvas.on('mouse:down', function(e) {
-                    if (!e.target) {
-                        const pointer = canvas.getPointer(e.e);
-                        const objects = canvas.getObjects();
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            const obj = objects[i];
-                            if (obj.containsPoint(pointer) && obj.selectable !== false && obj.evented !== false) {
-                                if (canvas.getActiveObject() !== obj) {
-                                    canvas.setActiveObject(obj);
-                                    selectedObject = obj;
-                                    updateControls();
-                                    showSelectionControls();
-                                    updateLayerList();
-                                    canvas.renderAll();
-                                }
-                                break;
-                            }
-                        }
-                    }
-                });
-            }
-
-            
-            document.getElementById('addPhotoBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-            document.getElementById('addVideoBtn').addEventListener('click', () => document.getElementById('videoInput').click());
-            document.getElementById('addAudioBtn').addEventListener('click', () => document.getElementById('audioInput').click());
-
-            document.getElementById('fileInput').addEventListener('change', handleImageUpload);
-            document.getElementById('videoInput').addEventListener('change', handleVideoUpload);
-            document.getElementById('audioInput').addEventListener('change', handleAudioUpload);
-
-            document.getElementById('checkoutBtn').addEventListener('click', proceedToCheckout);
-            const desktopLockBtn = document.getElementById('desktopLockBtn');
-            if (desktopLockBtn) {
-                desktopLockBtn.addEventListener('click', function() {
-                    const isLocked = this.dataset.locked === 'true';
-                    if (isLocked) {
-                        lockMobileObjects(false);
-                        this.dataset.locked = 'false';
-                        this.innerHTML = '<i class="fas fa-lock-open"></i> Lock all objects';
-                    } else {
-                        lockMobileObjects(true);
-                        this.dataset.locked = 'true';
-                        this.innerHTML = '<i class="fas fa-lock"></i> Unlock all objects';
-                    }
-                });
-            }
-            document.getElementById('resetDesignBtn').addEventListener('click', resetDesign);
-            document.getElementById('mobileResetBtn').addEventListener('click', resetDesign);
-            document.getElementById('previewBtn').addEventListener('click', togglePreview);
-            document.getElementById('doneBtn').addEventListener('click', exitTextEditing);
-            document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
-            document.getElementById('loadProgressBtn').addEventListener('click', loadProgress);
-            document.getElementById('toolbarUndoBtn').addEventListener('click', undo);
-            document.getElementById('toolbarRedoBtn').addEventListener('click', redo);
-            document.getElementById('mediaPlayBtn').addEventListener('click', toggleMediaPlayback);
-            document.getElementById('mediaMuteBtn').addEventListener('click', toggleMediaMute);
-            document.getElementById('toggleHandlesBtn').addEventListener('click', function() {
-                showHandles = !showHandles;
-                if (showHandles) {
-                    this.innerHTML = '<i class="fas fa-hand-pointer"></i> Hide Handles';
-                    this.title = 'Hide Handles';
-                    canvas.discardActiveObject();
-                    canvas.renderAll();
-                    setTimeout(() => {
-                        const active = canvas.getActiveObject();
-                        if (!active && canvas.getObjects().length > 0) {
-                            const lastObj = canvas.getObjects()[canvas.getObjects().length - 1];
-                            lastObj.set({ selectable: true, evented: true });
-                            canvas.setActiveObject(lastObj);
-                            selectedObject = canvas.getActiveObject();
-                            updateControls();
-                            showSelectionControls();
-                            updateLayerList();
-                        }
-                        createMobileHandles();
-                    }, 50);
-                } else {
-                    this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
-                    this.title = 'Show Handles';
-                    clearMobileHandles();
-                }
-            });
-
-            document.addEventListener('keydown', handleKeyboard);
-
-            canvas.on('mouse:down', function(e) {
-                if (!isMobileLayout()) return;
-                if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
-                    e.target.set({ selectable: true, evented: true });
-                    e.target.enterEditing();
-                    setTimeout(() => {
-                        if (e.target && e.target.hiddenTextarea) {
-                            e.target.hiddenTextarea.focus();
-                            e.target.hiddenTextarea.click();
-                        }
-                    }, 200);
-                }
-            });
-            canvas.on('mouse:up', function() {
-                if (!isMobileLayout()) return;
-                const active = canvas.getActiveObject();
-                if (active && active.type === 'i-text' && active.isEditing) return;
-                const menu = document.getElementById('mobileContextMenu');
-                if (menu && menu.style.display === 'block') menu.style.display = 'none';
-                const backdrop = document.getElementById('ctxBackdrop');
-                if (backdrop) backdrop.style.display = 'none';
-                setTimeout(createMobileHandles, 50);
-            });
-
-
-            // Reset UI state when page is restored from bfcache (browser back button)
-            window.addEventListener('pageshow', function(e) {
-                if (e.persisted) {
-                    const checkoutBtn = document.getElementById('checkoutBtn');
-                    if (checkoutBtn) {
-                        checkoutBtn.innerHTML = '<i class="fas fa-lock"></i> Secure Checkout';
-                        checkoutBtn.disabled = false;
-                    }
-                    const saveBtn = document.getElementById('saveProgressBtn');
-                    if (saveBtn) {
-                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
-                    }
-                }
-            });
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('.mobile-context-menu')) return;
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) e.preventDefault();
-                lastTouchEnd = now;
-            }, { passive: false });
-            // Touchstart on canvas handled by Fabric.js; no preventDefault needed for scrolling
-        }
-
-        function showFirstRunHint() {
-            if (sessionStorage.getItem('papirHintShown')) return;
-            const hint = document.getElementById('hintBubble');
-            if (!hint) return;
-            const btn = document.getElementById('addLayerBtn');
-            if (!btn) return;
-            const rect = btn.getBoundingClientRect();
-            hint.style.left = (rect.left + rect.width/2 - 80) + 'px';
-            hint.style.top = (rect.bottom + 10) + 'px';
-            hint.style.display = 'block';
-            setTimeout(() => { hint.style.display = 'none'; }, 4000);
-            sessionStorage.setItem('papirHintShown', 'true');
-        }
-
-        function adjustCanvasForMobile() {
-            if (!isMobileLayout()) return;
-            const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape && window.innerHeight < 600) return;
-            const canvasEl = document.getElementById('designCanvas');
-            const container = document.getElementById('canvasContainer');
-            if (!canvasEl || !container) return;
-            const containerWidth = container.clientWidth;
-            const scale = containerWidth / 600;
-            const newHeight = Math.round(450 * scale);
-            canvasEl.style.width = containerWidth + 'px';
-            canvasEl.style.height = newHeight + 'px';
-            const wrapper = canvasEl.parentElement;
-            if (wrapper && wrapper.classList.contains('canvas-container')) {
-                wrapper.style.width = containerWidth + 'px';
-                wrapper.style.height = newHeight + 'px';
-            }
-            const upperCanvas = container.querySelector('.upper-canvas');
-            if (upperCanvas) {
-                upperCanvas.style.width = containerWidth + 'px';
-                upperCanvas.style.height = newHeight + 'px';
-            }
-            clearMobileHandles();
-            setTimeout(createMobileHandles, 50);
-        }
-
-        function handleMobileResize() {
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                clearMobileHandles();
-                setTimeout(createMobileHandles, 100);
-            }
-        }
-
-        async function init() {
-            if (document.fonts) {
-                try { await document.fonts.ready; } catch (e) {}
-            }
-            setupMobileUI();
-            applyMobileSpacingFix();
-            const urlParams = new URLSearchParams(window.location.search);
-            const saved = localStorage.getItem('selectedTemplateConfig');
-            if (saved) {
-                try {
-                    templateConfig = JSON.parse(saved);
-                    if (templateConfig) {
-                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
-                        document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
-                        if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
-                            document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
-                        }
-                        await loadTemplateDesign();
-                        saveState();
-                        updateLayerList();
-                    }
-                } catch (e) {
-                    console.error('Error loading template:', e);
-                    await loadDemoTemplate();
-                }
-            } else {
-                await loadDemoTemplate();
-            }
-            updateCheckoutDisplay();
-            lockMobileObjects(false);
-            const lockToggleEl = document.getElementById('mobileLockToggle');
-            if (lockToggleEl && isMobileLayout()) {
-                lockToggleEl.classList.remove('locked');
-                lockToggleEl.classList.add('unlocked');
-                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
-            }
-            setupEventListeners();
-            setupMobileContextMenu();
-            createMobileHandles();
-            setupTabs();
-            setupBackgroundOptions();
-            setupColorPalettes();
-            setupQtyControls();
-            setupTextControls();
-            setupTransformControls();
-            setupArrangeControls();
-            document.getElementById('layerEditSave').addEventListener('click', saveLayerEdit);
-            document.getElementById('layerEditCancel').addEventListener('click', closeLayerEditModal);
-            document.getElementById('layerEditInput').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') saveLayerEdit();
-                if (e.key === 'Escape') closeLayerEditModal();
-            });
-            document.getElementById('layerEditModal').addEventListener('click', (e) => {
-                if (e.target.id === 'layerEditModal') closeLayerEditModal();
-            });
-            document.getElementById('addLayerBtn').addEventListener('click', addNewText);
-            checkForSavedProgress();
-            startAutoSave();
-            window.addEventListener('resize', handleMobileResize);
-            window.addEventListener('resize', adjustCanvasForMobile);
-            setTimeout(showFirstRunHint, 1000);
-            console.log('init() completed successfully');
-            adjustCanvasForMobile();
-            updateMediaControls();
-            if (isMobileLayout()) {
-                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    const c = h.querySelector('.accordion-chevron');
-                    if (c) c.style.transform = 'rotate(0deg)';
-                    const content = document.getElementById(h.dataset.target);
-                    if (content) content.style.display = 'none';
-                });
-            }
-        }
-
-        document.body.addEventListener('touchmove', function(e) {
-            if (e.target.closest('.mobile-accordion-container') || e.target.closest('.tab-content')) {
-                e.stopPropagation();
-            }
-        }, { passive: true });
-
-        init();
-    </script>
-
-    <!-- Canvas touchmove: only prevent default during active object manipulation -->
-    <script>
-        (function() {
-            const canvasEl = document.getElementById('designCanvas');
-            if (canvasEl && canvasEl.parentElement) {
-                const upperCanvas = canvasEl.parentElement.querySelector('.upper-canvas');
-                if (upperCanvas) {
-                    upperCanvas.addEventListener('touchmove', function(e) {
-                        // Only block scroll when actively dragging an object or handle
-                        if (selectedObject || handleDragState) {
-                            e.preventDefault();
-                        }
-                    }, { passive: false });
-                }
-            }
-        })();
-    </script>
-
-    
-</body>
-</html
-                <button class="btn-icon" id="loadProgressBtn" style="display: none;" title="Resume Saved Design"><i class="fas fa-folder-open"></i> Resume</button>
-                <button class="btn-icon" id="mobileResetBtn" title="Reset Design"><i class="fas fa-undo"></i> Reset</button>
-            </div>
-        </div>
-
-        <div class="design-layout">
-            <div class="canvas-area">
-                <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                        <span class="toolbar-hint" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-info-circle"></i> Tap handle to select, double-tap for options</span>
-                    </div>
-                    <div class="canvas-controls">
-                        <button class="btn-icon small preview-btn" id="previewBtn" title="Preview"><i class="fas fa-eye"></i> Preview</button>
-                        <button class="btn-icon small done-btn hidden" id="doneBtn" title="Done Editing"><i class="fas fa-check"></i> Done</button>
-                        <button class="btn-icon small" id="toggleHandlesBtn" title="Hide Handles" style="min-width: 110px;"><i class="fas fa-hand-pointer"></i> Hide Handles</button>
-                        <button class="btn-icon small" id="toolbarUndoBtn" title="Undo"><i class="fas fa-undo"></i></button>
-                        <button class="btn-icon small" id="toolbarRedoBtn" title="Redo"><i class="fas fa-redo"></i></button>
-                        <button class="btn-icon small hidden" id="mediaPlayBtn" title="Play/Pause Media"><i class="fas fa-play"></i></button>
-                        <button class="btn-icon small hidden" id="mediaMuteBtn" title="Mute/Unmute Media"><i class="fas fa-volume-up"></i></button>
-                    </div>
-                </div>
-                <div class="canvas-container" id="canvasContainer">
-                    <canvas id="designCanvas" width="600" height="450"></canvas>
-                </div>
-            </div>
-
-            <div class="properties-panel">
-                <div class="panel-header" style="justify-content: center; border-bottom-color: transparent;">
-                    <button class="btn-icon small" id="resetDesignBtn" style="padding: 6px 16px; background: rgba(255, 107, 107, 0.2); border: 1px solid var(--danger); color: #ff6b6b;"><i class="fas fa-undo"></i> Reset</button>
-                </div>
-                <div class="tabs">
-                    <button class="tab active" data-tab="design"><i class="fas fa-palette"></i> Design</button>
-                    <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
-                </div>
-                <div class="tab-content active" id="designTab">
-                    <div class="property-section">
-                        <h4><i class="fas fa-image"></i> Background & Media</h4>
-                        <div class="section-content">
-
-                            <div class="color-picker-wrapper" style="margin-top: 10px;">
-                                <input type="color" id="bgColorPicker" value="#ffffff">
-                                <span style="font-size: 0.85rem;">Custom Color</span>
-                            </div>
-                            <div class="palette-grid" id="colorPalettes">
-                                <button class="palette-btn palette-elegant" data-palette="elegant"><i class="fas fa-gem"></i> Elegant</button>
-                                <button class="palette-btn palette-vibrant" data-palette="vibrant"><i class="fas fa-bolt"></i> Vibrant</button>
-                                <button class="palette-btn palette-dark" data-palette="dark"><i class="fas fa-moon"></i> Dark</button>
-                                <button class="palette-btn palette-minimal" data-palette="minimal"><i class="fas fa-minus"></i> Minimal</button>
-                            </div>
-
-                            <!-- Add Media nested inside Background -->
-                            <div class="property-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; border-bottom: none;">
-                                <h4 style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 6px 0; margin-bottom: 8px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;" id="addMediaToggle">
-                                    <span><i class="fas fa-photo-video"></i> Add Media</span>
-                                </h4>
-                                <div class="section-content" id="addMediaContent">
-                                    <div class="media-grid" style="grid-template-columns: repeat(3, 1fr);">
-                                        <button class="media-btn" id="addPhotoBtn"><i class="fas fa-image"></i> Add Photo</button>
-                                        <button class="media-btn" id="addVideoBtn"><i class="fas fa-video"></i> Add Video</button>
-                                        <button class="media-btn" id="addAudioBtn"><i class="fas fa-music"></i> Add Audio</button>
-                                    </div>
-                                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                                    <input type="file" id="videoInput" accept="video/*" style="display: none;">
-                                    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="textControls" style="display: none;">
-                        <div class="property-section">
-                            <h4><i class="fas fa-edit"></i> Text Content</h4>
-                            <div class="section-content">
-                                <textarea class="text-input" id="textContent" rows="3" placeholder="Enter your text..."></textarea>
-                            </div>
-                        </div>
-                        <div class="property-section">
-                            <h4><i class="fas fa-font"></i> Font</h4>
-                            <div class="section-content">
-                                <select id="fontFamily" style="margin-bottom: 10px;">
-                                    <optgroup label="Classic">
-                                        <option value="Playfair Display">Playfair Display</option>
-                                        <option value="Cormorant Garamond">Cormorant Garamond</option>
-                                    </optgroup>
-                                    <optgroup label="Modern">
-                                        <option value="Montserrat">Montserrat</option>
-                                        <option value="Poppins">Poppins</option>
-                                        <option value="Raleway">Raleway</option>
-                                        <option value="Oswald">Oswald</option>
-                                    </optgroup>
-                                    <optgroup label="Script">
-                                        <option value="Parisienne">Parisienne</option>
-                                        <option value="Great Vibes">Great Vibes</option>
-                                        <option value="Dancing Script">Dancing Script</option>
-                                    </optgroup>
-                                    <optgroup label="Display">
-                                        <option value="Abril Fatface">Abril Fatface</option>
-                                        <option value="Bebas Neue">Bebas Neue</option>
-                                        <option value="Comfortaa">Comfortaa</option>
-                                    </optgroup>
-                                </select>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Size</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="fontSize" min="8" max="150" value="32">
-                                            <span class="slider-value" id="fontSizeVal">32</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="property-section">
-                            <h4><i class="fas fa-fill-drip"></i> Color</h4>
-                            <div class="section-content">
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <div class="color-picker-wrapper">
-                                            <input type="color" id="textColor" value="#333333">
-                                            <div class="color-presets" id="textColorPresets">
-                                                <div class="color-preset" style="background: #333;" data-color="#333333"></div>
-                                                <div class="color-preset" style="background: #fff; border: 1px solid #ccc;" data-color="#ffffff"></div>
-                                                <div class="color-preset" style="background: #764ba2;" data-color="#764ba2"></div>
-                                                <div class="color-preset" style="background: #06D6A0;" data-color="#06D6A0"></div>
-                                                <div class="color-preset" style="background: #FFD166;" data-color="#FFD166"></div>
-                                                <div class="color-preset" style="background: #FF6B6B;" data-color="#FF6B6B"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="property-section">
-                            <h4><i class="fas fa-bold"></i> Style</h4>
-                            <div class="section-content">
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="boldBtn"><i class="fas fa-bold"></i> Bold</button>
-                                    <button class="btn-icon" id="italicBtn"><i class="fas fa-italic"></i> Italic</button>
-                                    <button class="btn-icon" id="underlineBtn"><i class="fas fa-underline"></i> Underline</button>
-                                </div>
-                                <div class="btn-group" style="margin-top: 8px;">
-                                    <button class="btn-icon" data-align="left"><i class="fas fa-align-left"></i></button>
-                                    <button class="btn-icon" data-align="center"><i class="fas fa-align-center"></i></button>
-                                    <button class="btn-icon" data-align="right"><i class="fas fa-align-right"></i></button>
-                                    <button class="btn-icon" data-align="justify"><i class="fas fa-align-justify"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="transformControls" style="display: none;">
-                        <div class="property-section">
-                            <h4><i class="fas fa-arrows-alt"></i> Position & Size</h4>
-                            <div class="section-content">
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Rotation</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="rotation" min="-180" max="180" value="0">
-                                            <span class="slider-value">0°</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="control-row">
-                                    <div class="control-group">
-                                        <label>Opacity</label>
-                                        <div class="slider-container">
-                                            <input type="range" class="slider" id="opacity" min="0" max="100" value="100">
-                                            <span class="slider-value">100%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="property-section">
-                            <h4><i class="fas fa-magic"></i> Actions</h4>
-                            <div class="section-content">
-                                <div class="btn-group">
-                                    <button class="btn-icon" id="duplicateBtn"><i class="fas fa-copy"></i> Duplicate</button>
-                                    <button class="btn-icon" id="bringToFrontBtn"><i class="fas fa-arrow-up"></i> To Front</button>
-                                    <button class="btn-icon" id="sendToBackBtn"><i class="fas fa-arrow-down"></i> To Back</button>
-                                    <button class="btn-icon danger" id="deleteBtn"><i class="fas fa-trash-alt"></i> Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="layersTab">
-                    <div class="layers-scroll-container">
-                        <div class="mobile-lock-toggle unlocked" id="mobileLockToggle">
-                            <span><i class="fas fa-lock"></i> Unlock all objects</span>
-                            <span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>
-                        </div>
-                        
-                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                            <button class="btn-icon small" id="addLayerBtn" style="flex: 1;" title="Add Text Layer"><i class="fas fa-plus"></i> Add Layer</button>
-                        </div>
-                        <div id="layerList"></div>
-                    </div>
-                </div>
-
-                <div class="checkout-section">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div>
-                            <div style="font-size: 0.8rem; opacity: 0.8;">Design</div>
-                            <div style="font-weight: 600;" id="designName">Custom Card</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.8rem; opacity: 0.8;">Total</div>
-                            <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-teal);" id="checkoutTotal">$2.99</div>
-                        </div>
-                    </div>
-                        
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
-                        <span style="font-size: 0.85rem;">Quantity:</span>
-                        <button class="qty-btn" id="qtyMinus"><i class="fas fa-minus"></i></button>
-                        <input type="number" id="qtyInput" value="1" min="1" max="2000" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px;">
-                        <button class="qty-btn" id="qtyPlus"><i class="fas fa-plus"></i></button>
-                    </div>
-                    <button class="checkout-btn" id="checkoutBtn"><i class="fas fa-lock"></i> Secure Checkout</button>
-                    <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; opacity: 0.6;"><i class="fas fa-shield-alt"></i> SSL Secure Payment</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="hint-bubble" id="hintBubble">Tap "Add Text" to start creating!</div>
-
-    <div class="mobile-context-menu" id="mobileContextMenu">
-        <div class="ctx-item" data-action="editText" id="ctxEditText"><i class="fas fa-keyboard"></i> Edit Text</div>
-        <div class="ctx-divider" id="ctxEditDivider"></div>
-        <div class="ctx-item" data-action="front"><i class="fas fa-arrow-up"></i> Bring to Front</div>
-        <div class="ctx-item" data-action="back"><i class="fas fa-arrow-down"></i> Send to Back</div>
-        <div class="ctx-divider"></div>
-        <div class="ctx-item" data-action="duplicate"><i class="fas fa-copy"></i> Duplicate</div>
-        <div class="ctx-divider"></div>
-        <div class="ctx-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> Delete</div>
-    </div>
-    <div class="ctx-backdrop" id="ctxBackdrop"></div>
-
-    <!-- Layer Edit Modal -->
-    <div id="layerEditModal" class="layer-edit-modal">
-        <div class="layer-edit-content">
-            <h3><i class="fas fa-pencil-alt"></i> Edit Layer Name</h3>
-            <input type="text" id="layerEditInput" placeholder="Enter name..." />
-            <div class="layer-edit-actions">
-                <button class="save-btn" id="layerEditSave"><i class="fas fa-check"></i> Save</button>
-                <button class="cancel-btn" id="layerEditCancel"><i class="fas fa-times"></i> Cancel</button>
-            </div>
-        </div>
-    </div>
-
-<script>
-
-        const canvas = new fabric.Canvas('designCanvas', {
-            preserveObjectStacking: true,
-            selection: true,
-            allowTouchScrolling: true,
-            perPixelTargetFind: false
-        });
-
-        function ensureObjectControls(obj) {
-            if (!obj || obj.isBackground || obj.isTexture || obj.selectable === false) return;
-            obj.set({
-                hasControls: true, hasBorders: true,
-                transparentCorners: false,
-                cornerColor: '#3b82f6', cornerStrokeColor: '#1d4ed8',
-                cornerSize: window.matchMedia('(pointer: coarse)').matches ? 20 : 10,
-                borderColor: '#3b82f6', padding: 2,
-                selectable: true, evented: true,
-                lockScalingX: false, lockScalingY: false,
-                lockRotation: false, lockMovementX: false, lockMovementY: false,
-                snapAngle: 45, snapThreshold: 5
-            });
-            if (obj.setControlVisible) {
-                ['tl','tr','bl','br','ml','mr','mt','mb','mtr'].forEach(c => obj.setControlVisible(c, true));
-            }
-            if (obj.type === 'i-text') {
-                obj.off('editing:entered'); obj.off('editing:exited');
-                obj.on('editing:entered', function() { clearMobileHandles(); document.getElementById('doneBtn').classList.remove('hidden'); });
-                obj.on('editing:exited', function() { setTimeout(createMobileHandles, 150); document.getElementById('doneBtn').classList.add('hidden'); });
-            }
-        }
-
-        canvas.on('object:added', (e) => {
-            if (e.target && !e.target.isBackground && !e.target.isTexture) {
-                ensureObjectControls(e.target);
-                if (!e.target.__handleId) e.target.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
-            }
-        });
-        let selectedObject = null;
-        let templateConfig = null;
-        let showHandles = true;
-        let undoStack = [];
-        let redoStack = [];
-
-        function isMobileLayout() {
-            return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.innerHeight < 600);
-        }
-        let isPreviewMode = false;
-        let layerEditTarget = null;
-        let mobileHandles = [];
-        let handleDragState = null;
-
-        function showNotification(message, type) {
-            console.log(`[${type || 'info'}] ${message}`);
-        }
-
-        async function loadTemplateDesign() {
-            if (!templateConfig || !templateConfig.config) {
-                console.warn('No template config available');
-                return;
-            }
-            const config = templateConfig.config;
-            canvas.clear();
-            canvas.backgroundColor = config.backgroundColor || '#ffffff';
-
-            if (config.defaultFont && document.fonts) {
-                try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
-            }
-            if (config.decorations) {
-                config.decorations.forEach(dec => {
-                    if (dec.type === 'line') {
-                        canvas.add(new fabric.Line(dec.coords, {
-                            stroke: dec.color || config.accentColor, strokeWidth: dec.width || 2,
-                            selectable: false, evented: false
-                        }));
-                    }
-                });
-            }
-            const layout = config.layout;
-            if (config.sampleText.header && config.sampleText.header.trim() !== '') {
-                await addTextElement(config.sampleText.header, 300, layout.headerY || 80, {
-                    fontSize: layout.headerSize || 24, fontFamily: config.defaultFont || 'Montserrat',
-                    fill: config.textColor || '#333', fontWeight: layout.headerWeight || 'normal'
-                });
-            }
-            if (config.sampleText.names) {
-                await addTextElement(config.sampleText.names, 300, layout.namesY || 200, {
-                    fontSize: layout.namesSize || 48, fontFamily: config.defaultFont || 'Montserrat',
-                    fill: config.textColor || '#333', fontWeight: layout.namesWeight || 'bold'
-                });
-            }
-            if (config.sampleText.subtext) {
-                await addTextElement(config.sampleText.subtext, 300, layout.subtextY || 280, {
-                    fontSize: layout.subtextSize || 18, fontFamily: layout.subtextFont || config.defaultFont || 'Montserrat',
-                    fill: config.accentColor || config.textColor || '#333'
-                });
-            }
-            if (config.sampleText.date) {
-                await addTextElement(config.sampleText.date, 300, layout.dateY || 380, {
-                    fontSize: layout.dateSize || 20, fontFamily: layout.dateFont || config.defaultFont || 'Montserrat',
-                    fill: config.accentColor || config.textColor || '#333', fontWeight: layout.dateWeight || 'normal'
-                });
-            }
-            applyTemplateTexture(canvas);
-            canvas.renderAll();
-            canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
-            updateMediaControls();
-        }
-
-        async function loadDemoTemplate() {
-            canvas.clear();
-            canvas.backgroundColor = '#F5F5DC';
-            await addTextElement('Happy Birthday!', 300, 120, {
-                fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold'
-            });
-            await addTextElement('To someone special', 300, 200, {
-                fontSize: 24, fontFamily: 'Montserrat', fill: '#764ba2'
-            });
-            await addTextElement('Wishing you all the best!', 300, 280, {
-                fontSize: 18, fontFamily: 'Montserrat', fill: '#333'
-            });
-            canvas.renderAll();
-            saveState();
-            updateLayerList();
-            updateMediaControls();
-        }
-
-        async function addTextElement(text, left, top, options) {
-            options = options || {};
-            if (options.fontFamily && document.fonts) {
-                try { await document.fonts.load('1em "' + options.fontFamily + '"'); } catch (e) {}
-            }
-            const textObj = new fabric.IText(text, {
-                left: left, top: top, originX: 'center', originY: 'center',
-                textAlign: 'center', editable: true, hasControls: true, hasBorders: true, padding: 12, ...options
-            });
-            canvas.add(textObj);
-        }
-
-        function setupBackgroundOptions() {
-            document.getElementById('bgColorPicker').addEventListener('input', function() {
-                document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
-                removeTemplateTexture(canvas);
-                canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
-                canvas.backgroundColor = this.value;
-                canvas.renderAll();
-                saveState();
-            });
-        }
-
-        function setupColorPalettes() {
-            const palettes = {
-                elegant: { bg: '#F5F5DC', text: '#333333' },
-                vibrant: { bg: '#667eea', text: '#ffffff' },
-                dark: { bg: '#1a1a2e', text: '#BCAE83' },
-                minimal: { bg: '#ffffff', text: '#333333' }
-            };
-            document.querySelectorAll('.palette-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const palette = palettes[this.dataset.palette];
-                    if (!palette) return;
-                    document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
-                    this.classList.add('active');
-                    removeTemplateTexture(canvas);
-                    canvas.getObjects().forEach(obj => { if (obj.isTexture) canvas.remove(obj); });
-                    canvas.backgroundColor = palette.bg;
-                    canvas.renderAll();
-                    saveState();
-                });
-            });
-        }
-
-        function saveState() {
-            const json = JSON.stringify(canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']));
-            if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
-                undoStack.push(json);
-                if (undoStack.length > 30) undoStack.shift();
-                redoStack = [];
-            }
-        }
-
-        function restoreMediaObjects() {
-            canvas.getObjects().forEach(obj => {
-                if (obj.isVideo && obj.videoBlobUrl) restoreVideoObject(obj);
-                else if (obj.isAudio && obj.audioBlobUrl) restoreAudioObject(obj);
-            });
-            updateMediaControls();
-        }
-
-        function restoreVideoObject(obj) {
-            if (!obj.videoBlobUrl || obj.videoElement) return;
-            const videoEl = document.createElement('video');
-            videoEl.src = obj.videoBlobUrl;
-            videoEl.crossOrigin = "anonymous";
-            videoEl.loop = true;
-            videoEl.playsInline = true;
-            videoEl.autoplay = true;
-            videoEl.style.display = 'none';
-            document.body.appendChild(videoEl);
-            videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(() => {});
-                const videoCanvas = document.createElement('canvas');
-                videoCanvas.width = obj.width || videoEl.videoWidth || 640;
-                videoCanvas.height = obj.height || videoEl.videoHeight || 480;
-                const ctx = videoCanvas.getContext('2d');
-                obj._element = videoCanvas;
-                obj._originalElement = videoCanvas;
-                obj.videoElement = videoEl;
-                obj.videoCanvas = videoCanvas;
-                obj.videoContext = ctx;
-                const renderLoop = () => {
-                    if (obj.canvas && !obj.isDeleted) {
-                        if (videoEl.readyState >= 2) {
-                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
-                            obj.dirty = true;
-                            canvas.requestRenderAll();
-                        }
-                        obj._videoFrame = requestAnimationFrame(renderLoop);
-                    }
-                };
-                obj._videoFrame = requestAnimationFrame(renderLoop);
-                updateMediaControls();
-                obj.on('removed', function() {
-                    this.isDeleted = true;
-                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                });
-                canvas.requestRenderAll();
-                updateMediaControls();
-            };
-            videoEl.onerror = () => { console.error('Error restoring video from blob URL'); };
-        }
-
-        function restoreAudioObject(obj) {
-            if (!obj.audioBlobUrl || obj.audioElement) return;
-            const audioEl = document.createElement('audio');
-            audioEl.src = obj.audioBlobUrl;
-            audioEl.crossOrigin = "anonymous";
-            audioEl.loop = true;
-            audioEl.style.display = 'none';
-            document.body.appendChild(audioEl);
-            audioEl.onloadedmetadata = () => {
-                audioEl.play().catch(() => {});
-                obj.audioElement = audioEl;
-                updateMediaControls();
-                obj.on('selected', () => { if (obj.audioElement) obj.audioElement.play().catch(() => {}); });
-                obj.on('removed', function() {
-                    if (this.audioElement) this.audioElement.pause();
-                });
-            };
-        }
-
-        function undo() {
-            if (undoStack.length > 1) {
-                redoStack.push(undoStack.pop());
-                const prevState = undoStack[undoStack.length - 1];
-                canvas.discardActiveObject();
-                selectedObject = null;
-                canvas.loadFromJSON(prevState, () => { 
-                    restoreMediaObjects();
-                    canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
-                    applyTemplateTexture(canvas);
-                    canvas.renderAll(); 
-                    updateLayerList();
-                    updateMediaControls();
-                });
-            }
-        }
-
-        function redo() {
-            if (redoStack.length > 0) {
-                const nextState = redoStack.pop();
-                undoStack.push(nextState);
-                canvas.discardActiveObject();
-                selectedObject = null;
-                canvas.loadFromJSON(nextState, () => { 
-                    restoreMediaObjects();
-                    canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
-                    applyTemplateTexture(canvas);
-                    canvas.renderAll(); 
-                    updateLayerList();
-                    updateMediaControls();
-                });
-            }
-        }
-
-        function updateCheckoutDisplay() {
-            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            const total = (qty * 2.99).toFixed(2);
-            document.getElementById('checkoutTotal').textContent = '$' + total;
-        }
-
-        function updateMediaControls() {
-            const hasVideo = canvas.getObjects().some(obj => obj.isVideo && obj.videoElement);
-            const hasAudio = canvas.getObjects().some(obj => obj.isAudio && obj.audioElement);
-            const hasMedia = hasVideo || hasAudio;
-            const playBtn = document.getElementById('mediaPlayBtn');
-            const muteBtn = document.getElementById('mediaMuteBtn');
-            if (!playBtn || !muteBtn) return;
-            if (hasMedia) {
-                playBtn.classList.remove('hidden');
-                muteBtn.classList.remove('hidden');
-                const anyPlaying = canvas.getObjects().some(obj => {
-                    if (obj.isVideo && obj.videoElement) return !obj.videoElement.paused;
-                    if (obj.isAudio && obj.audioElement) return !obj.audioElement.paused;
-                    return false;
-                });
-                const anyMuted = canvas.getObjects().some(obj => {
-                    if (obj.isVideo && obj.videoElement) return obj.videoElement.muted;
-                    if (obj.isAudio && obj.audioElement) return obj.audioElement.muted;
-                    return false;
-                });
-                playBtn.innerHTML = anyPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-                playBtn.title = anyPlaying ? 'Pause Media' : 'Play Media';
-                muteBtn.innerHTML = anyMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
-                muteBtn.title = anyMuted ? 'Unmute Media' : 'Mute Media';
-            } else {
-                playBtn.classList.add('hidden');
-                muteBtn.classList.add('hidden');
-            }
-        }
-
-        function toggleMediaPlayback() {
-            const mediaObjects = canvas.getObjects().filter(obj =>
-                (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement)
-            );
-            if (mediaObjects.length === 0) return;
-            const anyPlaying = mediaObjects.some(obj => {
-                if (obj.isVideo && obj.videoElement) return !obj.videoElement.paused;
-                if (obj.isAudio && obj.audioElement) return !obj.audioElement.paused;
-                return false;
-            });
-            mediaObjects.forEach(obj => {
-                if (obj.isVideo && obj.videoElement) {
-                    if (anyPlaying) obj.videoElement.pause();
-                    else obj.videoElement.play().catch(() => {});
-                }
-                if (obj.isAudio && obj.audioElement) {
-                    if (anyPlaying) obj.audioElement.pause();
-                    else obj.audioElement.play().catch(() => {});
-                }
-            });
-            updateMediaControls();
-        }
-
-        function toggleMediaMute() {
-            const mediaObjects = canvas.getObjects().filter(obj =>
-                (obj.isVideo && obj.videoElement) || (obj.isAudio && obj.audioElement)
-            );
-            if (mediaObjects.length === 0) return;
-            const anyUnmuted = mediaObjects.some(obj => {
-                if (obj.isVideo && obj.videoElement) return !obj.videoElement.muted;
-                if (obj.isAudio && obj.audioElement) return !obj.audioElement.muted;
-                return false;
-            });
-            mediaObjects.forEach(obj => {
-                if (obj.isVideo && obj.videoElement) obj.videoElement.muted = anyUnmuted;
-                if (obj.isAudio && obj.audioElement) obj.audioElement.muted = anyUnmuted;
-            });
-            updateMediaControls();
-        }
-
-        function updateQty(change) {
-            const input = document.getElementById('qtyInput');
-            let val = parseInt(input.value) + change;
-            if (val < 1) val = 1;
-            if (val > 2000) val = 2000;
-            input.value = val;
-            updateCheckoutDisplay();
-        }
-
-        function setupQtyControls() {
-            document.getElementById('qtyMinus').addEventListener('click', () => updateQty(-1));
-            document.getElementById('qtyPlus').addEventListener('click', () => updateQty(1));
-            document.getElementById('qtyInput').addEventListener('change', function() {
-                let val = parseInt(this.value) || 1;
-                if (val < 1) val = 1;
-                if (val > 2000) val = 2000;
-                this.value = val;
-                updateCheckoutDisplay();
-            });
-        }
-
-        function setupMobileContextMenu() {
-            if (!isMobileLayout()) return;
-            const canvasEl = document.getElementById('designCanvas');
-            if (!canvasEl) return;
-            let menu = document.getElementById('mobileContextMenu');
-            let backdrop = document.getElementById('ctxBackdrop');
-            if (!menu) return;
-
-            let touchTimer = null;
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchMoved = false;
-            const LONG_PRESS_MS = 500;
-
-            function showMenu(x, y) {
-                const editItem = document.getElementById('ctxEditText');
-                const editDiv = document.getElementById('ctxEditDivider');
-                if (editItem) {
-                    const isText = selectedObject && selectedObject.type === 'i-text';
-                    editItem.style.display = isText ? 'flex' : 'none';
-                    if (editDiv) editDiv.style.display = isText ? 'block' : 'none';
-                }
-                menu.style.display = 'block';
-                backdrop.style.display = 'block';
-                const menuRect = menu.getBoundingClientRect();
-                let left = x - menuRect.width / 2;
-                let top = y - menuRect.height - 10;
-                if (left < 8) left = 8;
-                if (left + menuRect.width > window.innerWidth - 8) left = window.innerWidth - menuRect.width - 8;
-                if (top < 8) top = y + 20;
-                if (top + menuRect.height > window.innerHeight - 8) top = window.innerHeight - menuRect.height - 8;
-                menu.style.left = left + 'px';
-                menu.style.top = top + 'px';
-            }
-
-            function hideMenu() {
-                menu.style.display = 'none';
-                backdrop.style.display = 'none';
-            }
-
-            function onDocumentTouch(e) {
-                if (menu.style.display !== 'block') return;
-                const touch = e.touches[0];
-                const menuRect = menu.getBoundingClientRect();
-                if (touch.clientX < menuRect.left || touch.clientX > menuRect.right ||
-                    touch.clientY < menuRect.top || touch.clientY > menuRect.bottom) {
-                    hideMenu();
-                }
-            }
-            document.addEventListener('touchstart', onDocumentTouch, { passive: true });
-
-            canvasEl.addEventListener('touchstart', function(e) {
-                if (!window.matchMedia('(pointer: coarse)').matches && !isMobileLayout()) return;
-                if (menu.style.display === 'block') { hideMenu(); return; }
-                const touch = e.touches[0];
-                touchStartX = touch.clientX;
-                touchStartY = touch.clientY;
-                touchMoved = false;
-                touchTimer = setTimeout(() => {
-                    touchTimer = null;
-                    if (!touchMoved) {
-                        const pointer = canvas.getPointer({ clientX: touchStartX, clientY: touchStartY });
-                        const objects = canvas.getObjects();
-                        let target = null;
-                        for (let i = objects.length - 1; i >= 0; i--) {
-                            if (objects[i].containsPoint(pointer) && objects[i].selectable !== false) {
-                                target = objects[i]; break;
-                            }
-                        }
-                        if (target) {
-                            canvas.setActiveObject(target);
-                            selectedObject = target;
-                            updateControls();
-                            showSelectionControls();
-                            updateLayerList();
-                            canvas.renderAll();
-                        }
-                        if (selectedObject) showMenu(touchStartX, touchStartY);
-                    }
-                }, LONG_PRESS_MS);
-            }, { passive: true });
-
-            canvasEl.addEventListener('touchmove', function(e) {
-                if (!touchTimer) return;
-                const touch = e.touches[0];
-                const dx = touch.clientX - touchStartX;
-                const dy = touch.clientY - touchStartY;
-                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                    touchMoved = true;
-                    clearTimeout(touchTimer);
-                    touchTimer = null;
-                }
-            }, { passive: true });
-
-            canvasEl.addEventListener('touchend', function() {
-                if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-            });
-
-            backdrop.addEventListener('touchstart', hideMenu);
-            backdrop.addEventListener('click', hideMenu);
-
-            function handleMenuAction(action) {
-                switch(action) {
-                    case 'editText':
-                        if (selectedObject && selectedObject.type === 'i-text') {
-                            selectedObject.set({ selectable: true, evented: true });
-                            selectedObject.enterEditing();
-                            setTimeout(() => {
-                                if (selectedObject && selectedObject.hiddenTextarea) {
-                                    selectedObject.hiddenTextarea.focus();
-                                    selectedObject.hiddenTextarea.click();
-                                }
-                            }, 200);
-                        }
-                        break;
-                    case 'front': bringToFront(); break;
-                    case 'back': sendToBack(); break;
-                    case 'duplicate': duplicateObject(); break;
-                    case 'delete': deleteSelected(); break;
-                }
-                hideMenu();
-            }
-            let justTouchedMenu = false;
-            menu.querySelectorAll('.ctx-item').forEach(item => {
-                item.addEventListener('touchend', function(e) {
-                    e.stopPropagation(); e.preventDefault();
-                    justTouchedMenu = true;
-                    setTimeout(() => { justTouchedMenu = false; }, 100);
-                    handleMenuAction(this.dataset.action);
-                }, { passive: false });
-                item.addEventListener('click', function(e) {
-                    if (justTouchedMenu) return;
-                    e.stopPropagation(); e.preventDefault();
-                    handleMenuAction(this.dataset.action);
-                });
-            });
-        }
-
-        async function handleVideoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            if (file.size > 40 * 1024 * 1024) { alert('Video must be under 40MB'); return; }
-            const blobUrl = URL.createObjectURL(file);
-            const videoEl = document.createElement('video');
-            videoEl.src = blobUrl;
-            videoEl.crossOrigin = "anonymous";
-            videoEl.loop = true;
-            videoEl.playsInline = true;
-            videoEl.autoplay = true;
-            videoEl.style.display = 'none';
-            document.body.appendChild(videoEl);
-            videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(e => {
-                    console.log('Autoplay with sound blocked');
-                    showNotification('Video added! Click to enable audio if needed.', 'info');
-                });
-                const videoCanvas = document.createElement('canvas');
-                videoCanvas.width = videoEl.videoWidth || 640;
-                videoCanvas.height = videoEl.videoHeight || 480;
-                const ctx = videoCanvas.getContext('2d');
-                const fabricVideo = new fabric.Image(videoCanvas, {
-                    left: canvas.width / 2, top: canvas.height / 2,
-                    scaleX: 0.5, scaleY: 0.5, originX: 'center', originY: 'center',
-                    opacity: 0.5, hasControls: true, hasBorders: true,
-                    lockScalingX: false, lockScalingY: false, lockRotation: false,
-                    lockMovementX: false, lockMovementY: false, hasRotatingPoint: true,
-                    transparentCorners: false, cornerColor: '#06D6A0',
-                    cornerStrokeColor: '#fff', cornerSize: 12,
-                    borderColor: '#06D6A0', borderScaleFactor: 2
-                });
-                fabricVideo.setControlsVisibility({
-                    mt: true, mb: true, ml: true, mr: true,
-                    bl: true, br: true, tl: true, tr: true, mtr: true
-                });
-                fabricVideo.isVideo = true;
-                fabricVideo.videoFile = file;
-                fabricVideo.videoBlobUrl = blobUrl;
-                fabricVideo.videoType = file.type;
-                fabricVideo.videoElement = videoEl;
-                fabricVideo.videoCanvas = videoCanvas;
-                fabricVideo.videoContext = ctx;
-                canvas.add(fabricVideo);
-                canvas.setActiveObject(fabricVideo);
-                canvas.renderAll();
-                saveState();
-                const renderLoop = () => {
-                    if (fabricVideo.canvas && !fabricVideo.isDeleted) {
-                        if (videoEl.readyState >= 2) {
-                            ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
-                            fabricVideo.dirty = true;
-                            canvas.requestRenderAll();
-                        }
-                        fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
-                    }
-                };
-                fabricVideo._videoFrame = requestAnimationFrame(renderLoop);
-                fabricVideo.on('removed', function() {
-                    this.isDeleted = true;
-                    if (this._videoFrame) cancelAnimationFrame(this._videoFrame);
-                    if (this.videoElement) { this.videoElement.pause(); this.videoElement.remove(); }
-                });
-                showNotification('Video added! Drag corners to resize, edges to rotate.');
-                updateLayerList();
-                updateMediaControls();
-            };
-            videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
-        }
-
-        function handleAudioUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            if (file.size > 40 * 1024 * 1024) { alert('Audio must be under 40MB'); return; }
-            const blobUrl = URL.createObjectURL(file);
-            const audioEl = document.createElement('audio');
-            audioEl.src = blobUrl;
-            audioEl.crossOrigin = "anonymous";
-            audioEl.loop = true;
-            audioEl.onloadedmetadata = () => {
-                audioEl.play().catch(e => { console.log('Audio autoplay blocked'); });
-                const svgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDZENkEwIiBzdHJva2Utd2lkdGg9IjIiPjxwb2x5Z29uIHBvaW50cz0iMTEgNSA2IDkgMiA5IDIgMTUgNiAxNSAxMSAxOSAxMSA1Ii8+PHBhdGggZD0iTTE5LjA3IDQuOTNhMTAgMTAgMCAwIDEgMCAxNC4xNE0xNS41NCA4LjQ2YTUgNSAwIDAgMSAwIDcuMDciLz48L3N2Zz4=';
-                fabric.Image.fromURL(svgIcon, (img) => {
-                    img.set({ left: canvas.width / 2, top: canvas.height / 2, scaleX: 1, scaleY: 1, originX: 'center', originY: 'center', hasControls: true, hasBorders: true });
-                    img.isAudio = true;
-                    img.audioFile = file;
-                    img.audioBlobUrl = blobUrl;
-                    img.audioElement = audioEl;
-                    img.audioType = file.type;
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                    saveState();
-                    img.on('selected', () => { audioEl.play().catch(() => {}); });
-                    img.on('removed', function() {
-                        if (this.audioElement) this.audioElement.pause();
-                    });
-                    showNotification('Audio added! Will play when card is viewed.');
-                    updateLayerList();
-                    updateMediaControls();
-                });
-            };
-        }
-
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            e.target.value = '';
-            handleFile(file);
-        }
-
-        function handleFile(file) {
-            if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-            if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    const scale = Math.min(200 / img.width, 200 / img.height);
-                    img.set({ scaleX: scale, scaleY: scale, left: 300, top: 225, originX: 'center', originY: 'center', hasControls: true, hasBorders: true, padding: 12 });
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                    saveState();
-                    updateLayerList();
-                });
-            };
-            reader.onerror = () => { alert('Error reading file'); };
-            reader.readAsDataURL(file);
-        }
-
-        function handleSelection(e) {
-            const sel = e.selected;
-            if (sel.length === 1) {
-                selectedObject = sel[0];
-                updateControls();
-                showSelectionControls();
-            } else {
-                selectedObject = null;
-                showNoSelection();
-            }
-            updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
-        }
-
-        // ----- SCROLL DETECTION FLAG (mobile only) -----
-        let isScrolling = false;
-        let scrollTimer = null;
-        let touchStartX = 0, touchStartY = 0;
-        let touchStartTarget = null;
-        let lastTouchHadMovement = false;
-
-        document.addEventListener('touchstart', function(e) {
-            touchStartTarget = e.target;
-            const touch = e.touches[0];
-            if (touch) {
-                touchStartX = touch.clientX;
-                touchStartY = touch.clientY;
-            }
-            isScrolling = false;
-            lastTouchHadMovement = false;
-        }, { passive: true });
-
-        document.addEventListener('touchmove', function(e) {
-            // Ignore if touching mobile handles or context menu (legitimate manipulation)
-            if (e.target.closest('.mobile-object-handle') || 
-                e.target.closest('.mobile-rotate-handle') ||
-                e.target.closest('.mobile-context-menu') ||
-                e.target.closest('.ctx-backdrop')) {
-                return;
-            }
-            const touch = e.touches[0];
-            if (!touch) return;
-            const dx = Math.abs(touch.clientX - touchStartX);
-            const dy = Math.abs(touch.clientY - touchStartY);
-            if (dx > 10 || dy > 10) {
-                isScrolling = true;
-                lastTouchHadMovement = true;
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchend', function() {
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(() => {
-                isScrolling = false;
-            }, 300);
-        }, { passive: true });
-
-        // ----- MODIFIED: handleDeselection checks scrolling flag -----
-        function handleDeselection() {
-            // If user is scrolling or touch had movement and we have a selected object, restore it
-            if ((isScrolling || lastTouchHadMovement) && selectedObject && selectedObject.canvas === canvas) {
-                canvas.setActiveObject(selectedObject);
-                canvas.renderAll();
-                return;
-            }
-            selectedObject = null;
-            showNoSelection();
-            updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) setTimeout(createMobileHandles, 50);
-        }
-
-        function addNewText() {
-            const text = new fabric.IText('New Text', {
-                left: 300, top: 225, fontSize: 32,
-                fontFamily: templateConfig?.config?.defaultFont || 'Montserrat',
-                fill: templateConfig?.config?.textColor || '#333333',
-                originX: 'center', originY: 'center'
-            });
-            canvas.add(text);
-            canvas.setActiveObject(text);
-            selectedObject = text;
-            canvas.renderAll();
-            saveState();
-            updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                setTimeout(() => {
-                    text.enterEditing();
-                    setTimeout(() => {
-                        if (text.hiddenTextarea) { text.hiddenTextarea.focus(); text.hiddenTextarea.click(); }
-                    }, 200);
-                }, 100);
-            }
-        }
-
-        function deleteSelected() {
-            const active = canvas.getActiveObject();
-            if (active) {
-                if (active.type === 'activeSelection') {
-                    active.getObjects().forEach(obj => {
-                        if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
-                        if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
-                        if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
-                        canvas.remove(obj);
-                    });
-                } else {
-                    if (active.videoElement) { active.videoElement.pause(); active.videoElement.remove(); }
-                    if (active.audioElement) { active.audioElement.pause(); active.audioElement.remove(); }
-                    if (active._videoFrame) cancelAnimationFrame(active._videoFrame);
-                    canvas.remove(active);
-                }
-                canvas.discardActiveObject();
-                selectedObject = null;
-                canvas.renderAll();
-                saveState();
-                updateLayerList();
-                updateMediaControls();
-                createMobileHandles();
-            }
-        }
-
-        function updateControls() {
-            if (!selectedObject) return;
-            const rotSlider = document.getElementById('rotation');
-            if (rotSlider) {
-                rotSlider.value = Math.round(selectedObject.angle || 0);
-                const rotVal = rotSlider.parentElement.querySelector('.slider-value');
-                if (rotVal) rotVal.textContent = Math.round(selectedObject.angle || 0) + '°';
-            }
-            const opSlider = document.getElementById('opacity');
-            if (opSlider) {
-                opSlider.value = Math.round((selectedObject.opacity || 1) * 100);
-                const opVal = opSlider.parentElement.querySelector('.slider-value');
-                if (opVal) opVal.textContent = Math.round((selectedObject.opacity || 1) * 100) + '%';
-            }
-            if (selectedObject.type === 'i-text') {
-                document.getElementById('textControls').style.display = 'block';
-                document.getElementById('textContent').value = selectedObject.text;
-                document.getElementById('fontFamily').value = selectedObject.fontFamily || 'Montserrat';
-                document.getElementById('fontSize').value = selectedObject.fontSize;
-                document.getElementById('fontSizeVal').textContent = selectedObject.fontSize;
-                document.getElementById('textColor').value = selectedObject.fill || '#333333';
-                document.getElementById('boldBtn').classList.toggle('active', selectedObject.fontWeight === 'bold');
-                document.getElementById('italicBtn').classList.toggle('active', selectedObject.fontStyle === 'italic');
-                document.getElementById('underlineBtn').classList.toggle('active', selectedObject.underline);
-                document.querySelectorAll('[data-align]').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.align === selectedObject.textAlign);
-                });
-            } else {
-                document.getElementById('textControls').style.display = 'none';
-            }
-        }
-
-        function showSelectionControls() {
-            document.getElementById('transformControls').style.display = 'block';
-        }
-        function showNoSelection() {
-            document.getElementById('textControls').style.display = 'none';
-            document.getElementById('transformControls').style.display = 'none';
-        }
-
-        function setupTextControls() {
-            document.getElementById('textContent').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('text', this.value);
-                    canvas.renderAll();
-                }
-            });
-        document.getElementById('textContent').addEventListener('change', function() {
-            if (selectedObject && selectedObject.type === 'i-text') {
-                saveState();
-            }
-        });
-            document.getElementById('fontFamily').addEventListener('change', async function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    if (document.fonts) {
-                        try { await document.fonts.load('1em "' + this.value + '"'); } catch (e) {}
-                    }
-                    selectedObject.set('fontFamily', this.value);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('fontSize').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('fontSize', parseInt(this.value));
-                    document.getElementById('fontSizeVal').textContent = this.value;
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('fontSize').addEventListener('change', function() {
-                if (selectedObject && selectedObject.type === 'i-text') saveState();
-            });
-            document.getElementById('textColor').addEventListener('input', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('fill', this.value);
-                    canvas.renderAll();
-                }
-            });
-            document.getElementById('textColor').addEventListener('change', function() {
-                if (selectedObject && selectedObject.type === 'i-text') saveState();
-            });
-            document.getElementById('textColorPresets').addEventListener('click', function(e) {
-                const preset = e.target.closest('.color-preset');
-                if (preset && preset.dataset.color) {
-                    const color = preset.dataset.color;
-                    document.getElementById('textColor').value = color;
-                    if (selectedObject && selectedObject.type === 'i-text') {
-                        selectedObject.set('fill', color);
-                        canvas.renderAll();
-                        saveState();
-                    }
-                }
-            });
-            document.getElementById('boldBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    const isBold = selectedObject.fontWeight === 'bold';
-                    selectedObject.set('fontWeight', isBold ? 'normal' : 'bold');
-                    this.classList.toggle('active', !isBold);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('italicBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    const isItalic = selectedObject.fontStyle === 'italic';
-                    selectedObject.set('fontStyle', isItalic ? 'normal' : 'italic');
-                    this.classList.toggle('active', !isItalic);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.getElementById('underlineBtn').addEventListener('click', function() {
-                if (selectedObject && selectedObject.type === 'i-text') {
-                    selectedObject.set('underline', !selectedObject.underline);
-                    this.classList.toggle('active', selectedObject.underline);
-                    canvas.renderAll();
-                    saveState();
-                }
-            });
-            document.querySelectorAll('[data-align]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (selectedObject && selectedObject.type === 'i-text') {
-                        document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        selectedObject.set('textAlign', this.dataset.align);
-                        canvas.renderAll();
-                        saveState();
-                    }
-                });
-            });
-        }
-
-        function setupTransformControls() {
-            document.getElementById('rotation').addEventListener('input', function() {
-                if (selectedObject) {
-                    selectedObject.set('angle', parseInt(this.value));
-                    canvas.renderAll();
-                    const valSpan = this.parentElement.querySelector('.slider-value');
-                    if (valSpan) valSpan.textContent = this.value + '°';
-                }
-            });
-            document.getElementById('rotation').addEventListener('change', function() {
-                if (selectedObject) saveState();
-            });
-            document.getElementById('opacity').addEventListener('input', function() {
-                if (selectedObject) {
-                    selectedObject.set('opacity', parseInt(this.value) / 100);
-                    canvas.renderAll();
-                    const valSpan = this.parentElement.querySelector('.slider-value');
-                    if (valSpan) valSpan.textContent = this.value + '%';
-                }
-            });
-            document.getElementById('opacity').addEventListener('change', function() {
-                if (selectedObject) saveState();
-            });
-        }
-
-        function setupArrangeControls() {
-            document.getElementById('bringToFrontBtn').addEventListener('click', bringToFront);
-            document.getElementById('sendToBackBtn').addEventListener('click', sendToBack);
-            document.getElementById('duplicateBtn').addEventListener('click', duplicateObject);
-            document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
-        }
-
-        function bringToFront() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => canvas.bringToFront(o));
-            } else {
-                canvas.bringToFront(obj);
-            }
-            canvas.renderAll(); saveState(); updateLayerList();
-        }
-
-        function sendToBack() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                obj.getObjects().forEach(o => canvas.sendToBack(o));
-            } else {
-                canvas.sendToBack(obj);
-            }
-            canvas.renderAll(); saveState(); updateLayerList();
-        }
-
-        function duplicateObject() {
-            const obj = canvas.getActiveObject() || selectedObject;
-            if (!obj) return;
-            if (obj.type === 'activeSelection') {
-                const clones = [];
-                obj.getObjects().forEach(o => {
-                    o.clone(function(cloned) {
-                        cloned.set({ left: o.left + 20, top: o.top + 20 });
-                        canvas.add(cloned);
-                        clones.push(cloned);
-                    });
-                });
-                if (clones.length > 0) {
-                    const sel = new fabric.ActiveSelection(clones, { canvas: canvas });
-                    canvas.setActiveObject(sel);
-                }
-            } else {
-                obj.clone(function(cloned) {
-                    cloned.set({ left: obj.left + 20, top: obj.top + 20 });
-                    if (obj.isVideo && obj.videoBlobUrl) {
-                        cloned.isVideo = true;
-                        cloned.videoBlobUrl = obj.videoBlobUrl;
-                        cloned.videoType = obj.videoType;
-                        restoreVideoObject(cloned);
-                    }
-                    if (obj.isAudio && obj.audioBlobUrl) {
-                        cloned.isAudio = true;
-                        cloned.audioBlobUrl = obj.audioBlobUrl;
-                        cloned.audioType = obj.audioType;
-                        restoreAudioObject(cloned);
-                    }
-                    canvas.add(cloned);
-                    canvas.setActiveObject(cloned);
-                });
-            }
-            canvas.renderAll(); saveState(); updateLayerList();
-        }
-
-        function updateLayerList() {
-            const list = document.getElementById('layerList');
-            if (!list) return;
-            list.innerHTML = '';
-            canvas.getObjects().forEach((obj, index) => {
-                if (obj.isBackground || obj.isTexture) return;
-                const item = document.createElement('div');
-                item.className = 'layer-item' + (obj === selectedObject ? ' active' : '');
-                let icon = 'fa-square';
-                let name = obj.__layerName || `Object ${index + 1}`;
-                if (obj.type === 'i-text') { icon = 'fa-font'; name = obj.text ? obj.text.substring(0, 30) : 'Text'; }
-                else if (obj.type === 'image') { icon = 'fa-image'; name = obj.__layerName || 'Image'; }
-                else if (obj.type === 'group') { icon = 'fa-object-group'; name = obj.__layerName || 'Group'; }
-                else if (obj.type === 'line') { icon = 'fa-minus'; name = obj.__layerName || 'Line'; }
-                else if (obj.isVideo) { icon = 'fa-video'; name = obj.__layerName || 'Video'; }
-                else if (obj.isAudio) { icon = 'fa-music'; name = obj.__layerName || 'Audio'; }
-
-                const span = document.createElement('span');
-                span.style.display = 'flex';
-                span.style.alignItems = 'center';
-                span.style.gap = '8px';
-                span.style.flex = '1';
-                span.style.minWidth = '0';
-                span.innerHTML = `<i class="fas ${icon}"></i>`;
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'layer-name';
-                nameSpan.textContent = name;
-                nameSpan.style.overflow = 'hidden';
-                nameSpan.style.textOverflow = 'ellipsis';
-                nameSpan.style.whiteSpace = 'nowrap';
-                nameSpan.style.flex = '1';
-                nameSpan.style.minWidth = '0';
-                span.appendChild(nameSpan);
-
-                const actions = document.createElement('div');
-                actions.className = 'layer-actions';
-                const isLocked = !!obj._userLocked;
-                actions.innerHTML = `<button class="layer-btn" data-action="lock" data-index="${index}" title="${isLocked ? 'Unlock' : 'Lock'}"><i class="fas ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button><button class="layer-btn" data-action="edit" data-index="${index}" title="Edit Name"><i class="fas fa-pencil-alt"></i></button><button class="layer-btn" data-action="delete" data-index="${index}" title="Delete"><i class="fas fa-trash"></i></button>`;
-
-                item.appendChild(span);
-                item.appendChild(actions);
-
-                item.addEventListener('click', (e) => {
-                    if (e.target.closest('.layer-actions')) return;
-                    if (obj.selectable) {
-                        canvas.setActiveObject(obj);
-                        selectedObject = obj;
-                        updateControls();
-                        showSelectionControls();
-                        updateLayerList();
-                        canvas.renderAll();
-                    }
-                });
-
-                nameSpan.addEventListener('dblclick', (e) => {
-                    e.stopPropagation();
-                    openLayerEditModal(obj);
-                });
-
-                const lockBtn = item.querySelector('[data-action="lock"]');
-                if (lockBtn) {
-                    lockBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const idx = parseInt(e.currentTarget.dataset.index);
-                        const targetObj = canvas.getObjects()[idx];
-                        if (targetObj) toggleObjectLock(targetObj);
-                    });
-                }
-                const editBtn = item.querySelector('[data-action="edit"]');
-                if (editBtn) {
-                    editBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openLayerEditModal(obj);
-                    });
-                }
-
-                const deleteBtn = item.querySelector('[data-action="delete"]');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteObjectByIndex(index);
-                    });
-                }
-
-                list.appendChild(item);
-            });
-        }
-
-        function openLayerEditModal(obj) {
-            layerEditTarget = obj;
-            const modal = document.getElementById('layerEditModal');
-            const input = document.getElementById('layerEditInput');
-            if (!modal || !input) return;
-            const currentName = obj.type === 'i-text' ? (obj.text || '') : (obj.__layerName || '');
-            input.value = currentName;
-            modal.classList.add('active');
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    if (input && document.body.contains(input)) {
-                        input.focus();
-                        input.setSelectionRange(0, input.value.length);
-                    }
-                }, 100);
-            });
-        }
-        function closeLayerEditModal() {
-            const modal = document.getElementById('layerEditModal');
-            if (modal) modal.classList.remove('active');
-            layerEditTarget = null;
-        }
-        function saveLayerEdit() {
-            if (!layerEditTarget) return;
-        const isOnCanvas = canvas.getObjects().includes(layerEditTarget);
-        if (!isOnCanvas) {
-            closeLayerEditModal();
-            return;
-        }
-            const input = document.getElementById('layerEditInput');
-            const newName = input.value.trim();
-            if (newName) {
-                if (layerEditTarget.type === 'i-text') {
-                    layerEditTarget.set('text', newName);
-                    canvas.renderAll();
-                }
-                layerEditTarget.__layerName = newName;
-            }
-            updateLayerList();
-            saveState();
-            closeLayerEditModal();
-        }
-
-        function deleteObjectByIndex(index) {
-        const obj = canvas.getObjects()[index];
-        if (obj) {
-            if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
-            if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
-            if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
-            canvas.remove(obj);
-            canvas.renderAll();
-            saveState();
-            updateLayerList();
-            updateMediaControls();
-            createMobileHandles();
-        }
-    }
-
-        function toggleObjectLock(obj) {
-            if (!obj || obj.isBackground || obj.isTexture) return;
-            if (obj._userLocked) {
-                delete obj._userLocked;
-                obj.set({ selectable: true, evented: true });
-            } else {
-                obj._userLocked = true;
-                obj.set({ selectable: false, evented: false });
-            }
-            if (canvas.getActiveObject() === obj) {
-                canvas.discardActiveObject();
-                selectedObject = null;
-                showNoSelection();
-            }
-            canvas.renderAll();
-            updateLayerList();
-            createMobileHandles();
-        }
-
-        function applyTemplateTexture(canvas) {
-            try {
-                const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
-                const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
-                if (!textureSvg) {
-                    console.log('No texture SVG found for this template');
-                    return;
-                }
-                console.log('Applying template texture to canvas...');
-                const oldSvg = document.getElementById('templateSvgBg');
-                if (oldSvg) oldSvg.remove();
-                const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
-                existing.forEach(o => canvas.remove(o));
-                const canvasEl = document.getElementById('designCanvas');
-                if (canvasEl) {
-                    canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
-                    canvasEl.style.backgroundRepeat = 'repeat';
-                    canvasEl.style.backgroundSize = 'auto';
-                    canvasEl.style.backgroundColor = 'transparent';
-                }
-                canvas.setBackgroundColor('transparent', function() {
-                    canvas.renderAll();
-                });
-                console.log('Template texture applied successfully');
-            } catch (err) {
-                console.error('Error applying template texture:', err);
-            }
-        }
-
-        function removeTemplateTexture(canvas) {
-            const canvasEl = document.getElementById('designCanvas');
-            if (canvasEl) {
-                canvasEl.style.backgroundImage = '';
-                canvasEl.style.backgroundRepeat = '';
-            }
-            const oldSvg = document.getElementById('templateSvgBg');
-            if (oldSvg) oldSvg.remove();
-            const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
-            existing.forEach(o => canvas.remove(o));
-            canvas.renderAll();
-            console.log('Template texture removed');
-        }
-
-        function resetDesign() {
-            if (confirm('Reset to template defaults? All changes will be lost.')) {
-                canvas.getObjects().forEach(obj => {
-                    if (obj.videoElement) { obj.videoElement.pause(); obj.videoElement.remove(); }
-                    if (obj.audioElement) { obj.audioElement.pause(); obj.audioElement.remove(); }
-                    if (obj._videoFrame) cancelAnimationFrame(obj._videoFrame);
-                });
-                canvas.clear();
-                canvas.backgroundColor = '#ffffff';
-                canvas.discardActiveObject();
-                selectedObject = null;
-                canvas.renderAll();
-                loadTemplateDesign().then(() => {
-                    applyTemplateTexture(canvas);
-                    saveState();
-                    updateLayerList();
-                    updateMediaControls();
-                    createMobileHandles();
-                    showNotification('Design reset to template defaults', 'success');
-                });
-            }
-        }
-
-        function setupTabs() {
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-                });
-            });
-        }
-
-        function handleKeyboard(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-            if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) return;
-            const activeObject = canvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text' && activeObject.isEditing) return;
-
-            if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'delete':
-                    case 'backspace':
-                        if (selectedObject && selectedObject.type !== 'i-text') deleteSelected();
-                        break;
-                }
-            }
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'z': e.preventDefault(); undo(); break;
-                    case 'y': e.preventDefault(); redo(); break;
-                    case 'd': e.preventDefault(); duplicateObject(); break;
-                    case 'a': e.preventDefault(); canvas.discardActiveObject(); const selectableObjects = canvas.getObjects().filter(obj => !obj.isBackground && !obj.isTexture && obj.selectable !== false); if (selectableObjects.length > 0) { const sel = new fabric.ActiveSelection(selectableObjects, { canvas: canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); } break;
-                }
-            }
-            if (selectedObject && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                if (selectedObject._userLocked || selectedObject._wasSelectable !== undefined) return;
-                e.preventDefault();
-                const step = e.shiftKey ? 10 : 1;
-                switch(e.key) {
-                    case 'ArrowUp': selectedObject.top -= step; break;
-                    case 'ArrowDown': selectedObject.top += step; break;
-                    case 'ArrowLeft': selectedObject.left -= step; break;
-                    case 'ArrowRight': selectedObject.left += step; break;
-                }
-                selectedObject.setCoords();
-                canvas.renderAll();
-                updateControls();
-            }
-        }
-
-        function checkForSavedProgress() {
-            const saved = localStorage.getItem('papirDesignAutosave');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    const age = Date.now() - data.timestamp;
-                    const hoursAgo = Math.floor(age / (1000 * 60 * 60));
-                    if (hoursAgo < 24) {
-                        document.getElementById('loadProgressBtn').style.display = 'block';
-                        showNotification(`Found design from ${hoursAgo} hours ago. Click Resume to continue.`, 'info');
-                    } else {
-                        localStorage.removeItem('papirDesignAutosave');
-                    }
-                } catch(e) {
-                    console.error('Error checking saved progress:', e);
-                }
-            }
-        }
-
-        function saveProgress() {
-            try {
-                const hasMedia = canvas.getObjects().some(obj => obj.isVideo || obj.isAudio);
-                const designData = {
-                    canvas: canvas.toJSON(['isVideo', 'videoBlobUrl', 'videoType', 'isAudio', 'audioBlobUrl', 'audioType', 'isTexture', 'isParticle']),
-                    templateConfig: templateConfig,
-                    backgroundColor: canvas.backgroundColor,
-                    timestamp: Date.now(),
-                    version: '1.0',
-                    hasMedia: hasMedia
-                };
-                localStorage.setItem('papirDesignAutosave', JSON.stringify(designData));
-                showNotification('Design saved! You can resume anytime within 24 hours.' + (hasMedia ? ' Note: Video/audio will need to be re-added after resume.' : ''), 'success');
-                const btn = document.getElementById('saveProgressBtn');
-                btn.innerHTML = '<i class="fas fa-check"></i> Saved';
-                setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Save'; }, 2000);
-            } catch (error) {
-                if (error && error.name === 'QuotaExceededError') {
-                    showNotification('Design too large to save locally. Try removing media or export instead.', 'error');
-                } else {
-                    console.error('Save error:', error);
-                    showNotification('Could not save design. Try exporting instead.', 'error');
-                }
-            }
-        }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('papirDesignAutosave');
-            if (!saved) { showNotification('No saved design found', 'error'); return; }
-            if (!confirm('Load your saved design? Current unsaved changes will be lost.')) return;
-            try {
-                const data = JSON.parse(saved);
-                canvas.discardActiveObject();
-                selectedObject = null;
-                canvas.loadFromJSON(data.canvas, () => { 
-                    canvas.getObjects().forEach(obj => { if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj); });
-                    applyTemplateTexture(canvas);
-                    canvas.renderAll(); 
-                    saveState(); 
-                    updateLayerList();
-                    updateMediaControls();
-                });
-                if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
-                if (data.templateConfig) {
-                    templateConfig = data.templateConfig;
-                    document.getElementById('templateName').textContent = templateConfig.name || 'Design';
-                    document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
-                }
-                if (data.hasMedia) {
-                    showNotification('Design loaded! Video/audio objects were saved but may need to be re-uploaded.', 'warning');
-                } else {
-                    showNotification('Design loaded! Continue where you left off.', 'success');
-                }
-                document.getElementById('loadProgressBtn').style.display = 'none';
-            } catch (error) {
-                console.error('Load error:', error);
-                showNotification('Could not load saved design', 'error');
-            }
-        }
-
-        function startAutoSave() {
-            setInterval(() => {
-                if (canvas.getObjects().length > 0) {
-                    try { saveProgress(); } catch (e) {}
-                }
-            }, 300000);
-        }
-
-        async function proceedToCheckout() {
-            const btn = document.getElementById('checkoutBtn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner"></span> Saving...';
-            btn.disabled = true;
-            try {
-                const BACKEND_URL = window.location.origin;
-                const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-                const templateConfigData = templateConfig ? JSON.stringify(templateConfig) : null;
-
-                // Helper to upload a file (Blob or File) via FormData and return the URL
-                async function uploadFile(file, fileName, cardId) {
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('fileName', fileName);
-                    formData.append('fileType', file.type || '');
-                    formData.append('cardId', cardId || 'TEMP-' + Date.now());
-                    const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!response.ok) {
-                        let errorMsg = `Upload failed (${response.status})`;
-                        try {
-                            const errData = await response.json();
-                            if (errData.error) errorMsg = errData.error;
-                            else if (errData.message) errorMsg = errData.message;
-                        } catch (e) {
-                            errorMsg = response.statusText || errorMsg;
-                        }
-                        throw new Error(errorMsg);
-                    }
-                    const data = await response.json();
-                    if (!data.success) throw new Error(data.error || 'Upload unsuccessful');
-                    if (!data.url) throw new Error('No URL returned from upload');
-                    return data.url;
-                }
-
-                // Helper to convert data URL to Blob
-                function dataURLToBlob(dataURL) {
-                    const parts = dataURL.split(',');
-                    const mime = parts[0].match(/:(.*?);/)[1];
-                    const b64 = parts[1];
-                    const byteString = atob(b64);
-                    const ab = new ArrayBuffer(byteString.length);
-                    const ia = new Uint8Array(ab);
-                    for (let i = 0; i < byteString.length; i++) {
-                        ia[i] = byteString.charCodeAt(i);
-                    }
-                    return new Blob([ab], { type: mime });
-                }
-
-                const videoObjects = canvas.getObjects().filter(obj => obj.isVideo && (obj.videoFile || obj.videoBlobUrl));
-                const hasVideo = videoObjects.length > 0;
-                let videoUrl = '';
-
-                if (hasVideo) {
-                    showNotification('Uploading video...', 'info');
-                    const video = videoObjects[0];
-                    let file = video.videoFile;
-                    let fileName = file ? file.name : 'video.mp4';
-                    if (!file && video.videoBlobUrl) {
-                        const response = await fetch(video.videoBlobUrl);
-                        const blob = await response.blob();
-                        file = new File([blob], fileName, { type: video.videoType || 'video/mp4' });
-                    }
-                    const cardId = 'TEMP-' + Date.now();
-                    videoUrl = await uploadFile(file, fileName, cardId);
-                }
-
-                let audioUrl = '';
-                const audioObjects = canvas.getObjects().filter(obj => obj.isAudio && (obj.audioFile || obj.audioBlobUrl));
-                if (audioObjects.length > 0) {
-                    showNotification('Uploading audio...', 'info');
-                    const audio = audioObjects[0];
-                    let file = audio.audioFile;
-                    let fileName = file ? file.name : 'audio.mp3';
-                    if (!file && audio.audioBlobUrl) {
-                        const response = await fetch(audio.audioBlobUrl);
-                        const blob = await response.blob();
-                        file = new File([blob], fileName, { type: audio.audioType || 'audio/mpeg' });
-                    }
-                    const cardId = 'TEMP-' + Date.now();
-                    audioUrl = await uploadFile(file, fileName, cardId);
-                }
-
-                let overlayUrl = '';
-                let thumbnailUrl = '';
-
-                if (hasVideo) {
-                    // Upload overlay (canvas without video)
-                    const originalBg = canvas.backgroundColor;
-                    videoObjects.forEach(v => canvas.remove(v));
-                    canvas.backgroundColor = 'transparent';
-                    canvas.renderAll();
-                    await new Promise(r => setTimeout(r, 100));
-                    const overlayDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const overlayBlob = dataURLToBlob(overlayDataURL);
-                    canvas.backgroundColor = originalBg;
-                    videoObjects.forEach(v => canvas.add(v));
-                    canvas.renderAll();
-                    videoObjects.forEach(v => canvas.sendToBack(v));
-                    canvas.renderAll();
-
-                    const cardId = 'TEMP-' + Date.now();
-                    overlayUrl = await uploadFile(overlayBlob, 'overlay.png', cardId);
-
-                    // Upload thumbnail (full canvas with video)
-                    await new Promise(r => setTimeout(r, 100));
-                    const thumbDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const thumbBlob = dataURLToBlob(thumbDataURL);
-                    thumbnailUrl = await uploadFile(thumbBlob, 'thumbnail.png', cardId);
-                } else {
-                    // No video – upload the design image
-                    await new Promise(r => setTimeout(r, 100));
-                    const canvasDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-                    const canvasBlob = dataURLToBlob(canvasDataURL);
-                    const cardId = 'TEMP-' + Date.now();
-                    thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
-                }
-
-                const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
-                const messageText = textObjects.map(t => t.text).join(' ') || (templateConfig?.name || 'Custom designed card');
-                let mediaType = 'image';
-                if (hasVideo) mediaType = 'video';
-                else if (audioUrl) mediaType = 'audio';
-
-                if (qty === 1) {
-                    const cardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            card_id: cardId, message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
-                            has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard',
-                            template_config: templateConfigData
-                        })
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'Failed to create card');
-                    localStorage.setItem('pendingCardId', cardId);
-                    localStorage.setItem('pendingBatchId', '');
-                    localStorage.setItem('pendingQty', '1');
-                    window.location.href = `checkout.html?card_id=${encodeURIComponent(cardId)}&qty=1`;
-                } else {
-                    const batchId = 'BATCH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-                    const templateCardId = 'CARD' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                    const totalAmount = (qty * 2.99).toFixed(2);
-                    const batchRes = await fetch(`${BACKEND_URL}/api/batches`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            batch_id: batchId, batch_name: `Batch ${new Date().toLocaleDateString()}`,
-                            total_cards_purchased: qty, cards_created: 0, max_cards_allowed: qty,
-                            status: 'pending_payment', unit_price: 2.99, total_amount: parseFloat(totalAmount),
-                            template_card_id: templateCardId
-                        })
-                    });
-                    if (!batchRes.ok) {
-                        const err = await batchRes.json().catch(() => ({}));
-                        throw new Error(err.error || 'Failed to create batch record');
-                    }
-                    const response = await fetch(`${BACKEND_URL}/api/cards`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            card_id: templateCardId, batch_id: batchId, batch_order: 1,
-                            message_type: mediaType, message_text: messageText,
-                            media_url: thumbnailUrl, overlay_url: overlayUrl, video_url: videoUrl, audio_url: audioUrl,
-                            has_video_overlay: hasVideo, has_audio_overlay: !!audioUrl,
-                            status: 'draft', card_type: 'ecard', is_batch_template: true, quantity: qty,
-                            template_config: templateConfigData
-                        })
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'Failed to create template card');
-                    localStorage.setItem('pendingCardId', '');
-                    localStorage.setItem('pendingBatchId', batchId);
-                    localStorage.setItem('pendingQty', qty.toString());
-                    window.location.href = `checkout.html?batch_id=${encodeURIComponent(batchId)}&qty=${qty}&mode=batch`;
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Upload failed: ' + error.message);
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        }
-
-        function togglePreview() {
-            isPreviewMode = !isPreviewMode;
-            const btn = document.getElementById('previewBtn');
-            const app = document.querySelector('.app-container');
-            if (isPreviewMode) {
-                app.classList.add('preview-mode');
-                btn.classList.add('active');
-                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Exit';
-                canvas.discardActiveObject();
-                selectedObject = null;
-                showNoSelection();
-                clearMobileHandles();
-                canvas.renderAll();
-                showNotification('Preview mode - tap canvas to exit', 'info');
-            } else {
-                app.classList.remove('preview-mode');
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
-                if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                    setTimeout(createMobileHandles, 100);
-                }
-            }
-        }
-
-        function exitTextEditing() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'i-text' && active.isEditing) {
-                active.exitEditing();
-                document.getElementById('doneBtn').classList.add('hidden');
-                canvas.renderAll();
-                setTimeout(createMobileHandles, 100);
-            }
-        }
-
-        function getRotateHandlePosition(obj) {
-            const canvasEl = document.getElementById('designCanvas');
-            const canvasRect = canvasEl.getBoundingClientRect();
-            const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
-            const scaleX = canvasRect.width / canvas.width;
-            const scaleY = canvasRect.height / canvas.height;
-            const offsetX = canvasRect.left - containerRect.left;
-            const offsetY = canvasRect.top - containerRect.top;
-            const bounds = obj.getBoundingRect(true, true);
-            let x = offsetX + (bounds.left + bounds.width) * scaleX + 15;
-            let y = offsetY + bounds.top * scaleY - 15;
-            x = Math.max(4, Math.min(x, containerRect.width - 24));
-            y = Math.max(4, Math.min(y, containerRect.height - 24));
-            return { left: x, top: y };
-        }
-
-        function getHandlePosition(obj) {
-            const canvasEl = document.getElementById('designCanvas');
-            const canvasRect = canvasEl.getBoundingClientRect();
-            const containerRect = document.getElementById('canvasContainer').getBoundingClientRect();
-            const scaleX = canvasRect.width / canvas.width;
-            const scaleY = canvasRect.height / canvas.height;
-            const offsetX = canvasRect.left - containerRect.left;
-            const offsetY = canvasRect.top - containerRect.top;
-            const bounds = obj.getBoundingRect(true, true);
-            let x = offsetX + bounds.left * scaleX - 18;
-            let y = offsetY + bounds.top * scaleY;
-            x = Math.max(4, Math.min(x, containerRect.width - 28));
-            y = Math.max(4, Math.min(y, containerRect.height - 28));
-            return { left: x, top: y };
-        }
-
-        function createMobileHandles() {
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isMobileLayout() && !isTouch) return;
-            if (!showHandles || isPreviewMode) { clearMobileHandles(); return; }
-            clearMobileHandles();
-            const container = document.getElementById('canvasContainer');
-            if (!container) return;
-            let handleContainer = document.getElementById('mobileHandleContainer');
-            if (!handleContainer) {
-                handleContainer = document.createElement('div');
-                handleContainer.id = 'mobileHandleContainer';
-                handleContainer.className = 'mobile-handle-container';
-                container.appendChild(handleContainer);
-            }
-            let handleNum = 1;
-            canvas.getObjects().forEach((obj) => {
-                if (obj.isBackground || obj.isTexture) return;
-                if (obj._userLocked) return;
-                if (!obj.__handleId) obj.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
-                const hid = obj.__handleId;
-                const handle = document.createElement('div');
-                handle.className = 'mobile-object-handle';
-                handle.dataset.handleId = hid;
-                handle.textContent = handleNum++;
-                const pos = getHandlePosition(obj);
-                handle.style.left = pos.left + 'px';
-                handle.style.top = pos.top + 'px';
-                const rotHandle = document.createElement('div');
-                rotHandle.className = 'mobile-rotate-handle';
-                rotHandle.dataset.handleId = hid;
-                rotHandle.innerHTML = '<i class="fas fa-sync-alt" style="font-size:7px;"></i>';
-                const rotPos = getRotateHandlePosition(obj);
-                rotHandle.style.left = rotPos.left + 'px';
-                rotHandle.style.top = rotPos.top + 'px';
-                let rotStartAngle = 0;
-                let rotStartObjAngle = 0;
-                rotHandle.addEventListener('touchstart', function(e) {
-                    e.preventDefault(); e.stopPropagation();
                     if (!obj.selectable) obj.set({ selectable: true, evented: true });
-                    const touch = e.touches[0];
-                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
-                    rotStartAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
-                    rotStartObjAngle = obj.angle || 0;
-                    handleDragState = { obj: obj, type: 'rotate' };
-                }, { passive: false });
-                rotHandle.addEventListener('touchmove', function(e) {
-                    if (!handleDragState || handleDragState.obj !== obj || handleDragState.type !== 'rotate') return;
-                    e.preventDefault(); e.stopPropagation();
-                    const touch = e.touches[0];
-                    const pointer = canvas.getPointer({ clientX: touch.clientX, clientY: touch.clientY });
-                    const currentAngle = Math.atan2(pointer.y - obj.top, pointer.x - obj.left) * 180 / Math.PI;
-                    let newAngle = rotStartObjAngle + (currentAngle - rotStartAngle);
-                    const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315];
-                    const snapThreshold = 6;
-                    let isSnapped = false;
-                    let normalized = ((newAngle % 360) + 360) % 360;
-                    for (const snap of snapAngles) {
-                        const diff = Math.abs(normalized - snap);
-                        const wrapDiff = Math.min(diff, 360 - diff);
-                        if (wrapDiff < snapThreshold) { newAngle = newAngle - normalized + snap; isSnapped = true; break; }
-                    }
-                    if (isSnapped) {
-                        rotHandle.style.background = '#fff';
-                        rotHandle.style.color = '#ff8c00';
-                        rotHandle.style.borderColor = '#ff8c00';
-                    } else {
-                        rotHandle.style.background = 'rgba(255, 165, 0, 0.95)';
-                        rotHandle.style.color = '#fff';
-                        rotHandle.style.borderColor = '#fff';
-                    }
-                    obj.set('angle', newAngle);
-                    canvas.renderAll();
-                    updateMobileHandlePositions();
-                    updateControls();
-                }, { passive: false });
-                rotHandle.addEventListener('touchend', function(e) {
-                    if (handleDragState && handleDragState.obj === obj && handleDragState.type === 'rotate') saveState();
-                    handleDragState = null;
-                    rotHandle.style.background = 'rgba(255, 165, 0, 0.95)';
-                    rotHandle.style.color = '#fff';
-                    rotHandle.style.borderColor = '#fff';
-                });
-                handleContainer.appendChild(rotHandle);
-                mobileHandles.push(rotHandle);
-                let lastTapTime = 0;
-                handle.addEventListener('touchstart', function(e) {
-                    e.preventDefault(); e.stopPropagation();
-                    if (obj._userLocked || obj._wasSelectable !== undefined) return;
-                    const touch = e.touches[0];
                     canvas.setActiveObject(obj);
                     selectedObject = obj;
                     updateControls();
@@ -5294,13 +2634,14 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
 
             canvas.getObjects().forEach(obj => {
+                if (obj._userLocked) return;
+                if (obj._userUnlocked) return;
                 if (lock) {
                     if (obj.type === 'i-text' && obj.isEditing) return;
                     obj._wasSelectable = obj.selectable;
                     obj._wasEvented = obj.evented;
                     obj.set({ selectable: false, evented: false });
                 } else {
-                    delete obj._userLocked;
                     if (obj._wasSelectable !== undefined) {
                         obj.set({ selectable: obj._wasSelectable, evented: obj._wasEvented });
                         delete obj._wasSelectable;
@@ -5366,6 +2707,26 @@
                 designCanvas.style.margin = '0 auto';
                 designCanvas.style.boxShadow = 'none';
             }
+        }
+
+        function syncUIState() {
+            document.querySelectorAll('.property-section').forEach(section => {
+                const content = section.querySelector('.section-content');
+                if (!content) return;
+                if (isMobileLayout()) {
+                    content.style.display = section.classList.contains('collapsed') ? 'none' : 'block';
+                } else {
+                    content.style.display = '';
+                    section.classList.remove('collapsed');
+                }
+            });
+            document.querySelectorAll('.mobile-accordion-header').forEach(header => {
+                const isActive = header.classList.contains('active');
+                const chevron = header.querySelector('.accordion-chevron');
+                if (chevron) chevron.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+                const targetContent = document.getElementById(header.dataset.target);
+                if (targetContent) targetContent.style.display = isActive ? 'block' : 'none';
+            });
         }
 
         function handleResize() {
@@ -5445,7 +2806,7 @@
                 if (lockToggleEl && isMobile) {
                     lockToggleEl.classList.remove('unlocked');
                     lockToggleEl.classList.add('locked');
-                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
+                    lockToggleEl.innerHTML = '<span><i class="fas fa-lock"></i> Objects Locked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to unlock</span>';
                 }
             } else if (!isTouch) {
                 lockMobileObjects(false);
@@ -5455,6 +2816,7 @@
             if (isTouch && !isEditing && showHandles) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
+            syncUIState();
         }
 
         function setupMobileUI() {
@@ -5617,13 +2979,13 @@
                         lockMobileObjects(false);
                         this.classList.remove('locked');
                         this.classList.add('unlocked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         if (showHandles) setTimeout(createMobileHandles, 100);
                     } else {
                         lockMobileObjects(true);
                         this.classList.remove('unlocked');
                         this.classList.add('locked');
-                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                        this.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
                         clearMobileHandles();
                     }
                 });
@@ -5794,20 +3156,12 @@
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
             if (!hint) return;
-            const btn = document.getElementById('addLayerBtn');
-            if (!btn) return;
-            const rect = btn.getBoundingClientRect();
-            hint.style.left = (rect.left + rect.width/2 - 80) + 'px';
-            hint.style.top = (rect.bottom + 10) + 'px';
-            hint.style.display = 'block';
-            setTimeout(() => { hint.style.display = 'none'; }, 4000);
+            hint.style.display = 'none';
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
-            const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape && window.innerHeight < 600) return;
             const canvasEl = document.getElementById('designCanvas');
             const container = document.getElementById('canvasContainer');
             if (!canvasEl || !container) return;
@@ -5871,7 +3225,7 @@
             if (lockToggleEl && isMobileLayout()) {
                 lockToggleEl.classList.remove('locked');
                 lockToggleEl.classList.add('unlocked');
-                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Lock all objects</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
+                lockToggleEl.innerHTML = '<span><i class="fas fa-lock-open"></i> Objects Unlocked</span><span style="font-size: 0.75rem; opacity: 0.8;">Tap to lock</span>';
             }
             setupEventListeners();
             setupMobileContextMenu();
@@ -5910,6 +3264,7 @@
                     if (content) content.style.display = 'none';
                 });
             }
+            syncUIState();
         }
 
         document.body.addEventListener('touchmove', function(e) {
