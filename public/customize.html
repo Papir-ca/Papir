@@ -191,33 +191,34 @@
             .desktop-lock-btn { display: none !important; }
         }
 
-        /* ===== TABLET / iPAD LANDSCAPE – SCROLLABLE PANEL ===== */
+        /* ===== TABLET / iPAD LANDSCAPE – FIXED SCROLL ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            .canvas-area { position: relative !important; order: auto !important; flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
+            /* Canvas area: takes remaining space */
+            .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
 
-            /* Properties panel: scrollable, keeps canvas in view */
+            /* Properties panel: fixed width, full height, scrollable */
             .properties-panel {
                 width: 320px !important;
-                order: auto !important;
-                padding: 15px !important;
-                margin: 0 !important;
-                flex: none !important;
-                height: 100% !important;
-                min-height: 0 !important;
+                flex: none !important;          /* don't grow/shrink */
+                height: 100% !important;         /* fill parent height */
                 max-height: 100% !important;
+                overflow-y: auto !important;     /* enable scroll */
+                padding: 15px !important;
+                padding-bottom: 20px !important;
+                margin: 0 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 position: relative;
                 z-index: auto;
-                overflow-y: auto !important;
-                padding-bottom: 20px !important;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
             }
             /* Ensure checkout stays at bottom */
             .properties-panel .checkout-section {
@@ -698,7 +699,6 @@
         const sectionState = {};
         let expandedSections = [];
 
-        // ** FIX: use pointer: coarse to detect touch devices, independent of screen size **
         const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
         function isMobileLayout() {
@@ -1698,7 +1698,7 @@
         }
 
         // ================================================================
-        //  MOBILE HANDLES – PERSISTENT (now uses isTouchDevice)
+        //  MOBILE HANDLES – PERSISTENT
         // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -1738,7 +1738,6 @@
         }
 
         function createMobileHandles() {
-            // Use isTouchDevice instead of isMobileLayout() for handle visibility
             if (!isTouchDevice) {
                 clearMobileHandles();
                 return;
@@ -1781,7 +1780,7 @@
                 rotHandle.style.left = rotPos.left + 'px';
                 rotHandle.style.top = rotPos.top + 'px';
 
-                // Rotate touch logic (unchanged)
+                // Rotate touch logic
                 let rotStartAngle = 0, rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -2308,7 +2307,7 @@
                     applyMobileSpacingFix();
                     handleResize();
                     if (!isPreviewMode && showHandles && isTouchDevice) {
-                        setTimeout(createMobileHandles, 250);
+                        setTimeout(createMobileHandles, 300); // longer delay to ensure layout settles
                     }
                 }, 300);
             });
@@ -2406,8 +2405,11 @@
 
             // ===== THE FIX: ALWAYS RECREATE HANDLES ON ANY TOUCH DEVICE =====
             if (isTouchDevice && !isEditing && showHandles) {
-                // Always recreate – this ensures they appear on tablet landscape too
-                createMobileHandles();
+                // Use a small delay to let the DOM settle after resize/orientation
+                clearTimeout(window._handleTimeout);
+                window._handleTimeout = setTimeout(() => {
+                    createMobileHandles();
+                }, 250);
             } else {
                 // Only clear if explicitly hidden or preview
                 if (!showHandles || isPreviewMode) {
@@ -3033,7 +3035,8 @@
         // ================================================================
         window.addEventListener('resize', function() {
             if (!isPreviewMode && showHandles && isTouchDevice) {
-                setTimeout(createMobileHandles, 100);
+                clearTimeout(window._handleTimeout);
+                window._handleTimeout = setTimeout(createMobileHandles, 250);
             }
         });
 
