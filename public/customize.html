@@ -695,6 +695,8 @@
 
         // Store collapsed state for property sections
         const sectionState = {};
+        // Track expanded property sections (max 2)
+        let expandedSections = [];
 
         // ============================================================
         //  HELPERS
@@ -2232,7 +2234,7 @@
         }
 
         // ============================================================
-        //  MOBILE UI / ACCORDION (with state persistence)
+        //  MOBILE UI / ACCORDION (with max 2 expanded sections)
         // ============================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
@@ -2285,7 +2287,7 @@
         }
 
         function setupMobileUI() {
-            // Property sections: wrap content, add arrow toggle with state
+            // Property sections: wrap content, add arrow toggle with max-2-expanded logic
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2302,16 +2304,15 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                 }
 
-                // Restore state from storage, default to collapsed on mobile if not set
+                // Default: collapsed on mobile/tablet
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
-                if (sectionState[sectionId] === undefined) {
-                    sectionState[sectionId] = isMobileLayout(); // true = collapsed on mobile by default
-                }
-                if (sectionState[sectionId]) {
+                if (isMobileLayout()) {
                     section.classList.add('collapsed');
+                    sectionState[sectionId] = true; // collapsed
                 } else {
                     section.classList.remove('collapsed');
+                    sectionState[sectionId] = false;
                 }
 
                 let touchStartX = 0,
@@ -2336,20 +2337,40 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
+                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
-                    const parent = section.parentElement;
-                    if (parent) {
-                        const siblings = Array.from(parent.children).filter(c => c.classList.contains(
-                            'property-section') && c !== section);
-                        siblings.forEach(other => other.classList.add('collapsed'));
-                    }
-                    const isCollapsed = section.classList.contains('collapsed');
-                    section.classList.toggle('collapsed');
-                    // Update state
+
+                    const isCurrentlyCollapsed = section.classList.contains('collapsed');
                     const id = section.dataset.sectionId;
-                    sectionState[id] = section.classList.contains('collapsed');
+
+                    if (isCurrentlyCollapsed) {
+                        // Expanding: check if we already have 2 expanded
+                        if (expandedSections.length >= 2) {
+                            // Collapse the oldest (first in array)
+                            const oldest = expandedSections.shift();
+                            const oldSection = document.querySelector('.property-section[data-section-id="' + oldest +
+                                '"]');
+                            if (oldSection) {
+                                oldSection.classList.add('collapsed');
+                                sectionState[oldest] = true;
+                            }
+                        }
+                        // Expand this one
+                        section.classList.remove('collapsed');
+                        sectionState[id] = false;
+                        // Add to expanded list (if not already there)
+                        if (!expandedSections.includes(id)) {
+                            expandedSections.push(id);
+                        }
+                    } else {
+                        // Collapsing: remove from expanded list and collapse
+                        section.classList.add('collapsed');
+                        sectionState[id] = true;
+                        const idx = expandedSections.indexOf(id);
+                        if (idx !== -1) expandedSections.splice(idx, 1);
+                    }
                 }
 
                 h4.addEventListener('touchend', function(e) {
@@ -2365,7 +2386,7 @@
                 });
             });
 
-            // Mobile accordion for tabs (Design / Layers) — keep state? Not needed, but we'll avoid auto‑collapse on resize.
+            // Mobile accordion for tabs (Design / Layers) – only one tab expanded at a time
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2477,6 +2498,10 @@
                 setTimeout(() => {
                     applyMobileSpacingFix();
                     handleResize();
+                    // Recreate handles after orientation change – ensure they appear
+                    if (!isPreviewMode && showHandles) {
+                        setTimeout(createMobileHandles, 250);
+                    }
                 }, 300);
             });
             handleResize();
@@ -2496,8 +2521,7 @@
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document
                 .activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
-            // Do NOT reset accordion or section collapsed states on resize — preserve user choice.
-            // Only adjust layout visibility.
+            // Adjust layout visibility
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2517,7 +2541,11 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
-                // Do not remove collapsed class — user state preserved.
+                // On desktop, ensure all sections are expanded (ignore mobile state)
+                document.querySelectorAll('.property-section').forEach(s => {
+                    s.classList.remove('collapsed');
+                });
+                expandedSections = [];
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2535,7 +2563,7 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
-                // Do not collapse headers on resize — only when user clicks.
+                // Do not reset collapsed state on resize – preserve user choice.
             }
 
             if (htmlFocused) return;
@@ -2552,7 +2580,7 @@
                 }
             }
 
-            // Lock/unlock only based on touch and mobile, but do NOT clear handles unnecessarily.
+            // Lock/unlock based on touch/mobile
             if (isTouch && isMobile && !isEditing) {
                 lockMobileObjects(true);
                 const lockToggleEl = document.getElementById('mobileLockToggle');
@@ -2573,7 +2601,7 @@
                 }
             }
 
-            // Always recreate handles on mobile/touch if not preview and showHandles true.
+            // Recreate handles if on mobile/touch and not preview
             if (isTouch && !isEditing && showHandles && isMobile) {
                 setTimeout(() => { createMobileHandles(); }, 150);
             }
@@ -3262,12 +3290,12 @@
                 upperCanvas.style.width = containerWidth + 'px';
                 upperCanvas.style.height = newHeight + 'px';
             }
-            // Do NOT clear handles here; they will be recreated by handleResize if needed.
+            // Do NOT clear handles; they will be recreated if needed via handleResize.
         }
 
         function handleMobileResize() {
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                // Handles will be recreated in handleResize called from resize event.
+                // Handles recreated in handleResize if needed.
             }
         }
 
@@ -3340,9 +3368,21 @@
             console.log('init() completed successfully');
             adjustCanvasForMobile();
             updateMediaControls();
+            // On mobile, ensure all property sections are collapsed (default)
             if (isMobileLayout()) {
+                document.querySelectorAll('.property-section').forEach(s => {
+                    s.classList.add('collapsed');
+                    const id = s.dataset.sectionId;
+                    if (id) sectionState[id] = true;
+                });
+                expandedSections = [];
+                // Also ensure no accordion header is active initially
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
-                    // Do not auto-collapse on init; let user state from earlier persist.
+                    h.classList.remove('active');
+                    const c = h.querySelector('.accordion-chevron');
+                    if (c) c.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(h.dataset.target);
+                    if (content) content.style.display = 'none';
                 });
             }
         }
