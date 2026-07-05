@@ -192,15 +192,15 @@
 
         /* ===== TABLET / iPad LANDSCAPE ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
-            .app-container { height: 100vh; padding: 10px; overflow: hidden !important; }
-            .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; overflow: hidden !important; }
-            .canvas-area { position: relative !important; order: auto !important; flex: 1 !important; height: 100% !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: hidden !important; }
+            .app-container { height: 100vh; padding: 10px; }
+            .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
+            .canvas-area { position: relative !important; order: auto !important; flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
-            .properties-panel { width: 320px !important; order: auto !important; padding: 15px !important; padding-bottom: 160px !important; margin: 0 !important; flex: none !important; height: 100% !important; min-height: auto !important; display: flex !important; flex-direction: column !important; position: relative; z-index: auto; overflow-y: auto !important; }
+            .properties-panel { width: 320px !important; order: auto !important; padding: 15px !important; margin: 0 !important; flex: none !important; height: auto !important; min-height: auto !important; display: flex !important; flex-direction: column !important; position: relative; z-index: auto; }
             .properties-panel .tabs { display: flex !important; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
             .properties-panel .tab-content { padding: 0; max-height: none; overflow-y: auto; overflow-x: visible; display: none; }
             .properties-panel .tab-content.active { display: block; }
@@ -231,8 +231,8 @@
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100% !important; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
             #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
             .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
@@ -307,8 +307,8 @@
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #1a1a2e; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100% !important; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; }
+            .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100%; height: auto; aspect-ratio: 600 / 450; }
             #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
             .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
@@ -670,6 +670,7 @@
             if (e.target && !e.target.isBackground && !e.target.isTexture) {
                 ensureObjectControls(e.target);
                 if (!e.target.__handleId) e.target.__handleId = 'h_' + Math.random().toString(36).substr(2, 9);
+                // Rebuild handles to include new object
                 if (showHandles && !isPreviewMode) createMobileHandles();
             }
         });
@@ -698,7 +699,9 @@
         let touchStartTarget = null;
         let lastTouchHadMovement = false;
 
+        // Store collapsed state for property sections
         const sectionState = {};
+        // Track expanded property sections (max 2)
         let expandedSections = [];
 
         // ============================================================
@@ -902,7 +905,6 @@
             canvas.getObjects().forEach(obj => {
                 if (!obj.isBackground && !obj.isTexture) ensureObjectControls(obj);
             });
-            updateLayerList();
             updateMediaControls();
             if (showHandles && !isPreviewMode) createMobileHandles();
         }
@@ -1894,13 +1896,10 @@
             mobileHandles = [];
         }
 
-        function handlesAreValid() {
-            return mobileHandles.length > 0 && mobileHandles.every(h => h && document.body.contains(h));
-        }
-
         function createMobileHandles() {
+            // Only for touch devices or mobile layout
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isTouch) {
+            if (!isMobileLayout() && !isTouch) {
                 clearMobileHandles();
                 return;
             }
@@ -1908,6 +1907,7 @@
                 clearMobileHandles();
                 return;
             }
+            // Clear and rebuild
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2059,6 +2059,7 @@
                     if (handleDragState && handleDragState.obj === obj && handleDragState.moved)
                         saveState();
                     handleDragState = null;
+                    // Don't recreate here; positions will update on next render
                 });
                 handleContainer.appendChild(handle);
                 mobileHandles.push(handle);
@@ -2068,8 +2069,9 @@
 
         function updateMobileHandlePositions() {
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isTouch) return;
+            if (!isMobileLayout() && !isTouch) return;
             if (!showHandles || isPreviewMode) return;
+            // Update positions of existing handles
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
                 const hid = obj.__handleId;
@@ -2129,8 +2131,7 @@
         }
 
         function setupMobileContextMenu() {
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isTouch) return;
+            if (!isMobileLayout()) return;
             const canvasEl = document.getElementById('designCanvas');
             if (!canvasEl) return;
             const menu = document.getElementById('mobileContextMenu');
@@ -2315,6 +2316,7 @@
         }
 
         function setupMobileUI() {
+            // Property sections: wrap content, add arrow toggle with max-2-expanded logic
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2331,11 +2333,12 @@
                     if (wrapper.children.length > 0) section.appendChild(wrapper);
                 }
 
+                // Default: collapsed on mobile/tablet
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
                 if (isMobileLayout()) {
                     section.classList.add('collapsed');
-                    sectionState[sectionId] = true;
+                    sectionState[sectionId] = true; // collapsed
                 } else {
                     section.classList.remove('collapsed');
                     sectionState[sectionId] = false;
@@ -2363,6 +2366,7 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
+                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
@@ -2371,7 +2375,9 @@
                     const id = section.dataset.sectionId;
 
                     if (isCurrentlyCollapsed) {
+                        // Expanding: check if we already have 2 expanded
                         if (expandedSections.length >= 2) {
+                            // Collapse the oldest (first in array)
                             const oldest = expandedSections.shift();
                             const oldSection = document.querySelector('.property-section[data-section-id="' + oldest +
                                 '"]');
@@ -2380,12 +2386,15 @@
                                 sectionState[oldest] = true;
                             }
                         }
+                        // Expand this one
                         section.classList.remove('collapsed');
                         sectionState[id] = false;
+                        // Add to expanded list (if not already there)
                         if (!expandedSections.includes(id)) {
                             expandedSections.push(id);
                         }
                     } else {
+                        // Collapsing: remove from expanded list and collapse
                         section.classList.add('collapsed');
                         sectionState[id] = true;
                         const idx = expandedSections.indexOf(id);
@@ -2406,6 +2415,7 @@
                 });
             });
 
+            // Mobile accordion for tabs (Design / Layers) – only one tab expanded at a time
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2489,6 +2499,7 @@
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
+            // Mobile lock toggle
             const lockToggle = document.getElementById('mobileLockToggle');
             if (lockToggle) {
                 lockToggle.addEventListener('click', function() {
@@ -2516,6 +2527,10 @@
                 setTimeout(() => {
                     applyMobileSpacingFix();
                     handleResize();
+                    // Recreate handles after orientation change – ensure they appear
+                    if (!isPreviewMode && showHandles) {
+                        setTimeout(createMobileHandles, 250);
+                    }
                 }, 300);
             });
             handleResize();
@@ -2535,6 +2550,7 @@
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document
                 .activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
+            // Adjust layout visibility
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2554,6 +2570,7 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
+                // On desktop, ensure all sections are expanded (ignore mobile state)
                 document.querySelectorAll('.property-section').forEach(s => {
                     s.classList.remove('collapsed');
                 });
@@ -2575,7 +2592,10 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
+                // Do not reset collapsed state on resize – preserve user choice.
             }
+
+            if (htmlFocused) return;
 
             const desktopLockBtn = document.getElementById('desktopLockBtn');
             if (desktopLockBtn) {
@@ -2589,34 +2609,32 @@
                 }
             }
 
-            if (!htmlFocused) {
-                if (isTouch && isMobile && !isEditing) {
-                    lockMobileObjects(true);
-                    const lockToggleEl = document.getElementById('mobileLockToggle');
-                    if (lockToggleEl) {
-                        lockToggleEl.classList.remove('unlocked');
-                        lockToggleEl.classList.add('locked');
-                        lockToggleEl.innerHTML =
-                            '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size:0.75rem;opacity:0.8;">Tap to unlock</span>';
-                    }
-                } else {
-                    lockMobileObjects(false);
-                    const lockToggleEl = document.getElementById('mobileLockToggle');
-                    if (lockToggleEl && isMobile) {
-                        lockToggleEl.classList.remove('locked');
-                        lockToggleEl.classList.add('unlocked');
-                        lockToggleEl.innerHTML =
-                            '<span><i class="fas fa-lock-open"></i> Unlock all objects</span><span style="font-size:0.75rem;opacity:0.8;">Tap to lock</span>';
-                    }
+            // Lock/unlock based on touch/mobile
+            if (isTouch && isMobile && !isEditing) {
+                lockMobileObjects(true);
+                const lockToggleEl = document.getElementById('mobileLockToggle');
+                if (lockToggleEl) {
+                    lockToggleEl.classList.remove('unlocked');
+                    lockToggleEl.classList.add('locked');
+                    lockToggleEl.innerHTML =
+                        '<span><i class="fas fa-lock"></i> Unlock all objects</span><span style="font-size:0.75rem;opacity:0.8;">Tap to unlock</span>';
+                }
+            } else {
+                lockMobileObjects(false);
+                const lockToggleEl = document.getElementById('mobileLockToggle');
+                if (lockToggleEl && isMobile) {
+                    lockToggleEl.classList.remove('locked');
+                    lockToggleEl.classList.add('unlocked');
+                    lockToggleEl.innerHTML =
+                        '<span><i class="fas fa-lock-open"></i> Unlock all objects</span><span style="font-size:0.75rem;opacity:0.8;">Tap to lock</span>';
                 }
             }
 
-            if (isTouch && showHandles && !isPreviewMode) {
-                if (mobileHandles.length === 0 || !handlesAreValid()) {
-                    if (!isEditing) {
-                        clearMobileHandles();
-                        createMobileHandles();
-                    }
+            // Update handle positions on resize, but do NOT clear or recreate (unless needed)
+            if (isTouch && !isEditing && showHandles && isMobile) {
+                // Only update positions; if handles missing, recreate
+                if (mobileHandles.length === 0) {
+                    createMobileHandles();
                 } else {
                     updateMobileHandlePositions();
                 }
@@ -2638,11 +2656,13 @@
             }
             updateLayerList();
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                // Update handle selection highlight
                 updateHandleSelection();
             }
         }
 
         function handleDeselection() {
+            // Only deselect if user tapped on empty canvas, not if scrolling
             if ((isScrolling || lastTouchHadMovement) && selectedObject && selectedObject.canvas === canvas) {
                 canvas.setActiveObject(selectedObject);
                 canvas.renderAll();
@@ -2735,6 +2755,13 @@
                 updateMobileHandlePositions(); });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
+                // Only create handles if they should be visible and not already present
+                if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) &&
+                    mobileHandles.length === 0) {
+                    const active = canvas.getActiveObject();
+                    const editing = active && active.type === 'i-text' && active.isEditing;
+                    if (!editing && !isPreviewMode) createMobileHandles();
+                }
             });
 
             if ('ontouchstart' in window) {
@@ -2848,6 +2875,7 @@
                 if (menu && menu.style.display === 'block') menu.style.display = 'none';
                 const backdrop = document.getElementById('ctxBackdrop');
                 if (backdrop) backdrop.style.display = 'none';
+                // Don't recreate handles here; they persist.
             });
 
             window.addEventListener('pageshow', function(e) {
@@ -2861,6 +2889,7 @@
                     if (saveBtn) {
                         saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
                     }
+                    // Recreate handles if needed
                     if (showHandles && !isPreviewMode) setTimeout(createMobileHandles, 200);
                 }
             });
@@ -3283,6 +3312,8 @@
         // ============================================================
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && window.innerHeight < 600) return;
             const canvasEl = document.getElementById('designCanvas');
             const container = document.getElementById('canvasContainer');
             if (!canvasEl || !container) return;
@@ -3301,6 +3332,7 @@
                 upperCanvas.style.width = containerWidth + 'px';
                 upperCanvas.style.height = newHeight + 'px';
             }
+            // Update handle positions after resize
             if (showHandles && !isPreviewMode) {
                 setTimeout(updateMobileHandlePositions, 50);
             }
@@ -3308,6 +3340,7 @@
 
         function handleMobileResize() {
             if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                // Handles recreated in handleResize if needed.
             }
         }
 
@@ -3353,6 +3386,7 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
+            // Create handles after everything is set up
             setTimeout(() => { if (!isPreviewMode && showHandles) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
@@ -3379,14 +3413,15 @@
             console.log('init() completed successfully');
             adjustCanvasForMobile();
             updateMediaControls();
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (isMobileLayout() || isTouch) {
+            // On mobile, ensure all property sections are collapsed (default)
+            if (isMobileLayout()) {
                 document.querySelectorAll('.property-section').forEach(s => {
                     s.classList.add('collapsed');
                     const id = s.dataset.sectionId;
                     if (id) sectionState[id] = true;
                 });
                 expandedSections = [];
+                // Also ensure no accordion header is active initially
                 document.querySelectorAll('.mobile-accordion-header').forEach(h => {
                     h.classList.remove('active');
                     const c = h.querySelector('.accordion-chevron');
