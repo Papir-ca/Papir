@@ -209,17 +209,17 @@
                 padding: 15px !important;
                 margin: 0 !important;
                 flex: none !important;
-                height: 100% !important;           /* fill parent height */
+                height: 100% !important;
                 min-height: 0 !important;
                 max-height: 100% !important;
                 display: flex !important;
                 flex-direction: column !important;
                 position: relative;
                 z-index: auto;
-                overflow-y: auto !important;        /* vertical scroll for entire panel */
-                padding-bottom: 20px !important;    /* space at bottom */
+                overflow-y: auto !important;
+                padding-bottom: 20px !important;
             }
-            /* Ensure the checkout section stays at bottom of the scroll */
+            /* Ensure checkout stays at bottom */
             .properties-panel .checkout-section {
                 margin-top: auto !important;
                 position: sticky;
@@ -332,7 +332,6 @@
         }
 
         @media (max-width: 768px) {
-            /* ... same as before, kept for completeness */
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
@@ -390,7 +389,7 @@
     </style>
 </head>
 <body>
-    <!-- ===== HTML Structure ===== -->
+    <!-- ===== HTML structure – unchanged ===== -->
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
@@ -698,6 +697,9 @@
 
         const sectionState = {};
         let expandedSections = [];
+
+        // ** FIX: use pointer: coarse to detect touch devices, independent of screen size **
+        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
         function isMobileLayout() {
             return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.innerHeight < 600);
@@ -1561,7 +1563,7 @@
             canvas.renderAll();
             saveState();
             updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+            if (isTouchDevice) {
                 setTimeout(() => {
                     text.enterEditing();
                     setTimeout(() => {
@@ -1679,7 +1681,7 @@
                 app.classList.remove('preview-mode');
                 btn.classList.remove('active');
                 btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
-                if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+                if (isTouchDevice) {
                     setTimeout(() => { if (showHandles && !isPreviewMode) createMobileHandles(); }, 100);
                 }
             }
@@ -1696,7 +1698,7 @@
         }
 
         // ================================================================
-        //  MOBILE HANDLES – PERSISTENT
+        //  MOBILE HANDLES – PERSISTENT (now uses isTouchDevice)
         // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -1736,8 +1738,8 @@
         }
 
         function createMobileHandles() {
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isMobileLayout() && !isTouch) {
+            // Use isTouchDevice instead of isMobileLayout() for handle visibility
+            if (!isTouchDevice) {
                 clearMobileHandles();
                 return;
             }
@@ -1779,7 +1781,7 @@
                 rotHandle.style.left = rotPos.left + 'px';
                 rotHandle.style.top = rotPos.top + 'px';
 
-                // Rotate touch logic
+                // Rotate touch logic (unchanged)
                 let rotStartAngle = 0, rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -1894,8 +1896,7 @@
         }
 
         function updateMobileHandlePositions() {
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
-            if (!isMobileLayout() && !isTouch) return;
+            if (!isTouchDevice) return;
             if (!showHandles || isPreviewMode) return;
             canvas.getObjects().forEach((obj) => {
                 if (obj.isBackground || obj.isTexture || !obj.__handleId) return;
@@ -1954,7 +1955,7 @@
         }
 
         function setupMobileContextMenu() {
-            if (!isMobileLayout()) return;
+            if (!isTouchDevice) return;
             const canvasEl = document.getElementById('designCanvas');
             if (!canvasEl) return;
             const menu = document.getElementById('mobileContextMenu');
@@ -1972,7 +1973,7 @@
             }
 
             canvasEl.addEventListener('touchstart', function(e) {
-                if (!window.matchMedia('(pointer: coarse)').matches && !isMobileLayout()) return;
+                if (!isTouchDevice) return;
                 if (menu.style.display === 'block') { hideMenu(); return; }
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
@@ -2306,7 +2307,7 @@
                 setTimeout(() => {
                     applyMobileSpacingFix();
                     handleResize();
-                    if (!isPreviewMode && showHandles) {
+                    if (!isPreviewMode && showHandles && isTouchDevice) {
                         setTimeout(createMobileHandles, 250);
                     }
                 }, 300);
@@ -2315,12 +2316,11 @@
         }
 
         // ================================================================
-        //  HANDLE RESIZE – ALWAYS RECREATE HANDLES
+        //  HANDLE RESIZE – ALWAYS RECREATE HANDLES ON TOUCH DEVICES
         // ================================================================
         function handleResize() {
             applyMobileSpacingFix();
             const isMobile = isMobileLayout();
-            const isTouch = window.matchMedia('(pointer: coarse)').matches;
             const tabs = document.querySelector('.tabs');
             const accordionContainer = document.getElementById('mobileAccordionContainer');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -2330,7 +2330,7 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
-            // Layout adjustments
+            // Layout adjustments (unchanged)
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2368,6 +2368,7 @@
                     });
                 }
                 if (tabs) tabs.style.display = 'none';
+                // Do NOT reset section collapsed state – preserve user choice
             }
 
             if (htmlFocused) return;
@@ -2384,7 +2385,8 @@
                 }
             }
 
-            if (isTouch && isMobile && !isEditing) {
+            // Lock/unlock logic (only on touch + mobile layout)
+            if (isTouchDevice && isMobile && !isEditing) {
                 lockMobileObjects(true);
                 const lockToggleEl = document.getElementById('mobileLockToggle');
                 if (lockToggleEl) {
@@ -2402,11 +2404,13 @@
                 }
             }
 
-            // ===== THE FIX: ALWAYS RECREATE HANDLES WHEN THEY SHOULD BE VISIBLE =====
-            if (isTouch && !isEditing && showHandles && isMobile) {
+            // ===== THE FIX: ALWAYS RECREATE HANDLES ON ANY TOUCH DEVICE =====
+            if (isTouchDevice && !isEditing && showHandles) {
+                // Always recreate – this ensures they appear on tablet landscape too
                 createMobileHandles();
             } else {
-                if (!showHandles || isPreviewMode || !isMobile) {
+                // Only clear if explicitly hidden or preview
+                if (!showHandles || isPreviewMode) {
                     clearMobileHandles();
                 }
             }
@@ -2426,7 +2430,7 @@
                 showNoSelection();
             }
             updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+            if (isTouchDevice) {
                 updateHandleSelection();
             }
         }
@@ -2440,7 +2444,7 @@
             selectedObject = null;
             showNoSelection();
             updateLayerList();
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
+            if (isTouchDevice) {
                 updateHandleSelection();
             }
         }
@@ -2496,14 +2500,14 @@
             canvas.on('object:modified', function(e) { saveState(); updateMobileHandlePositions(); });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
-                if (showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) && mobileHandles.length === 0) {
+                if (showHandles && isTouchDevice && mobileHandles.length === 0) {
                     const active = canvas.getActiveObject();
                     const editing = active && active.type === 'i-text' && active.isEditing;
                     if (!editing && !isPreviewMode) createMobileHandles();
                 }
             });
 
-            if ('ontouchstart' in window) {
+            if (isTouchDevice) {
                 canvas.on('mouse:down', function(e) {
                     if (!e.target) {
                         const pointer = canvas.getPointer(e.e);
@@ -2573,7 +2577,7 @@
                             selectedObject = canvas.getActiveObject();
                             updateControls(); showSelectionControls(); updateLayerList();
                         }
-                        if (!isPreviewMode) createMobileHandles();
+                        if (!isPreviewMode && isTouchDevice) createMobileHandles();
                     }, 50);
                 } else {
                     this.innerHTML = '<i class="fas fa-eye-slash"></i> Show Handles';
@@ -2585,7 +2589,7 @@
             document.addEventListener('keydown', handleKeyboard);
 
             canvas.on('mouse:down', function(e) {
-                if (!isMobileLayout()) return;
+                if (!isTouchDevice) return;
                 if (e.target && e.target.type === 'i-text' && canvas.getActiveObject() === e.target) {
                     e.target.set({ selectable: true, evented: true });
                     e.target.enterEditing();
@@ -2598,7 +2602,7 @@
                 }
             });
             canvas.on('mouse:up', function() {
-                if (!isMobileLayout()) return;
+                if (!isTouchDevice) return;
                 const active = canvas.getActiveObject();
                 if (active && active.type === 'i-text' && active.isEditing) return;
                 const menu = document.getElementById('mobileContextMenu');
@@ -2618,7 +2622,7 @@
                     if (saveBtn) {
                         saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
                     }
-                    if (showHandles && !isPreviewMode) setTimeout(createMobileHandles, 200);
+                    if (showHandles && !isPreviewMode && isTouchDevice) setTimeout(createMobileHandles, 200);
                 }
             });
             let lastTouchEnd = 0;
@@ -2631,7 +2635,7 @@
         }
 
         // ================================================================
-        //  MEDIA UPLOAD HANDLERS
+        //  MEDIA UPLOAD HANDLERS (unchanged)
         // ================================================================
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
@@ -2693,7 +2697,7 @@
                 });
                 showNotification('Video added! Drag corners to resize, edges to rotate.');
                 updateLayerList(); updateMediaControls();
-                if (showHandles && !isPreviewMode) createMobileHandles();
+                if (showHandles && !isPreviewMode && isTouchDevice) createMobileHandles();
             };
             videoEl.onerror = () => { alert('Error loading video'); URL.revokeObjectURL(blobUrl); };
         }
@@ -2726,7 +2730,7 @@
                     img.on('removed', function() { if (this.audioElement) this.audioElement.pause(); });
                     showNotification('Audio added! Will play when card is viewed.');
                     updateLayerList(); updateMediaControls();
-                    if (showHandles && !isPreviewMode) createMobileHandles();
+                    if (showHandles && !isPreviewMode && isTouchDevice) createMobileHandles();
                 });
             };
         }
@@ -2751,7 +2755,7 @@
                     canvas.renderAll();
                     saveState();
                     updateLayerList();
-                    if (showHandles && !isPreviewMode) createMobileHandles();
+                    if (showHandles && !isPreviewMode && isTouchDevice) createMobileHandles();
                 });
             };
             reader.onerror = () => { alert('Error reading file'); };
@@ -2759,7 +2763,7 @@
         }
 
         // ================================================================
-        //  SETUP CONTROLS
+        //  SETUP CONTROLS (unchanged)
         // ================================================================
         function setupBackgroundOptions() {
             document.getElementById('bgColorPicker').addEventListener('input', function() {
@@ -2938,7 +2942,7 @@
         }
 
         // ================================================================
-        //  SCROLL DETECTION
+        //  SCROLL DETECTION (unchanged)
         // ================================================================
         document.addEventListener('touchstart', function(e) {
             touchStartTarget = e.target;
@@ -2974,7 +2978,7 @@
         }, { passive: true });
 
         // ================================================================
-        //  HINT
+        //  HINT (unchanged)
         // ================================================================
         function showFirstRunHint() {
             if (sessionStorage.getItem('papirHintShown')) return;
@@ -2991,7 +2995,7 @@
         }
 
         // ================================================================
-        //  CANVAS RESIZE
+        //  CANVAS RESIZE (unchanged)
         // ================================================================
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
@@ -3015,22 +3019,20 @@
                 upperCanvas.style.width = containerWidth + 'px';
                 upperCanvas.style.height = newHeight + 'px';
             }
-            if (showHandles && !isPreviewMode) {
+            if (showHandles && !isPreviewMode && isTouchDevice) {
                 setTimeout(updateMobileHandlePositions, 50);
             }
         }
 
         function handleMobileResize() {
-            if (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches) {
-                // handled by handleResize
-            }
+            // handled by handleResize
         }
 
         // ================================================================
         //  EXTRA RESIZE LISTENER FOR SAFETY
         // ================================================================
         window.addEventListener('resize', function() {
-            if (!isPreviewMode && showHandles && (isMobileLayout() || window.matchMedia('(pointer: coarse)').matches)) {
+            if (!isPreviewMode && showHandles && isTouchDevice) {
                 setTimeout(createMobileHandles, 100);
             }
         });
@@ -3076,7 +3078,7 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
-            setTimeout(() => { if (!isPreviewMode && showHandles) createMobileHandles(); }, 200);
+            setTimeout(() => { if (!isPreviewMode && showHandles && isTouchDevice) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
             setupColorPalettes();
