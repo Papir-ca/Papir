@@ -192,15 +192,15 @@
 
         /* ===== TABLET / iPad LANDSCAPE ===== */
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
-            .app-container { height: 100vh; padding: 10px; }
-            .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            .canvas-area { position: relative !important; order: auto !important; flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
+            .app-container { height: 100vh; padding: 10px; overflow: hidden !important; }
+            .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; overflow: hidden !important; }
+            .canvas-area { position: relative !important; order: auto !important; flex: 1 !important; height: 100% !important; padding: 12px !important; margin: 0 !important; background: rgba(255,255,255,0.05) !important; border: none !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: hidden !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
             #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
-            .properties-panel { width: 320px !important; order: auto !important; padding: 15px !important; margin: 0 !important; flex: none !important; height: auto !important; min-height: auto !important; display: flex !important; flex-direction: column !important; position: relative; z-index: auto; }
+            .properties-panel { width: 320px !important; order: auto !important; padding: 15px !important; padding-bottom: 160px !important; margin: 0 !important; flex: none !important; height: 100% !important; min-height: auto !important; display: flex !important; flex-direction: column !important; position: relative; z-index: auto; overflow-y: auto !important; }
             .properties-panel .tabs { display: flex !important; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
             .properties-panel .tab-content { padding: 0; max-height: none; overflow-y: auto; overflow-x: visible; display: none; }
             .properties-panel .tab-content.active { display: block; }
@@ -2734,13 +2734,7 @@
             canvas.on('object:modified', function(e) { saveState();
                 updateMobileHandlePositions(); });
             canvas.on('after:render', function() {
-                const isTouch = window.matchMedia('(pointer: coarse)').matches;
                 updateMobileHandlePositions();
-                if (showHandles && isTouch && (mobileHandles.length === 0 || !handlesAreValid())) {
-                    const active = canvas.getActiveObject();
-                    const editing = active && active.type === 'i-text' && active.isEditing;
-                    if (!editing && !isPreviewMode) createMobileHandles();
-                }
             });
 
             if ('ontouchstart' in window) {
