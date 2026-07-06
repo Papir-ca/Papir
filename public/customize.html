@@ -2303,6 +2303,11 @@
                                 header.classList.add('active');
                                 chevronIcon.style.transform = 'rotate(180deg)';
                                 if (targetContent) targetContent.style.display = 'block';
+                                const accordionContainer = document.getElementById('mobileAccordionContainer');
+                                if (accordionContainer) {
+                                    accordionContainer.appendChild(header);
+                                    if (targetContent) accordionContainer.appendChild(targetContent);
+                                }
                             }
                         });
                     }
