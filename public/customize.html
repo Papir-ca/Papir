@@ -2132,7 +2132,7 @@
         function loadSectionState() {
             try {
                 const saved = localStorage.getItem('papirSectionState');
-                if (saved) {
+                if (saved && isMobileLayout()) {
                     const state = JSON.parse(saved);
                     document.querySelectorAll('.property-section').forEach(section => {
                         const id = section.dataset.sectionId;
@@ -2144,6 +2144,13 @@
                             }
                             sectionState[id] = state[id];
                         }
+                    });
+                } else if (!isMobileLayout()) {
+                    // Desktop: expand all sections by default
+                    document.querySelectorAll('.property-section').forEach(section => {
+                        section.classList.remove('collapsed');
+                        const id = section.dataset.sectionId;
+                        if (id) sectionState[id] = false;
                     });
                 }
             } catch (e) {}
@@ -2363,6 +2370,16 @@
                 }, 300);
             });
             handleResize();
+            // Collapse all accordion tabs by default on mobile
+            if (isMobileLayout()) {
+                document.querySelectorAll('.mobile-accordion-header').forEach(header => {
+                    header.classList.remove('active');
+                    const chevron = header.querySelector('.accordion-chevron');
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                    const content = document.getElementById(header.dataset.target);
+                    if (content) content.style.display = 'none';
+                });
+            }
         }
 
         // ================================================================
