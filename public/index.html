@@ -15,6 +15,7 @@
         .logo-text { font-size: 28px; font-weight: 700; color: var(--dark); letter-spacing: -0.5px; }
         .logo-text span:first-child { color: var(--gold); }
         .logo-text span:last-child { color: var(--teal); }
+        .logo-img { height: 36px; width: auto; display: block; }
         .nav-links { display: flex; gap: 30px; align-items: center; }
         .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); font-size: 0.95rem; }
         .nav-links a:hover { color: var(--gold); }
@@ -69,11 +70,12 @@
         }
         @media (max-width: 480px) { .hero { padding: 30px 15px 40px; } }
     </style>
+<base target="_blank">
 </head>
 <body>
     <header class="header">
         <div class="nav-container">
-            <a href="index.html" class="logo"><div class="logo-text"><span>PAP</span><span>IR</span></div></a>
+            <a href="index.html" class="logo"><img src="logo.svg" alt="Papir" class="logo-img"></a>
             <nav class="nav-links">
                 <a href="templates.html">Templates</a>
                 <a href="#process">How It Works</a>
