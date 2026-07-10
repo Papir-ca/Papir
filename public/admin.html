@@ -8,16 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --darker: #16213e; --light-text: #a0aec0; --white: #ffffff; --shadow: 0 20px 40px rgba(0, 0, 0, 0.1); --transition: all 0.3s ease; }
-        .header { background: var(--white); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05); position: fixed; width: 100%; top: 0; z-index: 1000; padding: 12px 0; }
-        .nav-container { max-width: none; margin: 0; padding: 0 30px 0 28px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; text-decoration: none; }
-        .logo-img { height: 55px; width: auto; display: block; }
-        .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); font-size: 0.95rem; }
-        .nav-links a:hover { color: var(--gold); }
-
-        body { background: #1a1a1a; color: white; padding: 80px 20px 20px 20px; }
+        body { background: #1a1a1a; color: white; padding: 20px; }
         .container { max-width: 1800px; margin: 0 auto; }
         h1 { color: #BCAE83; margin-bottom: 30px; font-size: 2.5rem; }
         
@@ -903,10 +894,6 @@
         .loading { text-align: center; padding: 40px; color: #aaa; }
         .spinner { border: 4px solid #333; border-top: 4px solid #BCAE83; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
-            .header { position: relative; }
-            body { padding: 20px; }
-        }
     </style>
 <base target="_blank">
 <base target="_blank">
@@ -914,21 +901,9 @@
 <base target="_blank">
 </head>
 <body>
-    <header class="header">
-        <div class="nav-container">
-            <a href="index.html" class="logo"><img src="logo.svg" alt="Papir" class="logo-img"></a>
-            <nav class="nav-links">
-                <a href="templates.html">Templates</a>
-                <a href="index.html#process">How It Works</a>
-                <a href="index.html#features">What You Add</a>
-                <a href="index.html#use-cases">Uses</a>
-                <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;"><i class="fas fa-folder-open"></i> My Cards</a>
-            </nav>
-        </div>
-    </header>
-
     <div class="container">
-        <h1>📊 Papir Admin Dashboard</h1>
+        <a href="index.html"><img src="logo.svg" alt="Papir" style="height:55px; display:block; margin-bottom:15px;"></a>
+        <h1>Papir Admin Dashboard</h1>
         <button id="logoutBtn" style="float: right; background: #ff416c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: -15px; font-size: 14px; font-weight: bold;">Logout</button>
         
         <div id="statusMessage" class="status-message" style="display: none;"></div>

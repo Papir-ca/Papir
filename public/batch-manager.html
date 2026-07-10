@@ -9,20 +9,11 @@
     <script src="https://js.stripe.com/v3/"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --darker: #16213e; --light-text: #a0aec0; --white: #ffffff; --shadow: 0 20px 40px rgba(0, 0, 0, 0.1); --transition: all 0.3s ease; }
-        .header { background: var(--white); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05); position: fixed; width: 100%; top: 0; z-index: 1000; padding: 12px 0; }
-        .nav-container { max-width: none; margin: 0; padding: 0 30px 0 28px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; text-decoration: none; }
-        .logo-img { height: 55px; width: auto; display: block; }
-        .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); font-size: 0.95rem; }
-        .nav-links a:hover { color: var(--gold); }
-
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; padding: 80px 20px 20px 20px; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; padding: 20px; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 40px; }
 
         header { text-align: center; padding: 20px 0 40px 0; position: relative; }
-        .page-title { font-size: 42px; font-weight: bold; margin-bottom: 10px; background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .logo { font-size: 42px; font-weight: bold; margin-bottom: 10px; background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .tagline { color: #a0aec0; font-size: 1rem; }
 
         .back-button { position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); transition: all 0.3s; }
@@ -167,7 +158,6 @@
         .hidden { display: none !important; }
 
         @media (max-width: 768px) {
-            .header { position: relative; }
             body { padding: 12px; }
             .logo { font-size: 32px; }
             .back-button { position: relative; top: 0; left: 0; margin-bottom: 15px; display: inline-flex; }
@@ -202,26 +192,14 @@
 <base target="_blank">
 </head>
 <body>
-    <header class="header">
-        <div class="nav-container">
-            <a href="index.html" class="logo"><img src="logo.svg" alt="Papir" class="logo-img"></a>
-            <nav class="nav-links">
-                <a href="templates.html">Templates</a>
-                <a href="index.html#process">How It Works</a>
-                <a href="index.html#features">What You Add</a>
-                <a href="index.html#use-cases">Uses</a>
-                <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;"><i class="fas fa-folder-open"></i> My Cards</a>
-            </nav>
-        </div>
-    </header>
-
     <a href="/index.html" class="back-button" id="backBtn" target="_self">
         <i class="fas fa-arrow-left"></i> Back
     </a>
 
     <div class="container">
         <header>
-            <h1 class="page-title">💌 My Cards</h1>
+            <a href="index.html"><img src="logo.svg" alt="Papir" style="height:55px; display:block; margin:0 auto 15px;"></a>
+            <h1 class="logo">My Cards</h1>
             <p class="tagline" id="pageTagline">All your cards and orders in one place</p>
         </header>
 
