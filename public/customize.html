@@ -20,7 +20,7 @@
         .back-link { color: #1a1a2e; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 15px; border-radius: 8px; background: #f5f5f5; font-size: 0.9rem; }
         .template-badge { background: var(--primary-gold); color: var(--dark-bg); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
         .design-layout { display: flex; gap: 12px; flex: 1; height: calc(100vh - 140px); }
-        .canvas-area { flex: 1; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; min-height: 0; }
+        .canvas-area { flex: 1; background: #f5f5f5; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; min-height: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; flex-shrink: 0; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
         .canvas-container { flex: 1; border-radius: 0 !important; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; min-height: 0; }
@@ -157,7 +157,7 @@
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto !important; min-height: auto !important; padding: 4px; }
             .design-layout { flex-direction: column !important; height: auto !important; min-height: auto !important; max-height: none !important; gap: 0 !important; flex: none !important; }
-            .canvas-area { order: 1 !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: #ffffff !important; position: sticky !important; top: 0 !important; z-index: 5 !important; border: none !important; border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important; border-radius: 0 !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-shadow: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(6, 214, 160, 0.15); }
+            .canvas-area { order: 1 !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: #f5f5f5 !important; position: sticky !important; top: 0 !important; z-index: 5 !important; border: none !important; border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important; border-radius: 0 !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-shadow: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(6, 214, 160, 0.15); }
             .canvas-container { display: block !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; overflow: hidden; line-height: 0; text-align: center; border: none !important; border-radius: 0 !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; }
             #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 100% !important; max-width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; max-height: 55vh !important; margin: 0 !important; position: relative !important; left: 0 !important; right: 0 !important; }
@@ -200,7 +200,7 @@
         @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
+            .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #f5f5f5 !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
@@ -262,7 +262,7 @@
         @media (max-width: 896px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 8px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 60px) !important; gap: 0 !important; position: relative !important; }
-            .canvas-area { flex: 1 !important; height: 100% !important; padding: 8px !important; display: flex !important; flex-direction: column !important; min-width: 0 !important; }
+            .canvas-area { flex: 1 !important; height: 100% !important; padding: 8px !important; display: flex !important; flex-direction: column !important; min-width: 0 !important; background: #f5f5f5 !important; }
             .canvas-toolbar { margin-bottom: 6px !important; padding-bottom: 6px !important; flex-shrink: 0 !important; font-size: 0.75rem !important; }
             .canvas-container { flex: 1 !important; display: flex !important; justify-content: center !important; align-items: center !important; min-height: 0 !important; overflow: hidden !important; }
             #canvasContainer .canvas-container { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; position: relative !important; margin: 0 auto !important; }
@@ -323,7 +323,7 @@
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #ffffff; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #f5f5f5; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
             .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
             .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450; }
             #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
@@ -375,7 +375,7 @@
         @media (max-width: 768px) and (orientation: landscape) {
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
-            .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; position: relative !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
+            .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #f5f5f5 !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; position: relative !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
             #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
@@ -436,7 +436,7 @@
             .layers-scroll-container { max-height: 300px; overflow-y: auto; }
             .app-container { height: auto; min-height: 100vh; padding: 4px; }
             .design-layout { flex-direction: column; height: auto; gap: 0; }
-            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #ffffff; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+            .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #f5f5f5; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
             .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
             .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450; }
             #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
@@ -482,12 +482,17 @@
             .mobile-lock-toggle.locked { background: rgba(255, 107, 107, 0.08); border-color: var(--danger); color: var(--danger); }
             .mobile-lock-toggle.unlocked { background: rgba(6, 214, 160, 0.08); border-color: var(--primary-teal); color: var(--primary-teal); }
             .desktop-lock-btn { display: none !important; }
-        }
+        
+            #canvasContainer { border-radius: 0 !important; }
+}
 
         @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
-    </style>
+    
+/* Canvas frame for white-template visibility */
+#canvasContainer { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+</style>
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
