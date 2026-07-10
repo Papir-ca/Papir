@@ -8,18 +8,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
+        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --light-text: #a0aec0; --white: #ffffff; }
+        body { background: #faf9f7; min-height: 100vh; color: var(--dark); }
         .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
         header { text-align: center; margin-bottom: 50px; }
-        h1 { font-size: 3rem; margin-bottom: 15px; background: linear-gradient(45deg, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { font-size: 1.2rem; opacity: 0.9; color: #f0f0f0; }
+        h1 { font-size: 3rem; margin-bottom: 15px; color: var(--dark); font-weight: 700; }
+        h1 span { color: var(--gold); }
+        .subtitle { font-size: 1.2rem; color: #4a5568; }
 
         .filter-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
-        .filter-btn { padding: 10px 20px; border: 2px solid rgba(255,255,255,0.2); background: transparent; color: white; border-radius: 30px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
-        .filter-btn:hover, .filter-btn.active { background: white; color: #764ba2; border-color: white; }
+        .filter-btn { padding: 10px 20px; border: 2px solid #e2e8f0; background: transparent; color: var(--dark); border-radius: 30px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
+        .filter-btn:hover, .filter-btn.active { background: var(--gold); color: var(--white); border-color: var(--gold); }
         .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 30px; }
-        .template-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s, box-shadow 0.3s; position: relative; }
-        .template-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .template-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; position: relative; }
+        .template-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
         .preview-container { height: 220px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
 
         /* Template Preview Styles - From old code */
@@ -431,20 +433,12 @@
 
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
-    <a href="index.html" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back
-    </a>
-
     <div class="container">
         <header>
             <a href="index.html"><img src="logo.svg" alt="Papir" style="height:55px; display:block; margin:0 auto 15px;"></a>
-            <h1>Choose Your Design</h1>
+            <h1>Choose Your <span>Design</span></h1>
             <p class="subtitle">43 beautiful templates • Rich textures • Personalize & send instantly</p>
         </header>
 
