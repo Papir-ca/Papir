@@ -8,78 +8,77 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: white; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); overscroll-behavior: contain; }
+        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --light-text: #4a5568; --white: #ffffff; --shadow: 0 5px 15px rgba(0,0,0,0.05); --transition: all 0.3s ease; }
+        body { background: #faf9f7; min-height: 100vh; color: var(--dark); padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); overscroll-behavior: contain; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         header { text-align: center; padding: 20px 0 40px 0; position: relative; transition: opacity 0.3s ease; }
-        .logo { font-size: 42px; font-weight: bold; margin-bottom: 10px; background: linear-gradient(45deg, #FF6B6B, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .tagline { font-size: 18px; opacity: 0.8; color: #a0aec0; }
-        .scanner-container { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); transition: opacity 0.3s ease; }
-        .scanner-title { font-size: 24px; margin-bottom: 20px; color: white; display: flex; align-items: center; gap: 10px; }
-        .scanner-title i { color: #06D6A0; }
-        #reader { width: 100%; max-width: 500px; margin: 0 auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-        .scanner-instructions { text-align: center; margin-top: 20px; color: #a0aec0; font-size: 16px; line-height: 1.6; }
-        .confirmation-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 20000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px); }
+        .tagline { font-size: 18px; color: var(--light-text); }
+        .scanner-container { background: var(--white); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: var(--shadow); transition: opacity 0.3s ease; }
+        .scanner-title { font-size: 24px; margin-bottom: 20px; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        .scanner-title i { color: var(--teal); }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .scanner-instructions { text-align: center; margin-top: 20px; color: var(--light-text); font-size: 16px; line-height: 1.6; }
+        .confirmation-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 20000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px); }
         .confirmation-modal.active { display: flex; }
-        .confirmation-box { background: #2a2a2a; max-width: 500px; width: 100%; padding: 35px; border-radius: 15px; border-left: 5px solid #f39c12; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); animation: slideIn 0.3s ease; }
+        .confirmation-box { background: var(--white); max-width: 500px; width: 100%; padding: 35px; border-radius: 15px; border-left: 5px solid var(--gold); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .confirmation-box h3 { color: #f39c12; font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .confirmation-box h3 i { font-size: 28px; }
-        .confirmation-box p { color: #a0aec0; margin-bottom: 25px; line-height: 1.6; }
-        .confirmation-list { background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 25px; }
-        .confirmation-list li { color: white; margin-bottom: 12px; list-style-type: none; display: flex; align-items: center; gap: 10px; }
-        .confirmation-list li i { color: #f39c12; font-size: 16px; width: 20px; }
-        .legal-notice { background: #1e3a3a; padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid #06D6A0; font-size: 0.9rem; }
-        .legal-notice strong { color: #06D6A0; display: block; margin-bottom: 5px; }
-        .legal-notice p { color: #a0aec0; margin-bottom: 0; font-size: 0.85rem; }
+        .confirmation-box h3 { color: var(--dark); font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .confirmation-box h3 i { font-size: 28px; color: var(--gold); }
+        .confirmation-box p { color: var(--light-text); margin-bottom: 25px; line-height: 1.6; }
+        .confirmation-list { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
+        .confirmation-list li { color: var(--dark); margin-bottom: 12px; list-style-type: none; display: flex; align-items: center; gap: 10px; }
+        .confirmation-list li i { color: var(--gold); font-size: 16px; width: 20px; }
+        .legal-notice { background: #f0fdf9; padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid var(--teal); font-size: 0.9rem; }
+        .legal-notice strong { color: var(--teal); display: block; margin-bottom: 5px; }
+        .legal-notice p { color: var(--light-text); margin-bottom: 0; font-size: 0.85rem; }
         .confirmation-buttons { display: flex; gap: 15px; }
-        .btn-confirm { background: linear-gradient(to right, #f39c12, #e67e22); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; flex: 2; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3); }
-        .btn-cancel { background: #444; color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; flex: 1; }
-        .btn-cancel:hover { background: #555; transform: translateY(-2px); }
-        .ip-display { background: #1e3a3a; padding: 8px 12px; border-radius: 5px; font-family: monospace; font-size: 14px; color: #06D6A0; margin-top: 15px; text-align: center; border: 1px solid rgba(6, 214, 160, 0.3); }
-        .card-display { background: transparent; border-radius: 0; padding: 0; color: #333; margin: 0 auto; box-shadow: none; display: none; max-width: 100%; }
+        .btn-confirm { background: var(--gold); color: var(--white); padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); flex: 2; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-confirm:hover { background: #a8996f; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3); }
+        .btn-cancel { background: #f8f9fa; color: var(--dark); padding: 15px 30px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); flex: 1; }
+        .btn-cancel:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .ip-display { background: #f0fdf9; padding: 8px 12px; border-radius: 5px; font-family: monospace; font-size: 14px; color: var(--teal); margin-top: 15px; text-align: center; border: 1px solid rgba(6, 214, 160, 0.3); }
+        .card-display { background: transparent; border-radius: 0; padding: 0; color: var(--dark); margin: 0 auto; box-shadow: none; display: none; max-width: 100%; }
         .card-display.active { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.2); padding-bottom: 15px; margin-bottom: 15px; background: transparent; color: white; gap: 15px; }
-        .card-id { font-size: 22px; font-weight: bold; color: #BCAE83; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; background: transparent; color: var(--dark); gap: 15px; }
+        .card-id { font-size: 22px; font-weight: bold; color: var(--gold); }
         .card-meta { display: flex; gap: 15px; align-items: center; }
-        .meta-item { background: rgba(188, 174, 131, 0.2); padding: 5px 12px; border-radius: 20px; font-size: 13px; color: #BCAE83; white-space: nowrap; border: 1px solid rgba(188, 174, 131, 0.3); }
-        .close-btn { background: #ff416c; color: white; border: none; border-radius: 30px; padding: 8px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        .close-btn:hover { background: #ff2b5e; transform: translateY(-2px); }
+        .meta-item { background: rgba(188, 174, 131, 0.1); padding: 5px 12px; border-radius: 20px; font-size: 13px; color: var(--gold); white-space: nowrap; border: 1px solid rgba(188, 174, 131, 0.3); }
+        .close-btn { background: #ff416c; color: var(--white); border: none; border-radius: 30px; padding: 8px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
+        .close-btn:hover { background: #e0355c; transform: translateY(-2px); }
         .card-content { text-align: center; padding: 0; }
-        .text-message { font-size: 32px; font-weight: 600; color: white; line-height: 1.4; margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; border-left: 5px solid #06D6A0; }
+        .text-message { font-size: 32px; font-weight: 600; color: var(--dark); line-height: 1.4; margin: 20px 0; padding: 20px; background: var(--white); border-radius: 15px; border-left: 5px solid var(--teal); box-shadow: var(--shadow); }
         .media-container { margin: 0 auto; max-width: 100%; display: flex; justify-content: center; }
         .card-image { max-width: 100%; max-height: 90vh; border-radius: 0; box-shadow: none; object-fit: contain; }
         .card-video { max-width: 100%; max-height: 90vh; border-radius: 0; box-shadow: none; width: 100%; background: black; }
         .card-audio { width: 100%; max-width: 400px; margin: 0 auto; }
-        .manual-input { background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 25px; margin-top: 30px; transition: opacity 0.3s ease; }
+        .manual-input { background: var(--white); border-radius: 15px; padding: 25px; margin-top: 30px; border: 1px solid #e2e8f0; box-shadow: var(--shadow); transition: opacity 0.3s ease; }
         .input-group { display: flex; gap: 10px; margin-top: 15px; }
-        .card-input { flex: 1; padding: 15px 20px; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: white; font-size: 16px; }
-        .card-input:focus { outline: none; border-color: #06D6A0; }
-        .btn { touch-action: manipulation; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
-        .btn-primary { background: linear-gradient(to right, #06D6A0, #118AB2); color: white; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(6, 214, 160, 0.3); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+        .card-input { flex: 1; padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 10px; background: var(--white); color: var(--dark); font-size: 16px; }
+        .card-input:focus { outline: none; border-color: var(--teal); }
+        .btn { touch-action: manipulation; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 10px; }
+        .btn-primary { background: var(--gold); color: var(--white); }
+        .btn-primary:hover { background: #a8996f; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(188, 174, 131, 0.3); }
+        .btn-secondary { background: #f8f9fa; color: var(--dark); border: 1px solid #e2e8f0; }
+        .btn-secondary:hover { background: #e2e8f0; }
         .error-message { background: linear-gradient(to right, #FF6B6B, #FF8E53); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; display: none; }
         .error-message.active { display: block; }
         .scanner-controls { display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--light-text); }
         .empty-state i { font-size: 60px; margin-bottom: 20px; opacity: 0.5; }
-        .back-button { position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); transition: all 0.3s; }
-        .back-button:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
+        .back-button { position: absolute; top: 20px; left: 20px; color: var(--dark); text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: var(--white); box-shadow: var(--shadow); transition: var(--transition); border: 1px solid #e2e8f0; }
+        .back-button:hover { background: #f8f9fa; transform: translateY(-2px); }
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; color: white; font-weight: 600; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); z-index: 1000; opacity: 0; transform: translateX(100px); transition: all 0.5s; }
         .notification.show { opacity: 1; transform: translateX(0); }
         .notification.success { background: linear-gradient(to right, #00b09b, #96c93d); }
         .notification.error { background: linear-gradient(to right, #FF6B6B, #FF8E53); }
-        .sync-status { position: absolute; top: 20px; right: 20px; background: rgba(0, 176, 155, 0.2); color: #06D6A0; padding: 8px 15px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; display: none; }
+        .sync-status { position: absolute; top: 20px; right: 20px; background: rgba(0, 176, 155, 0.1); color: var(--teal); padding: 8px 15px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; display: none; border: 1px solid rgba(6, 214, 160, 0.3); }
         .hidden { display: none !important; }
         .header-hidden { opacity: 0; pointer-events: none; }
-        .card-type-badge { background: linear-gradient(135deg, #06D6A0, #118AB2); color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
+        .card-type-badge { background: linear-gradient(135deg, var(--teal), #118AB2); color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
         @media (max-width: 768px) {
             .container { padding: 15px; }
             header { padding: 15px 0 25px; }
-            .logo { font-size: 32px; }
             .tagline { font-size: 16px; }
             .scanner-container { padding: 20px; margin-bottom: 20px; }
             .scanner-title { font-size: 20px; }
@@ -107,7 +106,6 @@
             #cardAudioWrapper { padding: 12px; }
         }
         @media (max-width: 480px) {
-            .logo { font-size: 26px; }
             .tagline { font-size: 15px; }
             .scanner-title { font-size: 18px; }
             .scanner-instructions { font-size: 14px; }
@@ -123,32 +121,28 @@
             .confirmation-box p { font-size: 0.9rem; }
             .confirmation-list li { font-size: 0.85rem; }
         }
-        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #06D6A0; border-radius: 50%; animation: spin 1s linear infinite; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
+        #cardMediaContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 15px 50px rgba(0,0,0,0.1); }
         #bgVideo { width: 100%; display: none; }
         #cardOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 2; }
         #cardImage { width: 100%; display: block; position: relative; z-index: 1; }
-        #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
-        #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: #06D6A0; font-size: 0.9rem; margin-bottom: 10px; }
+        #cardAudioWrapper { display: none; margin-top: 15px; padding: 15px; background: var(--white); border-radius: 12px; border: 1px solid #e2e8f0; }
+        #cardAudioWrapper div { display: flex; align-items: center; gap: 10px; color: var(--teal); font-size: 0.9rem; margin-bottom: 10px; }
         #cardAudio { width: 100%; }
-        
-        /* NEW: Collapsible message styles */
         #cardMessageWrapper { margin-top: 15px; }
-        #toggleMessageBtn { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; }
-        #toggleMessageBtn:hover { background: rgba(255,255,255,0.12); }
+        #toggleMessageBtn { width: 100%; padding: 12px; background: #f8f9fa; border: 1px solid #e2e8f0; color: var(--dark); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem; font-weight: 600; transition: var(--transition); }
+        #toggleMessageBtn:hover { background: #e2e8f0; }
         #toggleMessageBtn i { transition: transform 0.2s; }
-        
         * { -webkit-tap-highlight-color: transparent; }
         body { -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
         input, select, textarea, button { font-size: 16px; min-height: 44px; }
         img { max-width: 100%; height: auto; }
 
-        /* ===== CARD REVEAL ANIMATIONS ===== */
         .reveal-stage {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #faf9f7;
             z-index: 15000;
             display: none;
             justify-content: center;
@@ -171,7 +165,7 @@
             width: 260px; height: 160px;
             background: #e8d5b5;
             border-radius: 0 0 8px 8px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
             z-index: 2;
         }
         .envelope-body::before {
@@ -201,14 +195,14 @@
             width: 220px; height: 140px;
             background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
             border-radius: 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 3;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 48px;
         }
-        .envelope-card::after { content: '\2709'; color: #BCAE83; }
+        .envelope-card::after { content: '\2709'; color: var(--gold); }
         .envelope-reveal.animate .envelope-flap { animation: envFlapOpen 0.6s ease forwards; }
         .envelope-reveal.animate .envelope-card { animation: envCardSlide 1.2s ease 0.5s forwards; }
         .envelope-reveal.animate .envelope-body { animation: envBodyFade 0.8s ease 1.8s forwards; }
@@ -233,7 +227,7 @@
             width: 160px; height: 180px;
             background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
             border-radius: 80px 80px 10px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 -5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1), inset 0 -5px 20px rgba(0,0,0,0.1);
             z-index: 2;
         }
         .mailbox-body::after {
@@ -292,7 +286,7 @@
             width: 140px; height: 90px;
             background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 2;
             display: flex;
             align-items: center;
@@ -328,7 +322,7 @@
             width: 180px; height: 140px;
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             border-radius: 4px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             z-index: 2;
         }
         .giftbox-body::before {
@@ -354,7 +348,7 @@
             width: 200px; height: 50px;
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             border-radius: 4px 4px 0 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 4;
         }
         .giftbox-lid::before {
@@ -398,7 +392,7 @@
             width: 160px; height: 100px;
             background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 3;
             display: flex;
             align-items: center;
@@ -423,7 +417,7 @@
         .reveal-label {
             margin-top: 40px;
             font-size: 1.2rem;
-            color: #BCAE83;
+            color: var(--dark);
             opacity: 0;
         }
         .reveal-stage.active .reveal-label { animation: revealLabelFade 0.5s ease 0.3s forwards; }
@@ -440,9 +434,6 @@
             .giftbox-reveal { transform: scale(0.7); }
         }
     </style>
-
-<base target="_blank">
-<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -476,7 +467,7 @@
         </div>
         <div class="manual-input" id="manualInput">
             <div class="scanner-title"><i class="fas fa-keyboard"></i> Enter Card ID Manually</div>
-            <p style="color: #a0aec0; margin-bottom: 15px;">If you have a Card ID, enter it below:</p>
+            <p style="color: var(--light-text); margin-bottom: 15px;">If you have a Card ID, enter it below:</p>
             <div class="input-group"><input type="text" id="cardIdInput" class="card-input" placeholder="Enter Card ID (e.g., A1B2C3D4)"><button class="btn btn-primary" id="loadCardBtn"><i class="fas fa-search"></i> Load Card</button></div>
         </div>
         <div class="error-message" id="errorMessage"><i class="fas fa-exclamation-triangle"></i><div id="errorText">Card not found or error loading content</div></div>
@@ -489,8 +480,6 @@
                     <img id="cardImage" src="" alt="Card content">
                 </div>
                 <div id="cardAudioWrapper"><div><i class="fas fa-music"></i> Audio Message</div><audio id="cardAudio" controls autoplay><source src="" type="audio/mpeg">Your browser does not support audio.</audio></div>
-                
-                <!-- NEW: Collapsible message panel -->
                 <div id="cardMessageWrapper" style="display: none;">
                     <button id="toggleMessageBtn">
                         <i class="fas fa-comment-alt"></i> <span>Show Message</span> <i class="fas fa-chevron-down" id="toggleMessageIcon"></i>
@@ -506,7 +495,6 @@
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         const BACKEND_URL = 'https://papir.ca';
-
         let html5QrCode = null;
         let currentCardId = null;
         let pendingCardData = null;
@@ -526,10 +514,8 @@
 
         function formatDate(dateString) {
             if (!dateString) return 'Unknown';
-            try {
-                const date = new Date(dateString);
-                return date.toLocaleDateString();
-            } catch(e) { return 'Unknown'; }
+            try { const date = new Date(dateString); return date.toLocaleDateString(); }
+            catch(e) { return 'Unknown'; }
         }
 
         async function loadCard(cardId) {
@@ -538,46 +524,31 @@
                 const result = await res.json();
                 if (!result.success || !result.card) throw new Error(result.error || 'Card not found');
                 const card = result.card;
-                
                 const video = document.getElementById('bgVideo');
                 const overlay = document.getElementById('cardOverlay');
                 const staticImg = document.getElementById('cardImage');
                 const audioWrapper = document.getElementById('cardAudioWrapper');
                 const audio = document.getElementById('cardAudio');
                 const cardMediaContainer = document.getElementById('cardMediaContainer');
-                
-                // Stop any previously playing media before loading new card
                 video.pause();
                 audio.pause();
-                
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
-                
                 if (videoSrc) {
                     video.style.display = 'block';
                     video.src = videoSrc;
                     video.load();
                     video.play().catch(() => {});
-                    if (hasOverlay) {
-                        overlay.src = card.overlay_url;
-                        overlay.style.display = 'block';
-                    } else {
-                        overlay.style.display = 'none';
-                    }
+                    if (hasOverlay) { overlay.src = card.overlay_url; overlay.style.display = 'block'; }
+                    else { overlay.style.display = 'none'; }
                     staticImg.style.display = 'none';
                 } else {
                     video.style.display = 'none';
                     overlay.style.display = 'none';
                     video.src = '';
-                    if (card.media_url) {
-                        staticImg.src = card.media_url;
-                        staticImg.style.display = 'block';
-                    } else {
-                        staticImg.src = '';
-                        staticImg.style.display = 'none';
-                    }
+                    if (card.media_url) { staticImg.src = card.media_url; staticImg.style.display = 'block'; }
+                    else { staticImg.src = ''; staticImg.style.display = 'none'; }
                 }
-                
                 if (card.audio_url) {
                     audio.src = card.audio_url;
                     audioWrapper.style.display = 'block';
@@ -587,25 +558,18 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
-                
-                // NEW: Show collapsible message for ALL card types
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
                 const toggleIcon = document.getElementById('toggleMessageIcon');
                 const toggleSpan = toggleBtn.querySelector('span');
-                
                 if (msgWrapper && msgEl) {
                     msgWrapper.style.display = 'block';
                     msgEl.textContent = card.message_text || '';
-
-                    // Always start collapsed
                     msgEl.style.display = 'none';
                     toggleSpan.textContent = 'Show Message';
                     toggleIcon.className = 'fas fa-chevron-down';
                 }
-                
-                // Apply template texture if available
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
                     try {
@@ -617,20 +581,12 @@
                             cardMediaContainer.style.backgroundSize = 'auto';
                             cardMediaContainer.style.backgroundColor = 'transparent';
                             console.log('Texture applied successfully');
-                        } else {
-                            console.log('No textureSvg found in template config');
-                        }
-                    } catch (e) {
-                        console.error('Error applying template texture:', e);
-                    }
-                } else {
-                    console.log('No template_config on this card');
-                }
-
+                        } else { console.log('No textureSvg found in template config'); }
+                    } catch (e) { console.error('Error applying template texture:', e); }
+                } else { console.log('No template_config on this card'); }
                 document.getElementById('displayCardId').textContent = 'Card ID: ' + card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
-                
             } catch (error) {
                 console.error('Error loading card:', error);
                 showError('Failed to load card');
@@ -647,13 +603,9 @@
                 pendingCardData = result.card;
                 currentCardId = cardId;
                 document.getElementById('confirmationModal').classList.add('active');
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                document.getElementById('cardLoading').style.display = 'none';
-            }
+            } catch (error) { showError(error.message); }
+            finally { document.getElementById('cardLoading').style.display = 'none'; }
         }
-
 
         function determineRevealType(card) {
             if (!card) return 'envelope';
@@ -684,29 +636,17 @@
             const mailbox = document.getElementById('mailboxReveal');
             const giftbox = document.getElementById('giftboxReveal');
             const label = document.getElementById('revealLabel');
-
             envelope.classList.remove('active', 'animate');
             mailbox.classList.remove('active', 'animate');
             giftbox.classList.remove('active', 'animate');
-
             stage.classList.add('active');
-            if (revealType === 'mailbox') {
-                mailbox.classList.add('active');
-                label.textContent = "You've got mail!";
-            } else if (revealType === 'giftbox') {
-                giftbox.classList.add('active');
-                label.textContent = 'A special gift for you!';
-            } else {
-                envelope.classList.add('active');
-                label.textContent = 'Opening your card...';
-            }
-
+            if (revealType === 'mailbox') { mailbox.classList.add('active'); label.textContent = "You've got mail!"; }
+            else if (revealType === 'giftbox') { giftbox.classList.add('active'); label.textContent = 'A special gift for you!'; }
+            else { envelope.classList.add('active'); label.textContent = 'Opening your card...'; }
             void stage.offsetWidth;
-
             if (revealType === 'mailbox') mailbox.classList.add('animate');
             else if (revealType === 'giftbox') giftbox.classList.add('animate');
             else envelope.classList.add('animate');
-
             setTimeout(() => {
                 stage.classList.remove('active');
                 envelope.classList.remove('active', 'animate');
@@ -719,7 +659,6 @@
         document.getElementById('confirmViewingBtn').addEventListener('click', async () => {
             document.getElementById('confirmationModal').classList.remove('active');
             if (pendingCardData) {
-                // Track scan and activation
                 fetch(`${BACKEND_URL}/api/increment-scan`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -730,7 +669,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ card_id: currentCardId, source: 'viewer' })
                 }).catch(() => {});
-
                 const revealType = determineRevealType(pendingCardData);
                 await loadCard(currentCardId);
                 document.getElementById('cardDisplay').classList.add('active');
@@ -746,9 +684,7 @@
                     document.getElementById('pageHeader').style.display = 'none';
                     if (backBtn) backBtn.style.display = 'none';
                 }, 300);
-                playRevealAnimation(revealType, () => {
-                    console.log('Reveal animation complete');
-                });
+                playRevealAnimation(revealType, () => { console.log('Reveal animation complete'); });
             }
         });
 
@@ -793,7 +729,10 @@
             else showError('Please enter a Card ID');
         });
 
-        // NEW: Toggle message panel
+        document.getElementById('cardIdInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loadCardBtn').click();
+        });
+
         document.getElementById('toggleMessageBtn').addEventListener('click', function() {
             const msgEl = document.getElementById('cardMessage');
             const icon = document.getElementById('toggleMessageIcon');
@@ -814,10 +753,7 @@
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                if (decodedText) {
-                    html5QrCode.stop();
-                    fetchCardAndConfirm(decodedText);
-                }
+                if (decodedText) { html5QrCode.stop(); fetchCardAndConfirm(decodedText); }
             }, (err) => console.warn(err));
         }
 
@@ -836,15 +772,11 @@
             });
         }
 
-        // NEW: Auto-load card from URL
         const viewerUrlParams = new URLSearchParams(window.location.search);
         const urlCardId = viewerUrlParams.get('card');
-        if (urlCardId) {
-            fetchCardAndConfirm(urlCardId);
-        }
+        if (urlCardId) fetchCardAndConfirm(urlCardId);
     </script>
 
-    <!-- Card Reveal Stage -->
     <div class="reveal-stage" id="revealStage">
         <div class="envelope-reveal" id="envelopeReveal">
             <div class="envelope-card"></div>
