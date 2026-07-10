@@ -40,7 +40,7 @@
         .card-display { background: transparent; border-radius: 0; padding: 0; color: #333; margin: 0 auto; box-shadow: none; display: none; max-width: 100%; }
         .card-display.active { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.2); padding-bottom: 15px; margin-bottom: 15px; background: transparent; color: white; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.2); padding-bottom: 15px; margin-bottom: 15px; background: transparent; color: white; gap: 15px; }
         .card-id { font-size: 22px; font-weight: bold; color: #BCAE83; }
         .card-meta { display: flex; gap: 15px; align-items: center; }
         .meta-item { background: rgba(188, 174, 131, 0.2); padding: 5px 12px; border-radius: 20px; font-size: 13px; color: #BCAE83; white-space: nowrap; border: 1px solid rgba(188, 174, 131, 0.3); }
@@ -443,6 +443,7 @@
 
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -480,7 +481,7 @@
         </div>
         <div class="error-message" id="errorMessage"><i class="fas fa-exclamation-triangle"></i><div id="errorText">Card not found or error loading content</div></div>
         <div class="card-display" id="cardDisplay">
-            <div class="card-header"><div class="card-id" id="displayCardId"></div><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div>
+            <div class="card-header"><img src="logo.svg" alt="Papir" style="height:40px; flex-shrink:0;"><div class="card-id" id="displayCardId"></div><div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;"><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div></div>
             <div class="card-content" id="cardContent">
                 <div id="cardMediaContainer">
                     <video id="bgVideo" autoplay loop playsinline muted controls><source src="" type="video/mp4"></video>
@@ -626,7 +627,7 @@
                     console.log('No template_config on this card');
                 }
 
-                document.getElementById('displayCardId').textContent = card.card_id;
+                document.getElementById('displayCardId').textContent = 'Card ID: ' + card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
                 
