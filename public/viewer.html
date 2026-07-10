@@ -90,7 +90,7 @@
             .input-group { flex-direction: column; gap: 10px; }
             .card-input { font-size: 16px; padding: 14px; width: 100%; box-sizing: border-box; }
             .card-display { padding: 0; }
-            .card-header { flex-direction: column; gap: 12px; align-items: flex-start; padding-bottom: 12px; }
+            .card-header { flex-direction: column; gap: 12px; align-items: center; padding-bottom: 12px; }
             .card-meta { flex-wrap: wrap; gap: 8px; }
             .text-message { font-size: 22px; padding: 15px; margin: 15px 0; }
             .card-image, .card-video { max-height: 70vh; border-radius: 8px; }
@@ -481,7 +481,7 @@
         </div>
         <div class="error-message" id="errorMessage"><i class="fas fa-exclamation-triangle"></i><div id="errorText">Card not found or error loading content</div></div>
         <div class="card-display" id="cardDisplay">
-            <div class="card-header"><img src="logo.svg" alt="Papir" style="height:40px; flex-shrink:0;"><div class="card-id" id="displayCardId"></div><div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;"><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div></div>
+            <div class="card-header"><div style="flex:1; display:flex; align-items:center;"><img src="logo.svg" alt="Papir" style="height:55px;"></div><div class="card-id" id="displayCardId" style="flex:1; text-align:center;"></div><div style="flex:1; display:flex; gap:15px; align-items:center; justify-content:flex-end; flex-wrap:wrap;"><div class="card-meta"><div class="meta-item"><i class="fas fa-tag"></i> Type: <span id="displayCardType"></span></div><div class="meta-item"><i class="fas fa-calendar"></i> <span id="displayCardDate"></span></div></div><button class="close-btn" id="closeCardBtn"><i class="fas fa-times"></i> Close</button></div></div>
             <div class="card-content" id="cardContent">
                 <div id="cardMediaContainer">
                     <video id="bgVideo" autoplay loop playsinline muted controls><source src="" type="video/mp4"></video>
