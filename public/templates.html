@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Choose Your Design | Papir E-Cards</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
+        :root { --gold: #BCAE83; --teal: #06D6A0; --dark: #1a1a2e; --darker: #16213e; --light-text: #a0aec0; --white: #ffffff; --shadow: 0 20px 40px rgba(0, 0, 0, 0.1); --transition: all 0.3s ease; }
+        .header { background: var(--white); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05); position: fixed; width: 100%; top: 0; z-index: 1000; padding: 12px 0; }
+        .nav-container { max-width: none; margin: 0; padding: 0 30px 0 28px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; text-decoration: none; }
+        .logo-img { height: 55px; width: auto; display: block; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--gold); }
+
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; padding-top: 80px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
         header { text-align: center; margin-bottom: 50px; }
         h1 { font-size: 3rem; margin-bottom: 15px; background: linear-gradient(45deg, #FFD166, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -407,6 +416,8 @@
 
         /* ===== MOBILE ENHANCEMENTS ===== */
         @media (max-width: 768px) {
+            .header { position: relative; }
+            body { padding-top: 0; }
             h1 { font-size: 2rem; }
             .subtitle { font-size: 1rem; }
             .back-button { position: relative; top: auto; left: auto; margin-bottom: 15px; display: inline-flex; }
@@ -434,8 +445,22 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><img src="logo.svg" alt="Papir" class="logo-img"></a>
+            <nav class="nav-links">
+                <a href="templates.html">Templates</a>
+                <a href="index.html#process">How It Works</a>
+                <a href="index.html#features">What You Add</a>
+                <a href="index.html#use-cases">Uses</a>
+                <a href="#" id="myBatchesNav" style="color: var(--gold); cursor: pointer;"><i class="fas fa-folder-open"></i> My Cards</a>
+            </nav>
+        </div>
+    </header>
+
     <a href="index.html" class="back-button">
         <i class="fas fa-arrow-left"></i> Back
     </a>
