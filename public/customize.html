@@ -1835,6 +1835,8 @@
             isPreviewMode = !isPreviewMode;
             const btn = document.getElementById('previewBtn');
             const app = document.querySelector('.app-container');
+            const floatingBtn = document.getElementById('floatingToolsBtn');
+            const floatingLabel = document.getElementById('floatingToolsLabel');
             if (isPreviewMode) {
                 app.classList.add('preview-mode');
                 btn.classList.add('active');
@@ -1852,6 +1854,13 @@
                 });
                 canvas.selection = false;
                 canvas.renderAll();
+                // Floating tools button becomes exit button in landscape
+                if (floatingBtn) {
+                    floatingBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    floatingBtn.title = 'Exit Preview';
+                    floatingBtn.onclick = function() { togglePreview(); };
+                }
+                if (floatingLabel) floatingLabel.style.setProperty('display', 'none', 'important');
                 showNotification('Preview mode - tap Exit to return', 'info');
             } else {
                 app.classList.remove('preview-mode');
@@ -1865,6 +1874,13 @@
                     }
                 });
                 canvas.selection = true;
+                // Restore floating tools button
+                if (floatingBtn) {
+                    floatingBtn.innerHTML = '<i class="fas fa-tools"></i>';
+                    floatingBtn.title = 'Open Tools';
+                    floatingBtn.onclick = togglePanelOverlay;
+                }
+                if (floatingLabel) floatingLabel.style.setProperty('display', '', 'important');
                 if (isTouchDevice) {
                     setTimeout(() => { if (showHandles && !isPreviewMode) createMobileHandles(); }, 100);
                 }
@@ -3333,7 +3349,8 @@
                 try {
                     templateConfig = JSON.parse(saved);
                     if (templateConfig) {
-                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
+                        const templateNameEl = document.getElementById('templateName');
+                        if (templateNameEl) templateNameEl.textContent = templateConfig.name || 'Design';
                         document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                         if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
                             document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
