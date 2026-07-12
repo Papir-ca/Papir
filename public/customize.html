@@ -507,6 +507,12 @@
 .preview-mode #toggleHandlesBtn { display: none !important; }
 .preview-mode #toolbarUndoBtn { display: none !important; }
 .preview-mode #toolbarRedoBtn { display: none !important; }
+.preview-mode .floating-tools-btn { display: none !important; }
+.preview-mode .floating-tools-label { display: none !important; }
+/* Keep toolbar fully visible in preview on touch devices (no hover) */
+.preview-mode .canvas-toolbar { opacity: 1 !important; }
+.preview-mode .floating-tools-btn { display: none !important; }
+.preview-mode .floating-tools-label { display: none !important; }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -1853,6 +1859,14 @@
                 });
                 canvas.selection = false;
                 canvas.renderAll();
+                const floatingBtn = document.getElementById('floatingToolsBtn');
+                const floatingLabel = document.getElementById('floatingToolsLabel');
+                if (floatingBtn) floatingBtn.style.setProperty('display', 'none', 'important');
+                if (floatingLabel) floatingLabel.style.setProperty('display', 'none', 'important');
+                const floatingBtn = document.getElementById('floatingToolsBtn');
+                const floatingLabel = document.getElementById('floatingToolsLabel');
+                if (floatingBtn) floatingBtn.style.setProperty('display', 'none', 'important');
+                if (floatingLabel) floatingLabel.style.setProperty('display', 'none', 'important');
                 showNotification('Preview mode - tap Exit to return', 'info');
             } else {
                 app.classList.remove('preview-mode');
@@ -1867,6 +1881,14 @@
                     }
                 });
                 canvas.selection = true;
+                const floatingBtn2 = document.getElementById('floatingToolsBtn');
+                const floatingLabel2 = document.getElementById('floatingToolsLabel');
+                if (floatingBtn2) floatingBtn2.style.setProperty('display', '', 'important');
+                if (floatingLabel2) floatingLabel2.style.setProperty('display', '', 'important');
+                const floatingBtn2 = document.getElementById('floatingToolsBtn');
+                const floatingLabel2 = document.getElementById('floatingToolsLabel');
+                if (floatingBtn2) floatingBtn2.style.setProperty('display', '', 'important');
+                if (floatingLabel2) floatingLabel2.style.setProperty('display', '', 'important');
                 if (isTouchDevice) {
                     setTimeout(() => { if (showHandles && !isPreviewMode) createMobileHandles(); }, 100);
                 }
@@ -3336,7 +3358,8 @@
                 try {
                     templateConfig = JSON.parse(saved);
                     if (templateConfig) {
-                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
+                        const templateNameEl = document.getElementById('templateName');
+                        if (templateNameEl) templateNameEl.textContent = templateConfig.name || 'Design';
                         document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                         if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
                             document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
