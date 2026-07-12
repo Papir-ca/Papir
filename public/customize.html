@@ -24,7 +24,6 @@
         .canvas-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; flex-shrink: 0; }
         .canvas-controls { display: flex; gap: 10px; align-items: center; }
         .canvas-container { flex: 1; border-radius: 0 !important; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 0 !important; background: transparent !important; border: none !important; position: relative; min-height: 0; }
-#canvasContainer { display: flex !important; justify-content: center !important; align-items: center !important; }
         #designCanvas { width: 600px; height: 450px; max-width: 100%; display: block; background: transparent; }
         .properties-panel { width: 420px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; padding-bottom: 160px; overflow-y: auto; color: #1a1a2e; display: flex; flex-direction: column; min-height: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
@@ -151,8 +150,6 @@
             .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .mobile-context-menu, .ctx-backdrop { display: none !important; }
             #toggleHandlesBtn { display: none !important; }
-            #canvasContainer .canvas-container { flex: none !important; margin: 0 auto !important; }
-            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 600px !important; height: 450px !important; }
         }
 
         /* ===== TABLET PORTRAIT ===== */
@@ -162,12 +159,11 @@
             .design-layout { flex-direction: column !important; height: auto !important; min-height: auto !important; max-height: none !important; gap: 0 !important; flex: none !important; }
             .canvas-area { order: 1 !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: #f5f5f5 !important; position: sticky !important; top: 0 !important; z-index: 5 !important; border: none !important; border-bottom: 2px solid rgba(6, 214, 160, 0.3) !important; border-radius: 0 !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-shadow: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(6, 214, 160, 0.15); }
             .canvas-container { display: block !important; flex: none !important; height: auto !important; min-height: auto !important; max-height: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; overflow: hidden; line-height: 0; text-align: center; border: none !important; border-radius: 0 !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; }
-            #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; display: flex !important; justify-content: center !important; align-items: center !important; }
-            #canvasContainer .canvas-container { width: auto !important; max-width: 100% !important; height: auto !important; max-height: 55vh !important; margin: 0 auto !important; position: relative !important; flex: none !important; display: flex !important; justify-content: center !important; align-items: center !important; }
-            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; }
-            #designCanvas { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; aspect-ratio: 600 / 450 !important; }
+            #canvasContainer { max-height: 50vh; overflow: hidden; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            #canvasContainer .canvas-container { width: 100% !important; max-width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; max-height: 55vh !important; margin: 0 !important; position: relative !important; left: 0 !important; right: 0 !important; }
+            #designCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; aspect-ratio: 600 / 450 !important; min-width: 100% !important; }
             .canvas-toolbar { margin: 0 !important; padding: 4px 8px !important; font-size: 0.75rem; min-height: 32px; border-bottom: none !important; width: 100% !important; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.3; font-size: 0.68rem !important; max-width: 100%; display: block; }
+            .toolbar-hint { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.3; font-size: 0.68rem !important; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             #toggleHandlesBtn { display: inline-flex !important; background: rgba(6, 214, 160, 0.2) !important; border-color: var(--primary-teal) !important; min-width: 110px; font-size: 0.75rem; }
             .properties-panel { width: 100% !important; order: 3 !important; padding: 0 !important; margin: 0 !important; flex: none !important; height: auto !important; min-height: auto !important; display: block !important; position: relative; z-index: 2; }
@@ -205,10 +201,10 @@
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
             .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #f5f5f5 !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
-            #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: hidden !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
+            #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
-            #designCanvas { max-width: 100%; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
+            #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
 
             .properties-panel {
@@ -270,8 +266,8 @@
             .canvas-toolbar { margin-bottom: 6px !important; padding-bottom: 6px !important; flex-shrink: 0 !important; font-size: 0.75rem !important; }
             .canvas-container { flex: 1 !important; display: flex !important; justify-content: center !important; align-items: center !important; min-height: 0 !important; overflow: hidden !important; }
             #canvasContainer .canvas-container { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; position: relative !important; margin: 0 auto !important; }
-            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; position: absolute !important; }
-            #designCanvas { width: 100% !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; display: block !important; margin: 0 auto !important; aspect-ratio: 600 / 450 !important; }
+            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; left: 0 !important; top: 0 !important; position: absolute !important; }
+            #designCanvas { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; display: block !important; margin: 0 auto !important; }
             .properties-panel { position: fixed !important; top: 0 !important; right: 0 !important; width: 300px !important; height: 100vh !important; transform: translateX(100%) !important; transition: transform 0.25s ease !important; z-index: 100 !important; margin: 0 !important; border-radius: 0 !important; padding: 12px !important; padding-bottom: 12px !important; background: #ffffff !important; border-left: 1px solid #e2e8f0; overflow-y: auto !important; display: flex !important; flex-direction: column !important; }
             .properties-panel.open { transform: translateX(0) !important; }
             .properties-panel .tabs { display: flex !important; gap: 5px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; flex-shrink: 0 !important; }
@@ -329,10 +325,10 @@
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #f5f5f5; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
             .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; }
-            #designCanvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; display: block !important; margin: 0 auto !important; max-width: 100% !important; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; max-width: 100%; display: block; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
             .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
@@ -380,10 +376,10 @@
             .app-container { height: 100vh; padding: 10px; }
             .design-layout { flex-direction: row !important; height: calc(100vh - 140px) !important; gap: 12px !important; flex: 1 !important; }
             .canvas-area { flex: 1 !important; height: auto !important; padding: 12px !important; margin: 0 !important; background: #f5f5f5 !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; width: auto !important; max-width: none !important; position: relative !important; top: auto !important; z-index: auto !important; border-bottom: none !important; overflow: auto !important; }
-            #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: hidden !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
+            #canvasContainer { flex: 1 !important; height: auto !important; padding: 0 !important; overflow: auto !important; display: flex !important; justify-content: center !important; align-items: center !important; max-height: none; width: auto !important; margin: 0 !important; }
             #canvasContainer .canvas-container { width: 600px !important; height: 450px !important; max-width: 100% !important; flex: none !important; position: relative !important; margin: 0 auto !important; }
             #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; }
-            #designCanvas { max-width: 100%; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
+            #designCanvas { max-width: none; width: 600px; height: 450px; aspect-ratio: auto !important; display: block; margin: 0 auto; box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
             .canvas-toolbar { margin-bottom: 8px !important; padding-bottom: 8px !important; font-size: 0.85rem; min-height: auto; border-bottom: 1px solid rgba(255,255,255,0.1) !important; width: auto !important; }
             .properties-panel { width: 280px !important; flex: none !important; height: 100% !important; max-height: 100% !important; overflow-y: auto !important; padding: 15px !important; padding-bottom: 20px !important; margin: 0 !important; display: flex !important; flex-direction: column !important; position: relative; z-index: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; }
             .properties-panel .checkout-section { margin-top: auto !important; position: sticky; bottom: 0; background: rgba(26,26,46,0.95); backdrop-filter: blur(4px); padding: 10px; border-radius: 12px; border: 2px solid var(--primary-teal); }
@@ -410,8 +406,6 @@
             #resetDesignBtn { position: static; padding: 6px 16px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; opacity: 1; }
             .desktop-lock-btn { display: flex !important; }
             #toggleHandlesBtn { display: none !important; }
-            #canvasContainer .canvas-container { flex: none !important; margin: 0 auto !important; }
-            #canvasContainer .canvas-container .upper-canvas, #canvasContainer .canvas-container .lower-canvas { width: 600px !important; height: 450px !important; }
         }
 
         @media (min-width: 769px) and (pointer: coarse) {
@@ -444,10 +438,10 @@
             .design-layout { flex-direction: column; height: auto; gap: 0; }
             .canvas-area { order: 1; flex: none; height: auto; padding: 0; margin: 0; background: #f5f5f5; position: sticky; top: 0; z-index: 5; border-bottom: 2px solid rgba(6, 214, 160, 0.3); border-radius: 0; width: 100%; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
             .canvas-container { flex: none; height: auto; min-height: 180px; padding: 0; margin: 0; background: transparent; overflow: hidden; line-height: 0; text-align: center; border: none; border-radius: 0; width: 100%; position: relative; }
-            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; }
-            #designCanvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450 !important; display: block !important; margin: 0 auto !important; max-width: 100% !important; }
+            .canvas-container .upper-canvas, .canvas-container .lower-canvas { width: 100% !important; height: auto !important; aspect-ratio: 600 / 450; }
+            #designCanvas { width: 100%; height: auto; aspect-ratio: 600 / 450; display: block; margin: 0 auto; max-width: 100%; }
             .canvas-toolbar { margin: 0; padding: 4px 8px; font-size: 0.75rem; min-height: 32px; border-bottom: none; width: 100%; box-sizing: border-box; }
-            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; }
+            .toolbar-hint { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; font-size: 0.68rem; max-width: 100%; display: block; }
             .canvas-controls .btn-icon.small { padding: 2px 4px; min-height: 24px; font-size: 0.7rem; }
             .properties-panel { width: 100%; order: 3; padding: 0; margin: 0; flex: none; height: auto; display: block; position: relative; z-index: 2; }
             .properties-panel .tab-content { padding: 0 8px 20px 8px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: block; }
@@ -490,9 +484,6 @@
             .desktop-lock-btn { display: none !important; }
         
             #canvasContainer { border-radius: 0 !important; }
-            .preview-mode .canvas-area { width: 100% !important; position: relative !important; top: auto !important; flex: none !important; }
-            .preview-mode .canvas-container { width: 100% !important; display: flex !important; justify-content: center !important; align-items: center !important; }
-            .preview-mode #designCanvas { width: 100% !important; height: auto !important; margin: 0 auto !important; display: block !important; max-width: 100% !important; aspect-ratio: 600 / 450 !important; }
 }
 
         @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
@@ -509,7 +500,6 @@
 .preview-mode .canvas-area { flex: 0 0 auto !important; width: auto !important; height: auto !important; min-height: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; position: relative !important; top: auto !important; z-index: auto !important; }
 .preview-mode .canvas-container { flex: 0 0 auto !important; min-height: 0 !important; }
 .preview-mode #canvasContainer { display: flex !important; justify-content: center !important; align-items: center !important; }
-.preview-mode #designCanvas { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100vh !important; display: block !important; margin: 0 auto !important; }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -1584,8 +1574,7 @@
                 if (data.backgroundColor) { canvas.backgroundColor = data.backgroundColor; canvas.renderAll(); }
                 if (data.templateConfig) {
                     templateConfig = data.templateConfig;
-                    const templateNameEl = document.getElementById('templateName');
-                        if (templateNameEl) templateNameEl.textContent = templateConfig.name || 'Design';
+                    document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                     document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                 }
                 if (data.hasMedia) {
@@ -1679,7 +1668,31 @@
         }
 
         function autoResizeCanvas() {
-            // CSS handles all canvas sizing — no inline styles needed
+            const isPhoneLandscape = window.innerWidth <= 896 && window.innerHeight < window.innerWidth;
+            if (!isPhoneLandscape) return;
+            const container = document.getElementById('canvasContainer');
+            if (!container) return;
+            const toolbar = document.querySelector('.canvas-toolbar');
+            const toolbarH = toolbar ? toolbar.offsetHeight + 12 : 48;
+            const rect = container.getBoundingClientRect();
+            const availW = rect.width - 16;
+            const availH = rect.height - 16;
+            const aspect = 600 / 450;
+            let w = availW;
+            let h = w / aspect;
+            if (h > availH) {
+                h = availH;
+                w = h * aspect;
+            }
+            w = Math.round(w);
+            h = Math.round(h);
+            const canvasEl = document.getElementById('designCanvas');
+            canvasEl.style.width = w + 'px';
+            canvasEl.style.height = h + 'px';
+            const upper = container.querySelector('.upper-canvas');
+            const lower = container.querySelector('.lower-canvas');
+            if (upper) { upper.style.width = w + 'px'; upper.style.height = h + 'px'; }
+            if (lower) { lower.style.width = w + 'px'; lower.style.height = h + 'px'; }
         }
 
         function togglePanelOverlay() {
@@ -1824,7 +1837,7 @@
                 showNoSelection();
                 clearMobileHandles();
                 canvas.renderAll();
-                showNotification('Preview mode - tap Exit to return', 'info');
+                showNotification('Preview mode - tap canvas to exit', 'info');
             } else {
                 app.classList.remove('preview-mode');
                 btn.classList.remove('active');
@@ -2516,11 +2529,12 @@
                 });
             }
 
-            window.addEventListener('resize', () => { handleResize(); });
+            window.addEventListener('resize', () => { handleResize(); autoResizeCanvas(); });
             window.addEventListener('orientationchange', () => {
                 setTimeout(() => {
                     applyMobileSpacingFix();
                     handleResize();
+                    autoResizeCanvas();
                     if (!isPreviewMode && showHandles && isTouchDevice) {
                         setTimeout(() => {
                             canvas.calcOffset();
@@ -2530,6 +2544,7 @@
                 }, 300);
             });
             handleResize();
+            autoResizeCanvas();
             // Collapse all accordion tabs by default on mobile
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(header => {
@@ -2617,8 +2632,10 @@
                     canvas.calcOffset();
                     createMobileHandles();
                 }, 250);
-            } else if (!showHandles || isPreviewMode) {
-                clearMobileHandles();
+            } else {
+                if (!showHandles || isPreviewMode) {
+                    clearMobileHandles();
+                }
             }
         }
 
@@ -3228,7 +3245,30 @@
         //  CANVAS RESIZE (unchanged)
         // ================================================================
         function adjustCanvasForMobile() {
-            // CSS handles all canvas sizing — no inline styles needed
+            if (!isMobileLayout()) return;
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && window.innerHeight < 600) return;
+            const canvasEl = document.getElementById('designCanvas');
+            const container = document.getElementById('canvasContainer');
+            if (!canvasEl || !container) return;
+            const containerWidth = container.clientWidth;
+            const scale = containerWidth / 600;
+            const newHeight = Math.round(450 * scale);
+            canvasEl.style.width = containerWidth + 'px';
+            canvasEl.style.height = newHeight + 'px';
+            const wrapper = canvasEl.parentElement;
+            if (wrapper && wrapper.classList.contains('canvas-container')) {
+                wrapper.style.width = containerWidth + 'px';
+                wrapper.style.height = newHeight + 'px';
+            }
+            const upperCanvas = container.querySelector('.upper-canvas');
+            if (upperCanvas) {
+                upperCanvas.style.width = containerWidth + 'px';
+                upperCanvas.style.height = newHeight + 'px';
+            }
+            if (showHandles && !isPreviewMode && isTouchDevice) {
+                setTimeout(updateMobileHandlePositions, 50);
+            }
         }
 
         function handleMobileResize() {
@@ -3239,6 +3279,7 @@
         //  EXTRA RESIZE LISTENER FOR SAFETY
         // ================================================================
         window.addEventListener('resize', function() {
+            autoResizeCanvas();
             if (!isPreviewMode && showHandles && isTouchDevice) {
                 clearTimeout(window._handleTimeout);
                 window._handleTimeout = setTimeout(createMobileHandles, 250);
@@ -3260,8 +3301,7 @@
                 try {
                     templateConfig = JSON.parse(saved);
                     if (templateConfig) {
-                        const templateNameEl = document.getElementById('templateName');
-                        if (templateNameEl) templateNameEl.textContent = templateConfig.name || 'Design';
+                        document.getElementById('templateName').textContent = templateConfig.name || 'Design';
                         document.getElementById('designName').textContent = templateConfig.name || 'Custom Card';
                         if (templateConfig.isBatchMode || urlParams.get('mode') === 'batch') {
                             document.getElementById('qtyInput').value = templateConfig.batchSize || 2;
@@ -3311,14 +3351,17 @@
             checkForSavedProgress();
             startAutoSave();
             window.addEventListener('resize', handleMobileResize);
+            window.addEventListener('resize', () => { adjustCanvasForMobile(); canvas.calcOffset(); });
             setTimeout(showFirstRunHint, 1000);
             console.log('init() completed successfully');
+            adjustCanvasForMobile();
             updateMediaControls();
+            // Delayed recalculation ensures consistent canvas sizing after DOM/CSS fully loads
             setTimeout(() => {
+                adjustCanvasForMobile();
                 canvas.calcOffset();
-                handleResize();
                 if (showHandles && !isPreviewMode && isTouchDevice) createMobileHandles();
-            }, 300);
+            }, 200);
         }
 
         document.body.addEventListener('touchmove', function(e) {
