@@ -150,6 +150,7 @@
             .mobile-accordion-container, .mobile-accordion-header, .mobile-lock-toggle { display: none !important; }
             .mobile-context-menu, .ctx-backdrop { display: none !important; }
             #toggleHandlesBtn { display: none !important; }
+            #canvasContainer .canvas-container { flex: none !important; margin: 0 auto !important; }
         }
 
         /* ===== TABLET PORTRAIT ===== */
@@ -406,6 +407,7 @@
             #resetDesignBtn { position: static; padding: 6px 16px !important; font-size: 0.75rem !important; background: rgba(255, 107, 107, 0.2) !important; border: 1px solid var(--danger) !important; color: #ff6b6b !important; opacity: 1; }
             .desktop-lock-btn { display: flex !important; }
             #toggleHandlesBtn { display: none !important; }
+            #canvasContainer .canvas-container { flex: none !important; margin: 0 auto !important; }
         }
 
         @media (min-width: 769px) and (pointer: coarse) {
@@ -499,7 +501,12 @@
 .preview-mode .design-layout { height: 100vh !important; justify-content: center !important; align-items: center !important; flex: none !important; }
 .preview-mode .canvas-area { flex: 0 0 auto !important; width: auto !important; height: auto !important; min-height: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; position: relative !important; top: auto !important; z-index: auto !important; }
 .preview-mode .canvas-container { flex: 0 0 auto !important; min-height: 0 !important; }
-.preview-mode #canvasContainer { display: flex !important; justify-content: center !important; align-items: center !important; }
+.preview-mode .canvas-toolbar { opacity: 0.3; }
+.preview-mode .canvas-toolbar:hover { opacity: 1; }
+.preview-mode .toolbar-hint { display: none !important; }
+.preview-mode #toggleHandlesBtn { display: none !important; }
+.preview-mode #toolbarUndoBtn { display: none !important; }
+.preview-mode #toolbarRedoBtn { display: none !important; }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -1836,12 +1843,30 @@
                 selectedObject = null;
                 showNoSelection();
                 clearMobileHandles();
+                // Lock all objects so they can't be moved or edited in preview
+                canvas.getObjects().forEach(obj => {
+                    if (!obj.isBackground && !obj.isTexture) {
+                        obj._previewWasSelectable = obj.selectable;
+                        obj._previewWasEvented = obj.evented;
+                        obj.set({ selectable: false, evented: false });
+                    }
+                });
+                canvas.selection = false;
                 canvas.renderAll();
-                showNotification('Preview mode - tap canvas to exit', 'info');
+                showNotification('Preview mode - tap Exit to return', 'info');
             } else {
                 app.classList.remove('preview-mode');
                 btn.classList.remove('active');
                 btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+                // Restore object interactivity
+                canvas.getObjects().forEach(obj => {
+                    if (!obj.isBackground && !obj.isTexture && obj._previewWasSelectable !== undefined) {
+                        obj.set({ selectable: obj._previewWasSelectable, evented: obj._previewWasEvented });
+                        delete obj._previewWasSelectable;
+                        delete obj._previewWasEvented;
+                    }
+                });
+                canvas.selection = true;
                 if (isTouchDevice) {
                     setTimeout(() => { if (showHandles && !isPreviewMode) createMobileHandles(); }, 100);
                 }
@@ -2535,6 +2560,16 @@
                     applyMobileSpacingFix();
                     handleResize();
                     autoResizeCanvas();
+                    // Collapse all accordion sections when switching to portrait
+                    if (isMobileLayout()) {
+                        document.querySelectorAll('.mobile-accordion-header').forEach(header => {
+                            header.classList.remove('active');
+                            const chevron = header.querySelector('.accordion-chevron');
+                            if (chevron) chevron.style.transform = 'rotate(0deg)';
+                            const content = document.getElementById(header.dataset.target);
+                            if (content) content.style.display = 'none';
+                        });
+                    }
                     if (!isPreviewMode && showHandles && isTouchDevice) {
                         setTimeout(() => {
                             canvas.calcOffset();
