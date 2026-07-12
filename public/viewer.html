@@ -435,6 +435,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -576,9 +577,16 @@
                         const tc = JSON.parse(card.template_config);
                         console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
-                            cardMediaContainer.style.backgroundImage = `url("${tc.config.textureSvg}")`;
-                            cardMediaContainer.style.backgroundRepeat = 'repeat';
-                            cardMediaContainer.style.backgroundSize = 'auto';
+                            const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
+                            if (oldOverlay) oldOverlay.remove();
+                            const overlay = document.createElement('div');
+                            overlay.className = 'card-texture-overlay';
+                            overlay.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
+                            const img = document.createElement('img');
+                            img.src = tc.config.textureSvg;
+                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                            overlay.appendChild(img);
+                            cardMediaContainer.insertBefore(overlay, cardMediaContainer.firstChild);
                             cardMediaContainer.style.backgroundColor = 'transparent';
                             console.log('Texture applied successfully');
                         } else { console.log('No textureSvg found in template config'); }
