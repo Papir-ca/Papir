@@ -572,7 +572,9 @@
                     toggleIcon.className = 'fas fa-chevron-down';
                 }
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
-                // --- OLD WORKING TEXTURE LOGIC ---
+                // Remove any existing overlay
+                const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
+                if (oldOverlay) oldOverlay.remove();
                 if (cardMediaContainer && card.template_config) {
                     try {
                         let tc;
@@ -583,14 +585,13 @@
                         }
                         console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
-                            // Remove any existing overlay
-                            const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
-                            if (oldOverlay) oldOverlay.remove();
+                            // DECODE the URI-encoded SVG
+                            const decoded = decodeURIComponent(tc.config.textureSvg);
                             const overlayEl = document.createElement('div');
                             overlayEl.className = 'card-texture-overlay';
                             overlayEl.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
                             const img = document.createElement('img');
-                            img.src = tc.config.textureSvg; // already a valid data: URI
+                            img.src = decoded;
                             img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
                             overlayEl.appendChild(img);
                             cardMediaContainer.insertBefore(overlayEl, cardMediaContainer.firstChild);
@@ -601,7 +602,6 @@
                         } else { console.log('No textureSvg or backgroundColor found in template config'); }
                     } catch (e) { console.error('Error applying template texture:', e); }
                 } else { console.log('No template_config on this card'); }
-                // --- END OLD WORKING TEXTURE LOGIC ---
                 document.getElementById('displayCardId').textContent = 'Card ID: ' + card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);

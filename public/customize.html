@@ -100,7 +100,6 @@
         .preview-mode .canvas-area { flex: 1 !important; }
         .preview-mode .canvas-toolbar { opacity: 0.3; }
         .preview-mode .canvas-toolbar:hover { opacity: 1; }
-        /* NEW: hide toolbar hint in preview */
         .preview-mode .toolbar-hint { display: none !important; }
         .done-btn { background: var(--primary-teal); color: #ffffff; font-weight: 700; border-color: var(--primary-teal); }
         .done-btn:hover { background: #05b386; }
@@ -488,36 +487,30 @@
             .desktop-lock-btn { display: none !important; }
         
             #canvasContainer { border-radius: 0 !important; }
-}
+        }
 
         @media (min-width: 769px) and (max-width: 1024px) and (pointer: coarse) {
             #designCanvas { width: 500px; height: 375px; }
         }
     
-/* Canvas frame for white-template visibility */
-#canvasContainer { background: #ffffff !important; border: 2px solid #d1d5db !important; border-radius: 8px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; }
-#designCanvas { box-shadow: inset 0 0 0 1px #e2e8f0; border-radius: 4px; }
-/* Preview mode: center canvas like final card */
-.preview-mode .design-header { display: none !important; }
-.preview-mode .app-container { justify-content: center !important; align-items: center !important; padding: 0 !important; }
-.preview-mode .design-layout { height: 100vh !important; justify-content: center !important; align-items: center !important; flex: none !important; }
-.preview-mode .canvas-area { flex: 0 0 auto !important; width: auto !important; height: auto !important; min-height: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; position: relative !important; top: auto !important; z-index: auto !important; }
-.preview-mode .canvas-container { flex: 0 0 auto !important; min-height: 0 !important; }
-.preview-mode .canvas-toolbar { opacity: 0.3; }
-.preview-mode .canvas-toolbar:hover { opacity: 1; }
-/* NEW: hide hint in preview */
-.preview-mode .toolbar-hint { display: none !important; }
-.preview-mode #toggleHandlesBtn { display: none !important; }
-.preview-mode #toolbarUndoBtn { display: none !important; }
-.preview-mode #toolbarRedoBtn { display: none !important; }
-</style>
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
+        /* Canvas frame for white-template visibility */
+        #canvasContainer { background: #ffffff !important; border: 2px solid #d1d5db !important; border-radius: 8px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; }
+        #designCanvas { box-shadow: inset 0 0 0 1px #e2e8f0; border-radius: 4px; }
+        .preview-mode .design-header { display: none !important; }
+        .preview-mode .app-container { justify-content: center !important; align-items: center !important; padding: 0 !important; }
+        .preview-mode .design-layout { height: 100vh !important; justify-content: center !important; align-items: center !important; flex: none !important; }
+        .preview-mode .canvas-area { flex: 0 0 auto !important; width: auto !important; height: auto !important; min-height: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; position: relative !important; top: auto !important; z-index: auto !important; }
+        .preview-mode .canvas-container { flex: 0 0 auto !important; min-height: 0 !important; }
+        .preview-mode .canvas-toolbar { opacity: 0.3; }
+        .preview-mode .canvas-toolbar:hover { opacity: 1; }
+        .preview-mode .toolbar-hint { display: none !important; }
+        .preview-mode #toggleHandlesBtn { display: none !important; }
+        .preview-mode #toolbarUndoBtn { display: none !important; }
+        .preview-mode #toolbarRedoBtn { display: none !important; }
+    </style>
+    <base target="_blank">
 </head>
 <body>
-    <!-- ===== HTML – unchanged from older, with new UI elements added ===== -->
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
@@ -561,7 +554,6 @@
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
                 <div class="tab-content active" id="designTab">
-                    <!-- All property sections with h4 and .section-content – unchanged -->
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background &amp; Media</h4>
                         <div class="section-content">
@@ -760,9 +752,6 @@
     </div>
 
     <script>
-        // ================================================================
-        //  FABRIC CANVAS SETUP – unchanged from older working code
-        // ================================================================
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -804,9 +793,6 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         });
 
-        // ================================================================
-        //  STATE – unchanged
-        // ================================================================
         let selectedObject = null;
         let templateConfig = null;
         let showHandles = true;
@@ -836,9 +822,6 @@
             console.log('[' + (type || 'info') + '] ' + message);
         }
 
-        // ================================================================
-        //  SAVE / LOAD / UNDO / REDO – unchanged
-        // ================================================================
         function saveState() {
             const json = JSON.stringify(canvas.toJSON(['isVideo','videoBlobUrl','videoType','isAudio','audioBlobUrl','audioType','isTexture','isParticle']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
@@ -955,14 +938,10 @@
             };
         }
 
-        // ================================================================
-        //  TEMPLATE LOADING – unchanged from older working code
-        // ================================================================
         async function loadTemplateDesign() {
             if (!templateConfig || !templateConfig.config) { console.warn('No template config available'); return; }
             const config = templateConfig.config;
             canvas.clear();
-            // OLD WORKING LOGIC: set background color first
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
             if (config.defaultFont && document.fonts) {
@@ -1036,21 +1015,20 @@
             canvas.add(textObj);
         }
 
-        // ================================================================
-        //  TEMPLATE TEXTURE – EXACT OLDER WORKING LOGIC (UNCHANGED)
-        // ================================================================
         function applyTemplateTexture(canvas) {
             try {
                 const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
                 const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
                 if (!textureSvg) { console.log('No texture SVG found'); return; }
+                // DECODE the URI-encoded string
+                const decoded = decodeURIComponent(textureSvg);
                 const oldSvg = document.getElementById('templateSvgBg');
                 if (oldSvg) oldSvg.remove();
                 const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
                 existing.forEach(o => canvas.remove(o));
                 const canvasEl = document.getElementById('designCanvas');
                 if (canvasEl) {
-                    canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
+                    canvasEl.style.backgroundImage = 'url("' + decoded + '")';
                     canvasEl.style.backgroundRepeat = 'repeat';
                     canvasEl.style.backgroundSize = 'auto';
                     canvasEl.style.backgroundColor = 'transparent';
@@ -1072,9 +1050,6 @@
             canvas.renderAll();
         }
 
-        // ================================================================
-        //  LAYERS – unchanged
-        // ================================================================
         function updateLayerList() {
             const list = document.getElementById('layerList');
             if (!list) return;
@@ -1208,9 +1183,6 @@
             closeLayerEditModal();
         }
 
-        // ================================================================
-        //  LOCK / UNLOCK – unchanged
-        // ================================================================
         function toggleObjectLock(obj) {
             if (!obj || obj.isBackground || obj.isTexture) return;
             if (obj._userLocked) {
@@ -1260,9 +1232,6 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
-        // ================================================================
-        //  MEDIA CONTROLS – new (from newer code)
-        // ================================================================
         function updateMediaControls() {
             const hasVideo = canvas.getObjects().some(obj => obj.isVideo && obj.videoElement);
             const hasAudio = canvas.getObjects().some(obj => obj.isAudio && obj.audioElement);
@@ -1329,9 +1298,6 @@
             updateMediaControls();
         }
 
-        // ================================================================
-        //  CHECKOUT / UPLOAD – unchanged from older
-        // ================================================================
         function updateCheckoutDisplay() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const total = (qty * 2.99).toFixed(2);
@@ -1519,9 +1485,6 @@
             }
         }
 
-        // ================================================================
-        //  SAVE / LOAD PROGRESS – new (from newer code)
-        // ================================================================
         function checkForSavedProgress() {
             const saved = localStorage.getItem('papirDesignAutosave');
             if (saved) {
@@ -1608,9 +1571,6 @@
             }, 300000);
         }
 
-        // ================================================================
-        //  RESET – unchanged
-        // ================================================================
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
                 canvas.getObjects().forEach(obj => {
@@ -1634,9 +1594,6 @@
             }
         }
 
-        // ================================================================
-        //  CONTROLS – unchanged
-        // ================================================================
         function updateControls() {
             if (!selectedObject) return;
             const rotSlider = document.getElementById('rotation');
@@ -1835,9 +1792,6 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
-        // ================================================================
-        //  PREVIEW TOGGLE – updated to hide toolbar hint
-        // ================================================================
         function togglePreview() {
             isPreviewMode = !isPreviewMode;
             const btn = document.getElementById('previewBtn');
@@ -1861,7 +1815,6 @@
                 });
                 canvas.selection = false;
                 canvas.renderAll();
-                // Floating tools button becomes exit button in landscape
                 if (floatingBtn) {
                     floatingBtn.innerHTML = '<i class="fas fa-times"></i>';
                     floatingBtn.title = 'Exit Preview';
@@ -1881,7 +1834,6 @@
                     }
                 });
                 canvas.selection = true;
-                // Restore floating tools button
                 if (floatingBtn) {
                     floatingBtn.innerHTML = '<i class="fas fa-tools"></i>';
                     floatingBtn.title = 'Open Tools';
@@ -1904,9 +1856,6 @@
             }
         }
 
-        // ================================================================
-        //  MOBILE HANDLES – from newer code
-        // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
             const canvasRect = canvasEl.getBoundingClientRect();
@@ -2140,9 +2089,6 @@
             });
         }
 
-        // ================================================================
-        //  MOBILE CONTEXT MENU – from newer code
-        // ================================================================
         function showMobileContextMenu(x, y) {
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
@@ -2279,9 +2225,6 @@
             });
         }
 
-        // ================================================================
-        //  MOBILE UI / ACCORDION – from newer code
-        // ================================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
             const canvasArea = document.querySelector('.canvas-area');
@@ -2601,9 +2544,6 @@
             }
         }
 
-        // ================================================================
-        //  HANDLE RESIZE – unchanged (but includes new features)
-        // ================================================================
         function handleResize() {
             applyMobileSpacingFix();
             const isMobile = isMobileLayout();
@@ -2680,9 +2620,6 @@
             }
         }
 
-        // ================================================================
-        //  SELECTION HANDLING – unchanged
-        // ================================================================
         function handleSelection(e) {
             const sel = e.selected;
             if (sel.length === 1) {
@@ -2713,9 +2650,6 @@
             }
         }
 
-        // ================================================================
-        //  KEYBOARD – unchanged
-        // ================================================================
         function handleKeyboard(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
             if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) return;
@@ -2754,9 +2688,6 @@
             }
         }
 
-        // ================================================================
-        //  SETUP EVENT LISTENERS – unchanged but includes new buttons
-        // ================================================================
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
@@ -2920,9 +2851,6 @@
             }, { passive: false });
         }
 
-        // ================================================================
-        //  MEDIA UPLOAD HANDLERS – unchanged from older
-        // ================================================================
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -3048,9 +2976,6 @@
             reader.readAsDataURL(file);
         }
 
-        // ================================================================
-        //  SETUP CONTROLS – unchanged
-        // ================================================================
         function setupBackgroundOptions() {
             document.getElementById('bgColorPicker').addEventListener('input', function() {
                 document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
@@ -3227,9 +3152,6 @@
             });
         }
 
-        // ================================================================
-        //  SCROLL DETECTION – unchanged
-        // ================================================================
         document.addEventListener('touchstart', function(e) {
             touchStartTarget = e.target;
             const touch = e.touches[0];
@@ -3263,9 +3185,6 @@
             scrollTimer = setTimeout(() => { isScrolling = false; }, 300);
         }, { passive: true });
 
-        // ================================================================
-        //  HINT – unchanged
-        // ================================================================
         function showFirstRunHint() {
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
@@ -3281,9 +3200,6 @@
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
-        // ================================================================
-        //  CANVAS RESIZE – unchanged
-        // ================================================================
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
             const isLandscape = window.innerWidth > window.innerHeight;
@@ -3315,9 +3231,6 @@
             // handled by handleResize
         }
 
-        // ================================================================
-        //  EXTRA RESIZE LISTENER – unchanged
-        // ================================================================
         window.addEventListener('resize', function() {
             autoResizeCanvas();
             if (!isPreviewMode && showHandles && isTouchDevice) {
@@ -3326,9 +3239,6 @@
             }
         });
 
-        // ================================================================
-        //  INIT – unchanged
-        // ================================================================
         async function init() {
             if (document.fonts) {
                 try { await document.fonts.ready; } catch (e) {}
