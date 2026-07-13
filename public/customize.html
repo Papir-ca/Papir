@@ -100,6 +100,8 @@
         .preview-mode .canvas-area { flex: 1 !important; }
         .preview-mode .canvas-toolbar { opacity: 0.3; }
         .preview-mode .canvas-toolbar:hover { opacity: 1; }
+        /* NEW: hide toolbar hint in preview */
+        .preview-mode .toolbar-hint { display: none !important; }
         .done-btn { background: var(--primary-teal); color: #ffffff; font-weight: 700; border-color: var(--primary-teal); }
         .done-btn:hover { background: #05b386; }
         .hint-bubble { position: fixed; background: var(--primary-gold); color: #1a1a2e; padding: 10px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: hintPulse 2s infinite; pointer-events: none; display: none; }
@@ -503,6 +505,7 @@
 .preview-mode .canvas-container { flex: 0 0 auto !important; min-height: 0 !important; }
 .preview-mode .canvas-toolbar { opacity: 0.3; }
 .preview-mode .canvas-toolbar:hover { opacity: 1; }
+/* NEW: hide hint in preview */
 .preview-mode .toolbar-hint { display: none !important; }
 .preview-mode #toggleHandlesBtn { display: none !important; }
 .preview-mode #toolbarUndoBtn { display: none !important; }
@@ -514,7 +517,7 @@
 <base target="_blank">
 </head>
 <body>
-    <!-- ===== HTML – unchanged ===== -->
+    <!-- ===== HTML – unchanged from older, with new UI elements added ===== -->
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
@@ -758,7 +761,7 @@
 
     <script>
         // ================================================================
-        //  FABRIC CANVAS SETUP
+        //  FABRIC CANVAS SETUP – unchanged from older working code
         // ================================================================
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
@@ -802,7 +805,7 @@
         });
 
         // ================================================================
-        //  STATE
+        //  STATE – unchanged
         // ================================================================
         let selectedObject = null;
         let templateConfig = null;
@@ -834,7 +837,7 @@
         }
 
         // ================================================================
-        //  SAVE / LOAD / UNDO / REDO
+        //  SAVE / LOAD / UNDO / REDO – unchanged
         // ================================================================
         function saveState() {
             const json = JSON.stringify(canvas.toJSON(['isVideo','videoBlobUrl','videoType','isAudio','audioBlobUrl','audioType','isTexture','isParticle']));
@@ -953,18 +956,14 @@
         }
 
         // ================================================================
-        //  TEMPLATE LOADING – FIXED
+        //  TEMPLATE LOADING – unchanged from older working code
         // ================================================================
         async function loadTemplateDesign() {
             if (!templateConfig || !templateConfig.config) { console.warn('No template config available'); return; }
             const config = templateConfig.config;
             canvas.clear();
-            // 🔥 If texture exists, set canvas background to transparent, else use config backgroundColor
-            if (config.textureSvg) {
-                canvas.backgroundColor = 'transparent';
-            } else {
-                canvas.backgroundColor = config.backgroundColor || '#ffffff';
-            }
+            // OLD WORKING LOGIC: set background color first
+            canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
@@ -1038,7 +1037,7 @@
         }
 
         // ================================================================
-        //  TEMPLATE TEXTURE – EXACT OLDER WORKING LOGIC
+        //  TEMPLATE TEXTURE – EXACT OLDER WORKING LOGIC (UNCHANGED)
         // ================================================================
         function applyTemplateTexture(canvas) {
             try {
@@ -1074,7 +1073,7 @@
         }
 
         // ================================================================
-        //  LAYERS
+        //  LAYERS – unchanged
         // ================================================================
         function updateLayerList() {
             const list = document.getElementById('layerList');
@@ -1210,7 +1209,7 @@
         }
 
         // ================================================================
-        //  LOCK / UNLOCK
+        //  LOCK / UNLOCK – unchanged
         // ================================================================
         function toggleObjectLock(obj) {
             if (!obj || obj.isBackground || obj.isTexture) return;
@@ -1262,7 +1261,7 @@
         }
 
         // ================================================================
-        //  MEDIA CONTROLS
+        //  MEDIA CONTROLS – new (from newer code)
         // ================================================================
         function updateMediaControls() {
             const hasVideo = canvas.getObjects().some(obj => obj.isVideo && obj.videoElement);
@@ -1331,7 +1330,7 @@
         }
 
         // ================================================================
-        //  CHECKOUT / UPLOAD
+        //  CHECKOUT / UPLOAD – unchanged from older
         // ================================================================
         function updateCheckoutDisplay() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
@@ -1521,7 +1520,7 @@
         }
 
         // ================================================================
-        //  SAVE / LOAD PROGRESS
+        //  SAVE / LOAD PROGRESS – new (from newer code)
         // ================================================================
         function checkForSavedProgress() {
             const saved = localStorage.getItem('papirDesignAutosave');
@@ -1610,7 +1609,7 @@
         }
 
         // ================================================================
-        //  RESET
+        //  RESET – unchanged
         // ================================================================
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
@@ -1636,7 +1635,7 @@
         }
 
         // ================================================================
-        //  CONTROLS
+        //  CONTROLS – unchanged
         // ================================================================
         function updateControls() {
             if (!selectedObject) return;
@@ -1836,6 +1835,9 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
+        // ================================================================
+        //  PREVIEW TOGGLE – updated to hide toolbar hint
+        // ================================================================
         function togglePreview() {
             isPreviewMode = !isPreviewMode;
             const btn = document.getElementById('previewBtn');
@@ -1903,7 +1905,7 @@
         }
 
         // ================================================================
-        //  MOBILE HANDLES – PERSISTENT
+        //  MOBILE HANDLES – from newer code
         // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
@@ -1951,7 +1953,6 @@
                 clearMobileHandles();
                 return;
             }
-            // Always rebuild
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -1985,7 +1986,6 @@
                 rotHandle.style.left = rotPos.left + 'px';
                 rotHandle.style.top = rotPos.top + 'px';
 
-                // Touch listeners (same as before)
                 let rotStartAngle = 0, rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -2141,7 +2141,7 @@
         }
 
         // ================================================================
-        //  MOBILE CONTEXT MENU
+        //  MOBILE CONTEXT MENU – from newer code
         // ================================================================
         function showMobileContextMenu(x, y) {
             const menu = document.getElementById('mobileContextMenu');
@@ -2280,7 +2280,7 @@
         }
 
         // ================================================================
-        //  MOBILE UI / ACCORDION – with localStorage persistence for sections
+        //  MOBILE UI / ACCORDION – from newer code
         // ================================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
@@ -2332,7 +2332,6 @@
             }
         }
 
-        // Save section state to localStorage
         function saveSectionState() {
             const state = {};
             document.querySelectorAll('.property-section').forEach(section => {
@@ -2363,7 +2362,6 @@
                         }
                     });
                 } else if (!isMobileLayout()) {
-                    // Desktop: expand all sections by default
                     document.querySelectorAll('.property-section').forEach(section => {
                         section.classList.remove('collapsed');
                         const id = section.dataset.sectionId;
@@ -2374,7 +2372,6 @@
         }
 
         function setupMobileUI() {
-            // Property sections: wrap content, add arrow toggle with max-2-expanded logic and localStorage
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2393,9 +2390,8 @@
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
 
-                // Set initial state from localStorage or default collapsed on mobile
                 const savedState = localStorage.getItem('papirSectionState');
-                let initialState = true; // default collapsed on mobile
+                let initialState = true;
                 if (savedState) {
                     try {
                         const state = JSON.parse(savedState);
@@ -2404,7 +2400,6 @@
                         }
                     } catch (e) {}
                 } else {
-                    // if no saved state, default collapsed on mobile
                     initialState = isMobileLayout();
                 }
                 if (initialState) {
@@ -2435,7 +2430,6 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
-                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
@@ -2477,7 +2471,6 @@
                 });
             });
 
-            // Mobile accordion for tabs (Design / Layers) – only one tab expanded at a time
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2552,7 +2545,6 @@
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
-            // Mobile lock toggle
             const lockToggle = document.getElementById('mobileLockToggle');
             if (lockToggle) {
                 lockToggle.addEventListener('click', function() {
@@ -2598,7 +2590,6 @@
             });
             handleResize();
             autoResizeCanvas();
-            // Collapse all accordion tabs by default on mobile
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(header => {
                     header.classList.remove('active');
@@ -2611,7 +2602,7 @@
         }
 
         // ================================================================
-        //  HANDLE RESIZE – ALWAYS RECREATE HANDLES ON TOUCH DEVICES
+        //  HANDLE RESIZE – unchanged (but includes new features)
         // ================================================================
         function handleResize() {
             applyMobileSpacingFix();
@@ -2625,7 +2616,6 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
-            // Layout adjustments (unchanged)
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2644,7 +2634,6 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
-                // On desktop, we don't enforce collapsed state – user can toggle via arrow
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2678,7 +2667,6 @@
                 }
             }
 
-            // Always recreate handles on touch devices after resize
             if (isTouchDevice && !isEditing && showHandles) {
                 clearTimeout(window._handleTimeout);
                 window._handleTimeout = setTimeout(() => {
@@ -2693,7 +2681,7 @@
         }
 
         // ================================================================
-        //  SELECTION HANDLING
+        //  SELECTION HANDLING – unchanged
         // ================================================================
         function handleSelection(e) {
             const sel = e.selected;
@@ -2726,7 +2714,7 @@
         }
 
         // ================================================================
-        //  KEYBOARD
+        //  KEYBOARD – unchanged
         // ================================================================
         function handleKeyboard(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
@@ -2767,7 +2755,7 @@
         }
 
         // ================================================================
-        //  SETUP EVENT LISTENERS
+        //  SETUP EVENT LISTENERS – unchanged but includes new buttons
         // ================================================================
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
@@ -2798,7 +2786,6 @@
             });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
-                // If handles are missing, recreate them immediately
                 if (showHandles && isTouchDevice && mobileHandles.length === 0 && !isPreviewMode) {
                     createMobileHandles();
                 }
@@ -2934,7 +2921,7 @@
         }
 
         // ================================================================
-        //  MEDIA UPLOAD HANDLERS (unchanged)
+        //  MEDIA UPLOAD HANDLERS – unchanged from older
         // ================================================================
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
@@ -3062,7 +3049,7 @@
         }
 
         // ================================================================
-        //  SETUP CONTROLS (unchanged)
+        //  SETUP CONTROLS – unchanged
         // ================================================================
         function setupBackgroundOptions() {
             document.getElementById('bgColorPicker').addEventListener('input', function() {
@@ -3241,7 +3228,7 @@
         }
 
         // ================================================================
-        //  SCROLL DETECTION (unchanged)
+        //  SCROLL DETECTION – unchanged
         // ================================================================
         document.addEventListener('touchstart', function(e) {
             touchStartTarget = e.target;
@@ -3277,7 +3264,7 @@
         }, { passive: true });
 
         // ================================================================
-        //  HINT (unchanged)
+        //  HINT – unchanged
         // ================================================================
         function showFirstRunHint() {
             if (sessionStorage.getItem('papirHintShown')) return;
@@ -3295,7 +3282,7 @@
         }
 
         // ================================================================
-        //  CANVAS RESIZE (unchanged)
+        //  CANVAS RESIZE – unchanged
         // ================================================================
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
@@ -3329,7 +3316,7 @@
         }
 
         // ================================================================
-        //  EXTRA RESIZE LISTENER FOR SAFETY
+        //  EXTRA RESIZE LISTENER – unchanged
         // ================================================================
         window.addEventListener('resize', function() {
             autoResizeCanvas();
@@ -3340,7 +3327,7 @@
         });
 
         // ================================================================
-        //  INIT
+        //  INIT – unchanged
         // ================================================================
         async function init() {
             if (document.fonts) {
@@ -3371,7 +3358,6 @@
             } else {
                 await loadDemoTemplate();
             }
-            // Load section state from localStorage
             loadSectionState();
             updateCheckoutDisplay();
             lockMobileObjects(false);
@@ -3383,7 +3369,6 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
-            // First handle creation
             setTimeout(() => { if (!isPreviewMode && showHandles && isTouchDevice) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
@@ -3425,9 +3410,6 @@
 
         init();
 
-        // ================================================================
-        //  CANVAS TOUCHMOVE – only prevent during active manipulation
-        // ================================================================
         (function() {
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl && canvasEl.parentElement) {
