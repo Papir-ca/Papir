@@ -513,6 +513,7 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <!-- ===== HTML – unchanged ===== -->
@@ -960,7 +961,11 @@
             if (!templateConfig || !templateConfig.config) { console.warn('No template config available'); return; }
             const config = templateConfig.config;
             canvas.clear();
-            canvas.backgroundColor = config.backgroundColor || '#ffffff';
+            if (config.textureSvg) {
+                canvas.backgroundColor = 'transparent';
+            } else {
+                canvas.backgroundColor = config.backgroundColor || '#ffffff';
+            }
 
             if (config.defaultFont && document.fonts) {
                 try { await document.fonts.load('1em "' + config.defaultFont + '"'); } catch (e) {}
@@ -1009,6 +1014,7 @@
 
         async function loadDemoTemplate() {
             canvas.clear();
+            removeTemplateTexture(canvas);
             canvas.backgroundColor = '#F5F5DC';
             await addTextElement('Happy Birthday!', 300, 120, { fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold' });
             await addTextElement('To someone special', 300, 200, { fontSize: 24, fontFamily: 'Montserrat', fill: '#BCAE83' });
@@ -1039,20 +1045,16 @@
         function applyTemplateTexture(canvas) {
             try {
                 const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
-                const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
+                const config = templateConfig.config || {};
+                const textureSvg = config.textureSvg;
                 if (!textureSvg) { console.log('No texture SVG found'); return; }
                 removeTemplateTexture(canvas);
-                const container = document.getElementById('canvasContainer');
-                if (!container) return;
-                const overlay = document.createElement('div');
-                overlay.className = 'canvas-texture-overlay';
-                overlay.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
-                const img = document.createElement('img');
-                img.src = textureSvg;
-                img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-                overlay.appendChild(img);
-                container.insertBefore(overlay, container.firstChild);
-                canvas.setBackgroundColor('transparent', function() { canvas.renderAll(); });
+                const canvasEl = document.getElementById('designCanvas');
+                if (!canvasEl) return;
+                canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
+                canvasEl.style.backgroundSize = 'cover';
+                canvasEl.style.backgroundPosition = 'center';
+                canvasEl.style.backgroundRepeat = 'no-repeat';
             } catch (err) { console.error('Error applying template texture:', err); }
         }
 
@@ -1060,7 +1062,10 @@
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl) {
                 canvasEl.style.backgroundImage = '';
+                canvasEl.style.backgroundSize = '';
+                canvasEl.style.backgroundPosition = '';
                 canvasEl.style.backgroundRepeat = '';
+                canvasEl.style.backgroundColor = '';
             }
             const overlay = document.querySelector('#canvasContainer .canvas-texture-overlay');
             if (overlay) overlay.remove();
@@ -1444,11 +1449,19 @@
                     const thumbBlob = dataURLToBlob(thumbDataURL);
                     thumbnailUrl = await uploadFile(thumbBlob, 'thumbnail.png', cardId);
                 } else {
+                    const editingBg = canvas.backgroundColor;
+                    const config = templateConfig?.config || {};
+                    if (config.backgroundColor) {
+                        canvas.backgroundColor = config.backgroundColor;
+                        canvas.renderAll();
+                    }
                     await new Promise(r => setTimeout(r, 100));
                     const canvasDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const canvasBlob = dataURLToBlob(canvasDataURL);
                     const cardId = 'TEMP-' + Date.now();
                     thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
+                    canvas.backgroundColor = editingBg;
+                    canvas.renderAll();
                 }
 
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');

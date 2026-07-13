@@ -436,6 +436,7 @@
     </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -574,7 +575,12 @@
                 console.log('Card template_config:', card.template_config ? 'present' : 'missing');
                 if (cardMediaContainer && card.template_config) {
                     try {
-                        const tc = JSON.parse(card.template_config);
+                        let tc;
+                        if (typeof card.template_config === 'string') {
+                            tc = JSON.parse(card.template_config);
+                        } else {
+                            tc = card.template_config || {};
+                        }
                         console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
                             const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
@@ -589,7 +595,9 @@
                             cardMediaContainer.insertBefore(overlay, cardMediaContainer.firstChild);
                             cardMediaContainer.style.backgroundColor = 'transparent';
                             console.log('Texture applied successfully');
-                        } else { console.log('No textureSvg found in template config'); }
+                        } else if (tc.config && tc.config.backgroundColor) {
+                            cardMediaContainer.style.backgroundColor = tc.config.backgroundColor;
+                        } else { console.log('No textureSvg or backgroundColor found in template config'); }
                     } catch (e) { console.error('Error applying template texture:', e); }
                 } else { console.log('No template_config on this card'); }
                 document.getElementById('displayCardId').textContent = 'Card ID: ' + card.card_id;
@@ -728,6 +736,8 @@
                 cardMediaContainer.style.backgroundRepeat = '';
                 cardMediaContainer.style.backgroundSize = '';
                 cardMediaContainer.style.backgroundColor = '';
+                const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
+                if (oldOverlay) oldOverlay.remove();
             }
         });
 
