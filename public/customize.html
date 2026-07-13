@@ -512,10 +512,9 @@
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
+    <!-- ===== HTML – unchanged ===== -->
     <div class="app-container">
         <div class="design-header">
             <div class="header-left">
@@ -559,6 +558,7 @@
                     <button class="tab" data-tab="layers"><i class="fas fa-layer-group"></i> Layers</button>
                 </div>
                 <div class="tab-content active" id="designTab">
+                    <!-- All property sections with h4 and .section-content – unchanged -->
                     <div class="property-section">
                         <h4><i class="fas fa-image"></i> Background &amp; Media</h4>
                         <div class="section-content">
@@ -953,12 +953,13 @@
         }
 
         // ================================================================
-        //  TEMPLATE LOADING
+        //  TEMPLATE LOADING – FIXED
         // ================================================================
         async function loadTemplateDesign() {
             if (!templateConfig || !templateConfig.config) { console.warn('No template config available'); return; }
             const config = templateConfig.config;
             canvas.clear();
+            // 🔥 If texture exists, set canvas background to transparent, else use config backgroundColor
             if (config.textureSvg) {
                 canvas.backgroundColor = 'transparent';
             } else {
@@ -1012,7 +1013,6 @@
 
         async function loadDemoTemplate() {
             canvas.clear();
-            removeTemplateTexture(canvas);
             canvas.backgroundColor = '#F5F5DC';
             await addTextElement('Happy Birthday!', 300, 120, { fontSize: 36, fontFamily: 'Playfair Display', fill: '#333', fontWeight: 'bold' });
             await addTextElement('To someone special', 300, 200, { fontSize: 24, fontFamily: 'Montserrat', fill: '#BCAE83' });
@@ -1038,27 +1038,25 @@
         }
 
         // ================================================================
-        //  TEMPLATE TEXTURE - FIXED with decodeURIComponent
+        //  TEMPLATE TEXTURE – EXACT OLDER WORKING LOGIC
         // ================================================================
         function applyTemplateTexture(canvas) {
             try {
                 const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
-                const config = templateConfig.config || {};
-                const textureSvg = config.textureSvg;
+                const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
                 if (!textureSvg) { console.log('No texture SVG found'); return; }
-                removeTemplateTexture(canvas);
+                const oldSvg = document.getElementById('templateSvgBg');
+                if (oldSvg) oldSvg.remove();
+                const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
+                existing.forEach(o => canvas.remove(o));
                 const canvasEl = document.getElementById('designCanvas');
-                if (!canvasEl) return;
-                // ✅ CRITICAL FIX: Decode the URI-encoded SVG
-                const decodedSvg = decodeURIComponent(textureSvg);
-                canvasEl.style.backgroundImage = 'url("' + decodedSvg + '")';
-                canvasEl.style.backgroundSize = 'cover';
-                canvasEl.style.backgroundPosition = 'center';
-                canvasEl.style.backgroundRepeat = 'no-repeat';
-                const container = document.getElementById('canvasContainer');
-                if (container) {
-                    container.style.background = 'transparent !important';
+                if (canvasEl) {
+                    canvasEl.style.backgroundImage = 'url("' + textureSvg + '")';
+                    canvasEl.style.backgroundRepeat = 'repeat';
+                    canvasEl.style.backgroundSize = 'auto';
+                    canvasEl.style.backgroundColor = 'transparent';
                 }
+                canvas.setBackgroundColor('transparent', function() { canvas.renderAll(); });
             } catch (err) { console.error('Error applying template texture:', err); }
         }
 
@@ -1066,17 +1064,8 @@
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl) {
                 canvasEl.style.backgroundImage = '';
-                canvasEl.style.backgroundSize = '';
-                canvasEl.style.backgroundPosition = '';
                 canvasEl.style.backgroundRepeat = '';
-                canvasEl.style.backgroundColor = '';
             }
-            const container = document.getElementById('canvasContainer');
-            if (container) {
-                container.style.background = '#ffffff !important';
-            }
-            const overlay = document.querySelector('#canvasContainer .canvas-texture-overlay');
-            if (overlay) overlay.remove();
             const oldSvg = document.getElementById('templateSvgBg');
             if (oldSvg) oldSvg.remove();
             const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
@@ -1457,19 +1446,11 @@
                     const thumbBlob = dataURLToBlob(thumbDataURL);
                     thumbnailUrl = await uploadFile(thumbBlob, 'thumbnail.png', cardId);
                 } else {
-                    const editingBg = canvas.backgroundColor;
-                    const config = templateConfig?.config || {};
-                    if (config.backgroundColor) {
-                        canvas.backgroundColor = config.backgroundColor;
-                        canvas.renderAll();
-                    }
                     await new Promise(r => setTimeout(r, 100));
                     const canvasDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const canvasBlob = dataURLToBlob(canvasDataURL);
                     const cardId = 'TEMP-' + Date.now();
                     thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
-                    canvas.backgroundColor = editingBg;
-                    canvas.renderAll();
                 }
 
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
@@ -1878,6 +1859,7 @@
                 });
                 canvas.selection = false;
                 canvas.renderAll();
+                // Floating tools button becomes exit button in landscape
                 if (floatingBtn) {
                     floatingBtn.innerHTML = '<i class="fas fa-times"></i>';
                     floatingBtn.title = 'Exit Preview';
@@ -1897,6 +1879,7 @@
                     }
                 });
                 canvas.selection = true;
+                // Restore floating tools button
                 if (floatingBtn) {
                     floatingBtn.innerHTML = '<i class="fas fa-tools"></i>';
                     floatingBtn.title = 'Open Tools';
@@ -1968,6 +1951,7 @@
                 clearMobileHandles();
                 return;
             }
+            // Always rebuild
             clearMobileHandles();
             const container = document.getElementById('canvasContainer');
             if (!container) return;
@@ -2001,6 +1985,7 @@
                 rotHandle.style.left = rotPos.left + 'px';
                 rotHandle.style.top = rotPos.top + 'px';
 
+                // Touch listeners (same as before)
                 let rotStartAngle = 0, rotStartObjAngle = 0;
                 rotHandle.addEventListener('touchstart', function(e) {
                     e.preventDefault(); e.stopPropagation();
@@ -2347,6 +2332,7 @@
             }
         }
 
+        // Save section state to localStorage
         function saveSectionState() {
             const state = {};
             document.querySelectorAll('.property-section').forEach(section => {
@@ -2377,6 +2363,7 @@
                         }
                     });
                 } else if (!isMobileLayout()) {
+                    // Desktop: expand all sections by default
                     document.querySelectorAll('.property-section').forEach(section => {
                         section.classList.remove('collapsed');
                         const id = section.dataset.sectionId;
@@ -2387,6 +2374,7 @@
         }
 
         function setupMobileUI() {
+            // Property sections: wrap content, add arrow toggle with max-2-expanded logic and localStorage
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2405,8 +2393,9 @@
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
 
+                // Set initial state from localStorage or default collapsed on mobile
                 const savedState = localStorage.getItem('papirSectionState');
-                let initialState = true;
+                let initialState = true; // default collapsed on mobile
                 if (savedState) {
                     try {
                         const state = JSON.parse(savedState);
@@ -2415,6 +2404,7 @@
                         }
                     } catch (e) {}
                 } else {
+                    // if no saved state, default collapsed on mobile
                     initialState = isMobileLayout();
                 }
                 if (initialState) {
@@ -2445,6 +2435,7 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
+                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
@@ -2486,6 +2477,7 @@
                 });
             });
 
+            // Mobile accordion for tabs (Design / Layers) – only one tab expanded at a time
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2560,6 +2552,7 @@
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
+            // Mobile lock toggle
             const lockToggle = document.getElementById('mobileLockToggle');
             if (lockToggle) {
                 lockToggle.addEventListener('click', function() {
@@ -2605,6 +2598,7 @@
             });
             handleResize();
             autoResizeCanvas();
+            // Collapse all accordion tabs by default on mobile
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(header => {
                     header.classList.remove('active');
@@ -2631,6 +2625,7 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
+            // Layout adjustments (unchanged)
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2649,6 +2644,7 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
+                // On desktop, we don't enforce collapsed state – user can toggle via arrow
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2682,6 +2678,7 @@
                 }
             }
 
+            // Always recreate handles on touch devices after resize
             if (isTouchDevice && !isEditing && showHandles) {
                 clearTimeout(window._handleTimeout);
                 window._handleTimeout = setTimeout(() => {
@@ -2801,6 +2798,7 @@
             });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
+                // If handles are missing, recreate them immediately
                 if (showHandles && isTouchDevice && mobileHandles.length === 0 && !isPreviewMode) {
                     createMobileHandles();
                 }
@@ -3327,6 +3325,7 @@
         }
 
         function handleMobileResize() {
+            // handled by handleResize
         }
 
         // ================================================================
@@ -3372,6 +3371,7 @@
             } else {
                 await loadDemoTemplate();
             }
+            // Load section state from localStorage
             loadSectionState();
             updateCheckoutDisplay();
             lockMobileObjects(false);
@@ -3383,6 +3383,7 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
+            // First handle creation
             setTimeout(() => { if (!isPreviewMode && showHandles && isTouchDevice) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
@@ -3424,6 +3425,9 @@
 
         init();
 
+        // ================================================================
+        //  CANVAS TOUCHMOVE – only prevent during active manipulation
+        // ================================================================
         (function() {
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl && canvasEl.parentElement) {

@@ -436,7 +436,6 @@
     </style>
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -586,13 +585,11 @@
                         }
                         console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
-                            // ✅ CRITICAL FIX: Decode the URI-encoded SVG
-                            const decodedSvg = decodeURIComponent(tc.config.textureSvg);
                             const overlayEl = document.createElement('div');
                             overlayEl.className = 'card-texture-overlay';
                             overlayEl.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
                             const img = document.createElement('img');
-                            img.src = decodedSvg;
+                            img.src = tc.config.textureSvg;  // Already a valid data: URL
                             img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
                             overlayEl.appendChild(img);
                             cardMediaContainer.insertBefore(overlayEl, cardMediaContainer.firstChild);
