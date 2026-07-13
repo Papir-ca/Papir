@@ -434,8 +434,8 @@
             .giftbox-reveal { transform: scale(0.7); }
         }
     </style>
-<base target="_blank">
-<base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
 </head>
 <body>
     <a href="index.html" class="back-button" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -519,6 +519,9 @@
             catch(e) { return 'Unknown'; }
         }
 
+        // ================================================================
+        //  LOAD CARD – with decodeURIComponent fix
+        // ================================================================
         async function loadCard(cardId) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/cards/${cardId}`);
@@ -533,6 +536,7 @@
                 const cardMediaContainer = document.getElementById('cardMediaContainer');
                 video.pause();
                 audio.pause();
+
                 const videoSrc = card.video_url || (card.message_type === 'video' ? card.media_url : null);
                 const hasOverlay = !!card.overlay_url;
                 if (videoSrc) {
@@ -559,6 +563,7 @@
                     audioWrapper.style.display = 'none';
                     audio.src = '';
                 }
+
                 const msgWrapper = document.getElementById('cardMessageWrapper');
                 const msgEl = document.getElementById('cardMessage');
                 const toggleBtn = document.getElementById('toggleMessageBtn');
@@ -571,10 +576,12 @@
                     toggleSpan.textContent = 'Show Message';
                     toggleIcon.className = 'fas fa-chevron-down';
                 }
-                console.log('Card template_config:', card.template_config ? 'present' : 'missing');
-                // Remove any existing overlay
+
+                // Remove any old texture overlay
                 const oldOverlay = cardMediaContainer.querySelector('.card-texture-overlay');
                 if (oldOverlay) oldOverlay.remove();
+
+                // === TEXTURE APPLICATION with decode ===
                 if (cardMediaContainer && card.template_config) {
                     try {
                         let tc;
@@ -583,10 +590,11 @@
                         } else {
                             tc = card.template_config || {};
                         }
-                        console.log('Template config parsed:', tc);
                         if (tc.config && tc.config.textureSvg) {
-                            // DECODE the URI-encoded SVG
+                            // ✅ DECODE the URL-encoded SVG
                             const decoded = decodeURIComponent(tc.config.textureSvg);
+                            console.log('Decoded viewer texture (first 100 chars):', decoded.substring(0, 100));
+
                             const overlayEl = document.createElement('div');
                             overlayEl.className = 'card-texture-overlay';
                             overlayEl.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
@@ -596,12 +604,19 @@
                             overlayEl.appendChild(img);
                             cardMediaContainer.insertBefore(overlayEl, cardMediaContainer.firstChild);
                             cardMediaContainer.style.backgroundColor = 'transparent';
-                            console.log('Texture applied successfully');
+                            console.log('Texture applied successfully in viewer');
                         } else if (tc.config && tc.config.backgroundColor) {
                             cardMediaContainer.style.backgroundColor = tc.config.backgroundColor;
-                        } else { console.log('No textureSvg or backgroundColor found in template config'); }
-                    } catch (e) { console.error('Error applying template texture:', e); }
-                } else { console.log('No template_config on this card'); }
+                        } else {
+                            console.log('No textureSvg or backgroundColor found in template config');
+                        }
+                    } catch (e) {
+                        console.error('Error applying template texture:', e);
+                    }
+                } else {
+                    console.log('No template_config on this card');
+                }
+
                 document.getElementById('displayCardId').textContent = 'Card ID: ' + card.card_id;
                 document.getElementById('displayCardType').textContent = card.message_type;
                 document.getElementById('displayCardDate').textContent = formatDate(card.created_at);
@@ -611,6 +626,7 @@
             }
         }
 
+        // ===== FETCH & CONFIRM =====
         async function fetchCardAndConfirm(cardId) {
             document.getElementById('cardLoading').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
@@ -625,6 +641,7 @@
             finally { document.getElementById('cardLoading').style.display = 'none'; }
         }
 
+        // ===== REVEAL TYPE =====
         function determineRevealType(card) {
             if (!card) return 'envelope';
             if (card.template_config) {
@@ -648,6 +665,7 @@
             return 'envelope';
         }
 
+        // ===== REVEAL ANIMATION =====
         function playRevealAnimation(revealType, onComplete) {
             const stage = document.getElementById('revealStage');
             const envelope = document.getElementById('envelopeReveal');
@@ -674,6 +692,7 @@
             }, 2600);
         }
 
+        // ===== EVENT LISTENERS =====
         document.getElementById('confirmViewingBtn').addEventListener('click', async () => {
             document.getElementById('confirmationModal').classList.remove('active');
             if (pendingCardData) {

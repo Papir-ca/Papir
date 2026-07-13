@@ -509,6 +509,11 @@
         .preview-mode #toolbarRedoBtn { display: none !important; }
     </style>
     <base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -752,6 +757,9 @@
     </div>
 
     <script>
+        // ================================================================
+        //  FABRIC CANVAS SETUP
+        // ================================================================
         const canvas = new fabric.Canvas('designCanvas', {
             preserveObjectStacking: true,
             selection: true,
@@ -793,6 +801,9 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         });
 
+        // ================================================================
+        //  STATE
+        // ================================================================
         let selectedObject = null;
         let templateConfig = null;
         let showHandles = true;
@@ -822,6 +833,9 @@
             console.log('[' + (type || 'info') + '] ' + message);
         }
 
+        // ================================================================
+        //  SAVE / LOAD / UNDO / REDO
+        // ================================================================
         function saveState() {
             const json = JSON.stringify(canvas.toJSON(['isVideo','videoBlobUrl','videoType','isAudio','audioBlobUrl','audioType','isTexture','isParticle']));
             if (undoStack.length === 0 || json !== undoStack[undoStack.length - 1]) {
@@ -938,10 +952,14 @@
             };
         }
 
+        // ================================================================
+        //  TEMPLATE LOADING
+        // ================================================================
         async function loadTemplateDesign() {
             if (!templateConfig || !templateConfig.config) { console.warn('No template config available'); return; }
             const config = templateConfig.config;
             canvas.clear();
+            // Set background to template color (will be overridden if texture exists)
             canvas.backgroundColor = config.backgroundColor || '#ffffff';
 
             if (config.defaultFont && document.fonts) {
@@ -1015,41 +1033,62 @@
             canvas.add(textObj);
         }
 
+        // ================================================================
+        //  TEMPLATE TEXTURE – FIXED
+        // ================================================================
         function applyTemplateTexture(canvas) {
             try {
                 const templateConfig = JSON.parse(localStorage.getItem('selectedTemplateConfig') || '{}');
                 const textureSvg = templateConfig.config && templateConfig.config.textureSvg;
                 if (!textureSvg) { console.log('No texture SVG found'); return; }
-                // DECODE the URI-encoded string
+                // ✅ DECODE the URL-encoded string
                 const decoded = decodeURIComponent(textureSvg);
+                console.log('Decoded texture SVG (first 100 chars):', decoded.substring(0, 100));
+
                 const oldSvg = document.getElementById('templateSvgBg');
                 if (oldSvg) oldSvg.remove();
                 const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
                 existing.forEach(o => canvas.remove(o));
+
                 const canvasEl = document.getElementById('designCanvas');
                 if (canvasEl) {
                     canvasEl.style.backgroundImage = 'url("' + decoded + '")';
-                    canvasEl.style.backgroundRepeat = 'repeat';
-                    canvasEl.style.backgroundSize = 'auto';
+                    canvasEl.style.backgroundSize = 'cover';
+                    canvasEl.style.backgroundPosition = 'center';
+                    canvasEl.style.backgroundRepeat = 'no-repeat';
                     canvasEl.style.backgroundColor = 'transparent';
                 }
                 canvas.setBackgroundColor('transparent', function() { canvas.renderAll(); });
-            } catch (err) { console.error('Error applying template texture:', err); }
+            } catch (err) {
+                console.error('Error applying template texture:', err);
+            }
         }
 
         function removeTemplateTexture(canvas) {
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl) {
                 canvasEl.style.backgroundImage = '';
+                canvasEl.style.backgroundSize = '';
+                canvasEl.style.backgroundPosition = '';
                 canvasEl.style.backgroundRepeat = '';
+                canvasEl.style.backgroundColor = '';
             }
             const oldSvg = document.getElementById('templateSvgBg');
             if (oldSvg) oldSvg.remove();
             const existing = canvas.getObjects().filter(o => o.name === 'templateTextureBg' || o.isTexture);
             existing.forEach(o => canvas.remove(o));
+            // Reset to template background color
+            if (templateConfig && templateConfig.config) {
+                canvas.backgroundColor = templateConfig.config.backgroundColor || '#ffffff';
+            } else {
+                canvas.backgroundColor = '#ffffff';
+            }
             canvas.renderAll();
         }
 
+        // ================================================================
+        //  LAYERS
+        // ================================================================
         function updateLayerList() {
             const list = document.getElementById('layerList');
             if (!list) return;
@@ -1183,6 +1222,9 @@
             closeLayerEditModal();
         }
 
+        // ================================================================
+        //  LOCK / UNLOCK
+        // ================================================================
         function toggleObjectLock(obj) {
             if (!obj || obj.isBackground || obj.isTexture) return;
             if (obj._userLocked) {
@@ -1232,6 +1274,9 @@
             if (showHandles && !isPreviewMode) createMobileHandles();
         }
 
+        // ================================================================
+        //  MEDIA CONTROLS
+        // ================================================================
         function updateMediaControls() {
             const hasVideo = canvas.getObjects().some(obj => obj.isVideo && obj.videoElement);
             const hasAudio = canvas.getObjects().some(obj => obj.isAudio && obj.audioElement);
@@ -1298,6 +1343,9 @@
             updateMediaControls();
         }
 
+        // ================================================================
+        //  CHECKOUT / UPLOAD
+        // ================================================================
         function updateCheckoutDisplay() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const total = (qty * 2.99).toFixed(2);
@@ -1411,11 +1459,19 @@
                     const thumbBlob = dataURLToBlob(thumbDataURL);
                     thumbnailUrl = await uploadFile(thumbBlob, 'thumbnail.png', cardId);
                 } else {
+                    // Non-video export: temporarily restore the background color for the thumbnail
+                    const bgColor = canvas.backgroundColor;
+                    if (templateConfig && templateConfig.config && templateConfig.config.backgroundColor) {
+                        canvas.backgroundColor = templateConfig.config.backgroundColor;
+                        canvas.renderAll();
+                    }
                     await new Promise(r => setTimeout(r, 100));
                     const canvasDataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
                     const canvasBlob = dataURLToBlob(canvasDataURL);
                     const cardId = 'TEMP-' + Date.now();
                     thumbnailUrl = await uploadFile(canvasBlob, 'card-design.png', cardId);
+                    canvas.backgroundColor = bgColor;
+                    canvas.renderAll();
                 }
 
                 const textObjects = canvas.getObjects().filter(obj => obj.type === 'i-text');
@@ -1485,6 +1541,9 @@
             }
         }
 
+        // ================================================================
+        //  SAVE / LOAD PROGRESS
+        // ================================================================
         function checkForSavedProgress() {
             const saved = localStorage.getItem('papirDesignAutosave');
             if (saved) {
@@ -1571,6 +1630,9 @@
             }, 300000);
         }
 
+        // ================================================================
+        //  RESET
+        // ================================================================
         function resetDesign() {
             if (confirm('Reset to template defaults? All changes will be lost.')) {
                 canvas.getObjects().forEach(obj => {
@@ -1594,6 +1656,9 @@
             }
         }
 
+        // ================================================================
+        //  CONTROLS
+        // ================================================================
         function updateControls() {
             if (!selectedObject) return;
             const rotSlider = document.getElementById('rotation');
@@ -1856,6 +1921,9 @@
             }
         }
 
+        // ================================================================
+        //  MOBILE HANDLES – PERSISTENT
+        // ================================================================
         function getHandlePosition(obj) {
             const canvasEl = document.getElementById('designCanvas');
             const canvasRect = canvasEl.getBoundingClientRect();
@@ -2089,6 +2157,9 @@
             });
         }
 
+        // ================================================================
+        //  MOBILE CONTEXT MENU
+        // ================================================================
         function showMobileContextMenu(x, y) {
             const menu = document.getElementById('mobileContextMenu');
             const backdrop = document.getElementById('ctxBackdrop');
@@ -2225,6 +2296,9 @@
             });
         }
 
+        // ================================================================
+        //  MOBILE UI / ACCORDION – with localStorage persistence for sections
+        // ================================================================
         function applyMobileSpacingFix() {
             if (!isMobileLayout()) return;
             const canvasArea = document.querySelector('.canvas-area');
@@ -2275,6 +2349,7 @@
             }
         }
 
+        // Save section state to localStorage
         function saveSectionState() {
             const state = {};
             document.querySelectorAll('.property-section').forEach(section => {
@@ -2305,6 +2380,7 @@
                         }
                     });
                 } else if (!isMobileLayout()) {
+                    // Desktop: expand all sections by default
                     document.querySelectorAll('.property-section').forEach(section => {
                         section.classList.remove('collapsed');
                         const id = section.dataset.sectionId;
@@ -2315,6 +2391,7 @@
         }
 
         function setupMobileUI() {
+            // Property sections: wrap content, add arrow toggle with max-2-expanded logic and localStorage
             document.querySelectorAll('.property-section').forEach(section => {
                 const h4 = section.querySelector('h4');
                 if (!h4) return;
@@ -2333,8 +2410,9 @@
                 const sectionId = section.id || 'section-' + Math.random().toString(36).substr(2, 6);
                 section.dataset.sectionId = sectionId;
 
+                // Set initial state from localStorage or default collapsed on mobile
                 const savedState = localStorage.getItem('papirSectionState');
-                let initialState = true;
+                let initialState = true; // default collapsed on mobile
                 if (savedState) {
                     try {
                         const state = JSON.parse(savedState);
@@ -2343,6 +2421,7 @@
                         }
                     } catch (e) {}
                 } else {
+                    // if no saved state, default collapsed on mobile
                     initialState = isMobileLayout();
                 }
                 if (initialState) {
@@ -2373,6 +2452,7 @@
                 function toggleSectionArrow(e, clientX) {
                     const rect = h4.getBoundingClientRect();
                     const clickX = clientX - rect.left;
+                    // Only arrow area (rightmost 40px) toggles
                     if (clickX < rect.width - 40) return;
                     const section = h4.closest('.property-section');
                     if (!section) return;
@@ -2414,6 +2494,7 @@
                 });
             });
 
+            // Mobile accordion for tabs (Design / Layers) – only one tab expanded at a time
             let accordion = document.getElementById('mobileAccordionContainer');
             if (!accordion) {
                 accordion = document.createElement('div');
@@ -2488,6 +2569,7 @@
                 if (tabs) tabs.parentNode.insertBefore(accordion, tabs.nextSibling);
             }
 
+            // Mobile lock toggle
             const lockToggle = document.getElementById('mobileLockToggle');
             if (lockToggle) {
                 lockToggle.addEventListener('click', function() {
@@ -2533,6 +2615,7 @@
             });
             handleResize();
             autoResizeCanvas();
+            // Collapse all accordion tabs by default on mobile
             if (isMobileLayout()) {
                 document.querySelectorAll('.mobile-accordion-header').forEach(header => {
                     header.classList.remove('active');
@@ -2544,6 +2627,9 @@
             }
         }
 
+        // ================================================================
+        //  HANDLE RESIZE – ALWAYS RECREATE HANDLES ON TOUCH DEVICES
+        // ================================================================
         function handleResize() {
             applyMobileSpacingFix();
             const isMobile = isMobileLayout();
@@ -2556,6 +2642,7 @@
             const isEditing = activeObj && activeObj.type === 'i-text' && activeObj.isEditing;
             const htmlFocused = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable);
 
+            // Layout adjustments (unchanged)
             if (!isMobile) {
                 if (propertiesPanel && checkoutSection) {
                     const order = ['designTab', 'layersTab'];
@@ -2574,6 +2661,7 @@
                     const target = document.getElementById(activeTab.dataset.tab + 'Tab');
                     if (target) target.classList.add('active');
                 }
+                // On desktop, we don't enforce collapsed state – user can toggle via arrow
             } else {
                 if (accordionContainer) {
                     accordionContainer.style.display = 'block';
@@ -2607,6 +2695,7 @@
                 }
             }
 
+            // Always recreate handles on touch devices after resize
             if (isTouchDevice && !isEditing && showHandles) {
                 clearTimeout(window._handleTimeout);
                 window._handleTimeout = setTimeout(() => {
@@ -2620,6 +2709,9 @@
             }
         }
 
+        // ================================================================
+        //  SELECTION HANDLING
+        // ================================================================
         function handleSelection(e) {
             const sel = e.selected;
             if (sel.length === 1) {
@@ -2650,6 +2742,9 @@
             }
         }
 
+        // ================================================================
+        //  KEYBOARD
+        // ================================================================
         function handleKeyboard(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
             if (selectedObject && selectedObject.type === 'i-text' && selectedObject.isEditing) return;
@@ -2688,6 +2783,9 @@
             }
         }
 
+        // ================================================================
+        //  SETUP EVENT LISTENERS
+        // ================================================================
         function setupEventListeners() {
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
@@ -2717,6 +2815,7 @@
             });
             canvas.on('after:render', function() {
                 updateMobileHandlePositions();
+                // If handles are missing, recreate them immediately
                 if (showHandles && isTouchDevice && mobileHandles.length === 0 && !isPreviewMode) {
                     createMobileHandles();
                 }
@@ -2851,6 +2950,9 @@
             }, { passive: false });
         }
 
+        // ================================================================
+        //  MEDIA UPLOAD HANDLERS (unchanged)
+        // ================================================================
         async function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -2976,6 +3078,9 @@
             reader.readAsDataURL(file);
         }
 
+        // ================================================================
+        //  SETUP CONTROLS (unchanged)
+        // ================================================================
         function setupBackgroundOptions() {
             document.getElementById('bgColorPicker').addEventListener('input', function() {
                 document.querySelectorAll('.palette-btn').forEach(p => p.classList.remove('active'));
@@ -3152,6 +3257,9 @@
             });
         }
 
+        // ================================================================
+        //  SCROLL DETECTION (unchanged)
+        // ================================================================
         document.addEventListener('touchstart', function(e) {
             touchStartTarget = e.target;
             const touch = e.touches[0];
@@ -3185,6 +3293,9 @@
             scrollTimer = setTimeout(() => { isScrolling = false; }, 300);
         }, { passive: true });
 
+        // ================================================================
+        //  HINT (unchanged)
+        // ================================================================
         function showFirstRunHint() {
             if (sessionStorage.getItem('papirHintShown')) return;
             const hint = document.getElementById('hintBubble');
@@ -3200,6 +3311,9 @@
             sessionStorage.setItem('papirHintShown', 'true');
         }
 
+        // ================================================================
+        //  CANVAS RESIZE (unchanged)
+        // ================================================================
         function adjustCanvasForMobile() {
             if (!isMobileLayout()) return;
             const isLandscape = window.innerWidth > window.innerHeight;
@@ -3231,6 +3345,9 @@
             // handled by handleResize
         }
 
+        // ================================================================
+        //  EXTRA RESIZE LISTENER FOR SAFETY
+        // ================================================================
         window.addEventListener('resize', function() {
             autoResizeCanvas();
             if (!isPreviewMode && showHandles && isTouchDevice) {
@@ -3239,6 +3356,9 @@
             }
         });
 
+        // ================================================================
+        //  INIT
+        // ================================================================
         async function init() {
             if (document.fonts) {
                 try { await document.fonts.ready; } catch (e) {}
@@ -3268,6 +3388,7 @@
             } else {
                 await loadDemoTemplate();
             }
+            // Load section state from localStorage
             loadSectionState();
             updateCheckoutDisplay();
             lockMobileObjects(false);
@@ -3279,6 +3400,7 @@
             }
             setupEventListeners();
             setupMobileContextMenu();
+            // First handle creation
             setTimeout(() => { if (!isPreviewMode && showHandles && isTouchDevice) createMobileHandles(); }, 200);
             setupTabs();
             setupBackgroundOptions();
@@ -3320,6 +3442,9 @@
 
         init();
 
+        // ================================================================
+        //  CANVAS TOUCHMOVE – only prevent during active manipulation
+        // ================================================================
         (function() {
             const canvasEl = document.getElementById('designCanvas');
             if (canvasEl && canvasEl.parentElement) {
